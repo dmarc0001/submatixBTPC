@@ -1,9 +1,22 @@
 package de.dmarcini.submatix.pclogger.gui;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-
+import java.awt.Font;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -21,59 +34,36 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.awt.BorderLayout;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
-import javax.swing.JMenuBar;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-
-import java.awt.event.ActionEvent;
-import javax.swing.KeyStroke;
-
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.awt.Toolkit;
-import javax.swing.ImageIcon;
-import javax.swing.JTabbedPane;
-import javax.swing.JPanel;
-import javax.swing.JComboBox;
-import javax.swing.JButton;
-
-import de.dmarcini.submatix.pclogger.comm.BTCommunication;
-import de.dmarcini.submatix.pclogger.res.ProjectConst;
-import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
-import de.dmarcini.submatix.pclogger.utils.SPX42Config;
-
-import java.awt.Insets;
-import java.awt.Dimension;
-import javax.swing.JLabel;
-import java.awt.Component;
-import javax.swing.border.TitledBorder;
-import javax.swing.JSpinner;
-import java.awt.Color;
-import java.awt.Rectangle;
-import javax.swing.SwingConstants;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.JCheckBox;
+import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.Font;
-import javax.swing.border.EtchedBorder;
-import javax.swing.JProgressBar;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -82,9 +72,14 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import de.dmarcini.submatix.pclogger.comm.BTCommunication;
+import de.dmarcini.submatix.pclogger.res.ProjectConst;
+import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
+import de.dmarcini.submatix.pclogger.utils.SPX42Config;
+
+//@formatter:off
 public class MainCommGUI extends JFrame implements ActionListener, MouseMotionListener, ChangeListener, ItemListener
 {
-  //@formatter:off
   //
   private static final long                 serialVersionUID = 2L;
   private static ResourceBundle                stringsBundle = null;
@@ -94,82 +89,82 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   static Handler                                    cHandler = null; 
   private BTCommunication                             btComm = null;
   private final ArrayList<String>               messagesList = new ArrayList<String>();
-  private SPX42Config                          currentConfig = new SPX42Config();
+  private final SPX42Config                    currentConfig = new SPX42Config();
   private SPX42Config                            savedConfig = null;
   private boolean                               ignoreAction = false;
-  private static Level                        optionLogLevel = Level.FINEST;
+  private static Level                        optionLogLevel = Level.FINE;
   private static boolean                  readBtCacheOnStart = false;
   private static File                                logFile = new File("logfile.log");
   //
   //@formatter:on
-  private JFrame frmMainwindowtitle;
-  private JTextField statusTextField;
-  private JMenuItem mntmExit;
-  private JPanel connectionPanel;
-  private JPanel conigPanel;
-  private JButton connectButton;
-  private JComboBox<String> portComboBox;
-  private JMenu mnLanguages;
-  private JTabbedPane tabbedPane;
-  private JMenu mnFile;
-  private JMenu mnOptions;
-  private JMenu mnHelp;
-  private JMenuItem mntmHelp;
-  private JMenuItem mntmInfo;
-  private JLabel serialNumberLabel;
-  protected JLabel serialNumberText;
-  private JButton readSPX42ConfigButton;
-  private JPanel decompressionPanel;
-  private JLabel decoGradientsHighLabel;
-  private JSpinner decoGradientenHighSpinner;
-  private JLabel decoLaststopLabel;
-  private JComboBox<String> decoLastStopComboBox;
-  private JLabel decoDyngradientsLabel;
-  private JLabel decoDeepstopsLabel;
-  private JLabel decoGradientsLowLabel;
-  private JCheckBox decoDeepStopCheckBox;
-  private JSpinner decoGradientenLowSpinner;
-  private JComboBox<String> decoGradientenPresetComboBox;
-  private JLabel lblSetpointAutosetpoint;
-  private JComboBox<String> autoSetpointComboBox;
-  private JLabel lblSetpointHighsetpoint;
-  private JComboBox<String> highSetpointComboBox;
-  private JPanel setpointPanel;
-  private JPanel displayPanel;
-  private JLabel lblDisplayBrightness;
-  private JComboBox<String> displayBrightnessComboBox;
-  private JLabel lblDisplayOrientation;
-  private JComboBox<String> displayOrientationComboBox;
-  private JPanel unitsPanel;
-  private JLabel lblUnitsTemperature;
-  private JComboBox<String> unitsTemperatureComboBox;
-  private JLabel lblUnitsDepth;
-  private JComboBox<String> unitsDepthComboBox;
-  private JLabel lblUnitsSalinity;
-  private JComboBox<String> unitsSalnityComboBox;
-  private JPanel individualPanel;
-  private JLabel lblSenormode;
-  private JLabel individualsLogintervalLabel;
-  private JComboBox<String> individualsLogintervalComboBox;
-  private JLabel lblIndividualsPscrMode;
-  private JCheckBox chIndividualsSensorsOnCheckbox;
-  private JCheckBox IndividualsPscrModoOnCheckbox;
-  private JComboBox<String> individualsSensorwarnComboBox;
-  private JLabel individualsAcusticWarningsLabel;
-  private JCheckBox decoDynGradientsCheckBox;
-  private JLabel lblSensorwarnings;
-  private JCheckBox individualsWarningsOnCheckBox;
-  private JLabel individualsNotLicensedLabel;
-  private JButton writeSPX42ConfigButton;
-  private JPanel debugPanel;
-  private JTextField testCmdTextField;
-  private JButton testSubmitButton;
-  private JLabel firmwareVersionLabel;
-  private JLabel firmwareVersionValueLabel;
-  private JButton connectBtRefreshButton;
-  private JProgressBar discoverProgressBar;
-  private JButton pinButton;
-  private JLabel ackuLabel;
+  private JFrame                  frmMainwindowtitle;
+  private JTextField              statusTextField;
+  private JMenuItem               mntmExit;
+  private JPanel                  connectionPanel;
+  private JPanel                  conigPanel;
+  private JButton                 connectButton;
+  private JComboBox               portComboBox;
+  private JMenu                   mnLanguages;
+  private JTabbedPane             tabbedPane;
+  private JMenu                   mnFile;
+  private JMenu                   mnOptions;
+  private JMenu                   mnHelp;
+  private JMenuItem               mntmHelp;
+  private JMenuItem               mntmInfo;
+  private JLabel                  serialNumberLabel;
+  protected JLabel                serialNumberText;
+  private JButton                 readSPX42ConfigButton;
+  private JPanel                  decompressionPanel;
+  private JLabel                  decoGradientsHighLabel;
+  private JSpinner                decoGradientenHighSpinner;
+  private JLabel                  decoLaststopLabel;
+  private JComboBox               decoLastStopComboBox;
+  private JLabel                  decoDyngradientsLabel;
+  private JLabel                  decoDeepstopsLabel;
+  private JLabel                  decoGradientsLowLabel;
+  private JCheckBox               decoDeepStopCheckBox;
+  private JSpinner                decoGradientenLowSpinner;
+  private JComboBox               decoGradientenPresetComboBox;
+  private JLabel                  lblSetpointAutosetpoint;
+  private JComboBox               autoSetpointComboBox;
+  private JLabel                  lblSetpointHighsetpoint;
+  private JComboBox               highSetpointComboBox;
+  private JPanel                  setpointPanel;
+  private JPanel                  displayPanel;
+  private JLabel                  lblDisplayBrightness;
+  private JComboBox               displayBrightnessComboBox;
+  private JLabel                  lblDisplayOrientation;
+  private JComboBox               displayOrientationComboBox;
+  private JPanel                  unitsPanel;
+  private JLabel                  lblUnitsTemperature;
+  private JComboBox               unitsTemperatureComboBox;
+  private JLabel                  lblUnitsDepth;
+  private JComboBox               unitsDepthComboBox;
+  private JLabel                  lblUnitsSalinity;
+  private JComboBox               unitsSalnityComboBox;
+  private JPanel                  individualPanel;
+  private JLabel                  lblSenormode;
+  private JLabel                  individualsLogintervalLabel;
+  private JComboBox               individualsLogintervalComboBox;
+  private JLabel                  lblIndividualsPscrMode;
+  private JCheckBox               individualsSensorsOnCheckbox;
+  private JCheckBox               individualsPscrModeOnCheckbox;
+  private JComboBox               individualsSensorWarnComboBox;
+  private JLabel                  individualsAcusticWarningsLabel;
+  private JCheckBox               decoDynGradientsCheckBox;
+  private JLabel                  lblSensorwarnings;
+  private JCheckBox               individualsWarningsOnCheckBox;
+  private JLabel                  individualsNotLicensedLabel;
+  private JButton                 writeSPX42ConfigButton;
+  private JPanel                  debugPanel;
+  private JTextField              testCmdTextField;
+  private JButton                 testSubmitButton;
+  private JLabel                  firmwareVersionLabel;
+  private JLabel                  firmwareVersionValueLabel;
+  private JButton                 connectBtRefreshButton;
+  private JProgressBar            discoverProgressBar;
+  private JButton                 pinButton;
+  private JLabel                  ackuLabel;
 
   /**
    * Launch the application.
@@ -182,29 +177,28 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     //
     // Kommandozeilenargumente parsen
     //
-    if( null == (cmd = parseCliOptions( args )) )
+    if( null == ( cmd = parseCliOptions( args ) ) )
     {
       System.err.println( "Error while scanning CLI-Args...." );
       System.exit( -1 );
     }
     if( cmd.hasOption( "loglevel" ) )
     {
-      optionLogLevel = parseLogLevel( cmd.getOptionValue( "loglevel" )) ;
+      optionLogLevel = parseLogLevel( cmd.getOptionValue( "loglevel" ) );
     }
-    if( cmd.hasOption( "cacheonstart" ))
+    if( cmd.hasOption( "cacheonstart" ) )
     {
       readBtCacheOnStart = true;
     }
-    if( cmd.hasOption( "logfile" ))
+    if( cmd.hasOption( "logfile" ) )
     {
-      logFile = parseNewLogFile( cmd.getOptionValue( "logfile" ));
+      logFile = parseNewLogFile( cmd.getOptionValue( "logfile" ) );
     }
-    
     //
-    // Style bestimmen, wenn möglich 
+    // Style bestimmen, wenn möglich
     //
-    EventQueue.invokeLater( new Runnable() 
-    {
+    EventQueue.invokeLater( new Runnable() {
+      @Override
       public void run()
       {
         try
@@ -267,7 +261,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     btComm = new BTCommunication( LOGGER );
     btComm.addActionListener( this );
     String[] entrys = btComm.getNameArray();
-    ComboBoxModel<String> portBoxModel = new DefaultComboBoxModel<String>( entrys );
+    ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
     portComboBox.setModel( portBoxModel );
     initLanuageMenu( programLocale );
     if( readBtCacheOnStart )
@@ -308,7 +302,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     connectionPanel = new JPanel();
     tabbedPane.addTab( "CONNECTION", null, connectionPanel, null );
     tabbedPane.setEnabledAt( 0, true );
-    portComboBox = new JComboBox<String>();
+    portComboBox = new JComboBox();
     portComboBox.addActionListener( this );
     portComboBox.addMouseMotionListener( this );
     portComboBox.setPreferredSize( new Dimension( 220, 40 ) );
@@ -339,28 +333,33 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     pinButton.addMouseMotionListener( this );
     ackuLabel = new JLabel( " " );
     GroupLayout gl_connectionPanel = new GroupLayout( connectionPanel );
-    gl_connectionPanel.setHorizontalGroup( gl_connectionPanel
-            .createParallelGroup( Alignment.LEADING )
-            .addGroup(
-                    gl_connectionPanel.createSequentialGroup().addContainerGap().addComponent( discoverProgressBar, GroupLayout.DEFAULT_SIZE, 803, Short.MAX_VALUE )
-                            .addContainerGap() )
-            .addGroup(
-                    gl_connectionPanel
-                            .createSequentialGroup()
-                            .addGap( 45 )
-                            .addGroup(
-                                    gl_connectionPanel.createParallelGroup( Alignment.LEADING, false )
-                                            .addComponent( ackuLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                            .addComponent( portComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) )
-                            .addGap( 70 )
-                            .addGroup(
-                                    gl_connectionPanel
-                                            .createParallelGroup( Alignment.LEADING, false )
-                                            .addComponent( connectBtRefreshButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                            .addGroup(
-                                                    gl_connectionPanel.createSequentialGroup()
-                                                            .addComponent( connectButton, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE )
-                                                            .addPreferredGap( ComponentPlacement.RELATED ).addComponent( pinButton ) ) ).addGap( 170 ) ) );
+    gl_connectionPanel.setHorizontalGroup( gl_connectionPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_connectionPanel
+                    .createSequentialGroup()
+                    .addGroup(
+                            gl_connectionPanel
+                                    .createParallelGroup( Alignment.LEADING )
+                                    .addGroup(
+                                            gl_connectionPanel
+                                                    .createSequentialGroup()
+                                                    .addGap( 45 )
+                                                    .addGroup(
+                                                            gl_connectionPanel.createParallelGroup( Alignment.LEADING, false )
+                                                                    .addComponent( ackuLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                                                    .addComponent( portComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) )
+                                                    .addGap( 70 )
+                                                    .addGroup(
+                                                            gl_connectionPanel
+                                                                    .createParallelGroup( Alignment.LEADING, false )
+                                                                    .addComponent( connectBtRefreshButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                                                    .addGroup(
+                                                                            gl_connectionPanel.createSequentialGroup()
+                                                                                    .addComponent( connectButton, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE )
+                                                                                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( pinButton ) ) ) )
+                                    .addGroup(
+                                            gl_connectionPanel.createSequentialGroup().addContainerGap()
+                                                    .addComponent( discoverProgressBar, GroupLayout.PREFERRED_SIZE, 763, GroupLayout.PREFERRED_SIZE ) ) )
+                    .addContainerGap( 52, Short.MAX_VALUE ) ) );
     gl_connectionPanel.setVerticalGroup( gl_connectionPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_connectionPanel
                     .createSequentialGroup()
@@ -423,7 +422,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     decoGradientsLowLabel.setLabelFor( decoGradientenLowSpinner );
     decoGradientenLowSpinner.addChangeListener( this );
     decoGradientenLowSpinner.addMouseMotionListener( this );
-    decoGradientenPresetComboBox = new JComboBox<String>();
+    decoGradientenPresetComboBox = new JComboBox();
     decoGradientenPresetComboBox.addActionListener( this );
     decoGradientenPresetComboBox.setActionCommand( "deco_gradient_preset" );
     decoGradientenPresetComboBox.addMouseMotionListener( this );
@@ -435,7 +434,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     decoGradientenHighSpinner.addMouseMotionListener( this );
     decoLaststopLabel = new JLabel( "last stop" );
     decoLaststopLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    decoLastStopComboBox = new JComboBox<String>();
+    decoLastStopComboBox = new JComboBox();
     decoLastStopComboBox.addActionListener( this );
     decoLastStopComboBox.setActionCommand( "deco_last_stop" );
     decoLastStopComboBox.addMouseMotionListener( this );
@@ -509,14 +508,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     setpointPanel.setBorder( new TitledBorder( new LineBorder( new Color( 128, 128, 128 ), 1, true ), "Setpoint", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
     lblSetpointAutosetpoint = new JLabel( "Autosetpoint" );
     lblSetpointAutosetpoint.setHorizontalAlignment( SwingConstants.RIGHT );
-    autoSetpointComboBox = new JComboBox<String>();
+    autoSetpointComboBox = new JComboBox();
     lblSetpointAutosetpoint.setLabelFor( autoSetpointComboBox );
     autoSetpointComboBox.setActionCommand( "set_autosetpoint" );
     autoSetpointComboBox.addActionListener( this );
     autoSetpointComboBox.addMouseMotionListener( this );
     lblSetpointHighsetpoint = new JLabel( "Highsetpoint" );
     lblSetpointHighsetpoint.setHorizontalAlignment( SwingConstants.RIGHT );
-    highSetpointComboBox = new JComboBox<String>();
+    highSetpointComboBox = new JComboBox();
     highSetpointComboBox.setActionCommand( "set_highsetpoint" );
     highSetpointComboBox.addActionListener( this );
     highSetpointComboBox.addMouseMotionListener( this );
@@ -554,14 +553,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     displayPanel.setBorder( new TitledBorder( new LineBorder( new Color( 128, 128, 128 ), 1, true ), "Display", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
     lblDisplayBrightness = new JLabel( "brightness" );
     lblDisplayBrightness.setHorizontalAlignment( SwingConstants.RIGHT );
-    displayBrightnessComboBox = new JComboBox<String>();
+    displayBrightnessComboBox = new JComboBox();
     lblDisplayBrightness.setLabelFor( displayBrightnessComboBox );
     displayBrightnessComboBox.setActionCommand( "set_disp_brightness" );
     displayBrightnessComboBox.addActionListener( this );
     displayBrightnessComboBox.addMouseMotionListener( this );
     lblDisplayOrientation = new JLabel( "orientation" );
     lblDisplayOrientation.setHorizontalAlignment( SwingConstants.RIGHT );
-    displayOrientationComboBox = new JComboBox<String>();
+    displayOrientationComboBox = new JComboBox();
     lblDisplayOrientation.setLabelFor( displayOrientationComboBox );
     displayOrientationComboBox.setActionCommand( "set_display_orientation" );
     displayOrientationComboBox.addActionListener( this );
@@ -597,21 +596,21 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     unitsPanel.setBorder( new TitledBorder( new LineBorder( new Color( 128, 128, 128 ), 1, true ), "Units", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
     lblUnitsTemperature = new JLabel( "temperature" );
     lblUnitsTemperature.setHorizontalAlignment( SwingConstants.RIGHT );
-    unitsTemperatureComboBox = new JComboBox<String>();
+    unitsTemperatureComboBox = new JComboBox();
     lblUnitsTemperature.setLabelFor( unitsTemperatureComboBox );
     unitsTemperatureComboBox.setActionCommand( "set_temperature_unit" );
     unitsTemperatureComboBox.addActionListener( this );
     unitsTemperatureComboBox.addMouseMotionListener( this );
     lblUnitsDepth = new JLabel( "depth" );
     lblUnitsDepth.setHorizontalAlignment( SwingConstants.RIGHT );
-    unitsDepthComboBox = new JComboBox<String>();
+    unitsDepthComboBox = new JComboBox();
     lblUnitsDepth.setLabelFor( unitsDepthComboBox );
     unitsDepthComboBox.setActionCommand( "set_depth_unit" );
     unitsDepthComboBox.addActionListener( this );
     unitsDepthComboBox.addMouseMotionListener( this );
     lblUnitsSalinity = new JLabel( "salinity" );
     lblUnitsSalinity.setHorizontalAlignment( SwingConstants.RIGHT );
-    unitsSalnityComboBox = new JComboBox<String>();
+    unitsSalnityComboBox = new JComboBox();
     lblUnitsSalinity.setLabelFor( unitsSalnityComboBox );
     unitsSalnityComboBox.setActionCommand( "set_salnity" );
     unitsSalnityComboBox.addActionListener( this );
@@ -662,29 +661,29 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     individualPanel.setBorder( new TitledBorder( new LineBorder( new Color( 128, 128, 128 ), 1, true ), "Individuals", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
     lblSenormode = new JLabel( "sensormode" );
     lblSenormode.setHorizontalAlignment( SwingConstants.RIGHT );
-    chIndividualsSensorsOnCheckbox = new JCheckBox( "Sensors ON" );
-    lblSenormode.setLabelFor( chIndividualsSensorsOnCheckbox );
+    individualsSensorsOnCheckbox = new JCheckBox( "Sensors ON" );
+    lblSenormode.setLabelFor( individualsSensorsOnCheckbox );
     // chIndividualsSensorsOnCheckbox.addChangeListener( this );
-    chIndividualsSensorsOnCheckbox.setActionCommand( "individual_sensors_on" );
-    chIndividualsSensorsOnCheckbox.addItemListener( this );
-    chIndividualsSensorsOnCheckbox.addMouseMotionListener( this );
+    individualsSensorsOnCheckbox.setActionCommand( "individual_sensors_on" );
+    individualsSensorsOnCheckbox.addItemListener( this );
+    individualsSensorsOnCheckbox.addMouseMotionListener( this );
     // chIndividualsSensorsOnCheckbox.addActionListener( this );
     lblIndividualsPscrMode = new JLabel( "PSCR Mode" );
     lblIndividualsPscrMode.setHorizontalAlignment( SwingConstants.RIGHT );
-    IndividualsPscrModoOnCheckbox = new JCheckBox( "PSCR Mode ON" );
-    IndividualsPscrModoOnCheckbox.setForeground( new Color( 128, 0, 128 ) );
-    lblIndividualsPscrMode.setLabelFor( IndividualsPscrModoOnCheckbox );
+    individualsPscrModeOnCheckbox = new JCheckBox( "PSCR Mode ON" );
+    individualsPscrModeOnCheckbox.setForeground( new Color( 128, 0, 128 ) );
+    lblIndividualsPscrMode.setLabelFor( individualsPscrModeOnCheckbox );
     // IndividualsPscrModoOnCheckbox.addChangeListener( this );
-    IndividualsPscrModoOnCheckbox.setActionCommand( "individuals_pscr_on" );
-    IndividualsPscrModoOnCheckbox.addItemListener( this );
-    IndividualsPscrModoOnCheckbox.addMouseMotionListener( this );
+    individualsPscrModeOnCheckbox.setActionCommand( "individuals_pscr_on" );
+    individualsPscrModeOnCheckbox.addItemListener( this );
+    individualsPscrModeOnCheckbox.addMouseMotionListener( this );
     lblSensorwarnings = new JLabel( "sensorwarnings" );
     lblSensorwarnings.setHorizontalAlignment( SwingConstants.RIGHT );
-    individualsSensorwarnComboBox = new JComboBox<String>();
-    lblSensorwarnings.setLabelFor( individualsSensorwarnComboBox );
-    individualsSensorwarnComboBox.addActionListener( this );
-    individualsSensorwarnComboBox.setActionCommand( "set_sensorwarnings" );
-    individualsSensorwarnComboBox.addMouseMotionListener( this );
+    individualsSensorWarnComboBox = new JComboBox();
+    lblSensorwarnings.setLabelFor( individualsSensorWarnComboBox );
+    individualsSensorWarnComboBox.addActionListener( this );
+    individualsSensorWarnComboBox.setActionCommand( "set_sensorwarnings" );
+    individualsSensorWarnComboBox.addMouseMotionListener( this );
     individualsAcusticWarningsLabel = new JLabel( "acustic warnings" );
     individualsWarningsOnCheckBox = new JCheckBox( "warnings ON" );
     individualsAcusticWarningsLabel.setLabelFor( individualsWarningsOnCheckBox );
@@ -694,7 +693,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     individualsWarningsOnCheckBox.addMouseMotionListener( this );
     individualsLogintervalLabel = new JLabel( "loginterval" );
     individualsLogintervalLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    individualsLogintervalComboBox = new JComboBox<String>();
+    individualsLogintervalComboBox = new JComboBox();
     individualsLogintervalLabel.setLabelFor( individualsLogintervalComboBox );
     individualsLogintervalComboBox.addActionListener( this );
     individualsLogintervalComboBox.setActionCommand( "set_loginterval" );
@@ -743,24 +742,24 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
                                                     .addGroup(
                                                             gl_individualPanel.createParallelGroup( Alignment.LEADING )
                                                                     .addComponent( individualsLogintervalComboBox, 0, 172, Short.MAX_VALUE )
-                                                                    .addComponent( chIndividualsSensorsOnCheckbox, GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE )
-                                                                    .addComponent( individualsSensorwarnComboBox, 0, 172, Short.MAX_VALUE )
-                                                                    .addComponent( IndividualsPscrModoOnCheckbox, GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE )
+                                                                    .addComponent( individualsSensorsOnCheckbox, GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE )
+                                                                    .addComponent( individualsSensorWarnComboBox, 0, 172, Short.MAX_VALUE )
+                                                                    .addComponent( individualsPscrModeOnCheckbox, GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE )
                                                                     .addComponent( individualsWarningsOnCheckBox, GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE ) ) ) )
                     .addGap( 17 ) ) );
     gl_individualPanel
             .setVerticalGroup( gl_individualPanel.createParallelGroup( Alignment.LEADING ).addGroup(
                     gl_individualPanel
                             .createSequentialGroup()
-                            .addGroup( gl_individualPanel.createParallelGroup( Alignment.BASELINE ).addComponent( chIndividualsSensorsOnCheckbox ).addComponent( lblSenormode ) )
+                            .addGroup( gl_individualPanel.createParallelGroup( Alignment.BASELINE ).addComponent( individualsSensorsOnCheckbox ).addComponent( lblSenormode ) )
                             .addPreferredGap( ComponentPlacement.RELATED )
                             .addGroup(
                                     gl_individualPanel.createParallelGroup( Alignment.BASELINE ).addComponent( lblIndividualsPscrMode )
-                                            .addComponent( IndividualsPscrModoOnCheckbox ) )
+                                            .addComponent( individualsPscrModeOnCheckbox ) )
                             .addPreferredGap( ComponentPlacement.RELATED )
                             .addGroup(
                                     gl_individualPanel.createParallelGroup( Alignment.BASELINE ).addComponent( lblSensorwarnings )
-                                            .addComponent( individualsSensorwarnComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
+                                            .addComponent( individualsSensorWarnComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
                             .addPreferredGap( ComponentPlacement.RELATED )
                             .addGroup(
                                     gl_individualPanel.createParallelGroup( Alignment.BASELINE ).addComponent( individualsAcusticWarningsLabel )
@@ -937,7 +936,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private int setLanguageStrings()
   {
     String[] entrys = null;
-    ComboBoxModel<String> portBoxModel = null;
+    ComboBoxModel portBoxModel = null;
     // so, ignoriere mal alles....
     ignoreAction = true;
     try
@@ -1008,7 +1007,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       decoLastStopComboBox.removeAllItems();
       entrys = new String[]
       { stringsBundle.getString( "MainCommGUI.decoLastStopComboBox.3m.text" ), stringsBundle.getString( "MainCommGUI.decoLastStopComboBox.6m.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      portBoxModel = new DefaultComboBoxModel( entrys );
       decoLastStopComboBox.setModel( portBoxModel );
       decoLastStopComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoLastStopComboBox.tooltipttext" ) );
       decoGradientenPresetComboBox.removeAllItems();
@@ -1016,7 +1015,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       { stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.vconservative.text" ), stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.conservative.text" ),
           stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.moderate.text" ), stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.aggressive.text" ),
           stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.vaggressive.text" ), stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.custom.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      portBoxModel = new DefaultComboBoxModel( entrys );
       decoGradientenPresetComboBox.setModel( portBoxModel );
       decoDyngradientsLabel.setText( stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.text" ) );
       decoDynGradientsCheckBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoDynGradientsCheckBox.tooltiptext" ) );
@@ -1032,7 +1031,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       { stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.off.text" ), stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.5m.text" ),
           stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.10m.text" ), stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.15m.text" ),
           stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.20m.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      portBoxModel = new DefaultComboBoxModel( entrys );
       autoSetpointComboBox.setModel( portBoxModel );
       autoSetpointComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.tooltiptext" ) );
       lblSetpointHighsetpoint.setText( stringsBundle.getString( "MainCommGUI.lblSetpointHighsetpoint.text" ) );
@@ -1041,7 +1040,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       { stringsBundle.getString( "MainCommGUI.highSetpointComboBox.10.text" ), stringsBundle.getString( "MainCommGUI.highSetpointComboBox.11.text" ),
           stringsBundle.getString( "MainCommGUI.highSetpointComboBox.12.text" ), stringsBundle.getString( "MainCommGUI.highSetpointComboBox.13.text" ),
           stringsBundle.getString( "MainCommGUI.highSetpointComboBox.14.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      portBoxModel = new DefaultComboBoxModel( entrys );
       highSetpointComboBox.setModel( portBoxModel );
       highSetpointComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.highSetpointComboBox.tooltiptext" ) );
       // DISPLAY
@@ -1051,14 +1050,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       entrys = new String[]
       { stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.10.text" ), stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.50.text" ),
           stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.100.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      portBoxModel = new DefaultComboBoxModel( entrys );
       displayBrightnessComboBox.setModel( portBoxModel );
       displayBrightnessComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.tooltiptext" ) );
       lblDisplayOrientation.setText( stringsBundle.getString( "MainCommGUI.lblDisplayOrientation.text" ) );
       displayOrientationComboBox.removeAllItems();
       entrys = new String[]
       { stringsBundle.getString( "MainCommGUI.displayOrientationComboBox.landscape.text" ), stringsBundle.getString( "MainCommGUI.displayOrientationComboBox.landscape180.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      portBoxModel = new DefaultComboBoxModel( entrys );
       displayOrientationComboBox.setModel( portBoxModel );
       displayOrientationComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.displayOrientationComboBox.tooltiptext" ) );
       // UNITS
@@ -1067,47 +1066,47 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       unitsTemperatureComboBox.removeAllItems();
       entrys = new String[]
       { stringsBundle.getString( "MainCommGUI.unitsTemperatureComboBox.fahrenheit.text" ), stringsBundle.getString( "MainCommGUI.unitsTemperatureComboBox.celsius.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      portBoxModel = new DefaultComboBoxModel( entrys );
       unitsTemperatureComboBox.setModel( portBoxModel );
       unitsTemperatureComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.unitsTemperatureComboBox.tooltiptext" ) );
       lblUnitsDepth.setText( stringsBundle.getString( "MainCommGUI.lblUnitsDepth.text" ) );
       unitsDepthComboBox.removeAllItems();
       entrys = new String[]
       { stringsBundle.getString( "MainCommGUI.unitsDepthComboBox.metrical.text" ), stringsBundle.getString( "MainCommGUI.unitsDepthComboBox.imperial.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      portBoxModel = new DefaultComboBoxModel( entrys );
       unitsDepthComboBox.setModel( portBoxModel );
       unitsDepthComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.unitsDepthComboBox.tooltiptext" ) );
       lblUnitsSalinity.setText( stringsBundle.getString( "MainCommGUI.lblUnitsSalinity.text" ) );
       unitsSalnityComboBox.removeAllItems();
       entrys = new String[]
       { stringsBundle.getString( "MainCommGUI.unitsSalnityComboBox.saltwater.text" ), stringsBundle.getString( "MainCommGUI.unitsSalnityComboBox.clearwater.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      portBoxModel = new DefaultComboBoxModel( entrys );
       unitsSalnityComboBox.setModel( portBoxModel );
       unitsSalnityComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.unitsSalnityComboBox.tooltiptext" ) );
       // INDIVIDUALS
       ( ( TitledBorder )( individualPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.individualPanel.text" ) );
       lblSenormode.setText( stringsBundle.getString( "MainCommGUI.lblSenormode.text" ) );
-      chIndividualsSensorsOnCheckbox.setText( stringsBundle.getString( "MainCommGUI.chIndividualsSensorsOnCheckbox.text" ) );
-      chIndividualsSensorsOnCheckbox.setToolTipText( "MainCommGUI.chIndividualsSensorsOnCheckbox.tooltiptext" );
+      individualsSensorsOnCheckbox.setText( stringsBundle.getString( "MainCommGUI.chIndividualsSensorsOnCheckbox.text" ) );
+      individualsSensorsOnCheckbox.setToolTipText( "MainCommGUI.chIndividualsSensorsOnCheckbox.tooltiptext" );
       lblIndividualsPscrMode.setText( stringsBundle.getString( "MainCommGUI.lblIndividualsPscrMode.text" ) );
-      IndividualsPscrModoOnCheckbox.setText( stringsBundle.getString( "MainCommGUI.IndividualsPscrModoOnCheckbox.text" ) );
-      IndividualsPscrModoOnCheckbox.setToolTipText( stringsBundle.getString( "MainCommGUI.IndividualsPscrModoOnCheckbox.tooltiptext" ) );
+      individualsPscrModeOnCheckbox.setText( stringsBundle.getString( "MainCommGUI.IndividualsPscrModoOnCheckbox.text" ) );
+      individualsPscrModeOnCheckbox.setToolTipText( stringsBundle.getString( "MainCommGUI.IndividualsPscrModoOnCheckbox.tooltiptext" ) );
       lblSensorwarnings.setText( stringsBundle.getString( "MainCommGUI.lblSensorwarnings.text" ) );
-      individualsSensorwarnComboBox.removeAllItems();
+      individualsSensorWarnComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.3.text" ), stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.2.text" ),
-          stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.1.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
-      individualsSensorwarnComboBox.setModel( portBoxModel );
-      individualsSensorwarnComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.tooltiptext" ) );
+      { stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.1.text" ), stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.2.text" ),
+          stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.3.text" ) };
+      portBoxModel = new DefaultComboBoxModel( entrys );
+      individualsSensorWarnComboBox.setModel( portBoxModel );
+      individualsSensorWarnComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.tooltiptext" ) );
       individualsAcusticWarningsLabel.setText( stringsBundle.getString( "MainCommGUI.individualsAcusticWarningsLabel.text" ) );
       individualsWarningsOnCheckBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsWarningsOnCheckBox.tooltiptext" ) );
       individualsLogintervalLabel.setText( stringsBundle.getString( "MainCommGUI.individualsLogintervalLabel.text" ) );
       individualsLogintervalComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.60s.text" ), stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.20s.text" ),
-          stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.10s.text" ) };
-      portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      { stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.10s.text" ), stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.20s.text" ),
+          stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.60s.text" ) };
+      portBoxModel = new DefaultComboBoxModel( entrys );
       individualsLogintervalComboBox.setModel( portBoxModel );
       individualsLogintervalComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.tooltiptext" ) );
       individualsNotLicensedLabel.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsNotLicensedLabel.tooltiptext" ) );
@@ -1299,7 +1298,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       loggingProperties.put( "java.util.logging.FileHandler.pattern", logFile.getAbsolutePath() );
       loggingProperties.put( "java.util.logging.FileHandler.limit", "100000" );
       loggingProperties.put( "java.util.logging.FileHandler.count", "1" );
-      loggingProperties.put( "java.util.logging.FileHandler.formatter", "java.util.logging.XMLFormatter" );
+      loggingProperties.put( "java.util.logging.FileHandler.formatter", "java.util.logging.SimpleFormatter" );
       loggingProperties.put( "java.util.logging.FileHandler.level", "FINEST" );
       // Properties an LogManager übergeben
       // ////////////////////////////////////////////////////////////////
@@ -1316,6 +1315,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       if( logFile != null )
       {
         fHandler = new FileHandler();
+        fHandler.setFormatter( new DirksConsoleLogFormatter( name ) );
         fHandler.setLevel( logLevel );
         LOGGER.addHandler( fHandler );
       }
@@ -1365,7 +1365,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     // /////////////////////////////////////////////////////////////////////////
     // Combobox
-    else if( ev.getSource() instanceof JComboBox<?> )
+    else if( ev.getSource() instanceof JComboBox )
     {
       processComboBoxActions( ev );
       return;
@@ -1388,8 +1388,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     String cmd = ev.getActionCommand();
     String entry = null;
-    @SuppressWarnings( "unchecked" )
-    JComboBox<String> srcBox = ( JComboBox<String> )ev.getSource();
+    JComboBox srcBox = ( JComboBox )ev.getSource();
     if( portComboBox.equals( srcBox ) )
     {
       if( srcBox.getSelectedIndex() == -1 )
@@ -1397,73 +1396,73 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         // nix selektiert
         return;
       }
-      entry = srcBox.getItemAt( srcBox.getSelectedIndex() );
-      LOGGER.log( Level.FINEST, "select port <" + entry + ">..." );
+      entry = ( String )srcBox.getItemAt( srcBox.getSelectedIndex() );
+      LOGGER.log( Level.FINE, "select port <" + entry + ">..." );
     }
     else if( cmd.equals( "deco_last_stop" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "deco last stop <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "deco last stop <" + entry + ">..." );
       currentConfig.setLastStop( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "deco_gradient_preset" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "gradient preset <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "gradient preset <" + entry + ">..." );
       currentConfig.setDecoGfPreset( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "set_autosetpoint" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "autosetpoint preset <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "autosetpoint preset <" + entry + ">..." );
       currentConfig.setAutoSetpoint( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "set_highsetpoint" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "hightsetpoint <" + entry + ">..." );
-      currentConfig.setHighSetpoint( srcBox.getSelectedIndex() );
+      LOGGER.log( Level.FINE, "hightsetpoint <" + entry + ">..." );
+      currentConfig.setMaxSetpoint( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "set_disp_brightness" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "brightness <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "brightness <" + entry + ">..." );
       currentConfig.setDisplayBrithtness( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "set_display_orientation" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "orientation <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "orientation <" + entry + ">..." );
       currentConfig.setDisplayOrientation( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "set_temperature_unit" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "temperature unit <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "temperature unit <" + entry + ">..." );
       currentConfig.setUnitTemperature( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "set_depth_unit" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "depth unit <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "depth unit <" + entry + ">..." );
       currentConfig.setUnitDepth( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "set_salnity" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "salnity <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "salnity <" + entry + ">..." );
       currentConfig.setUnitSalnyty( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "set_loginterval" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "loginterval <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "loginterval <" + entry + ">..." );
       currentConfig.setLogInterval( srcBox.getSelectedIndex() );
     }
     else if( cmd.equals( "set_sensorwarnings" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINEST, "sensorwarnings <" + entry + ">..." );
+      LOGGER.log( Level.FINE, "sensorwarnings <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
       currentConfig.setSensorsCount( srcBox.getSelectedIndex() );
     }
     else
@@ -1527,41 +1526,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       if( btComm != null )
       {
-        if( !currentConfig.wasInit() )
+        if( !currentConfig.wasInit() || savedConfig == null )
         {
           showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConfig.text" ) );
           return;
         }
-        if( !currentConfig.compareWith( savedConfig ) )
-        {
-          // Kommando DISPLAY
-          // ~31:D:A
-          // D= 0->10&, 1->50%, 2->100%
-          // A= 0->Landscape 1->180Grad
-          // ServiceConst.IX_DISPLAY
-          // Display setzen
-          LOGGER.log( Level.INFO, "write display propertys" );
-          btComm.writeSPXMsgToDevice( String.format( "%s:%d:%d", ProjectConst.KDOSETDISPLAY, currentConfig.getDisplayBrightness(), currentConfig.getDisplayOrientation() ) );
-          // Kommando UNITS
-          // ~37:UD:UL:UW
-          // UD= Fahrenheit/Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
-          // UL= 0=metrisch 1=imperial
-          // UW= 0->Salzwasser 1->Süßwasser
-          LOGGER.log( Level.INFO, "write units propertys" );
-          btComm.writeSPXMsgToDevice( String.format( "%s:%d:%d:%d", ProjectConst.KDOSETUNITS, currentConfig.getUnitTemperature(), currentConfig.getUnitDepth(), currentConfig.getUnitSalnity() ) );
-          // Kommando SETPOINT
-          // ~30:P:A
-          // A = Setpoint bei (0,1,2,3) = (0,5,15,20)
-          // P = Partialdruck (0..4) 1.0 .. 1.4
-          LOGGER.log( Level.INFO, "write setpoint propertys" );
-          btComm.writeSPXMsgToDevice( String.format( "%s:%d:%d", ProjectConst.KDO_SETPOINT, currentConfig.getHighSetpoint(), currentConfig.getAutoSetpoint() ) );
-          
-          // sComm.readConfigFromSPX42();
-        }
-        else
-        {
-          LOGGER.log( Level.FINEST, "config not changed, no action." );
-        }
+        // if( !currentConfig.compareWith( savedConfig ) )
+        // {
+        writeConfigToSPX( savedConfig );
+        // }
+        // else
+        // {
+        // LOGGER.log( Level.FINE, "config not changed, no action." );
+        // }
       }
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1609,6 +1586,64 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
 
   /**
    * 
+   * Schreibe die aktuelle Konfiguration in den SPX42
+   * 
+   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 11.04.2012
+   * @param cnf
+   */
+  private void writeConfigToSPX( SPX42Config cnf )
+  {
+    String command;
+    // Kommando SPX_SET_SETUP_DISPLAYSETTINGS
+    // ~31:D:A
+    // D= 0->10&, 1->50%, 2->100%
+    // A= 0->Landscape 1->180Grad
+    // Display setzen
+    LOGGER.log( Level.INFO, "write display propertys" );
+    command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_DISPLAYSETTINGS, currentConfig.getDisplayBrightness(), currentConfig.getDisplayOrientation() );
+    LOGGER.log( Level.FINE, "Send <" + command + ">" );
+    btComm.writeSPXMsgToDevice( command );
+    // Kommando SPX_SET_SETUP_UNITS
+    // ~32:UD:UL:UW
+    // UD= Fahrenheit/Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
+    // UL= 0=metrisch 1=imperial
+    // UW= 0->Salzwasser 1->Süßwasser
+    LOGGER.log( Level.INFO, "write units propertys" );
+    command = String.format( "~%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_UNITS, currentConfig.getUnitTemperature(), currentConfig.getUnitDepth(), currentConfig.getUnitSalnity() );
+    LOGGER.log( Level.FINE, "Send <" + command + ">" );
+    btComm.writeSPXMsgToDevice( command );
+    // Kommando SPX_SET_SETUP_SETPOINT
+    // ~30:P:A
+    // P = Partialdruck (0..4) 1.0 .. 1.4
+    // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
+    LOGGER.log( Level.INFO, "write setpoint propertys" );
+    command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, currentConfig.getMaxSetpoint(), currentConfig.getAutoSetpoint() );
+    LOGGER.log( Level.FINE, "Send <" + command + ">" );
+    btComm.writeSPXMsgToDevice( command );
+    if( currentConfig.isCustomEnabled() )
+    {
+      // Kommando SPX_SET_SETUP_INDIVIDUAL
+      // ~33:SM:PS:SC:AC:LT
+      // SM = 0-> Sensoren ON, 1-> No Sensor
+      // PS = PSCR Mode 0->off; 1->ON (sollte eigentlich immer off (0 ) sein)
+      // SC = SensorsCount 0->1 Sensor, 1->2 sensoren, 2->3 Sensoren
+      // AC = acoustic 0->off, 1->on
+      // LT = Logbook Timeinterval 0->10s, 1->30s, 2->60s
+      LOGGER.log( Level.INFO, "write individual propertys" );
+      command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_INDIVIDUAL, currentConfig.getSensorsOn(), currentConfig.getPscrModeOn(),
+              currentConfig.getSensorsCount(), currentConfig.getSoundOn(), currentConfig.getLogInterval() );
+      LOGGER.log( Level.FINE, "Send <" + command + ">" );
+      btComm.writeSPXMsgToDevice( command );
+    }
+    // btComm.readConfigFromSPX42();
+  }
+
+  /**
+   * 
    * Setze PIN für Gerät in der Auswahl
    * 
    * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
@@ -1629,7 +1664,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
       return;
     }
-    deviceName = portComboBox.getItemAt( portComboBox.getSelectedIndex() );
+    deviceName = ( String )portComboBox.getItemAt( portComboBox.getSelectedIndex() );
     icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) );
     pinString = ( String )JOptionPane.showInputDialog( this, stringsBundle.getString( "MainCommGUI.setPinDialog.text" ) + " <" + deviceName + ">",
             stringsBundle.getString( "MainCommGUI.setPinDialog.headline" ), JOptionPane.PLAIN_MESSAGE, icon, null, btComm.getPinForDevice( deviceName ) );
@@ -1712,19 +1747,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // /////////////////////////////////////////////////////////////////////////
     // Hab was gelesen!
       case ProjectConst.MESSAGE_READ:
-        LOGGER.log( Level.FINEST, "READ Command!" );
+        LOGGER.log( Level.FINE, "READ Command!" );
         // soll den reader Thread und die GUI nicht blockieren
         // daher nur in die Liste schmeissen (die ist thread-sicher)
         if( ( !cmd.isEmpty() ) && ( !cmd.equals( "\n" ) ) )
         {
           messagesList.add( cmd );
-          LOGGER.log( Level.FINEST, "RECIVED: <" + cmd + ">" );
+          LOGGER.log( Level.FINE, "RECIVED: <" + cmd + ">" );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Gerätename ausgelesen
-      case ProjectConst.MESSAGE_TCNAME_READ:
-        LOGGER.log( Level.INFO, "Device Name from SPX42 <" + cmd + "> recived..." );
+      case ProjectConst.MESSAGE_MANUFACTURER_READ:
+        LOGGER.log( Level.INFO, "Device Manufacturer Name from SPX42 <" + cmd + "> recived..." );
         currentConfig.setDeviceName( cmd );
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1795,11 +1830,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           LOGGER.log( Level.INFO, "SETPOINT propertys set to GUI..." );
           autoSetpointComboBox.setSelectedIndex( currentConfig.getAutoSetpoint() );
-          highSetpointComboBox.setSelectedIndex( currentConfig.getHighSetpoint() );
+          highSetpointComboBox.setSelectedIndex( currentConfig.getMaxSetpoint() );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
-      // Einstellungen für Individuell gelesen (Extra-Lizenz erforderlich
+      // Einstellungen für Individuell gelesen (Extra-Lizenz erforderlich )
       case ProjectConst.MESSAGE_INDIVID_READ:
         LOGGER.log( Level.INFO, "INDIVIDUAL propertys from SPX42 recived..." );
         if( currentConfig.setIndividuals( cmd ) )
@@ -1814,7 +1849,37 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             individualsNotLicensedLabel.setText( " " );
             individualPanel.setEnabled( true );
           }
-          // TODO
+          // Sensormode eintragen
+          if( currentConfig.getSensorsOn() == 1 )
+          {
+            individualsSensorsOnCheckbox.setSelected( true );
+          }
+          else
+          {
+            individualsSensorsOnCheckbox.setSelected( false );
+          }
+          // Passiver MCCR Mode
+          if( currentConfig.getPscrModeOn() == 1 )
+          {
+            individualsPscrModeOnCheckbox.setSelected( true );
+          }
+          else
+          {
+            individualsPscrModeOnCheckbox.setSelected( false );
+          }
+          // Sensor Anzahl Warning
+          individualsSensorWarnComboBox.setSelectedIndex( currentConfig.getSensorsCount() );
+          // akustische warnuingen
+          if( currentConfig.getSoundOn() == 1 )
+          {
+            individualsWarningsOnCheckBox.setSelected( true );
+          }
+          else
+          {
+            individualsWarningsOnCheckBox.setSelected( false );
+          }
+          // Loginterval
+          individualsLogintervalComboBox.setSelectedIndex( currentConfig.getLogInterval() );
         }
         else
         {
@@ -1828,10 +1893,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         break;
       // /////////////////////////////////////////////////////////////////////////
       // DAS zeigt das Ende der Einstellungsübertragung an (bei Original abgeguckt)
-      case ProjectConst.MESSAGE_KDO45_READ:
-        currentConfig.setWasInit( true );
-        savedConfig = null;
-        savedConfig = new SPX42Config( currentConfig );
+      // Aber eigetnlich kommt der Lizenzstatus rein
+      case ProjectConst.MESSAGE_LICENSE_STATE_READ:
+        currentConfig.setLicenseStatus( cmd );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Versuche Verbindung mit Bluetooht Gerät
@@ -1848,7 +1912,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         btComm.askForDeviceName();
         btComm.askForSerialNumber();
         btComm.askForFirmwareVersion();
-        btComm.askForAckuValue();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Device wurde getrennt
@@ -1887,10 +1950,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         connectSPX();
         break;
       // /////////////////////////////////////////////////////////////////////////
-      // Gerät benötigt PIN
-      case ProjectConst.MESSAGE_SPXACKU:
+      // Lebenszeichen mit Ackuspannugn empfangen
+      case ProjectConst.MESSAGE_SPXALIVE:
         LOGGER.log( Level.INFO, "acku value from spx42 recived..." );
         setAckuValue( cmd );
+        // wenn noch keine Konfiguration fertig ist,
+        // dann sollte das hier zeigen, daß ich alles gelsen habe
+        // und eine gesicherte Config erstellt werden kann
+        // ALIVE wird bei readSPXConfig als letztes Kommando gesendet.
+        if( savedConfig == null )
+        {
+          currentConfig.setWasInit( true );
+        }
+        savedConfig = new SPX42Config( currentConfig );
         break;
       default:
         LOGGER.log( Level.WARNING, "unknown message recived!" );
@@ -1911,7 +1983,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void setAckuValue( String vl )
   {
-    LOGGER.log( Level.FINEST, "Value: <" + vl + ">" );
+    LOGGER.log( Level.FINE, "Value: <" + vl + ">" );
     double ackuValue = 0.0;
     Pattern fieldPatternDp = Pattern.compile( ":" );
     String[] fields = fieldPatternDp.split( vl );
@@ -1920,7 +1992,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       int val = Integer.parseInt( fields[1], 16 );
       ackuValue = ( float )( val / 100.0 );
       ackuLabel.setText( String.format( stringsBundle.getString( "MainCommGUI.ackuLabel.text" ), ackuValue ) );
-      LOGGER.log( Level.FINEST, String.format( "Acku value: %02.02f", ackuValue ) );
+      LOGGER.log( Level.FINE, String.format( "Acku value: %02.02f", ackuValue ) );
     }
   }
 
@@ -1937,7 +2009,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void refillPortComboBox()
   {
     String[] entrys = btComm.getNameArray();
-    ComboBoxModel<String> portBoxModel = new DefaultComboBoxModel<String>( entrys );
+    ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
     portComboBox.setModel( portBoxModel );
   }
 
@@ -2068,19 +2140,18 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   /**
    * 
    * Zeige ein Hilfe-Fenster
-   *
-   * Project: SubmatixBTConfigPC
-   * Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   * Stand: 28.01.2012
+   *         Stand: 28.01.2012
    */
   private void showHelpForm()
   {
-    new HelpFrameClass( programLocale, LOGGER ); 
+    new HelpFrameClass( programLocale, LOGGER );
   }
-  
-  
+
   @Override
   public void mouseDragged( MouseEvent ev )
   {}
@@ -2098,7 +2169,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     else if( ev.getSource() instanceof JComboBox )
     {
-      setStatus( ( ( JComboBox<?> )ev.getSource() ).getToolTipText() );
+      setStatus( ( ( JComboBox )ev.getSource() ).getToolTipText() );
     }
     else if( ev.getSource() instanceof JMenuItem )
     {
@@ -2174,8 +2245,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
       return;
     }
-    String deviceName = portComboBox.getItemAt( portComboBox.getSelectedIndex() );
-    LOGGER.log( Level.FINEST, "connect via device <" + deviceName + ">..." );
+    String deviceName = ( String )portComboBox.getItemAt( portComboBox.getSelectedIndex() );
+    LOGGER.log( Level.FINE, "connect via device <" + deviceName + ">..." );
     if( btComm.isConnected() )
     {
       // ist verbunden, was nun?
@@ -2209,7 +2280,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // TODO wiewder entkommentieren
     // if( btComm.isConnected() )
     // {
-    LOGGER.log( Level.FINEST, "disconnect SPX42..." );
+    LOGGER.log( Level.FINE, "disconnect SPX42..." );
     btComm.disconnectDevice();
     // }
   }
@@ -2268,27 +2339,27 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       String cmd = cb.getActionCommand();
       if( cmd.equals( "dyn_gradients_on" ) )
       {
-        LOGGER.log( Level.FINEST, "dynamic gradients <" + cb.isSelected() + ">" );
+        LOGGER.log( Level.FINE, "dynamic gradients <" + cb.isSelected() + ">" );
         currentConfig.setDynGradientsEnable( cb.isSelected() );
       }
       else if( cmd.equals( "deepstops_on" ) )
       {
-        LOGGER.log( Level.FINEST, "depstops <" + cb.isSelected() + ">" );
+        LOGGER.log( Level.FINE, "depstops <" + cb.isSelected() + ">" );
         currentConfig.setDeepStopEnable( cb.isSelected() );
       }
       else if( cmd.equals( "individuals_pscr_on" ) )
       {
-        LOGGER.log( Level.FINEST, "pscr mode  <" + cb.isSelected() + ">" );
+        LOGGER.log( Level.FINE, "pscr mode  <" + cb.isSelected() + ">" );
         currentConfig.setPscrModeEnabled( cb.isSelected() );
       }
       else if( cmd.equals( "individual_sensors_on" ) )
       {
-        LOGGER.log( Level.FINEST, "sensors on  <" + cb.isSelected() + ">" );
+        LOGGER.log( Level.FINE, "sensors on  <" + cb.isSelected() + ">" );
         currentConfig.setSensorsEnabled( cb.isSelected() );
       }
       else if( cmd.equals( "individuals_warnings_on" ) )
       {
-        LOGGER.log( Level.FINEST, "warnings on  <" + cb.isSelected() + ">" );
+        LOGGER.log( Level.FINE, "warnings on  <" + cb.isSelected() + ">" );
         currentConfig.setSountEnabled( cb.isSelected() );
       }
       else
@@ -2297,16 +2368,16 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
   }
-  
+
   /**
    * 
    * CLI-Optionen einlesen
-   *
-   * Project: SubmatixBTConfigPC
-   * Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   * Stand: 28.01.2012
+   *         Stand: 28.01.2012
    * @param args
    * @return
    */
@@ -2317,86 +2388,80 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     //
     // Optionen für das Parsing anlegen und zu den Optionen zufügen
     //
-    
     // Logleven festlegen
     Option optLogLevel = new Option( "l", "loglevel", true, "set loglevel for program" );
     options.addOption( optLogLevel );
-    
     // Bluethooth Caching Abfrage
     Option optBtCaching = new Option( "c", "cacheonstart", false, "read cached bt devices on start" );
     options.addOption( optBtCaching );
-    
     // Logfile abgefragt?
     Option optLogFile = new Option( "f", "logfile", true, "set logfile, \"OFF\" set NO logfile" );
     options.addOption( optLogFile );
-        
     // Parser anlegen
     CommandLineParser cliParser = new BasicParser();
     // Argumente parsen!
-    try 
+    try
     {
-      return( cliParser.parse(options, args) );    
-    } 
-    catch (ParseException ex) 
+      return( cliParser.parse( options, args ) );
+    }
+    catch( ParseException ex )
     {
       System.err.println( "Parser error: " + ex.getLocalizedMessage() );
       return( null );
-    }     
+    }
   }
 
   /**
    * 
    * Aus dem String von Loglevel den Logging-Wert machen
-   *
-   * Project: SubmatixBTConfigPC
-   * Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   * Stand: 28.01.2012
+   *         Stand: 28.01.2012
    * @param optionValue
    * @return
    */
   private static Level parseLogLevel( String level )
   {
     String levelString = level.toUpperCase();
-    
-    //SEVERE (highest value) ERROR
-    //WARNING                WARNUNG
-    //INFO                   INFO
-    //CONFIG                 CONFIG
-    //FINE                   DEBUG
-    //FINER                  
-    //FINEST (lowest value)  
-    
-    if( levelString.equals( "FINEST" ))
-    {
-      return( Level.FINEST );
-    }
-    if( levelString.equals( "FINER" ))
-    {
-      return( Level.FINEST );
-    }
-    if( levelString.equals( "FINE" ))
+    // SEVERE (highest value) ERROR
+    // WARNING WARNUNG
+    // INFO INFO
+    // CONFIG CONFIG
+    // FINE DEBUG
+    // FINER
+    // FINEST (lowest value)
+    if( levelString.equals( "FINEST" ) )
     {
       return( Level.FINE );
     }
-    if( levelString.equals( "DEBUG" ))
+    if( levelString.equals( "FINER" ) )
     {
       return( Level.FINE );
     }
-    if( levelString.equals( "CONFIG" ))
+    if( levelString.equals( "FINE" ) )
+    {
+      return( Level.FINE );
+    }
+    if( levelString.equals( "DEBUG" ) )
+    {
+      return( Level.FINE );
+    }
+    if( levelString.equals( "CONFIG" ) )
     {
       return( Level.CONFIG );
     }
-    if( levelString.equals( "INFO" ))
+    if( levelString.equals( "INFO" ) )
     {
       return( Level.INFO );
     }
-    if( levelString.equals( "WARNING" ))
+    if( levelString.equals( "WARNING" ) )
     {
       return( Level.WARNING );
     }
-    if( levelString.equals( "SERVE" ))
+    if( levelString.equals( "SERVE" ) )
     {
       return( Level.SEVERE );
     }
@@ -2406,24 +2471,23 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   /**
    * 
    * Setze das neue Logfile, wenn gewünscht
-   *
-   * Project: SubmatixBTConfigPC
-   * Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   * Stand: 28.01.2012
+   *         Stand: 28.01.2012
    * @param optionValue
-   * @return
-   * TODO
+   * @return TODO
    */
   private static File parseNewLogFile( String optionValue )
   {
     File tempLogFile = null;
     File parentDir = null;
-    if( optionValue.equals( "NONE" ))
+    if( optionValue.equals( "NONE" ) )
     {
       // abschalten des Logfiles
-      return(null);
+      return( null );
     }
     try
     {
@@ -2431,7 +2495,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     catch( NullPointerException ex )
     {
-      System.err.println("parseNewLogFile: Logfilename was <null>");
+      System.err.println( "parseNewLogFile: Logfilename was <null>" );
       return( logFile );
     }
     try
@@ -2443,15 +2507,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // nix Parent, ist nur eine Datei....
       return( tempLogFile );
     }
-    
     if( parentDir.exists() && parentDir.isDirectory() )
     {
       return( tempLogFile );
     }
-    System.err.println("parseNewLogFile: Logfile Directory not exists! (" + parentDir.getAbsolutePath() + ")");
+    System.err.println( "parseNewLogFile: Logfile Directory not exists! (" + parentDir.getAbsolutePath() + ")" );
     return( logFile );
   }
-
-
-
 }

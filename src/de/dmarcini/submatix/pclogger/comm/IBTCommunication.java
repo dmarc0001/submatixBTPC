@@ -35,7 +35,7 @@ public interface IBTCommunication
   public void readConfigFromSPX42();
   public void askForDeviceName();
   public void askForFirmwareVersion();
-  public void askForAckuValue();
+  public void askForSPXAlive();
   public void setPinForDevice( String dev, String pin );
   public String getPinForDevice( String dev );
   // experimentell...

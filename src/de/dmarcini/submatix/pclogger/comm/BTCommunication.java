@@ -25,6 +25,7 @@ import javax.bluetooth.ServiceRecord;
 import javax.bluetooth.UUID;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
+
 import com.intel.bluetooth.RemoteDeviceHelper;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
@@ -32,20 +33,20 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
 /**
  * 
  * Klasse zur direkten Kommunikation mit dem BT-Device
- *
- * Project: SubmatixBTConfigPC
- * Package: de.dmarcini.submatix.pclogger.comm
+ * 
+ * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+ * 
  * @author Dirk Marciniak (dirk_marciniak@arcor.de)
  * 
- * Stand: 08.01.2012
+ *         Stand: 08.01.2012
  */
+//@formatter:off
 public class BTCommunication implements IBTCommunication
 {
-  //@formatter:off
   static final UUID                       UUID_SERIAL_DEVICE = new UUID( 0x1101 );
-  private HashMap<String,String>                 connectHash = new HashMap<String,String>();
-  private HashMap<String,RemoteDevice>            deviceHash = new HashMap<String,RemoteDevice>();
-  private HashMap<String,String>               devicePinHash = new HashMap<String,String>();
+  private final HashMap<String,String>                 connectHash = new HashMap<String,String>();
+  private final HashMap<String,RemoteDevice>            deviceHash = new HashMap<String,RemoteDevice>();
+  private final HashMap<String,String>               devicePinHash = new HashMap<String,String>();
   static Logger                                       LOGGER = null;
   private boolean                                        log = false;
   private boolean                                isConnected = false;
@@ -59,35 +60,33 @@ public class BTCommunication implements IBTCommunication
   private static final Pattern              fieldPattern0x09 = Pattern.compile( ProjectConst.LOGSELECTOR );
   private static final Pattern                fieldPatternDp = Pattern.compile(  ":" );
   //@formatter:on
-  
   /**
    * 
    * Lokale Klasse, Thread zum Schreiben auf Device
-   *
-   * Project: SubmatixBTConfigPC
-   * Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   * Stand: 11.01.2012
+   *         Stand: 11.01.2012
    */
+  //@formatter:off
   public class WriterRunnable implements Runnable
   {
-    //@formatter:off
     private OutputStream                           outStream = null;
     private boolean                                  running = false;
     private final ArrayList<String>                writeList = new ArrayList<String>();
     //@formatter:on
-    
     public WriterRunnable( OutputStream outStr )
     {
       outStream = outStr;
     }
-    
+
     @Override
     public void run()
     {
       // solange was auszugeben ist, mach ich das...
-      if( log ) LOGGER.log( Level.FINEST, "start writer thread..." );
+      if( log ) LOGGER.log( Level.FINE, "start writer thread..." );
       writeList.clear();
       this.running = true;
       while( this.running == true )
@@ -95,29 +94,30 @@ public class BTCommunication implements IBTCommunication
         // syncronisiete Methode aufrufen, damit wait und notify machbar sind
         wtSync();
       }
-      if( log ) LOGGER.log( Level.FINEST, "stop writer thread..." );
+      if( log ) LOGGER.log( Level.FINE, "stop writer thread..." );
       isConnected = false;
       try
       {
         outStream.close();
       }
-      catch( IOException ex ){}
-      if( aListener != null ) 
+      catch( IOException ex )
+      {}
+      if( aListener != null )
       {
-        ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED,  null );
+        ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
         aListener.actionPerformed( ev );
       }
     }
-    
+
     /**
      * 
      * Zeilenweise an SPX schreiben, wenn nix zu tun ist schlafen legen
-     *
-     * Project: SubmatixBTConfigPC
-     * Package: de.dmarcini.submatix.pclogger.comm
+     * 
+     * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+     * 
      * @author Dirk Marciniak (dirk_marciniak@arcor.de)
      * 
-     * Stand: 11.01.2012
+     *         Stand: 11.01.2012
      */
     private synchronized void wtSync()
     {
@@ -126,9 +126,10 @@ public class BTCommunication implements IBTCommunication
         // ist die Liste leer, mach nix, einfach relaxen
         try
         {
-          wait(500);
+          wait( 500 );
         }
-        catch( InterruptedException ex ){}
+        catch( InterruptedException ex )
+        {}
       }
       else
       {
@@ -136,107 +137,143 @@ public class BTCommunication implements IBTCommunication
         try
         {
           // also den String Eintrag in den Outstream...
-          outStream.write( (writeList.remove( 0 )).getBytes() );
+          outStream.write( ( writeList.remove( 0 ) ).getBytes() );
           // zwischen den Kommandos etwas warten, der SPX braucht etwas bis er wieder zuhört...
           Thread.sleep( 300 );
         }
         catch( IndexOutOfBoundsException ex )
         {
           isConnected = false;
-          if( aListener != null ) 
+          if( aListener != null )
           {
             ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
             aListener.actionPerformed( ev );
           }
-          running=false;
+          running = false;
           return;
         }
         catch( IOException ex )
         {
           isConnected = false;
-          if( aListener != null ) 
+          if( aListener != null )
           {
             ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
             aListener.actionPerformed( ev );
           }
-          running=false;
+          running = false;
           return;
         }
         catch( InterruptedException ex )
         {}
       }
     }
-    
+
     /**
      * 
      * Terminieren lassen geht hier
-     *
-     * Project: SubmatixBTConfigPC
-     * Package: de.dmarcini.submatix.pclogger.comm
+     * 
+     * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+     * 
      * @author Dirk Marciniak (dirk_marciniak@arcor.de)
      * 
-     * Stand: 11.01.2012
+     *         Stand: 11.01.2012
      */
     public synchronized void doTeminate()
     {
       notifyAll();
       this.running = false;
     }
-    
+
     /**
      * 
      * Schreibe zum SPX Daten
-     *
-     * Project: SubmatixBTConfigPC
-     * Package: de.dmarcini.submatix.pclogger.comm
+     * 
+     * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+     * 
      * @author Dirk Marciniak (dirk_marciniak@arcor.de)
      * 
-     * Stand: 11.01.2012
+     *         Stand: 11.01.2012
      * @param msg
      */
     public synchronized void writeToDevice( String msg )
     {
       writeList.add( msg );
       notifyAll();
-    } 
+    }
   }
 
   /**
    * 
    * Lokale Klasse zum lesen vom SPX42
-   *
-   * Project: SubmatixBTConfigPC
-   * Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   * Stand: 11.01.2012
+   *         Stand: 11.01.2012
    */
   public class ReaderRunnable implements Runnable
   {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //@formatter:off
-    private byte[]                                    buffer = new byte[1024];
+    private final byte[]                                    buffer = new byte[1024];
     private InputStream                             inStream = null;
     private boolean                                  running = false;
     private volatile boolean                    isLogentryMode = false;
     private final ArrayList<String>                    dirList = new ArrayList<String>();
-    private StringBuffer                          mInStrBuffer = new StringBuffer( 1024 );  
+    private final StringBuffer                          mInStrBuffer = new StringBuffer( 1024 );  
     //@formatter:on
-    
     public ReaderRunnable( InputStream inStr )
     {
       inStream = inStr;
     }
-    
+
     @Override
     public void run()
     {
-      int bytes=0;
+      int bytes = 0;
       String readMessage = "";
       int start, end, lstart, lend;
       boolean logCmd, normalCmd;
-      
       // solange was auszugeben ist, mach ich das...
-      if( log ) LOGGER.log( Level.FINEST, "start reader thread..." );
+      if( log ) LOGGER.log( Level.FINE, "start reader thread..." );
       this.running = true;
       while( this.running == true )
       {
@@ -248,9 +285,9 @@ public class BTCommunication implements IBTCommunication
             // Verbindung beendet/verloren
             isConnected = false;
             if( log ) LOGGER.log( Level.SEVERE, "reader connection lost..." );
-            if( aListener != null ) 
+            if( aListener != null )
             {
-              ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED,  null );
+              ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
               aListener.actionPerformed( ev );
             }
             running = false;
@@ -263,9 +300,9 @@ public class BTCommunication implements IBTCommunication
           // IO Fehler
           isConnected = false;
           if( log ) LOGGER.log( Level.SEVERE, "reader connection lost (" + ex.getLocalizedMessage() + ")..." );
-          if( aListener != null ) 
+          if( aListener != null )
           {
-            ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED,  null );
+            ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
             aListener.actionPerformed( ev );
           }
           running = false;
@@ -279,9 +316,9 @@ public class BTCommunication implements IBTCommunication
         {
           isConnected = false;
           if( log ) LOGGER.log( Level.SEVERE, "INPUT BUFFER OVERFLOW!" );
-          if( aListener != null ) 
+          if( aListener != null )
           {
-            ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED,  null );
+            ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
             aListener.actionPerformed( ev );
           }
           running = false;
@@ -363,21 +400,22 @@ public class BTCommunication implements IBTCommunication
         {
           inStream.close();
         }
-        catch( IOException ex ){}
+        catch( IOException ex )
+        {}
       }
       isConnected = false;
-      if( log ) LOGGER.log( Level.FINEST, "stop reader thread..." );
+      if( log ) LOGGER.log( Level.FINE, "stop reader thread..." );
     }
-    
+
     /**
      * 
      * Bearbeite einen Logeintrag
-     *
-     * Project: SubmatixBTConfigPC
-     * Package: de.dmarcini.submatix.pclogger.comm
+     * 
+     * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+     * 
      * @author Dirk Marciniak (dirk_marciniak@arcor.de)
      * 
-     * Stand: 11.01.2012
+     *         Stand: 11.01.2012
      * @param start
      * @param end
      * @param mInStrBuffer
@@ -386,13 +424,13 @@ public class BTCommunication implements IBTCommunication
     {
       String readMessage;
       int lstart, lend;
-      if( log ) LOGGER.log(  Level.FINEST, "execLogentryCmd..." );
+      if( log ) LOGGER.log( Level.FINE, "execLogentryCmd..." );
       lstart = mInStrBuffer.indexOf( ProjectConst.STX );
       lend = mInStrBuffer.indexOf( ProjectConst.ETX );
       if( lstart > -1 && lend > lstart )
       {
         // ups, hier ist ein "normales" Kommando verpackt
-        if( log ) LOGGER.log( Level.FINEST, "oops, normalCmd found.... change to execNormalCmd..." );
+        if( log ) LOGGER.log( Level.FINE, "oops, normalCmd found.... change to execNormalCmd..." );
         isLogentryMode = false;
         execNormalCmd( lstart, lend, mInStrBuffer );
         return;
@@ -413,23 +451,23 @@ public class BTCommunication implements IBTCommunication
       mInStrBuffer = mInStrBuffer.delete( 0, end );
       readMessage = readMessage.replaceAll( ProjectConst.FILLERCHAR, "" );
       // Sende an aufrufende Activity
-      if( log ) LOGGER.log( Level.FINEST, "Logline Recived <" + readMessage + ">" );
-      if( aListener != null ) 
+      if( log ) LOGGER.log( Level.FINE, "Logline Recived <" + readMessage + ">" );
+      if( aListener != null )
       {
-        ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_LINE,  readMessage, System.currentTimeMillis() / 100, 0 );
+        ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_LINE, readMessage, System.currentTimeMillis() / 100, 0 );
         aListener.actionPerformed( ex );
       }
     }
-    
+
     /**
      * 
      * Bearbeite eine Meldung vom SPX42
-     *
-     * Project: SubmatixBTConfigPC
-     * Package: de.dmarcini.submatix.pclogger.comm
+     * 
+     * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+     * 
      * @author Dirk Marciniak (dirk_marciniak@arcor.de)
      * 
-     * Stand: 24.12.2011
+     *         Stand: 24.12.2011
      * @param start
      * @param end
      * @param mInStrBuffer
@@ -438,8 +476,8 @@ public class BTCommunication implements IBTCommunication
     {
       String readMessage;
       String[] fields;
-      
-      if( log ) LOGGER.log(Level.FINEST, "execNormalCmd..." );
+      int command;
+      if( log ) LOGGER.log( Level.FINE, "execNormalCmd..." );
       // muss der anfang weg?
       if( start > 0 )
       {
@@ -454,221 +492,248 @@ public class BTCommunication implements IBTCommunication
       readMessage = mInStrBuffer.substring( 1, end );
       // lösche das schon mal raus...
       mInStrBuffer = mInStrBuffer.delete( 0, end + 1 );
-      if( log ) LOGGER.log( Level.FINEST, "normal Message Recived <" + readMessage + ">" );
-      
-      // bekomme heraus, welcher Art die ankommende Message ist
-      if( 0 == readMessage.indexOf( ProjectConst.IS_DEVNAME ) )
-      {
-        fields = fieldPatternDp.split( readMessage );
-        // Sende Nachricht Gerätename empfangen!
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_TCNAME_READ, new String( fields[1] ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "SPX Devicename recived! <" + fields[1] + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.IS_VERSION ) )
-      {
-        fields = fieldPatternDp.split( readMessage );
-        // Sende Nachricht Firmwareversion empfangen!
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_FWVERSION_READ, new String( fields[1] ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "Firmware Version recived! <" + fields[1] + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO_SERIAL ) )
-      {
-        fields = fieldPatternDp.split( readMessage );
-        // Sende Nachricht Seriennummer empfangen!
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SERIAL_READ, new String( fields[1] ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "Serial Number recived! <" + fields[1] + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO_DECO ) )
-      {
-        // Kommando DEC liefert zurück:
-        // ~34:LL:HH:D:Y:C
-        // LL=GF-Low, HH=GF-High,
-        // D=Deepstops (0/1)
-        // Y=Dynamische Gradienten (0/1)
-        // C=Last Decostop (0=3 Meter/1=6 Meter)
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DECO_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "DECO_EINST recived <" + readMessage + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.QKDOSETDECO ) )
-      {
-        // Quittung für Setze DECO
-        if( log ) LOGGER.log( Level.FINEST, "Response for set deco <" + readMessage + "> was recived." );
-        //
-        //TODO: readDecoPrefs();
-        //
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO_SETPOINT ) )
-      {
-        // Kommando SETPOINT liefert
-        // ~35:A:P
-        // A = Setpoint bei (0,1,2,3) = (0,5,15,20)
-        // P = Partialdruck (0..4) 1.0 .. 1.4
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SETPOINT_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "KDO_SETPOINT recived <" + readMessage + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO_DISPLAY ) )
-      {
-        // Kommando DISPLAY liefert
-        // ~36:D:A
-        // D= 0->10&, 1->50%, 2->100%
-        // A= 0->Landscape 1->180Grad
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DISPLAY_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "KDO_DISPLAY recived <" + readMessage + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO_UNITS ) )
-      {
-        // Kommando UNITS
-        // ~37:UD:UL:UW
-        // UD= Fahrenheit/Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
-        // UL= 0=metrisch 1=imperial
-        // UW= 0->Salzwasser 1->Süßwasser
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_UNITS_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "KDO_UNITS recived <" + readMessage + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.IS_INDIVIDUAL ) )
-      {
-        // Kommando INDIVIDUAL liefert
-        // ~38:SE:PS:SC:SN:LI
-        // SE: Sensors 0->ON 1->OFF
-        // PS: PSCRMODE 0->OFF 1->ON
-        // SC: SensorCount
-        // SN: Sound 0->OFF 1->ON
-        // LI: Loginterval 0->10sec 1->30Sec 2->60 Sec
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_INDIVID_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "KDO_INDIVIDUAL recived <" + readMessage + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO_GAS ) )
-      {
-        // Kommando GAS
-        // ~39:NR:ST:HE:0:AA:0
-        // ST Stickstoff in Prozent (hex)
-        // HELIUM
-        // 0
-        // AA 0=Bailout, 1=Diluent 1, 2= Diluent 2
-        // Baulout, Diluent 1, Diulent 2
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_GAS_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "ISKDO_GAS recived <" + readMessage + ">" );
-      }
-      else if( readMessage.equals( ProjectConst.KDOSETGAS  ))
-      {
-        // Besaetigung fuer Gas setzen bekommen
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_GAS_WRITTEN, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "GAS WRITTEN recived <" + readMessage + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO45 ) )
-      {
-        // KDO 45 gefunden
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_KDO45_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "KDO045 recived <" + readMessage + ">" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.IS_LOGLISTENTRY ) )
-      {
-        // Ein Logbuch Verzeichniseintrag gefunden
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DIRENTRY_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        dirList.add( readMessage );
-        if( log ) LOGGER.log( Level.FINEST, "Logentry recived! Stored in Cache" );
-      }
-      else if( 0 == readMessage.indexOf( ProjectConst.IS_END_LOGLISTENTRY ) )
+      if( log ) LOGGER.log( Level.FINE, "normal Message Recived <" + readMessage + ">" );
+      // Trenne die Parameter voneinander, fields[0] ist dann das Kommando
+      fields = fieldPatternDp.split( readMessage );
+      //
+      //
+      //
+      if( 0 == readMessage.indexOf( ProjectConst.IS_END_LOGLISTENTRY ) )
       {
         // Logbucheinträge fertig gelesen
-        if( aListener != null ) 
+        if( aListener != null )
         {
           ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DIRENTRY_END, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
           aListener.actionPerformed( ex );
         }
-        if( log ) LOGGER.log( Level.FINEST, "Logentry list final recived." );
+        if( log ) LOGGER.log( Level.FINE, "Logentry list final recived." );
+        return;
       }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO_LOGENTRY_START ) )
+      //
+      //
+      //
+      fields[0] = fields[0].replaceFirst( "~", "" );
+      try
       {
-        // Übertragung Logfile gestartet
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_START, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "Logfile transmission started..." );
-        isLogentryMode = true;
+        command = Integer.parseInt( fields[0], 16 );
       }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO_LOGENTRY_STOP ) )
+      catch( NumberFormatException ex )
       {
-        // Übertragung beendet
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_STOP, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "Logfile transmission finished." );
-        isLogentryMode = false;
+        LOGGER.log( Level.SEVERE, "Convert String to Int (" + ex.getLocalizedMessage() + ")" );
+        return;
       }
-      else if( 0 == readMessage.indexOf( ProjectConst.ISKDO_ACKU) )
+      // bekomme heraus, welcher Art die ankommende Message ist
+      switch ( command )
       {
-        // Ackuspannung übertragen
-        if( aListener != null ) 
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SPXACKU, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.log( Level.FINEST, "Acku value recived." );
+        case ProjectConst.SPX_MANUFACTURERS:
+          // Sende Nachricht Gerätename empfangen!
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_MANUFACTURER_READ, new String( fields[1] ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "SPX Devicename recived! <" + fields[1] + ">" );
+          break;
+        case ProjectConst.SPX_ALIVE:
+          // Ackuspannung übertragen
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SPXALIVE, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "SPX is Alive, Acku value recived." );
+          break;
+        case ProjectConst.SPX_APPLICATION_ID:
+          // Sende Nachricht Firmwareversion empfangen!
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_FWVERSION_READ, new String( fields[1] ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "Application ID (Firmware Version)  recived! <" + fields[1] + ">" );
+          break;
+        case ProjectConst.SPX_SERIAL_NUMBER:
+          // Sende Nachricht Seriennummer empfangen!
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SERIAL_READ, new String( fields[1] ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "Serial Number recived! <" + fields[1] + ">" );
+          break;
+        case ProjectConst.SPX_SET_SETUP_DEKO:
+          // Quittung für Setze DECO
+          if( log ) LOGGER.log( Level.FINE, "Response for set deco <" + readMessage + "> was recived." );
+          //
+          // TODO: readDecoPrefs();
+          //
+          break;
+        case ProjectConst.SPX_SET_SETUP_SETPOINT:
+          // Quittung für Setzen der Auto-Setpointeinstelungen
+          if( log ) LOGGER.log( Level.FINE, "SPX_SET_SETUP_SETPOINT Acknoweledge recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_SET_SETUP_DISPLAYSETTINGS:
+          // Quittung für Setzen der Displayeinstellungen
+          if( log ) LOGGER.log( Level.FINE, "SET_SETUP_DISPLAYSETTINGS Acknoweledge recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_SET_SETUP_UNITS:
+          // Quittung für Setzen der Einheiten
+          if( log ) LOGGER.log( Level.FINE, "SPX_SET_SETUP_UNITS Acknoweledge recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_SET_SETUP_INDIVIDUAL:
+          // Quittung für Individualeinstellungen
+          if( log ) LOGGER.log( Level.FINE, "SPX_SET_SETUP_INDIVIDUAL Acknoweledge recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_GET_SETUP_DEKO:
+          // Kommando DEC liefert zurück:
+          // ~34:LL:HH:D:Y:C
+          // LL=GF-Low, HH=GF-High,
+          // D=Deepstops (0/1)
+          // Y=Dynamische Gradienten (0/1)
+          // C=Last Decostop (0=3 Meter/1=6 Meter)
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DECO_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "DECO_EINST recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_GET_SETUP_SETPOINT:
+          // Kommando GET_SETUP_SETPOINT liefert
+          // ~35:A:P
+          // A = Setpoint bei (0,1,2,3) = (0,5,15,20)
+          // P = Partialdruck (0..4) 1.0 .. 1.4
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SETPOINT_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_SETPOINT recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_GET_SETUP_DISPLAYSETTINGS:
+          // Kommando GET_SETUP_DISPLAYSETTINGS liefert
+          // ~36:D:A
+          // D= 0->10&, 1->50%, 2->100%
+          // A= 0->Landscape 1->180Grad
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DISPLAY_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_DISPLAYSETTINGS recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_GET_SETUP_UNITS:
+          // Kommando GET_SETUP_UNITS
+          // ~37:UD:UL:UW
+          // UD= Fahrenheit/Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
+          // UL= 0=metrisch 1=imperial
+          // UW= 0->Salzwasser 1->Süßwasser
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_UNITS_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_UNITS recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_GET_SETUP_INDIVIDUAL:
+          // Kommando GET_SETUP_INDIVIDUAL liefert
+          // ~38:SE:PS:SC:SN:LI
+          // SE: Sensors 0->ON 1->OFF
+          // PS: PSCRMODE 0->OFF 1->ON
+          // SC: SensorCount
+          // SN: Sound 0->OFF 1->ON
+          // LI: Loginterval 0->10sec 1->30Sec 2->60 Sec
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_INDIVID_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_INDIVIDUAL recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_GET_SETUP_GASLIST:
+          // Kommando GET_SETUP_GASLIST
+          // ~39:NR:ST:HE:BA:AA:CG
+          // NR: Numer des Gases
+          // ST Stickstoff in Prozent (hex)
+          // HELIUM
+          // Bailout
+          // AA Diluent 1 oder 2 oder keins
+          // CG curent Gas
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_GAS_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_GASLIST recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_SET_SETUP_GASLIST:
+          // Besaetigung fuer Gas setzen bekommen
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_GAS_WRITTEN, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "SET_SETUP_GASLIST recived <" + readMessage + ">" );
+          break;
+        case ProjectConst.SPX_GET_LOG_INDEX:
+          // Ein Logbuch Verzeichniseintrag gefunden
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DIRENTRY_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          dirList.add( readMessage );
+          if( log ) LOGGER.log( Level.FINE, "GET_LOG_INDEX recived! Stored in Cache" );
+          break;
+        case ProjectConst.SPX_GET_LOG_NUMBER_SE:
+          if( 0 == fields[1].indexOf( "1" ) )
+          {
+            // Übertragung Logfile gestartet
+            if( aListener != null )
+            {
+              ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_START, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+              aListener.actionPerformed( ex );
+            }
+            if( log ) LOGGER.log( Level.FINE, "Logfile transmission started..." );
+            isLogentryMode = true;
+          }
+          else if( 0 == fields[1].indexOf( "0" ) )
+          {
+            {
+              // Übertragung beendet
+              if( aListener != null )
+              {
+                ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_STOP, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+                aListener.actionPerformed( ex );
+              }
+              if( log ) LOGGER.log( Level.FINE, "Logfile transmission finished." );
+              isLogentryMode = false;
+            }
+          }
+          break;
+        case ProjectConst.SPX_LICENSE_STATE:
+          // LICENSE_STATE gefunden
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LICENSE_STATE_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "LICENSE_STATE recived <" + readMessage + ">" );
+          break;
+        default:
+          if( log ) LOGGER.log( Level.WARNING, "unknown Messagetype recived <" + readMessage + ">" );
       }
     }
-    
+
     /**
      * 
      * Terminieren lassen geht hier
-     *
-     * Project: SubmatixBTConfigPC
-     * Package: de.dmarcini.submatix.pclogger.comm
+     * 
+     * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+     * 
      * @author Dirk Marciniak (dirk_marciniak@arcor.de)
      * 
-     * Stand: 11.01.2012
+     *         Stand: 11.01.2012
      */
     public synchronized void doTeminate()
     {
@@ -678,23 +743,24 @@ public class BTCommunication implements IBTCommunication
       {
         inStream.close();
       }
-      catch( IOException ex ){}
+      catch( IOException ex )
+      {}
     }
-    
   }
-  
+
   @SuppressWarnings( "unused" )
-  private BTCommunication() {};
- 
+  private BTCommunication()
+  {};
+
   /**
    * 
    * Konstruktor der Kommunikation
-   *
-   * Project: SubmatixBTConfigPC
-   * Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   * Stand: 11.01.2012
+   *         Stand: 11.01.2012
    * @param lg
    */
   public BTCommunication( Logger lg )
@@ -705,14 +771,12 @@ public class BTCommunication implements IBTCommunication
     else
       log = true;
   }
-  
- 
+
   @Override
   public boolean isConnected()
   {
     return this.isConnected;
   }
-  
 
   @Override
   public boolean discoverDevices( final boolean cached )
@@ -723,8 +787,8 @@ public class BTCommunication implements IBTCommunication
       return false;
     }
     discoverInProcess = true;
-    Thread sb = new Thread()
-    {
+    Thread sb = new Thread() {
+      @Override
       public void run()
       {
         // Warteschleife mit Nachrichten
@@ -732,32 +796,34 @@ public class BTCommunication implements IBTCommunication
         {
           try
           {
-            Thread.sleep(  50  );
+            Thread.sleep( 50 );
           }
-          catch( InterruptedException ex ) {}
-          if( aListener != null ) 
+          catch( InterruptedException ex )
+          {}
+          if( aListener != null )
           {
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTWAITFOR, null );
             aListener.actionPerformed( ex );
           }
-          
         }
-        
       }
     };
-    
-    Thread th = new Thread()
-    {
+    Thread th = new Thread() {
+      @Override
       public void run()
       {
         // Discovery starten
-        if( log ) LOGGER.log( Level.FINEST, "start discover für Bluethooth devices..." );
+        if( log ) LOGGER.log( Level.FINE, "start discover für Bluethooth devices..." );
         try
         {
           if( cached )
           {
-            if( log ) LOGGER.log( Level.FINEST, "read cached..." );
-            RemoteDeviceDiscovery.readCached();
+            if( log ) LOGGER.log( Level.FINE, "read cached..." );
+            if( !RemoteDeviceDiscovery.readCached() )
+            {
+              if( log ) LOGGER.log( Level.FINE, "read cached failed, try normal discovering..." );
+              RemoteDeviceDiscovery.doDiscover();
+            }
           }
           else
           {
@@ -766,7 +832,7 @@ public class BTCommunication implements IBTCommunication
         }
         catch( IOException ex )
         {
-          if( aListener != null ) 
+          if( aListener != null )
           {
             ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
             aListener.actionPerformed( ev );
@@ -776,7 +842,7 @@ public class BTCommunication implements IBTCommunication
         }
         catch( InterruptedException ex )
         {
-          if( aListener != null ) 
+          if( aListener != null )
           {
             ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
             aListener.actionPerformed( ev );
@@ -789,22 +855,22 @@ public class BTCommunication implements IBTCommunication
         deviceHash.clear();
         // suche nach Serial devices
         UUID serviceUUID = UUID_SERIAL_DEVICE;
-        
-        // Event Objetk TODO: 
+        // Event Objetk TODO:
         final Object serviceSearchCompletedEvent = new Object();
-        
-        // Inline Klasse 
-        DiscoveryListener listener = new DiscoveryListener() 
-        {
+        // Inline Klasse
+        DiscoveryListener listener = new DiscoveryListener() {
+          @Override
           public void deviceDiscovered( RemoteDevice btDevice, DeviceClass cod )
           {}
-    
+
+          @Override
           public void inquiryCompleted( int discType )
           {}
-    
+
+          @Override
           public void servicesDiscovered( int transID, ServiceRecord[] servRecord )
           {
-            if( log ) LOGGER.log(  Level.FINEST, "Services Discovered..." );
+            if( log ) LOGGER.log( Level.FINE, "Services Discovered..." );
             for( int i = 0; i < servRecord.length; i++ )
             {
               String url = servRecord[i].getConnectionURL( ServiceRecord.AUTHENTICATE_NOENCRYPT, false );
@@ -824,24 +890,25 @@ public class BTCommunication implements IBTCommunication
               }
               if( serviceName != null )
               {
-                String sName = (( String )serviceName.getValue());
+                String sName = ( ( String )serviceName.getValue() );
                 sName = sName.replaceAll( "[^A-Z0-9a-z]{2,}", "" );
-                if( log ) LOGGER.log(  Level.FINEST, "Device <" + devName  + "> Service <" + sName + "> found <" + url + ">" );
+                if( log ) LOGGER.log( Level.FINE, "Device <" + devName + "> Service <" + sName + "> found <" + url + ">" );
                 // URL für die Anzeige speichern
                 connectHash.put( devName, url );
                 // das Gerät für die Anzeige speichern
-                deviceHash.put( devName, servRecord[i].getHostDevice());
+                deviceHash.put( devName, servRecord[i].getHostDevice() );
               }
               else
               {
-                if( log ) LOGGER.log(  Level.FINEST, "Service found, URL: <" + url + "> IGNORE!" );
+                if( log ) LOGGER.log( Level.FINE, "Service found, URL: <" + url + "> IGNORE!" );
               }
             }
           }
-    
+
+          @Override
           public void serviceSearchCompleted( int transID, int respCode )
           {
-            if( log ) LOGGER.log(  Level.FINEST, "service search completed!" );
+            if( log ) LOGGER.log( Level.FINE, "service search completed!" );
             synchronized( serviceSearchCompletedEvent )
             {
               serviceSearchCompletedEvent.notifyAll();
@@ -849,10 +916,11 @@ public class BTCommunication implements IBTCommunication
           }
         };
         // nach welchen UUID soll gesucht werden? (natürlich nur Serial Comm)
-        UUID[] searchUuidSet = new UUID[] { serviceUUID };
+        UUID[] searchUuidSet = new UUID[]
+        { serviceUUID };
         // nach welchem Attr-Ids soll gesucht werden?
-        int[] attrIDs = new int[] { 0x0100 };// Service name
-        
+        int[] attrIDs = new int[]
+        { 0x0100 };// Service name
         // jetzt alle gefundenen Devices nach dem Gesuchten untersuchen
         for( Enumeration<RemoteDevice> en = RemoteDeviceDiscovery.devicesDiscovered.elements(); en.hasMoreElements(); )
         {
@@ -861,13 +929,13 @@ public class BTCommunication implements IBTCommunication
           {
             try
             {
-              if( log )LOGGER.log(  Level.FINEST, "search services on " + btDevice.getBluetoothAddress() + " " + btDevice.getFriendlyName( false ) );
+              if( log ) LOGGER.log( Level.FINE, "search services on " + btDevice.getBluetoothAddress() + " " + btDevice.getFriendlyName( false ) );
               LocalDevice.getLocalDevice().getDiscoveryAgent().searchServices( attrIDs, searchUuidSet, btDevice, listener );
               serviceSearchCompletedEvent.wait();
             }
             catch( BluetoothStateException ex )
             {
-              if( aListener != null ) 
+              if( aListener != null )
               {
                 ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
                 aListener.actionPerformed( ev );
@@ -877,7 +945,7 @@ public class BTCommunication implements IBTCommunication
             }
             catch( IOException ex )
             {
-              if( aListener != null ) 
+              if( aListener != null )
               {
                 ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
                 aListener.actionPerformed( ev );
@@ -887,7 +955,7 @@ public class BTCommunication implements IBTCommunication
             }
             catch( InterruptedException ex )
             {
-              if( aListener != null ) 
+              if( aListener != null )
               {
                 ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
                 aListener.actionPerformed( ev );
@@ -897,17 +965,17 @@ public class BTCommunication implements IBTCommunication
             }
           }
         }
-        if( aListener != null ) 
+        if( aListener != null )
         {
           ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVEROK, new String( "discover_ok" ) );
           aListener.actionPerformed( ex );
         }
-        if( log ) LOGGER.log( Level.FINEST, "Bluethooth Discovering OK" );
+        if( log ) LOGGER.log( Level.FINE, "Bluethooth Discovering OK" );
         discoverInProcess = false;
       }
     };
     th.setName( "btDiscoverThread" );
-    sb.setName(  "btStatusThread" );
+    sb.setName( "btStatusThread" );
     sb.start();
     th.start();
     return true;
@@ -923,9 +991,7 @@ public class BTCommunication implements IBTCommunication
   public String[] getNameArray()
   {
     ArrayList<String> nList = new ArrayList<String>();
-    
-    if( log ) LOGGER.log( Level.FINEST, "make stringarray of Services..." );
-    
+    if( log ) LOGGER.log( Level.FINE, "make stringarray of Services..." );
     for( String dev : deviceHash.keySet() )
     {
       // Die KEYS (also DeviceNames) in die Liste
@@ -945,14 +1011,14 @@ public class BTCommunication implements IBTCommunication
   @Override
   public void connectDevice( String deviceName ) throws Exception
   {
-    String url = null;;
-    
+    String url = null;
+    ;
     // suche die URL für die Verbindung
-    if( connectHash.containsKey( deviceName ) && deviceHash.containsKey( deviceName ))
+    if( connectHash.containsKey( deviceName ) && deviceHash.containsKey( deviceName ) )
     {
       url = connectHash.get( deviceName );
       connectedDevice = deviceHash.get( deviceName );
-      if( aListener != null ) 
+      if( aListener != null )
       {
         ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTING, null );
         aListener.actionPerformed( ex );
@@ -960,7 +1026,7 @@ public class BTCommunication implements IBTCommunication
     }
     else
     {
-      if( aListener != null ) 
+      if( aListener != null )
       {
         ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTNODEVCONN, null );
         aListener.actionPerformed( ex );
@@ -968,62 +1034,62 @@ public class BTCommunication implements IBTCommunication
       return;
     }
     // So, das Verbinden halt...
-    try 
+    try
     {
-      if( log ) LOGGER.log( Level.FINEST, "Connect to Device <" + deviceName + ">" );
+      if( log ) LOGGER.log( Level.FINE, "Connect to Device <" + deviceName + ">" );
       // Verbinden....
-      if( connectedDevice.isAuthenticated())
+      if( connectedDevice.isAuthenticated() )
       {
         // Wenn device authentifiziert ist, alles OK
-        if( log ) LOGGER.log(  Level.INFO, "Device is Authentificated" );
-        conn = (StreamConnection) Connector.open(url);
+        if( log ) LOGGER.log( Level.INFO, "Device is Authentificated" );
+        conn = ( StreamConnection )Connector.open( url );
       }
       else
       {
         // Device ist nicht authentifiziert.
         // Versuch das mal zu machen
-        if( log ) LOGGER.log(  Level.INFO, "try autentificating..." );
-        if( devicePinHash.containsKey( deviceName  ))
+        if( log ) LOGGER.log( Level.INFO, "try autentificating..." );
+        if( devicePinHash.containsKey( deviceName ) )
         {
           // ich habe eine PIN in meinem Speicher
-          if( log ) LOGGER.log(  Level.INFO, "try autentificating whith pin <" + devicePinHash.get( deviceName ) + ">" );
-          RemoteDeviceHelper.authenticate(connectedDevice , devicePinHash.get( deviceName ));
-          conn = (StreamConnection) Connector.open(url);
+          if( log ) LOGGER.log( Level.INFO, "try autentificating whith pin <" + devicePinHash.get( deviceName ) + ">" );
+          RemoteDeviceHelper.authenticate( connectedDevice, devicePinHash.get( deviceName ) );
+          conn = ( StreamConnection )Connector.open( url );
         }
         else
         {
           // Benutzer anquengeln
-          if( log ) LOGGER.log(  Level.INFO, "Device is NOT Authentificated" );
-          if( aListener != null ) 
+          if( log ) LOGGER.log( Level.INFO, "Device is NOT Authentificated" );
+          if( aListener != null )
           {
             ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
             aListener.actionPerformed( ex1 );
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTAUTHREQEST, deviceName );
             aListener.actionPerformed( ex );
           }
-          //isConnected = false;
+          // isConnected = false;
           connectedDevice = null;
           return;
         }
       }
       //
-      // Wollen wir mal unser Glück versuchen?        
+      // Wollen wir mal unser Glück versuchen?
       //
       // Eingabe erzeugen
-      InputStream din = new DataInputStream( conn.openInputStream() ); 
+      InputStream din = new DataInputStream( conn.openInputStream() );
       reader = new ReaderRunnable( din );
       Thread rt = new Thread( reader );
       rt.setName( "bt_reader_thread" );
       rt.start();
       //
       // Ausgabe erzeugen
-      OutputStream dout = new DataOutputStream(conn.openOutputStream());//Get the output stream
+      OutputStream dout = new DataOutputStream( conn.openOutputStream() );// Get the output stream
       writer = new WriterRunnable( dout );
       Thread wt = new Thread( writer );
       wt.setName( "bt_writer_thread" );
       wt.start();
       isConnected = true;
-      if( aListener != null ) 
+      if( aListener != null )
       {
         ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTED, null );
         aListener.actionPerformed( ex );
@@ -1034,48 +1100,46 @@ public class BTCommunication implements IBTCommunication
       isConnected = false;
       connectedDevice = null;
       if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <" + ex.getLocalizedMessage() + ">" );
-      if( aListener != null ) 
+      if( aListener != null )
       {
         ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
         aListener.actionPerformed( ex1 );
       }
       int status = ex.getStatus();
-      switch( status )
+      switch ( status )
       {
         case BluetoothConnectionException.UNKNOWN_PSM:
           if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection to the server failed because no service for the given PSM was registered>" );
           break;
-          
         case BluetoothConnectionException.SECURITY_BLOCK:
-          if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection failed because the security settings on the local device or the remote device were incompatible with the request>" );
+          if( log )
+            LOGGER.log( Level.SEVERE,
+                    "BTConnectionException <the connection failed because the security settings on the local device or the remote device were incompatible with the request>" );
           break;
-          
         case BluetoothConnectionException.NO_RESOURCES:
           if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection failed due to a lack of resources either on the local device or on the remote device>" );
           break;
-          
         case BluetoothConnectionException.FAILED_NOINFO:
           if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection to the server failed due to unknown reasons.>" );
           break;
-          
         case BluetoothConnectionException.TIMEOUT:
           if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection to the server failed due to a timeout>" );
           break;
-          
         case BluetoothConnectionException.UNACCEPTABLE_PARAMS:
-          if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection failed because the configuration parameters provided were not acceptable to either the remote device or the local device>" );
+          if( log )
+            LOGGER.log( Level.SEVERE,
+                    "BTConnectionException <the connection failed because the configuration parameters provided were not acceptable to either the remote device or the local device>" );
           break;
-        
-        default:  
+        default:
           if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <unknown>" );
       }
     }
-    catch ( Exception ex) 
+    catch( Exception ex )
     {
       isConnected = false;
       connectedDevice = null;
       if( log ) LOGGER.log( Level.SEVERE, "Exception <" + ex.getLocalizedMessage() + ">" );
-      if( aListener != null ) 
+      if( aListener != null )
       {
         ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
         aListener.actionPerformed( ex1 );
@@ -1085,7 +1149,6 @@ public class BTCommunication implements IBTCommunication
     {
       // was immer ausgeführt werden muss
     }
-    
   }
 
   @Override
@@ -1103,7 +1166,8 @@ public class BTCommunication implements IBTCommunication
     {
       Thread.sleep( 500 );
     }
-    catch( InterruptedException ex ){}
+    catch( InterruptedException ex )
+    {}
     if( conn != null )
     {
       try
@@ -1123,7 +1187,7 @@ public class BTCommunication implements IBTCommunication
   @Override
   public synchronized void writeToDevice( String msg )
   {
-    if( isConnected && (writer != null ))
+    if( isConnected && ( writer != null ) )
     {
       writer.writeToDevice( msg );
     }
@@ -1132,7 +1196,7 @@ public class BTCommunication implements IBTCommunication
   @Override
   public void writeSPXMsgToDevice( String msg )
   {
-    if( isConnected && ( writer != null ))
+    if( isConnected && ( writer != null ) )
     {
       writer.writeToDevice( ProjectConst.STX + msg + ProjectConst.ETX );
     }
@@ -1141,75 +1205,71 @@ public class BTCommunication implements IBTCommunication
   @Override
   public void askForSerialNumber()
   {
-    writeSPXMsgToDevice( ProjectConst.KDO_GETSERIAL );
+    writeToDevice( String.format( "%s~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_SERIAL_NUMBER, ProjectConst.ETX ) );
   }
 
   @Override
-  public void askForAckuValue()
+  public void askForSPXAlive()
   {
-    writeSPXMsgToDevice( ProjectConst.KDO_ACKU );
+    writeToDevice( String.format( "%s~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_ALIVE, ProjectConst.ETX ) );
   }
 
   @Override
   public void readConfigFromSPX42()
   {
+    String kdoString;
+    kdoString = String.format( "%s~%x~%x~%x~%x~%x~%x~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_GET_SETUP_DEKO, ProjectConst.SPX_GET_SETUP_SETPOINT,
+            ProjectConst.SPX_GET_SETUP_DISPLAYSETTINGS, ProjectConst.SPX_GET_SETUP_UNITS, ProjectConst.SPX_GET_SETUP_INDIVIDUAL, ProjectConst.SPX_LICENSE_STATE,
+            ProjectConst.SPX_ALIVE, ProjectConst.ETX );
     if( log )
     {
-      LOGGER.log( Level.FINEST, "readConfigFromSPX()...send <" + ProjectConst.KDO_GETSERIAL + ProjectConst.KDO_ACKU + ProjectConst.KDO_DECO + ProjectConst.KDO_SETPOINT + ProjectConst.KDO_DISPLAY + ProjectConst.KDO_UNIS
-            + ProjectConst.KDO_INDIVIDUAL + ProjectConst.KDO45 + ">" );
+      LOGGER.log( Level.SEVERE, "readConfigFromSPX()...send <" + kdoString + ">" );
     }
-    writeSPXMsgToDevice( ProjectConst.KDO_GETSERIAL + ProjectConst.KDO_ACKU + ProjectConst.KDO_DECO + ProjectConst.KDO_SETPOINT + ProjectConst.KDO_DISPLAY + ProjectConst.KDO_UNIS + ProjectConst.KDO_INDIVIDUAL
-            + ProjectConst.KDO45 );
+    writeToDevice( kdoString );
   }
 
   @Override
   public void askForDeviceName()
   {
-    writeSPXMsgToDevice( ProjectConst.KDO_DEVNAME );
+    writeToDevice( String.format( "%s~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_MANUFACTURERS, ProjectConst.ETX ) );
   }
 
   @Override
   public void askForFirmwareVersion()
   {
-    writeSPXMsgToDevice( ProjectConst.KDO_VERSION );
+    writeToDevice( String.format( "%s~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_APPLICATION_ID, ProjectConst.ETX ) );
   }
 
   @Override
   public String getDeviceInfos()
   {
-    //Mach aus den HashMaps einen String zum Wiedereinlesen
-    //private HashMap<String,String>                 connectHash = new HashMap<String,String>();
-    //private HashMap<String,RemoteDevice>            deviceHash = new HashMap<String,RemoteDevice>();
-    //private HashMap<String,String>               devicePinHash = new HashMap<String,String>();
+    // Mach aus den HashMaps einen String zum Wiedereinlesen
+    // private HashMap<String,String> connectHash = new HashMap<String,String>();
+    // private HashMap<String,RemoteDevice> deviceHash = new HashMap<String,RemoteDevice>();
+    // private HashMap<String,String> devicePinHash = new HashMap<String,String>();
     connectHash.toString();
     deviceHash.toString();
     devicePinHash.toString();
-    
-    
     return null;
   }
 
   @Override
   public void putDeviceInfos( String infos ) throws Exception
-  {
-    
-    
-  }
+  {}
 
   @Override
   public void setPinForDevice( String dev, String pin )
   {
-    devicePinHash.put( dev,  pin );
+    devicePinHash.put( dev, pin );
   }
 
   @Override
   public String getPinForDevice( String dev )
   {
-    if( devicePinHash.containsKey( dev ))
+    if( devicePinHash.containsKey( dev ) )
     {
-      return( devicePinHash.get( dev ));
+      return( devicePinHash.get( dev ) );
     }
     return( "0000" );
   }
-
 }

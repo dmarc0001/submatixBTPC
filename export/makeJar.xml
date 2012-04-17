@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project SubmatixBTConfigPC">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="C:/DATEN/Download/submatix/submatixBTConfigPC.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="de.dmarcini.submatix.pclogger.gui.MainCommGUI"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="C:/DATEN/eclipseWorkspace/SubmatixBTConfigPC/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/bluecove-2.1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/RXTXcomm.jar"/>
+        </jar>
+    </target>
+</project>

@@ -2,11 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/bluecove-2.1.0.jar">
-		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/DATEN/eclipseWorkspace/extLibs"/>
-		</attributes>
-	</classpathentry>
+	<classpathentry kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/bluecove-2.1.0.jar"/>
 	<classpathentry kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/RXTXcomm.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

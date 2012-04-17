@@ -38,18 +38,19 @@ public final class ProjectConst
   //
   public static final String KDO_DEVNAME            = "~0x01";
   public static final String IS_DEVNAME             = "~1:";
-  public static final String KDO_03                 = "~0x03";                                                  // Antwort war "~3:19c" Ackuspannung?
+  public static final String KDO_ACKU               = "~0x03";                                                  // Antwort war "~3:19c" Ackuspannung?
+  public static final String ISKDO_ACKU             = "~3:";
   public static final String KDO_VERSION            = "~0x04";
   public static final String IS_VERSION             = "~4:";
   public static final String KDO_LOGLIST_DETAIL     = "~0x46";
   public static final String KDO_47                 = "~0x47";                                                  // ~0x74:1:1 oder sowas...
   
   //
-  public static final String GETSERIAL              = "~0x07";
-  public static final String ISSERIAL               = "~7:";
+  public static final String KDO_GETSERIAL          = "~0x07";
+  public static final String ISKDO_SERIAL           = "~7:";
   public static final String KDO_DECO               = "~0x34";
   public static final String ISKDO_DECO             = "~34:";
-  public static final String KDO_SETPOINT           = "~0x35";
+  public static final String KDO_SETPOINT           = "~0x30";
   public static final String ISKDO_SETPOINT         = "~35:";
   public static final String KDO_DISPLAY            = "~0x36";
   public static final String ISKDO_DISPLAY          = "~36:";
@@ -112,7 +113,8 @@ public final class ProjectConst
   public static final int    MESSAGE_BTRECOVERERR   = ActionEvent.RESERVED_ID_MAX + 40;
   public static final int    MESSAGE_BTWAITFOR      = ActionEvent.RESERVED_ID_MAX + 41;
   public static final int    MESSAGE_BTNODEVCONN    = ActionEvent.RESERVED_ID_MAX + 42;
-  public static final int    MESSAGE_BTLOSTCONNECT  = ActionEvent.RESERVED_ID_MAX + 43;
+  public static final int    MESSAGE_BTAUTHREQEST   = ActionEvent.RESERVED_ID_MAX + 43;
+  public static final int    MESSAGE_SPXACKU        = ActionEvent.RESERVED_ID_MAX + 44;
   
 
   

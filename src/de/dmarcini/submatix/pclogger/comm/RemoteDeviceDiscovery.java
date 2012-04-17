@@ -50,6 +50,7 @@ public class RemoteDeviceDiscovery
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 08.01.2012
+   * @param lg 
    */
   public RemoteDeviceDiscovery( Logger lg )
   {
@@ -60,7 +61,44 @@ public class RemoteDeviceDiscovery
       log = false;   
   };
 
-  // innere Klasse
+  /**
+   * 
+   * Bekannte Geräte lesen
+   *
+   * Project: SubmatixBTConfigPC
+   * Package: de.dmarcini.submatix.pclogger.comm
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   * Stand: 22.01.2012
+   * @throws BluetoothStateException
+   * TODO
+   */
+  public static void readCached() throws BluetoothStateException
+  {
+    RemoteDevice[] rd = LocalDevice.getLocalDevice().getDiscoveryAgent().retrieveDevices( DiscoveryAgent.PREKNOWN );
+    
+    devicesDiscovered.clear();
+    
+    for( RemoteDevice btDevice : rd )
+    {
+      devicesDiscovered.addElement( btDevice );
+    }
+  }
+  
+  
+  /**
+   * 
+   * Komplett Umgebug neu durchsuchen
+   *
+   * Project: SubmatixBTConfigPC
+   * Package: de.dmarcini.submatix.pclogger.comm
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   * Stand: 22.01.2012
+   * @throws IOException
+   * @throws InterruptedException
+   * TODO
+   */
   public static void doDiscover() throws IOException, InterruptedException
   {
     // Objekt zum Empfang der Nachrichten

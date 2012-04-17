@@ -6,7 +6,6 @@
  * @author Dirk Marciniak (dirk_marciniak@arcor.de)
  * 
  * Stand: 08.01.2012
- * TODO
  */
 package de.dmarcini.submatix.pclogger.comm;
 
@@ -25,7 +24,7 @@ public interface IBTCommunication
 {
   public void addActionListener( ActionListener al );
   public void removeActionListener();
-  public boolean discoverDevices();
+  public boolean discoverDevices( final boolean cached );
   public String[] getNameArray();
   public boolean isConnected();
   public void connectDevice( String deviceName ) throws Exception;
@@ -36,4 +35,11 @@ public interface IBTCommunication
   public void readConfigFromSPX42();
   public void askForDeviceName();
   public void askForFirmwareVersion();
+  public void askForAckuValue();
+  public void setPinForDevice( String dev, String pin );
+  public String getPinForDevice( String dev );
+  // experimentell...
+  public String getDeviceInfos();
+  public void putDeviceInfos( String infos ) throws Exception;
+  
 }

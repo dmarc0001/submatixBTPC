@@ -122,6 +122,12 @@ public class SPX42Config implements ISPX42Config
     customEnabled = cf.customEnabled;
   }
 
+  @Override
+  public void clear()
+  {
+    wasCorrectInitialized = false;
+  }
+
   /**
    * Vergleiche mit anderer Config
    */
@@ -894,7 +900,7 @@ public class SPX42Config implements ISPX42Config
     // Kommando SPX_LICENSE_STATE
     // <~45:LS:CE>
     // LS : License State 0=Nitrox,1=Normoxic Trimix,2=Full Trimix
-    // CE : 0= disabled, 1=enabled
+    // CE : Custom Enabled 0= disabled, 1=enabled
     if( LOGGER != null ) LOGGER.log( Level.FINE, "setLicenseStatus() <" + fromSpx + ">" );
     String[] fields = fieldPatternDp.split( fromSpx );
     int[] vals = new int[2];
@@ -942,5 +948,16 @@ public class SPX42Config implements ISPX42Config
   public int getLicenseState()
   {
     return( licenseState );
+  }
+
+  @Override
+  public boolean isBuggyFirmware()
+  {
+    // Die Firmware gibt IMMER Fahrenheit zurück!
+    if( firmwareVersion.equals( "V2.6.7.7_V" ) )
+    {
+      return( true );
+    }
+    return false;
   }
 }

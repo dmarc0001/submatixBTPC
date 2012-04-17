@@ -29,6 +29,7 @@ import javax.microedition.io.StreamConnection;
 import com.intel.bluetooth.RemoteDeviceHelper;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
+import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 
 /**
  * 
@@ -44,9 +45,11 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
 public class BTCommunication implements IBTCommunication
 {
   static final UUID                       UUID_SERIAL_DEVICE = new UUID( 0x1101 );
-  private final HashMap<String,String>                 connectHash = new HashMap<String,String>();
-  private final HashMap<String,RemoteDevice>            deviceHash = new HashMap<String,RemoteDevice>();
-  private final HashMap<String,String>               devicePinHash = new HashMap<String,String>();
+  public static final int             CONFIG_WRITE_KDO_COUNT = 4;
+  public static final int              CONFIG_READ_KDO_COUNT = 7;
+  private final HashMap<String,String>           connectHash = new HashMap<String,String>();
+  private final HashMap<String,RemoteDevice>      deviceHash = new HashMap<String,RemoteDevice>();
+  private final HashMap<String,String>         devicePinHash = new HashMap<String,String>();
   static Logger                                       LOGGER = null;
   private boolean                                        log = false;
   private boolean                                isConnected = false;
@@ -126,7 +129,8 @@ public class BTCommunication implements IBTCommunication
         // ist die Liste leer, mach nix, einfach relaxen
         try
         {
-          wait( 500 );
+          Thread.yield();
+          wait( 20 );
         }
         catch( InterruptedException ex )
         {}
@@ -139,7 +143,12 @@ public class BTCommunication implements IBTCommunication
           // also den String Eintrag in den Outstream...
           outStream.write( ( writeList.remove( 0 ) ).getBytes() );
           // zwischen den Kommandos etwas warten, der SPX braucht etwas bis er wieder zuhört...
-          Thread.sleep( 300 );
+          // das gibt dem Swing-Thread etwas Gelegenheit zum Zeichnen oder irgendwas anderem
+          for( int factor = 0; factor < 5; factor++ )
+          {
+            Thread.yield();
+            Thread.sleep( 80 );
+          }
         }
         catch( IndexOutOfBoundsException ex )
         {
@@ -212,47 +221,9 @@ public class BTCommunication implements IBTCommunication
    * 
    *         Stand: 11.01.2012
    */
+  //@formatter:off
   public class ReaderRunnable implements Runnable
   {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //@formatter:off
     private final byte[]                                    buffer = new byte[1024];
     private InputStream                             inStream = null;
     private boolean                                  running = false;
@@ -1080,6 +1051,7 @@ public class BTCommunication implements IBTCommunication
       reader = new ReaderRunnable( din );
       Thread rt = new Thread( reader );
       rt.setName( "bt_reader_thread" );
+      rt.setPriority( Thread.NORM_PRIORITY - 1 );
       rt.start();
       //
       // Ausgabe erzeugen
@@ -1087,6 +1059,7 @@ public class BTCommunication implements IBTCommunication
       writer = new WriterRunnable( dout );
       Thread wt = new Thread( writer );
       wt.setName( "bt_writer_thread" );
+      wt.setPriority( Thread.NORM_PRIORITY - 2 );
       wt.start();
       isConnected = true;
       if( aListener != null )
@@ -1205,39 +1178,39 @@ public class BTCommunication implements IBTCommunication
   @Override
   public void askForSerialNumber()
   {
-    writeToDevice( String.format( "%s~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_SERIAL_NUMBER, ProjectConst.ETX ) );
+    this.writeToDevice( String.format( "%s~%x%s", ProjectConst.STX, ProjectConst.SPX_SERIAL_NUMBER, ProjectConst.ETX ) );
   }
 
   @Override
   public void askForSPXAlive()
   {
-    writeToDevice( String.format( "%s~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_ALIVE, ProjectConst.ETX ) );
+    this.writeToDevice( String.format( "%s~%x%s", ProjectConst.STX, ProjectConst.SPX_ALIVE, ProjectConst.ETX ) );
   }
 
   @Override
   public void readConfigFromSPX42()
   {
     String kdoString;
-    kdoString = String.format( "%s~%x~%x~%x~%x~%x~%x~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_GET_SETUP_DEKO, ProjectConst.SPX_GET_SETUP_SETPOINT,
+    kdoString = String.format( "%s~%x~%x~%x~%x~%x~%x~%x%s", ProjectConst.STX, ProjectConst.SPX_GET_SETUP_DEKO, ProjectConst.SPX_GET_SETUP_SETPOINT,
             ProjectConst.SPX_GET_SETUP_DISPLAYSETTINGS, ProjectConst.SPX_GET_SETUP_UNITS, ProjectConst.SPX_GET_SETUP_INDIVIDUAL, ProjectConst.SPX_LICENSE_STATE,
             ProjectConst.SPX_ALIVE, ProjectConst.ETX );
     if( log )
     {
-      LOGGER.log( Level.SEVERE, "readConfigFromSPX()...send <" + kdoString + ">" );
+      LOGGER.log( Level.FINE, "readConfigFromSPX()...send <" + kdoString + ">" );
     }
-    writeToDevice( kdoString );
+    this.writeToDevice( kdoString );
   }
 
   @Override
   public void askForDeviceName()
   {
-    writeToDevice( String.format( "%s~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_MANUFACTURERS, ProjectConst.ETX ) );
+    this.writeToDevice( String.format( "%s~%x%s", ProjectConst.STX, ProjectConst.SPX_MANUFACTURERS, ProjectConst.ETX ) );
   }
 
   @Override
   public void askForFirmwareVersion()
   {
-    writeToDevice( String.format( "%s~%x%s\n\r", ProjectConst.STX, ProjectConst.SPX_APPLICATION_ID, ProjectConst.ETX ) );
+    this.writeToDevice( String.format( "%s~%x%s", ProjectConst.STX, ProjectConst.SPX_APPLICATION_ID, ProjectConst.ETX ) );
   }
 
   @Override
@@ -1271,5 +1244,135 @@ public class BTCommunication implements IBTCommunication
       return( devicePinHash.get( dev ) );
     }
     return( "0000" );
+  }
+
+  @Override
+  public void writeConfigToSPX( final SPX42Config config )
+  {
+    String spxVersion = config.getFirmwareVersion();
+    Thread configWriteThread = null;
+    //
+    if( !config.wasInit() )
+    {
+      if( log ) LOGGER.log( Level.SEVERE, "config was not initialized! CANCEL!" );
+      return;
+    }
+    if( spxVersion.equals( "V2.6.7.7_V" ) )
+    {
+      // Schreibe für die leicht Fehlerhafte Version
+      // Führe als eigenen Thread aus, damit die Swing-Oberfläche
+      // Gelegenheit bekommt, sich zu zeichnen
+      configWriteThread = new Thread() {
+        ActionEvent ae;
+
+        @Override
+        public void run()
+        {
+          String command;
+          //
+          // Kommando SPX_SET_SETUP_DEKO
+          // ~29:GH:GL:LS:DY:DS
+          // GH = Gradient HIGH
+          // GL = Gradient LOW
+          // LS = Last Stop 0=>6m 1=>3m
+          // DY = Dynamische gradienten 0->off 1->on
+          // DS = Deepstops 0=> enabled, 1=>disabled
+          // Deco-Einstellungen setzen
+          if( log ) LOGGER.log( Level.INFO, "write deco propertys" );
+          command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_DEKO, config.getDecoGfHigh(), config.getDecoGfLow(), config.getLastStop(),
+                  config.getDynGradientsEnable(), config.getDeepStopEnable() );
+          if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+          writeSPXMsgToDevice( command );
+          // gib Bescheid
+          if( aListener != null )
+          {
+            ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_NEXT, null );
+            aListener.actionPerformed( ae );
+          }
+          //
+          // Kommando SPX_SET_SETUP_DISPLAYSETTINGS
+          // ~31:D:A
+          // D= 0->10&, 1->50%, 2->100%
+          // A= 0->Landscape 1->180Grad
+          // Display setzen
+          if( log ) LOGGER.log( Level.INFO, "write display propertys" );
+          command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_DISPLAYSETTINGS, config.getDisplayBrightness(), config.getDisplayOrientation() );
+          if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+          writeSPXMsgToDevice( command );
+          // gib Bescheid
+          if( aListener != null )
+          {
+            ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_NEXT, null );
+            aListener.actionPerformed( ae );
+          }
+          //
+          // Kommando SPX_SET_SETUP_UNITS
+          // ~32:UD:UL:UW
+          // UD= Fahrenheit/Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
+          // UL= 0=>metrisch 1=>imperial
+          // UW= 0->Salzwasser 1->Süßwasser
+          if( log ) LOGGER.log( Level.INFO, "write units propertys" );
+          command = String.format( "~%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_UNITS, config.getUnitTemperature(), config.getUnitDepth(), config.getUnitSalnity() );
+          if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+          writeSPXMsgToDevice( command );
+          // gib Bescheid
+          if( aListener != null )
+          {
+            ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_NEXT, null );
+            aListener.actionPerformed( ae );
+          }
+          //
+          // Kommando SPX_SET_SETUP_SETPOINT
+          // ~30:P:A
+          // P = Partialdruck (0..4) 1.0 .. 1.4
+          // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
+          if( log ) LOGGER.log( Level.INFO, "write setpoint propertys" );
+          command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getMaxSetpoint(), config.getAutoSetpoint() );
+          if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+          writeSPXMsgToDevice( command );
+          // gib Bescheid
+          if( aListener != null )
+          {
+            ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_NEXT, null );
+            aListener.actionPerformed( ae );
+          }
+          //
+          if( config.isCustomEnabled() )
+          {
+            // Kommando SPX_SET_SETUP_INDIVIDUAL
+            // ~33:SM:PS:SC:AC:LT
+            // SM = 0-> Sensoren ON, 1-> No Sensor
+            // PS = PSCR Mode 0->off; 1->ON (sollte eigentlich immer off (0 ) sein)
+            // SC = SensorsCount 0->1 Sensor, 1->2 sensoren, 2->3 Sensoren
+            // AC = acoustic 0->off, 1->on
+            // LT = Logbook Timeinterval 0->10s, 1->30s, 2->60s
+            if( log ) LOGGER.log( Level.INFO, "write individual propertys" );
+            command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_INDIVIDUAL, config.getSensorsOn(), config.getPscrModeOn(), config.getSensorsCount(),
+                    config.getSoundOn(), config.getLogInterval() );
+            if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+            writeSPXMsgToDevice( command );
+            // gib Bescheid
+            if( aListener != null )
+            {
+              ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_NEXT, null );
+              aListener.actionPerformed( ae );
+            }
+          }
+          // gib Bescheid vorgang zuende
+          if( log ) LOGGER.log( Level.INFO, "write config endet." );
+          if( aListener != null )
+          {
+            ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_END, "config_write" );
+            aListener.actionPerformed( ae );
+          }
+        }
+      };
+      configWriteThread.setName( "write_config_to_spx" );
+      configWriteThread.start();
+    }
+    else
+    {
+      if( log ) LOGGER.log( Level.SEVERE, "write for this firmware version not confirmed! CANCEL!" );
+    }
   }
 }

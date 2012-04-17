@@ -585,4 +585,8 @@ public interface ISPX42Config
   public void setLogInterval( int interval );
 
   public int getLogInterval();
+
+  public boolean isBuggyFirmware();
+
+  public void clear();
 }

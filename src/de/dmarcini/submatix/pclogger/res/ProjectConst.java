@@ -21,7 +21,8 @@ public final class ProjectConst
   public static final String GENYEAR                    = "2012";
   public static final String GENMONTH                   = "04";
   public static final String GENDAY                     = "12";
-  
+
+  // interne Begrenzung für Empfangspuffer
   public static final int    MAXINBUFFER                = 10 * 1024;
 
   // Messages für SPX 42
@@ -30,7 +31,7 @@ public final class ProjectConst
   public static final String FILLER                     = new String( new byte[] { 0x0d, 0x0a } );
   public static final String FILLERCHAR                 = "[\\n\\r]";                                               // Zeichen zum entfernen
   public static final String LOGSELECTOR                = new String ( new byte[] { 0x09 } );
-  //
+  // Kommandos für den SPX
   public static final int SPX_MANUFACTURERS             = 0x01;
   public static final int SPX_FACTORY_NUMBER            = 0x02;
   public static final int SPX_ALIVE                     = 0x03;
@@ -69,13 +70,12 @@ public final class ProjectConst
   public static final int SPX_GET_LOG_INDEX_DETAIL      = 0x46; //! Lizenzstatus senden (Bluetooth)
   public static final int SPX_GET_LOG_NUMBER_DETAIL     = 0x47; //! Logdatei senden
   public static final int SPX_GET_LOG_NUMBER_DETAIL_OK  = 0x48; //! Logdatei senden OK/ENDE
-  
+  //
   public static final String IS_END_LOGLISTENTRY        = ":41";
   
   
   
   // Message Bezeichnungen
-
   public static final int    MESSAGE_NONE               = ActionEvent.RESERVED_ID_MAX + 1;
   public static final int    MESSAGE_STATE_CHANGE       = ActionEvent.RESERVED_ID_MAX + 2;
   public static final int    MESSAGE_READ               = ActionEvent.RESERVED_ID_MAX + 3;
@@ -112,6 +112,8 @@ public final class ProjectConst
   public static final int    MESSAGE_BTNODEVCONN        = ActionEvent.RESERVED_ID_MAX + 34;
   public static final int    MESSAGE_BTAUTHREQEST       = ActionEvent.RESERVED_ID_MAX + 35;
   public static final int    MESSAGE_SPXALIVE           = ActionEvent.RESERVED_ID_MAX + 36;
+  public static final int    MESSAGE_PROCESS_NEXT       = ActionEvent.RESERVED_ID_MAX + 37;
+  public static final int    MESSAGE_PROCESS_END        = ActionEvent.RESERVED_ID_MAX + 38;
   
   // Interne Messages
   private static final int   INT_MESSAGE_OFFSET         = 100;

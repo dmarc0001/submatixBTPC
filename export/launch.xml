@@ -1,9 +1,9 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>C:\DATEN\eclipseWorkspace\SubmatixBTConfigPC\export\submatixBTConfigPC.jar</jar>
-  <outfile>C:\DATEN\eclipseWorkspace\SubmatixBTConfigPC\export\submatixBTConfigPC.exe</outfile>
-  <errTitle>Java Installieren!</errTitle>
+  <jar>C:\DATEN\Download\submatix\submatixBTConfigPC.jar</jar>
+  <outfile>C:\DATEN\Download\submatix\submatixBluethoothLoggerBT.exe</outfile>
+  <errTitle>Kein JAVa vohanden?</errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>
   <priority>normal</priority>
@@ -15,10 +15,10 @@
   <icon></icon>
   <jre>
     <path>C:\Program Files (x86)\Java\jre7</path>
-    <minVersion>1.7.0</minVersion>
-    <maxVersion>2.0.0</maxVersion>
-    <jdkPreference>preferJre</jdkPreference>
-    <initialHeapSize>10</initialHeapSize>
-    <maxHeapSize>500</maxHeapSize>
+    <minVersion>1.6.0</minVersion>
+    <maxVersion>1.7.9</maxVersion>
+    <jdkPreference>jdkOnly</jdkPreference>
+    <initialHeapSize>40</initialHeapSize>
+    <maxHeapSize>256</maxHeapSize>
   </jre>
 </launch4jConfig>

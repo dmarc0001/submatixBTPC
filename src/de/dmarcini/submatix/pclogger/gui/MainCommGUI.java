@@ -75,11 +75,18 @@ import java.awt.Font;
 import javax.swing.border.EtchedBorder;
 import javax.swing.JProgressBar;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 public class MainCommGUI extends JFrame implements ActionListener, MouseMotionListener, ChangeListener, ItemListener
 {
   //@formatter:off
   //
-  private static final long                 serialVersionUID = 1L;
+  private static final long                 serialVersionUID = 2L;
   private static ResourceBundle                stringsBundle = null;
   private Locale                               programLocale = null;
   static Logger                                       LOGGER = null;
@@ -90,6 +97,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private SPX42Config                          currentConfig = new SPX42Config();
   private SPX42Config                            savedConfig = null;
   private boolean                               ignoreAction = false;
+  private static Level                        optionLogLevel = Level.FINEST;
+  private static boolean                  readBtCacheOnStart = false;
+  private static File                                logFile = new File("logfile.log");
   //
   //@formatter:on
   private JFrame frmMainwindowtitle;
@@ -168,7 +178,33 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   public static void main( String[] args )
   {
-    EventQueue.invokeLater( new Runnable() {
+    CommandLine cmd = null;
+    //
+    // Kommandozeilenargumente parsen
+    //
+    if( null == (cmd = parseCliOptions( args )) )
+    {
+      System.err.println( "Error while scanning CLI-Args...." );
+      System.exit( -1 );
+    }
+    if( cmd.hasOption( "loglevel" ) )
+    {
+      optionLogLevel = parseLogLevel( cmd.getOptionValue( "loglevel" )) ;
+    }
+    if( cmd.hasOption( "cacheonstart" ))
+    {
+      readBtCacheOnStart = true;
+    }
+    if( cmd.hasOption( "logfile" ))
+    {
+      logFile = parseNewLogFile( cmd.getOptionValue( "logfile" ));
+    }
+    
+    //
+    // Style bestimmen, wenn möglich 
+    //
+    EventQueue.invokeLater( new Runnable() 
+    {
       public void run()
       {
         try
@@ -195,6 +231,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         try
         {
+          //
+          // das Mainobjekt erzeugen
+          //
           MainCommGUI window = new MainCommGUI();
           window.frmMainwindowtitle.setVisible( true );
         }
@@ -212,7 +251,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   public MainCommGUI()
   {
     setDefaultLookAndFeelDecorated( isDefaultLookAndFeelDecorated() );
-    makeLogger( new File( "logger.log" ), Level.FINEST );
+    makeLogger( logFile, optionLogLevel );
     try
     {
       programLocale = Locale.getDefault();
@@ -221,7 +260,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     catch( MissingResourceException ex )
     {
       System.out.println( "ERROR get resources <" + ex.getMessage() + "> try standart Strings..." );
-      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages" );
+      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages_en" );
     }
     initialize();
     currentConfig.setLogger( LOGGER );
@@ -231,10 +270,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     ComboBoxModel<String> portBoxModel = new DefaultComboBoxModel<String>( entrys );
     portComboBox.setModel( portBoxModel );
     initLanuageMenu( programLocale );
-    LOGGER.log( Level.INFO, "call discover btdevices cached..." );
-    btComm.discoverDevices( true );
-    setElementsDiscovering( true );
-    //
+    if( readBtCacheOnStart )
+    {
+      LOGGER.log( Level.INFO, "call discover btdevices cached..." );
+      btComm.discoverDevices( true );
+      setElementsDiscovering( true );
+    }
     if( setLanguageStrings() < 1 )
     {
       System.exit( -1 );
@@ -1499,20 +1540,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           // A= 0->Landscape 1->180Grad
           // ServiceConst.IX_DISPLAY
           // Display setzen
-          LOGGER.log( Level.WARNING, "write display propertys" );
+          LOGGER.log( Level.INFO, "write display propertys" );
           btComm.writeSPXMsgToDevice( String.format( "%s:%d:%d", ProjectConst.KDOSETDISPLAY, currentConfig.getDisplayBrightness(), currentConfig.getDisplayOrientation() ) );
           // Kommando UNITS
           // ~37:UD:UL:UW
           // UD= Fahrenheit/Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
           // UL= 0=metrisch 1=imperial
           // UW= 0->Salzwasser 1->Süßwasser
-          LOGGER.log( Level.WARNING, "write units propertys" );
+          LOGGER.log( Level.INFO, "write units propertys" );
           btComm.writeSPXMsgToDevice( String.format( "%s:%d:%d:%d", ProjectConst.KDOSETUNITS, currentConfig.getUnitTemperature(), currentConfig.getUnitDepth(), currentConfig.getUnitSalnity() ) );
           // Kommando SETPOINT
           // ~30:P:A
           // A = Setpoint bei (0,1,2,3) = (0,5,15,20)
           // P = Partialdruck (0..4) 1.0 .. 1.4
-          LOGGER.log( Level.WARNING, "write setpoint propertys" );
+          LOGGER.log( Level.INFO, "write setpoint propertys" );
           btComm.writeSPXMsgToDevice( String.format( "%s:%d:%d", ProjectConst.KDO_SETPOINT, currentConfig.getHighSetpoint(), currentConfig.getAutoSetpoint() ) );
           
           // sComm.readConfigFromSPX42();
@@ -1631,6 +1672,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "help" ) )
     {
       LOGGER.log( Level.FINE, "Call HELP-Dialog..." );
+      showHelpForm();
     }
     // /////////////////////////////////////////////////////////////////////////
     // Sprachenmenü wurde ausgewählt
@@ -2023,6 +2065,22 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
   }
 
+  /**
+   * 
+   * Zeige ein Hilfe-Fenster
+   *
+   * Project: SubmatixBTConfigPC
+   * Package: de.dmarcini.submatix.pclogger.gui
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   * Stand: 28.01.2012
+   */
+  private void showHelpForm()
+  {
+    new HelpFrameClass( programLocale, LOGGER ); 
+  }
+  
+  
   @Override
   public void mouseDragged( MouseEvent ev )
   {}
@@ -2198,7 +2256,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Checkbos hat sich verändert
+   * Checkbox hat sich verändert
    */
   @Override
   public void itemStateChanged( ItemEvent ev )
@@ -2239,4 +2297,161 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
   }
+  
+  /**
+   * 
+   * CLI-Optionen einlesen
+   *
+   * Project: SubmatixBTConfigPC
+   * Package: de.dmarcini.submatix.pclogger.gui
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   * Stand: 28.01.2012
+   * @param args
+   * @return
+   */
+  private static CommandLine parseCliOptions( String[] args )
+  {
+    // Optionenobjet anlegen
+    Options options = new Options();
+    //
+    // Optionen für das Parsing anlegen und zu den Optionen zufügen
+    //
+    
+    // Logleven festlegen
+    Option optLogLevel = new Option( "l", "loglevel", true, "set loglevel for program" );
+    options.addOption( optLogLevel );
+    
+    // Bluethooth Caching Abfrage
+    Option optBtCaching = new Option( "c", "cacheonstart", false, "read cached bt devices on start" );
+    options.addOption( optBtCaching );
+    
+    // Logfile abgefragt?
+    Option optLogFile = new Option( "f", "logfile", true, "set logfile, \"OFF\" set NO logfile" );
+    options.addOption( optLogFile );
+        
+    // Parser anlegen
+    CommandLineParser cliParser = new BasicParser();
+    // Argumente parsen!
+    try 
+    {
+      return( cliParser.parse(options, args) );    
+    } 
+    catch (ParseException ex) 
+    {
+      System.err.println( "Parser error: " + ex.getLocalizedMessage() );
+      return( null );
+    }     
+  }
+
+  /**
+   * 
+   * Aus dem String von Loglevel den Logging-Wert machen
+   *
+   * Project: SubmatixBTConfigPC
+   * Package: de.dmarcini.submatix.pclogger.gui
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   * Stand: 28.01.2012
+   * @param optionValue
+   * @return
+   */
+  private static Level parseLogLevel( String level )
+  {
+    String levelString = level.toUpperCase();
+    
+    //SEVERE (highest value) ERROR
+    //WARNING                WARNUNG
+    //INFO                   INFO
+    //CONFIG                 CONFIG
+    //FINE                   DEBUG
+    //FINER                  
+    //FINEST (lowest value)  
+    
+    if( levelString.equals( "FINEST" ))
+    {
+      return( Level.FINEST );
+    }
+    if( levelString.equals( "FINER" ))
+    {
+      return( Level.FINEST );
+    }
+    if( levelString.equals( "FINE" ))
+    {
+      return( Level.FINE );
+    }
+    if( levelString.equals( "DEBUG" ))
+    {
+      return( Level.FINE );
+    }
+    if( levelString.equals( "CONFIG" ))
+    {
+      return( Level.CONFIG );
+    }
+    if( levelString.equals( "INFO" ))
+    {
+      return( Level.INFO );
+    }
+    if( levelString.equals( "WARNING" ))
+    {
+      return( Level.WARNING );
+    }
+    if( levelString.equals( "SERVE" ))
+    {
+      return( Level.SEVERE );
+    }
+    return( Level.OFF );
+  }
+
+  /**
+   * 
+   * Setze das neue Logfile, wenn gewünscht
+   *
+   * Project: SubmatixBTConfigPC
+   * Package: de.dmarcini.submatix.pclogger.gui
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   * Stand: 28.01.2012
+   * @param optionValue
+   * @return
+   * TODO
+   */
+  private static File parseNewLogFile( String optionValue )
+  {
+    File tempLogFile = null;
+    File parentDir = null;
+    if( optionValue.equals( "NONE" ))
+    {
+      // abschalten des Logfiles
+      return(null);
+    }
+    try
+    {
+      tempLogFile = new File( optionValue );
+    }
+    catch( NullPointerException ex )
+    {
+      System.err.println("parseNewLogFile: Logfilename was <null>");
+      return( logFile );
+    }
+    try
+    {
+      parentDir = new File( tempLogFile.getParent() );
+    }
+    catch( NullPointerException ex )
+    {
+      // nix Parent, ist nur eine Datei....
+      return( tempLogFile );
+    }
+    
+    if( parentDir.exists() && parentDir.isDirectory() )
+    {
+      return( tempLogFile );
+    }
+    System.err.println("parseNewLogFile: Logfile Directory not exists! (" + parentDir.getAbsolutePath() + ")");
+    return( logFile );
+  }
+
+
+
 }

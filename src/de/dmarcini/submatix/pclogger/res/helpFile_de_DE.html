@@ -1,0 +1,171 @@
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta http-equiv="content-language" content="de">
+    <title>Hilfe (deutsch) für Konfigurations/Logprogram für den SPX42</title>
+    <!--
+     Header, wird der vom JFrame benutzt?
+    -->
+  <style type="text/css">
+  <!--
+  /* ... Hier werden die Formate definiert ... */
+  body
+  {
+    background-color:silver;
+    color:blue;
+    font-family:Helvetica,Arial,sans-serif;
+    margin-left:40px;
+    margin-right:40px;
+  }
+  
+  h1
+  {
+    margin-top:30px;
+    color:red;
+    font-weight:bold;
+    margin-left:4em;
+    border-style:none;
+    border-bottom-style:solid;
+    border-bottom-color:red; 
+    border-bottom-width:2px;
+  }
+  
+  h2
+  {
+    margin-top:25px;
+    color:#000040;
+    font-style:italic;
+    font-weight:bold;
+    border-style:none;
+    border-bottom-style:solid;
+    border-bottom-color:#000040; 
+    border-bottom-width:1px;
+    
+  }
+
+  h3
+  {
+    margin-top:15px:
+    color:004040;
+    font-style:italic;
+  }
+  
+  div.code
+  {
+    font.weight=bold;
+    font-size:bigger;
+    margin-top:15px;
+    background-color:#f0f0f0
+    padding:30px;
+    font-family:Monospace;
+  }
+  
+  div.param
+  {
+    margin-top:15px;
+    color:black;
+    font-family:Monospace;
+    Margin-left:25px;
+  }
+  
+  -->
+  </style>
+  </head>
+  <body>
+    <h1><a name="pagestart">Hilfe zum Programm</a></h1>
+    
+    <!--
+    ###########################################################################
+    #### Inhaltsverzeichnis                                                ####    
+    ###########################################################################
+    -->
+    <h2>Inhalt</h2>
+    <ul>
+      <li><a href="#pagestart">Seitenanfang</a></li>
+      <li><a href="#preface">Einführung</a></li>
+      <li><a href="#btconnection">Bluethoothverbindung herstellen</a></li>
+      <ul>
+        <li><a href="#btconnection">Scannen nach Geräten</a></li>
+      </ul>
+      <li><a href="#clioptions">Optionen auf der Kommandozeile</a></li>
+    </ul>
+    
+    
+    <!--
+    ###########################################################################
+    #### Einleitung                                                        ####    
+    ###########################################################################
+    -->
+    <h2>Einführung</h2>
+    
+    Dieses Programm verbindet sich mittels der Blutethooth Schnittstelle Ihres PC mit dem
+    <b>SPX42</b> Tauchcomputer. Es kann die Konfiguration auslesen und eine neue Konfiguration setzen.
+    <br />
+    <br />
+    Weiterhin kann das Logbuch des <b>SPX42</b> Tauchcomputers ausgelesen und in einer 
+    lokalen Datenbank gesichert werden.
+    <br /><b>TODO: weiter schreiben</b><br /> <br />
+    
+    <!--
+    ###########################################################################
+    #### Verbindung herstellen                                             ####    
+    ###########################################################################
+    -->
+    <h2><a name="btconnection">Bluethoothverbindung herstellen</a></h2>
+    
+    <h3><a name="scanforbt">Scannen nach Geräten</a></h3>
+    Scannen...
+    
+    <!--
+    ###########################################################################
+    #### Inhaltsverzeichnis                                                ####    
+    ###########################################################################
+    -->
+    <h2><a name="clioptions">Optionen auf der Kommandozeile</a></h2>
+    Das Programm kann mit Kommandozeilenoptionen gestartet werden. Folgende Optionen sind möglich
+    
+    <div>
+      <div class="code">
+        --loglevel LEVEL
+      </div>
+      Der Parameter bestimmt, wie ausführlich das Programm seine Tätigkeit dokumentiert. Die 
+      Dokumentation des Programmes werden an die Konsole und in eine Logdatei ausgegeben.<br />
+      Möglich sind folgende Parameter: <br/>
+      <div class="param">
+      <table>
+      <tr><td>SEVERE (höchster Level)    </td><td>Nur Fehlermeldungen</td></tr>
+      <tr><td>WARNING                    </td><td>Fehlermeldungen und Warnungen  </td></tr>
+      <tr><td>INFO                       </td><td>Info, Warnungen, Fehlermeldungen  </td></tr>
+      <tr><td>CONFIG                     </td><td>Konfigurationesmeldungen, alles hier drüber  </td></tr>
+      <tr><td>FINE oder DEBUG            </td><td>DEBUG Meldungen (nur für Entwickler interessant)  </td></tr>
+      <tr><td>FINER                      </td><td>Noch ausführlicher  </td></tr>
+      <tr><td>FINEST (niedrigster Level) </td><td>Einfach alle Meldungen  </td></tr>
+      </table>
+      </div>
+    </div>
+    
+    <div>
+      <div class="code">
+        --logfile path/file
+      </div>
+    </div>
+    Der Parameter bestimmt den Namen und die Position der Logdatei. Wird als Parameter <b>NONE</b> 
+    angegeben, wird keine Logdatei erzeugt.<br/>
+    Standartmäßig wird im Programmverzeichnis eine Datei mit dem Namen "logfile.log" angelegt.
+    
+    <div class="param">
+    Angabe mit absolutem Pfad, relativem Pfad oder ohne Pfad (Programmverzeichnis wird automatisch gewählt)
+    </div>
+    
+    <div>
+      <div class="code">
+        --cacheonstart
+      </div>
+      Der Parameter besitzt keine Werte. Wird dieser Parameter auf der Kommandozeile eingetragen,
+      versucht die Bluethooth Bibliothek zunächst bereits evaluierte BT-Geräte ohne weitere
+      Suche darzustellen. <br />
+      Dies kann die Wartezeit erheblich verkürzen. Unter Max Os kann es zum "einfrieren" des Programmes führen.
+    </div>
+     
+  </body>
+</html>

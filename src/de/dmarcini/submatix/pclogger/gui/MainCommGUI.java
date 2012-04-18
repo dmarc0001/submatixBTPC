@@ -3,6 +3,7 @@ package de.dmarcini.submatix.pclogger.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -25,6 +26,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Properties;
@@ -37,6 +39,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import javax.swing.ButtonGroup;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
@@ -58,6 +61,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -78,120 +82,177 @@ import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
+import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 
 //@formatter:off
 public class MainCommGUI extends JFrame implements ActionListener, MouseMotionListener, ChangeListener, ItemListener
-{
+{  //
+  private static final long                 serialVersionUID    = 2L;
+  private final static int                  VERY_CONSERVATIVE   = 0;
+  private final static int                  CONSERVATIVE        = 1;
+  private final static int                  MODERATE            = 2;
+  private final static int                  AGGRESSIVE          = 3;
+  private final static int                  VERY_AGGRESSIVE     = 4;
+  // private final static int CUSTOMIZED = 5;
+  private static ResourceBundle             stringsBundle       = null;
+  private Locale                            programLocale       = null;
+  static Logger                             LOGGER              = null;
+  static Handler                            fHandler            = null;
+  static Handler                            cHandler            = null;
+  private BTCommunication                   btComm              = null;
+  private final ArrayList<String>           messagesList        = new ArrayList<String>();
+  private final SPX42Config                 currentConfig       = new SPX42Config();
+  private SPX42Config                       savedConfig         = null;
+  private SPX42GasList                      currGasList         = null;
+  private PleaseWaitDialog                  wDial               = null;
+  private boolean                           ignoreAction        = false;
+  private static Level                      optionLogLevel      = Level.FINE;
+  private static boolean                    readBtCacheOnStart  = false;
+  private static File                       logFile             = new File( "logfile.log" );
+  private static boolean                    DEBUG               = false;
+  private static Color                      gasNameNormalColor  = new Color( 0x000088 );
+  private static Color                      gasDangerousColor   = Color.red;
+  private static Color                      gasNoNormOxicColor  = Color.MAGENTA;
+  private static HashMap<Integer, JSpinner> o2SpinnerMap        = new HashMap<Integer, JSpinner>();
+  private static HashMap<Integer, JSpinner> heSpinnerMap        = new HashMap<Integer, JSpinner>();
+  private static HashMap<Integer, JLabel>   gasLblMap           = new HashMap<Integer, JLabel>();
   //
-  private static final long                 serialVersionUID = 2L;
-  private static ResourceBundle                stringsBundle = null;
-  private Locale                               programLocale = null;
-  static Logger                                       LOGGER = null;
-  static Handler                                    fHandler = null; 
-  static Handler                                    cHandler = null; 
-  private BTCommunication                             btComm = null;
-  private final ArrayList<String>               messagesList = new ArrayList<String>();
-  private final SPX42Config                    currentConfig = new SPX42Config();
-  private SPX42Config                            savedConfig = null;
-  private PleaseWaitDialog                             wDial = null;
-  private boolean                               ignoreAction = false;
-  private static Level                        optionLogLevel = Level.FINE;
-  private static boolean                  readBtCacheOnStart = false;
-  private static File                                logFile = new File("logfile.log");
-  private static boolean                               DEBUG = false; 
-  private final static int                 VERY_CONSERVATIVE = 0;
-  private final static int                      CONSERVATIVE = 1;
-  private final static int                          MODERATE = 2;
-  private final static int                        AGGRESSIVE = 3;
-  private final static int                   VERY_AGGRESSIVE = 4;
-  //private final static int                        CUSTOMIZED = 5;
-  
-  //
-  //@formatter:on
-  private JFrame                  frmMainwindowtitle;
-  private JTextField              statusTextField;
-  private JMenuItem               mntmExit;
-  private JPanel                  connectionPanel;
-  private JPanel                  conigPanel;
-  private JButton                 connectButton;
-  private JComboBox               deviceToConnectComboBox;
-  private JMenu                   mnLanguages;
-  private JTabbedPane             tabbedPane;
-  private JMenu                   mnFile;
-  private JMenu                   mnOptions;
-  private JMenu                   mnHelp;
-  private JMenuItem               mntmHelp;
-  private JMenuItem               mntmInfo;
-  private JLabel                  serialNumberLabel;
-  protected JLabel                serialNumberText;
-  private JButton                 readSPX42ConfigButton;
-  private JPanel                  decompressionPanel;
-  private JLabel                  decoGradientsHighLabel;
-  private JSpinner                decoGradientenHighSpinner;
-  private JLabel                  decoLaststopLabel;
-  private JComboBox               decoLastStopComboBox;
-  private JLabel                  decoDyngradientsLabel;
-  private JLabel                  decoDeepstopsLabel;
-  private JLabel                  decoGradientsLowLabel;
-  private JCheckBox               decoDeepStopCheckBox;
-  private JSpinner                decoGradientenLowSpinner;
-  private JComboBox               decoGradientenPresetComboBox;
-  private JLabel                  lblSetpointAutosetpoint;
-  private JComboBox               autoSetpointComboBox;
-  private JLabel                  lblSetpointHighsetpoint;
-  private JComboBox               highSetpointComboBox;
-  private JPanel                  setpointPanel;
-  private JPanel                  displayPanel;
-  private JLabel                  lblDisplayBrightness;
-  private JComboBox               displayBrightnessComboBox;
-  private JLabel                  lblDisplayOrientation;
-  private JComboBox               displayOrientationComboBox;
-  private JPanel                  unitsPanel;
-  private JLabel                  lblUnitsTemperature;
-  private JComboBox               unitsTemperatureComboBox;
-  private JLabel                  lblUnitsDepth;
-  private JComboBox               unitsDepthComboBox;
-  private JLabel                  lblUnitsSalinity;
-  private JComboBox               unitsSalnityComboBox;
-  private JPanel                  individualPanel;
-  private JLabel                  lblSenormode;
-  private JLabel                  individualsLogintervalLabel;
-  private JComboBox               individualsLogintervalComboBox;
-  private JLabel                  lblIndividualsPscrMode;
-  private JCheckBox               individualsSensorsOnCheckbox;
-  private JCheckBox               individualsPscrModeOnCheckbox;
-  private JComboBox               individualsSensorWarnComboBox;
-  private JLabel                  individualsAcusticWarningsLabel;
-  private JCheckBox               decoDynGradientsCheckBox;
-  private JLabel                  lblSensorwarnings;
-  private JCheckBox               individualsWarningsOnCheckBox;
-  private JLabel                  individualsNotLicensedLabel;
-  private JButton                 writeSPX42ConfigButton;
-  private JPanel                  debugPanel;
-  private JTextField              testCmdTextField;
-  private JButton                 testSubmitButton;
-  private JLabel                  firmwareVersionLabel;
-  private JLabel                  firmwareVersionValueLabel;
-  private JButton                 connectBtRefreshButton;
-  private JProgressBar            discoverProgressBar;
-  private JButton                 pinButton;
-  private JLabel                  ackuLabel;
-  private JLabel                  lblGas;
-  private JSpinner                gas01O2Spinner;
-  private JSpinner                gas02HeSpinne;
-  private JLabel                  lblO;
-  private JLabel                  lblHe;
-  private JLabel                  lblGas_1;
-  private JCheckBox               chckbxD;
-  private JCheckBox               chckbxD_1;
-  private JCheckBox               chckbxB;
-  private JSpinner                spinner;
-  private JSpinner                spinner_1;
-  private JSpinner                spinner_2;
-  private JSpinner                spinner_3;
-  private JSpinner                spinner_4;
-  private JSpinner                spinner_5;
-  private JLabel                  lblGas_2;
+  // @formatter:on
+  private JFrame                            frmMainwindowtitle;
+  private JTextField                        statusTextField;
+  private JMenuItem                         mntmExit;
+  private JPanel                            connectionPanel;
+  private JPanel                            conigPanel;
+  private JButton                           connectButton;
+  private JComboBox                         deviceToConnectComboBox;
+  private JMenu                             mnLanguages;
+  private JTabbedPane                       tabbedPane;
+  private JMenu                             mnFile;
+  private JMenu                             mnOptions;
+  private JMenu                             mnHelp;
+  private JMenuItem                         mntmHelp;
+  private JMenuItem                         mntmInfo;
+  private JLabel                            serialNumberLabel;
+  protected JLabel                          serialNumberText;
+  private JButton                           readSPX42ConfigButton;
+  private JPanel                            decompressionPanel;
+  private JLabel                            decoGradientsHighLabel;
+  private JSpinner                          decoGradientenHighSpinner;
+  private JLabel                            decoLaststopLabel;
+  private JComboBox                         decoLastStopComboBox;
+  private JLabel                            decoDyngradientsLabel;
+  private JLabel                            decoDeepstopsLabel;
+  private JLabel                            decoGradientsLowLabel;
+  private JCheckBox                         decoDeepStopCheckBox;
+  private JSpinner                          decoGradientenLowSpinner;
+  private JComboBox                         decoGradientenPresetComboBox;
+  private JLabel                            lblSetpointAutosetpoint;
+  private JComboBox                         autoSetpointComboBox;
+  private JLabel                            lblSetpointHighsetpoint;
+  private JComboBox                         highSetpointComboBox;
+  private JPanel                            setpointPanel;
+  private JPanel                            displayPanel;
+  private JLabel                            lblDisplayBrightness;
+  private JComboBox                         displayBrightnessComboBox;
+  private JLabel                            lblDisplayOrientation;
+  private JComboBox                         displayOrientationComboBox;
+  private JPanel                            unitsPanel;
+  private JLabel                            lblUnitsTemperature;
+  private JComboBox                         unitsTemperatureComboBox;
+  private JLabel                            lblUnitsDepth;
+  private JComboBox                         unitsDepthComboBox;
+  private JLabel                            lblUnitsSalinity;
+  private JComboBox                         unitsSalnityComboBox;
+  private JPanel                            individualPanel;
+  private JLabel                            lblSenormode;
+  private JLabel                            individualsLogintervalLabel;
+  private JComboBox                         individualsLogintervalComboBox;
+  private JLabel                            lblIndividualsPscrMode;
+  private JCheckBox                         individualsSensorsOnCheckbox;
+  private JCheckBox                         individualsPscrModeOnCheckbox;
+  private JComboBox                         individualsSensorWarnComboBox;
+  private JLabel                            individualsAcusticWarningsLabel;
+  private JCheckBox                         decoDynGradientsCheckBox;
+  private JLabel                            lblSensorwarnings;
+  private JCheckBox                         individualsWarningsOnCheckBox;
+  private JLabel                            individualsNotLicensedLabel;
+  private JButton                           writeSPX42ConfigButton;
+  private JPanel                            debugPanel;
+  private JTextField                        testCmdTextField;
+  private JButton                           testSubmitButton;
+  private JLabel                            firmwareVersionLabel;
+  private JLabel                            firmwareVersionValueLabel;
+  private JButton                           connectBtRefreshButton;
+  private JProgressBar                      discoverProgressBar;
+  private JButton                           pinButton;
+  private JLabel                            ackuLabel;
+  private JLabel                            gasLabel_00;
+  private JSpinner                          gasO2Spinner_00;
+  private JSpinner                          gasHESpinner_00;
+  private JLabel                            lblO;
+  private JLabel                            lblHe;
+  private JLabel                            gasLabel_01;
+  private JCheckBox                         diluent1Checkbox_00;
+  private JCheckBox                         diluent2Checkbox_00;
+  private JCheckBox                         bailoutCheckbox_00;
+  private JSpinner                          gasO2Spinner_01;
+  private JSpinner                          gasO2Spinner_02;
+  private JSpinner                          gasO2Spinner_03;
+  private JSpinner                          gasO2Spinner_04;
+  private JSpinner                          gasO2Spinner_05;
+  private JSpinner                          gasO2Spinner_06;
+  private JLabel                            gasLabel_02;
+  private JSpinner                          gasHESpinner_01;
+  private JSpinner                          gasHESpinner_02;
+  private JSpinner                          gasHESpinner_03;
+  private JSpinner                          gasHESpinner_04;
+  private JSpinner                          gasHESpinner_05;
+  private JSpinner                          gasHESpinner_06;
+  private JLabel                            gasLabel_03;
+  private JLabel                            gasLabel_04;
+  private JLabel                            gasLabel_05;
+  private JLabel                            gasLabel_06;
+  private JCheckBox                         diluent1Checkbox_01;
+  private JCheckBox                         diluent1Checkbox_02;
+  private JCheckBox                         diluent1Checkbox_03;
+  private JCheckBox                         diluent1Checkbox_04;
+  private JCheckBox                         diluent1Checkbox_05;
+  private JCheckBox                         diluent1Checkbox_06;
+  private final ButtonGroup                 diluent1ButtonGroup = new ButtonGroup();
+  private final ButtonGroup                 diluent2ButtonGroup = new ButtonGroup();
+  private JCheckBox                         diluent2Checkbox_01;
+  private JCheckBox                         diluent2Checkbox_02;
+  private JCheckBox                         diluent2Checkbox_03;
+  private JCheckBox                         diluent2Checkbox_04;
+  private JCheckBox                         diluent2Checkbox_05;
+  private JCheckBox                         diluent2Checkbox_06;
+  private JCheckBox                         bailoutCheckbox_01;
+  private JCheckBox                         bailoutCheckbox_02;
+  private JCheckBox                         bailoutCheckbox_03;
+  private JCheckBox                         bailoutCheckbox_04;
+  private JCheckBox                         bailoutCheckbox_05;
+  private JCheckBox                         bailoutCheckbox_06;
+  private JPanel                            gasMatrixPanel;
+  private JComboBox                         customPresetComboBox;
+  private JButton                           gasReadFromSPXButton;
+  private JButton                           gasWriteToSPXButton;
+  private JButton                           readGasPresetButton;
+  private JLabel                            userPresetLabel;
+  private JButton                           writeGasPresetButton;
+  private JLabel                            gasLabel_07;
+  private JSpinner                          gasO2Spinner_07;
+  private JCheckBox                         diluent1Checkbox_07;
+  private JCheckBox                         bailoutCheckbox_07;
+  private JCheckBox                         diluent2Checkbox_07;
+  private JLabel                            gasNameLabel_00;
+  private JLabel                            gasNameLabel_01;
+  private JLabel                            gasNameLabel_02;
+  private JLabel                            gasNameLabel_03;
+  private JLabel                            gasNameLabel_04;
+  private JLabel                            gasNameLabel_05;
+  private JLabel                            gasNameLabel_06;
+  private JLabel                            gasNameLabel_07;
+  private JSpinner                          gasHESpinner_07;
 
   /**
    * Launch the application.
@@ -288,6 +349,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages_en" );
     }
     initialize();
+    setGlobalChangeListener();
+    initGasObjectMaps();
     currentConfig.setLogger( LOGGER );
     btComm = new BTCommunication( LOGGER );
     btComm.addActionListener( this );
@@ -299,6 +362,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     if( !DEBUG )
     {
       setAllConfigPanlelsEnabled( false );
+      setAllGasPanelsEnabled( false );
       setElementsConnected( false );
     }
     if( readBtCacheOnStart )
@@ -335,145 +399,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane = new JTabbedPane( JTabbedPane.TOP );
     frmMainwindowtitle.getContentPane().add( tabbedPane, BorderLayout.CENTER );
     tabbedPane.addMouseMotionListener( this );
-    // GASPANEL
-    JPanel panel = new JPanel();
-    tabbedPane.addTab( "GAS", null, panel, null );
-    GridBagLayout gbl_panel = new GridBagLayout();
-    gbl_panel.columnWidths = new int[]
-    { 20, 20, 20, 20, 50, 20, 50, 0, 0, 0, 0, 0, 0, 0 };
-    gbl_panel.rowHeights = new int[]
-    { 35, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    gbl_panel.columnWeights = new double[]
-    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-    gbl_panel.rowWeights = new double[]
-    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-    panel.setLayout( gbl_panel );
-    lblO = new JLabel( "O2" );
-    GridBagConstraints gbc_lblO = new GridBagConstraints();
-    gbc_lblO.insets = new Insets( 0, 0, 5, 5 );
-    gbc_lblO.gridx = 4;
-    gbc_lblO.gridy = 1;
-    panel.add( lblO, gbc_lblO );
-    lblHe = new JLabel( "HE" );
-    GridBagConstraints gbc_lblHe = new GridBagConstraints();
-    gbc_lblHe.insets = new Insets( 0, 0, 5, 5 );
-    gbc_lblHe.gridx = 6;
-    gbc_lblHe.gridy = 1;
-    panel.add( lblHe, gbc_lblHe );
-    lblGas = new JLabel( "GAS01" );
-    GridBagConstraints gbc_lblGas = new GridBagConstraints();
-    gbc_lblGas.insets = new Insets( 0, 0, 5, 5 );
-    gbc_lblGas.gridx = 1;
-    gbc_lblGas.gridy = 2;
-    panel.add( lblGas, gbc_lblGas );
-    gas01O2Spinner = new JSpinner();
-    gas01O2Spinner.setBounds( new Rectangle( 0, 0, 50, 0 ) );
-    gas01O2Spinner.setAlignmentX( Component.RIGHT_ALIGNMENT );
-    GridBagConstraints gbc_gas01O2Spinner = new GridBagConstraints();
-    gbc_gas01O2Spinner.fill = GridBagConstraints.HORIZONTAL;
-    gbc_gas01O2Spinner.insets = new Insets( 0, 0, 5, 5 );
-    gbc_gas01O2Spinner.gridx = 4;
-    gbc_gas01O2Spinner.gridy = 2;
-    panel.add( gas01O2Spinner, gbc_gas01O2Spinner );
-    gas02HeSpinne = new JSpinner();
-    gas02HeSpinne.setAlignmentX( Component.RIGHT_ALIGNMENT );
-    GridBagConstraints gbc_gas02HeSpinner = new GridBagConstraints();
-    gbc_gas02HeSpinner.fill = GridBagConstraints.HORIZONTAL;
-    gbc_gas01O2Spinner.fill = GridBagConstraints.HORIZONTAL;
-    gbc_gas02HeSpinner.insets = new Insets( 0, 0, 5, 5 );
-    gbc_gas02HeSpinner.gridx = 6;
-    gbc_gas02HeSpinner.gridy = 2;
-    panel.add( gas02HeSpinne, gbc_gas02HeSpinner );
-    chckbxD = new JCheckBox( "D1" );
-    GridBagConstraints gbc_chckbxD = new GridBagConstraints();
-    gbc_chckbxD.anchor = GridBagConstraints.WEST;
-    gbc_chckbxD.insets = new Insets( 0, 0, 5, 5 );
-    gbc_chckbxD.gridx = 8;
-    gbc_chckbxD.gridy = 2;
-    panel.add( chckbxD, gbc_chckbxD );
-    chckbxD_1 = new JCheckBox( "D2" );
-    GridBagConstraints gbc_chckbxD_1 = new GridBagConstraints();
-    gbc_chckbxD_1.anchor = GridBagConstraints.WEST;
-    gbc_chckbxD_1.insets = new Insets( 0, 0, 5, 5 );
-    gbc_chckbxD_1.gridx = 10;
-    gbc_chckbxD_1.gridy = 2;
-    panel.add( chckbxD_1, gbc_chckbxD_1 );
-    chckbxB = new JCheckBox( "B" );
-    GridBagConstraints gbc_chckbxB = new GridBagConstraints();
-    gbc_chckbxB.insets = new Insets( 0, 0, 5, 0 );
-    gbc_chckbxB.gridx = 12;
-    gbc_chckbxB.gridy = 2;
-    panel.add( chckbxB, gbc_chckbxB );
-    lblGas_1 = new JLabel( "GAS02" );
-    GridBagConstraints gbc_lblGas_1 = new GridBagConstraints();
-    gbc_lblGas_1.insets = new Insets( 0, 0, 5, 5 );
-    gbc_lblGas_1.gridx = 1;
-    gbc_lblGas_1.gridy = 3;
-    panel.add( lblGas_1, gbc_lblGas_1 );
-    spinner = new JSpinner();
-    spinner.setBounds( new Rectangle( 0, 0, 50, 0 ) );
-    spinner.setAlignmentX( 1.0f );
-    GridBagConstraints gbc_spinner = new GridBagConstraints();
-    gbc_spinner.fill = GridBagConstraints.HORIZONTAL;
-    gbc_spinner.insets = new Insets( 0, 0, 5, 5 );
-    gbc_spinner.gridx = 4;
-    gbc_spinner.gridy = 3;
-    panel.add( spinner, gbc_spinner );
-    lblGas_2 = new JLabel( "GAS03" );
-    GridBagConstraints gbc_lblGas_2 = new GridBagConstraints();
-    gbc_lblGas_2.insets = new Insets( 0, 0, 5, 5 );
-    gbc_lblGas_2.gridx = 1;
-    gbc_lblGas_2.gridy = 4;
-    panel.add( lblGas_2, gbc_lblGas_2 );
-    spinner_1 = new JSpinner();
-    spinner_1.setBounds( new Rectangle( 0, 0, 50, 0 ) );
-    spinner_1.setAlignmentX( 1.0f );
-    GridBagConstraints gbc_spinner_1 = new GridBagConstraints();
-    gbc_spinner_1.fill = GridBagConstraints.HORIZONTAL;
-    gbc_spinner_1.insets = new Insets( 0, 0, 5, 5 );
-    gbc_spinner_1.gridx = 4;
-    gbc_spinner_1.gridy = 4;
-    panel.add( spinner_1, gbc_spinner_1 );
-    spinner_2 = new JSpinner();
-    spinner_2.setBounds( new Rectangle( 0, 0, 50, 0 ) );
-    spinner_2.setAlignmentX( 1.0f );
-    GridBagConstraints gbc_spinner_2 = new GridBagConstraints();
-    gbc_spinner_2.fill = GridBagConstraints.HORIZONTAL;
-    gbc_spinner_2.insets = new Insets( 0, 0, 5, 5 );
-    gbc_spinner_2.gridx = 4;
-    gbc_spinner_2.gridy = 5;
-    panel.add( spinner_2, gbc_spinner_2 );
-    spinner_3 = new JSpinner();
-    spinner_3.setBounds( new Rectangle( 0, 0, 50, 0 ) );
-    spinner_3.setAlignmentX( 1.0f );
-    GridBagConstraints gbc_spinner_3 = new GridBagConstraints();
-    gbc_spinner_3.fill = GridBagConstraints.HORIZONTAL;
-    gbc_spinner_3.insets = new Insets( 0, 0, 5, 5 );
-    gbc_spinner_3.gridx = 4;
-    gbc_spinner_3.gridy = 6;
-    panel.add( spinner_3, gbc_spinner_3 );
-    spinner_4 = new JSpinner();
-    spinner_4.setBounds( new Rectangle( 0, 0, 50, 0 ) );
-    spinner_4.setAlignmentX( 1.0f );
-    GridBagConstraints gbc_spinner_4 = new GridBagConstraints();
-    gbc_spinner_4.fill = GridBagConstraints.HORIZONTAL;
-    gbc_spinner_4.insets = new Insets( 0, 0, 5, 5 );
-    gbc_spinner_4.gridx = 4;
-    gbc_spinner_4.gridy = 7;
-    panel.add( spinner_4, gbc_spinner_4 );
-    spinner_5 = new JSpinner();
-    spinner_5.setBounds( new Rectangle( 0, 0, 50, 0 ) );
-    spinner_5.setAlignmentX( 1.0f );
-    GridBagConstraints gbc_spinner_5 = new GridBagConstraints();
-    gbc_spinner_5.fill = GridBagConstraints.HORIZONTAL;
-    gbc_spinner_5.insets = new Insets( 0, 0, 0, 5 );
-    gbc_spinner_5.gridx = 4;
-    gbc_spinner_5.gridy = 8;
-    panel.add( spinner_5, gbc_spinner_5 );
     // Connection Panel
     connectionPanel = new JPanel();
     tabbedPane.addTab( "CONNECTION", null, connectionPanel, null );
-    tabbedPane.setEnabledAt( 1, true );
+    tabbedPane.setEnabledAt( 0, true );
     deviceToConnectComboBox = new JComboBox();
     deviceToConnectComboBox.addActionListener( this );
     deviceToConnectComboBox.addMouseMotionListener( this );
@@ -593,7 +522,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     decoGradientsLowLabel.setHorizontalAlignment( SwingConstants.RIGHT );
     decoGradientenLowSpinner = new JSpinner();
     decoGradientsLowLabel.setLabelFor( decoGradientenLowSpinner );
-    decoGradientenLowSpinner.addChangeListener( this );
     decoGradientenLowSpinner.addMouseMotionListener( this );
     decoGradientenPresetComboBox = new JComboBox();
     decoGradientenPresetComboBox.addActionListener( this );
@@ -603,7 +531,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     decoGradientsHighLabel.setHorizontalAlignment( SwingConstants.RIGHT );
     decoGradientenHighSpinner = new JSpinner();
     decoGradientsHighLabel.setLabelFor( decoGradientenHighSpinner );
-    decoGradientenHighSpinner.addChangeListener( this );
     decoGradientenHighSpinner.addMouseMotionListener( this );
     decoLaststopLabel = new JLabel( "last stop" );
     decoLaststopLabel.setHorizontalAlignment( SwingConstants.RIGHT );
@@ -1012,6 +939,565 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
                             gl_conigPanel.createParallelGroup( Alignment.LEADING ).addComponent( writeSPX42ConfigButton, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE )
                                     .addComponent( readSPX42ConfigButton, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE ) ).addContainerGap() ) );
     conigPanel.setLayout( gl_conigPanel );
+    // GASPANEL
+    JPanel GasConfigPanel = new JPanel();
+    tabbedPane.addTab( "GAS", null, GasConfigPanel, null );
+    gasMatrixPanel = new JPanel();
+    gasMatrixPanel.setBorder( new LineBorder( new Color( 0, 0, 0 ) ) );
+    GridBagLayout gbl_gasMatrixPanel = new GridBagLayout();
+    gbl_gasMatrixPanel.columnWidths = new int[]
+    { 16, 70, 0, 50, 0, 50, 0, 55, 55, 55, 90, 0 };
+    gbl_gasMatrixPanel.rowHeights = new int[]
+    { 37, 40, 40, 40, 40, 40, 40, 40, 40, 40 };
+    gbl_gasMatrixPanel.columnWeights = new double[]
+    { 0.0, 00.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+    gbl_gasMatrixPanel.rowWeights = new double[]
+    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+    gasMatrixPanel.setLayout( gbl_gasMatrixPanel );
+    lblO = new JLabel( "O2" );
+    GridBagConstraints gbc_lblO = new GridBagConstraints();
+    gbc_lblO.anchor = GridBagConstraints.SOUTH;
+    gbc_lblO.insets = new Insets( 0, 0, 5, 5 );
+    gbc_lblO.gridx = 3;
+    gbc_lblO.gridy = 0;
+    gasMatrixPanel.add( lblO, gbc_lblO );
+    lblO.setFont( new Font( "Tahoma", Font.BOLD, 12 ) );
+    lblHe = new JLabel( "HE" );
+    GridBagConstraints gbc_lblHe = new GridBagConstraints();
+    gbc_lblHe.anchor = GridBagConstraints.SOUTH;
+    gbc_lblHe.insets = new Insets( 0, 0, 5, 5 );
+    gbc_lblHe.gridx = 5;
+    gbc_lblHe.gridy = 0;
+    gasMatrixPanel.add( lblHe, gbc_lblHe );
+    lblHe.setFont( new Font( "Tahoma", Font.BOLD, 12 ) );
+    gasLabel_00 = new JLabel( "GAS00" );
+    GridBagConstraints gbc_gasLabel_00 = new GridBagConstraints();
+    gbc_gasLabel_00.anchor = GridBagConstraints.WEST;
+    gbc_gasLabel_00.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasLabel_00.gridx = 1;
+    gbc_gasLabel_00.gridy = 1;
+    gasMatrixPanel.add( gasLabel_00, gbc_gasLabel_00 );
+    gasO2Spinner_00 = new JSpinner();
+    gasO2Spinner_00.setCursor( Cursor.getPredefinedCursor( Cursor.DEFAULT_CURSOR ) );
+    GridBagConstraints gbc_gasO2Spinner_01 = new GridBagConstraints();
+    gbc_gasO2Spinner_01.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasO2Spinner_01.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasO2Spinner_01.gridx = 3;
+    gbc_gasO2Spinner_01.gridy = 1;
+    gasMatrixPanel.add( gasO2Spinner_00, gbc_gasO2Spinner_01 );
+    gasO2Spinner_00.setBounds( new Rectangle( 0, 0, 50, 0 ) );
+    gasO2Spinner_00.setAlignmentX( Component.RIGHT_ALIGNMENT );
+    gasHESpinner_00 = new JSpinner();
+    GridBagConstraints gbc_gasHESpinner_01 = new GridBagConstraints();
+    gbc_gasHESpinner_01.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasHESpinner_01.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasHESpinner_01.gridx = 5;
+    gbc_gasHESpinner_01.gridy = 1;
+    gasMatrixPanel.add( gasHESpinner_00, gbc_gasHESpinner_01 );
+    gasHESpinner_00.setAlignmentX( Component.RIGHT_ALIGNMENT );
+    diluent1Checkbox_00 = new JCheckBox( "D1" );
+    GridBagConstraints gbc_diluent1Checkbox_00 = new GridBagConstraints();
+    gbc_diluent1Checkbox_00.anchor = GridBagConstraints.WEST;
+    gbc_diluent1Checkbox_00.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent1Checkbox_00.gridx = 7;
+    gbc_diluent1Checkbox_00.gridy = 1;
+    gasMatrixPanel.add( diluent1Checkbox_00, gbc_diluent1Checkbox_00 );
+    diluent1ButtonGroup.add( diluent1Checkbox_00 );
+    diluent2Checkbox_00 = new JCheckBox( "D2" );
+    GridBagConstraints gbc_diluent2Checkbox_00 = new GridBagConstraints();
+    gbc_diluent2Checkbox_00.anchor = GridBagConstraints.WEST;
+    gbc_diluent2Checkbox_00.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent2Checkbox_00.gridx = 8;
+    gbc_diluent2Checkbox_00.gridy = 1;
+    gasMatrixPanel.add( diluent2Checkbox_00, gbc_diluent2Checkbox_00 );
+    diluent2ButtonGroup.add( diluent2Checkbox_00 );
+    bailoutCheckbox_00 = new JCheckBox( "B" );
+    GridBagConstraints gbc_bailoutCheckbox_00 = new GridBagConstraints();
+    gbc_bailoutCheckbox_00.insets = new Insets( 0, 0, 5, 5 );
+    gbc_bailoutCheckbox_00.gridx = 9;
+    gbc_bailoutCheckbox_00.gridy = 1;
+    gasMatrixPanel.add( bailoutCheckbox_00, gbc_bailoutCheckbox_00 );
+    gasNameLabel_00 = new JLabel( "AIR" );
+    gasNameLabel_00.setForeground( new Color( 0, 0, 128 ) );
+    gasNameLabel_00.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    GridBagConstraints gbc_gasNameLabel_00 = new GridBagConstraints();
+    gbc_gasNameLabel_00.anchor = GridBagConstraints.WEST;
+    gbc_gasNameLabel_00.insets = new Insets( 0, 0, 5, 0 );
+    gbc_gasNameLabel_00.gridx = 10;
+    gbc_gasNameLabel_00.gridy = 1;
+    gasMatrixPanel.add( gasNameLabel_00, gbc_gasNameLabel_00 );
+    gasLabel_01 = new JLabel( "GAS01" );
+    GridBagConstraints gbc_gasLabel_01 = new GridBagConstraints();
+    gbc_gasLabel_01.anchor = GridBagConstraints.WEST;
+    gbc_gasLabel_01.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasLabel_01.gridx = 1;
+    gbc_gasLabel_01.gridy = 2;
+    gasMatrixPanel.add( gasLabel_01, gbc_gasLabel_01 );
+    gasO2Spinner_01 = new JSpinner();
+    GridBagConstraints gbc_gasO2Spinner_02 = new GridBagConstraints();
+    gbc_gasO2Spinner_02.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasO2Spinner_02.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasO2Spinner_02.gridx = 3;
+    gbc_gasO2Spinner_02.gridy = 2;
+    gasMatrixPanel.add( gasO2Spinner_01, gbc_gasO2Spinner_02 );
+    gasO2Spinner_01.setBounds( new Rectangle( 0, 0, 50, 0 ) );
+    gasO2Spinner_01.setAlignmentX( 1.0f );
+    gasHESpinner_01 = new JSpinner();
+    GridBagConstraints gbc_gasHESpinner_02 = new GridBagConstraints();
+    gbc_gasHESpinner_02.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasHESpinner_02.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasHESpinner_02.gridx = 5;
+    gbc_gasHESpinner_02.gridy = 2;
+    gasMatrixPanel.add( gasHESpinner_01, gbc_gasHESpinner_02 );
+    gasHESpinner_01.setAlignmentX( 1.0f );
+    diluent1Checkbox_01 = new JCheckBox( "D1" );
+    GridBagConstraints gbc_diluent1Checkbox_01 = new GridBagConstraints();
+    gbc_diluent1Checkbox_01.anchor = GridBagConstraints.WEST;
+    gbc_diluent1Checkbox_01.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent1Checkbox_01.gridx = 7;
+    gbc_diluent1Checkbox_01.gridy = 2;
+    gasMatrixPanel.add( diluent1Checkbox_01, gbc_diluent1Checkbox_01 );
+    diluent1ButtonGroup.add( diluent1Checkbox_01 );
+    diluent2Checkbox_01 = new JCheckBox( "D2" );
+    GridBagConstraints gbc_diluent2Checkbox_01 = new GridBagConstraints();
+    gbc_diluent2Checkbox_01.anchor = GridBagConstraints.WEST;
+    gbc_diluent2Checkbox_01.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent2Checkbox_01.gridx = 8;
+    gbc_diluent2Checkbox_01.gridy = 2;
+    gasMatrixPanel.add( diluent2Checkbox_01, gbc_diluent2Checkbox_01 );
+    diluent2ButtonGroup.add( diluent2Checkbox_01 );
+    bailoutCheckbox_01 = new JCheckBox( "B" );
+    GridBagConstraints gbc_bailoutCheckbox_01 = new GridBagConstraints();
+    gbc_bailoutCheckbox_01.insets = new Insets( 0, 0, 5, 5 );
+    gbc_bailoutCheckbox_01.gridx = 9;
+    gbc_bailoutCheckbox_01.gridy = 2;
+    gasMatrixPanel.add( bailoutCheckbox_01, gbc_bailoutCheckbox_01 );
+    gasNameLabel_01 = new JLabel( "AIR" );
+    gasNameLabel_01.setForeground( new Color( 0, 0, 128 ) );
+    gasNameLabel_01.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    GridBagConstraints gbc_gasNameLabel_01 = new GridBagConstraints();
+    gbc_gasNameLabel_01.anchor = GridBagConstraints.WEST;
+    gbc_gasNameLabel_01.insets = new Insets( 0, 0, 5, 0 );
+    gbc_gasNameLabel_01.gridx = 10;
+    gbc_gasNameLabel_01.gridy = 2;
+    gasMatrixPanel.add( gasNameLabel_01, gbc_gasNameLabel_01 );
+    gasLabel_02 = new JLabel( "GAS02" );
+    GridBagConstraints gbc_gasLabel_02 = new GridBagConstraints();
+    gbc_gasLabel_02.anchor = GridBagConstraints.WEST;
+    gbc_gasLabel_02.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasLabel_02.gridx = 1;
+    gbc_gasLabel_02.gridy = 3;
+    gasMatrixPanel.add( gasLabel_02, gbc_gasLabel_02 );
+    gasO2Spinner_02 = new JSpinner();
+    GridBagConstraints gbc_gasO2Spinner_03 = new GridBagConstraints();
+    gbc_gasO2Spinner_03.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasO2Spinner_03.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasO2Spinner_03.gridx = 3;
+    gbc_gasO2Spinner_03.gridy = 3;
+    gasMatrixPanel.add( gasO2Spinner_02, gbc_gasO2Spinner_03 );
+    gasO2Spinner_02.setBounds( new Rectangle( 0, 0, 50, 0 ) );
+    gasO2Spinner_02.setAlignmentX( 1.0f );
+    gasHESpinner_02 = new JSpinner();
+    GridBagConstraints gbc_gasHESpinner_03 = new GridBagConstraints();
+    gbc_gasHESpinner_03.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasHESpinner_03.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasHESpinner_03.gridx = 5;
+    gbc_gasHESpinner_03.gridy = 3;
+    gasMatrixPanel.add( gasHESpinner_02, gbc_gasHESpinner_03 );
+    gasHESpinner_02.setAlignmentX( 1.0f );
+    diluent1Checkbox_02 = new JCheckBox( "D1" );
+    GridBagConstraints gbc_diluent1Checkbox_02 = new GridBagConstraints();
+    gbc_diluent1Checkbox_02.anchor = GridBagConstraints.WEST;
+    gbc_diluent1Checkbox_02.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent1Checkbox_02.gridx = 7;
+    gbc_diluent1Checkbox_02.gridy = 3;
+    gasMatrixPanel.add( diluent1Checkbox_02, gbc_diluent1Checkbox_02 );
+    diluent1ButtonGroup.add( diluent1Checkbox_02 );
+    diluent2Checkbox_02 = new JCheckBox( "D2" );
+    GridBagConstraints gbc_diluent2Checkbox_02 = new GridBagConstraints();
+    gbc_diluent2Checkbox_02.anchor = GridBagConstraints.WEST;
+    gbc_diluent2Checkbox_02.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent2Checkbox_02.gridx = 8;
+    gbc_diluent2Checkbox_02.gridy = 3;
+    gasMatrixPanel.add( diluent2Checkbox_02, gbc_diluent2Checkbox_02 );
+    diluent2ButtonGroup.add( diluent2Checkbox_02 );
+    bailoutCheckbox_02 = new JCheckBox( "B" );
+    GridBagConstraints gbc_bailoutCheckbox_02 = new GridBagConstraints();
+    gbc_bailoutCheckbox_02.insets = new Insets( 0, 0, 5, 5 );
+    gbc_bailoutCheckbox_02.gridx = 9;
+    gbc_bailoutCheckbox_02.gridy = 3;
+    gasMatrixPanel.add( bailoutCheckbox_02, gbc_bailoutCheckbox_02 );
+    gasNameLabel_02 = new JLabel( "AIR" );
+    gasNameLabel_02.setForeground( new Color( 0, 0, 128 ) );
+    gasNameLabel_02.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    GridBagConstraints gbc_gasNameLabel_02 = new GridBagConstraints();
+    gbc_gasNameLabel_02.anchor = GridBagConstraints.WEST;
+    gbc_gasNameLabel_02.insets = new Insets( 0, 0, 5, 0 );
+    gbc_gasNameLabel_02.gridx = 10;
+    gbc_gasNameLabel_02.gridy = 3;
+    gasMatrixPanel.add( gasNameLabel_02, gbc_gasNameLabel_02 );
+    gasLabel_03 = new JLabel( "GAS03" );
+    GridBagConstraints gbc_gasLabel_03 = new GridBagConstraints();
+    gbc_gasLabel_03.anchor = GridBagConstraints.WEST;
+    gbc_gasLabel_03.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasLabel_03.gridx = 1;
+    gbc_gasLabel_03.gridy = 4;
+    gasMatrixPanel.add( gasLabel_03, gbc_gasLabel_03 );
+    gasO2Spinner_03 = new JSpinner();
+    GridBagConstraints gbc_gasO2Spinner_04 = new GridBagConstraints();
+    gbc_gasO2Spinner_04.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasO2Spinner_04.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasO2Spinner_04.gridx = 3;
+    gbc_gasO2Spinner_04.gridy = 4;
+    gasMatrixPanel.add( gasO2Spinner_03, gbc_gasO2Spinner_04 );
+    gasO2Spinner_03.setBounds( new Rectangle( 0, 0, 50, 0 ) );
+    gasO2Spinner_03.setAlignmentX( 1.0f );
+    gasHESpinner_03 = new JSpinner();
+    GridBagConstraints gbc_gasHESpinner_04 = new GridBagConstraints();
+    gbc_gasHESpinner_04.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasHESpinner_04.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasHESpinner_04.gridx = 5;
+    gbc_gasHESpinner_04.gridy = 4;
+    gasMatrixPanel.add( gasHESpinner_03, gbc_gasHESpinner_04 );
+    gasHESpinner_03.setAlignmentX( 1.0f );
+    diluent1Checkbox_03 = new JCheckBox( "D1" );
+    GridBagConstraints gbc_diluent1Checkbox_03 = new GridBagConstraints();
+    gbc_diluent1Checkbox_03.anchor = GridBagConstraints.WEST;
+    gbc_diluent1Checkbox_03.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent1Checkbox_03.gridx = 7;
+    gbc_diluent1Checkbox_03.gridy = 4;
+    gasMatrixPanel.add( diluent1Checkbox_03, gbc_diluent1Checkbox_03 );
+    diluent1ButtonGroup.add( diluent1Checkbox_03 );
+    diluent2Checkbox_03 = new JCheckBox( "D2" );
+    GridBagConstraints gbc_diluent2Checkbox_03 = new GridBagConstraints();
+    gbc_diluent2Checkbox_03.anchor = GridBagConstraints.WEST;
+    gbc_diluent2Checkbox_03.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent2Checkbox_03.gridx = 8;
+    gbc_diluent2Checkbox_03.gridy = 4;
+    gasMatrixPanel.add( diluent2Checkbox_03, gbc_diluent2Checkbox_03 );
+    diluent2ButtonGroup.add( diluent2Checkbox_03 );
+    bailoutCheckbox_03 = new JCheckBox( "B" );
+    GridBagConstraints gbc_bailoutCheckbox_03 = new GridBagConstraints();
+    gbc_bailoutCheckbox_03.insets = new Insets( 0, 0, 5, 5 );
+    gbc_bailoutCheckbox_03.gridx = 9;
+    gbc_bailoutCheckbox_03.gridy = 4;
+    gasMatrixPanel.add( bailoutCheckbox_03, gbc_bailoutCheckbox_03 );
+    gasNameLabel_03 = new JLabel( "AIR" );
+    gasNameLabel_03.setForeground( new Color( 0, 0, 128 ) );
+    gasNameLabel_03.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    GridBagConstraints gbc_gasNameLabel_03 = new GridBagConstraints();
+    gbc_gasNameLabel_03.anchor = GridBagConstraints.WEST;
+    gbc_gasNameLabel_03.insets = new Insets( 0, 0, 5, 0 );
+    gbc_gasNameLabel_03.gridx = 10;
+    gbc_gasNameLabel_03.gridy = 4;
+    gasMatrixPanel.add( gasNameLabel_03, gbc_gasNameLabel_03 );
+    gasLabel_04 = new JLabel( "GAS04" );
+    GridBagConstraints gbc_gasLabel_04 = new GridBagConstraints();
+    gbc_gasLabel_04.anchor = GridBagConstraints.WEST;
+    gbc_gasLabel_04.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasLabel_04.gridx = 1;
+    gbc_gasLabel_04.gridy = 5;
+    gasMatrixPanel.add( gasLabel_04, gbc_gasLabel_04 );
+    gasO2Spinner_04 = new JSpinner();
+    GridBagConstraints gbc_gasO2Spinner_05 = new GridBagConstraints();
+    gbc_gasO2Spinner_05.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasO2Spinner_05.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasO2Spinner_05.gridx = 3;
+    gbc_gasO2Spinner_05.gridy = 5;
+    gasMatrixPanel.add( gasO2Spinner_04, gbc_gasO2Spinner_05 );
+    gasO2Spinner_04.setBounds( new Rectangle( 0, 0, 50, 0 ) );
+    gasO2Spinner_04.setAlignmentX( 1.0f );
+    gasHESpinner_04 = new JSpinner();
+    GridBagConstraints gbc_gasHESpinner_05 = new GridBagConstraints();
+    gbc_gasHESpinner_05.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasHESpinner_05.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasHESpinner_05.gridx = 5;
+    gbc_gasHESpinner_05.gridy = 5;
+    gasMatrixPanel.add( gasHESpinner_04, gbc_gasHESpinner_05 );
+    gasHESpinner_04.setAlignmentX( 1.0f );
+    diluent1Checkbox_04 = new JCheckBox( "D1" );
+    GridBagConstraints gbc_diluent1Checkbox_04 = new GridBagConstraints();
+    gbc_diluent1Checkbox_04.anchor = GridBagConstraints.WEST;
+    gbc_diluent1Checkbox_04.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent1Checkbox_04.gridx = 7;
+    gbc_diluent1Checkbox_04.gridy = 5;
+    gasMatrixPanel.add( diluent1Checkbox_04, gbc_diluent1Checkbox_04 );
+    diluent1ButtonGroup.add( diluent1Checkbox_04 );
+    diluent2Checkbox_04 = new JCheckBox( "D2" );
+    GridBagConstraints gbc_diluent2Checkbox_04 = new GridBagConstraints();
+    gbc_diluent2Checkbox_04.anchor = GridBagConstraints.WEST;
+    gbc_diluent2Checkbox_04.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent2Checkbox_04.gridx = 8;
+    gbc_diluent2Checkbox_04.gridy = 5;
+    gasMatrixPanel.add( diluent2Checkbox_04, gbc_diluent2Checkbox_04 );
+    diluent2ButtonGroup.add( diluent2Checkbox_04 );
+    bailoutCheckbox_04 = new JCheckBox( "B" );
+    GridBagConstraints gbc_bailoutCheckbox_04 = new GridBagConstraints();
+    gbc_bailoutCheckbox_04.insets = new Insets( 0, 0, 5, 5 );
+    gbc_bailoutCheckbox_04.gridx = 9;
+    gbc_bailoutCheckbox_04.gridy = 5;
+    gasMatrixPanel.add( bailoutCheckbox_04, gbc_bailoutCheckbox_04 );
+    gasNameLabel_04 = new JLabel( "AIR" );
+    gasNameLabel_04.setForeground( new Color( 0, 0, 128 ) );
+    gasNameLabel_04.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    GridBagConstraints gbc_gasNameLabel_04 = new GridBagConstraints();
+    gbc_gasNameLabel_04.anchor = GridBagConstraints.WEST;
+    gbc_gasNameLabel_04.insets = new Insets( 0, 0, 5, 0 );
+    gbc_gasNameLabel_04.gridx = 10;
+    gbc_gasNameLabel_04.gridy = 5;
+    gasMatrixPanel.add( gasNameLabel_04, gbc_gasNameLabel_04 );
+    gasLabel_05 = new JLabel( "GAS05" );
+    GridBagConstraints gbc_gasLabel_05 = new GridBagConstraints();
+    gbc_gasLabel_05.anchor = GridBagConstraints.WEST;
+    gbc_gasLabel_05.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasLabel_05.gridx = 1;
+    gbc_gasLabel_05.gridy = 6;
+    gasMatrixPanel.add( gasLabel_05, gbc_gasLabel_05 );
+    gasO2Spinner_05 = new JSpinner();
+    GridBagConstraints gbc_gasO2Spinner_06 = new GridBagConstraints();
+    gbc_gasO2Spinner_06.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasO2Spinner_06.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasO2Spinner_06.gridx = 3;
+    gbc_gasO2Spinner_06.gridy = 6;
+    gasMatrixPanel.add( gasO2Spinner_05, gbc_gasO2Spinner_06 );
+    gasO2Spinner_05.setBounds( new Rectangle( 0, 0, 50, 0 ) );
+    gasO2Spinner_05.setAlignmentX( 1.0f );
+    gasHESpinner_05 = new JSpinner();
+    GridBagConstraints gbc_gasHESpinner_06 = new GridBagConstraints();
+    gbc_gasHESpinner_06.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasHESpinner_06.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasHESpinner_06.gridx = 5;
+    gbc_gasHESpinner_06.gridy = 6;
+    gasMatrixPanel.add( gasHESpinner_05, gbc_gasHESpinner_06 );
+    gasHESpinner_05.setAlignmentX( 1.0f );
+    diluent1Checkbox_05 = new JCheckBox( "D1" );
+    GridBagConstraints gbc_diluent1Checkbox_05 = new GridBagConstraints();
+    gbc_diluent1Checkbox_05.anchor = GridBagConstraints.WEST;
+    gbc_diluent1Checkbox_05.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent1Checkbox_05.gridx = 7;
+    gbc_diluent1Checkbox_05.gridy = 6;
+    gasMatrixPanel.add( diluent1Checkbox_05, gbc_diluent1Checkbox_05 );
+    diluent1ButtonGroup.add( diluent1Checkbox_05 );
+    diluent2Checkbox_05 = new JCheckBox( "D2" );
+    GridBagConstraints gbc_diluent2Checkbox_05 = new GridBagConstraints();
+    gbc_diluent2Checkbox_05.anchor = GridBagConstraints.WEST;
+    gbc_diluent2Checkbox_05.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent2Checkbox_05.gridx = 8;
+    gbc_diluent2Checkbox_05.gridy = 6;
+    gasMatrixPanel.add( diluent2Checkbox_05, gbc_diluent2Checkbox_05 );
+    diluent2ButtonGroup.add( diluent2Checkbox_05 );
+    bailoutCheckbox_05 = new JCheckBox( "B" );
+    GridBagConstraints gbc_bailoutCheckbox_05 = new GridBagConstraints();
+    gbc_bailoutCheckbox_05.insets = new Insets( 0, 0, 5, 5 );
+    gbc_bailoutCheckbox_05.gridx = 9;
+    gbc_bailoutCheckbox_05.gridy = 6;
+    gasMatrixPanel.add( bailoutCheckbox_05, gbc_bailoutCheckbox_05 );
+    gasNameLabel_05 = new JLabel( "AIR" );
+    gasNameLabel_05.setForeground( new Color( 0, 0, 128 ) );
+    gasNameLabel_05.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    GridBagConstraints gbc_gasNameLabel_05 = new GridBagConstraints();
+    gbc_gasNameLabel_05.anchor = GridBagConstraints.WEST;
+    gbc_gasNameLabel_05.insets = new Insets( 0, 0, 5, 0 );
+    gbc_gasNameLabel_05.gridx = 10;
+    gbc_gasNameLabel_05.gridy = 6;
+    gasMatrixPanel.add( gasNameLabel_05, gbc_gasNameLabel_05 );
+    gasLabel_06 = new JLabel( "GAS06" );
+    GridBagConstraints gbc_gasLabel_06 = new GridBagConstraints();
+    gbc_gasLabel_06.anchor = GridBagConstraints.WEST;
+    gbc_gasLabel_06.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasLabel_06.gridx = 1;
+    gbc_gasLabel_06.gridy = 7;
+    gasMatrixPanel.add( gasLabel_06, gbc_gasLabel_06 );
+    gasO2Spinner_06 = new JSpinner();
+    GridBagConstraints gbc_gasO2Spinner_07 = new GridBagConstraints();
+    gbc_gasO2Spinner_07.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasO2Spinner_07.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasO2Spinner_07.gridx = 3;
+    gbc_gasO2Spinner_07.gridy = 7;
+    gasMatrixPanel.add( gasO2Spinner_06, gbc_gasO2Spinner_07 );
+    gasO2Spinner_06.setBounds( new Rectangle( 0, 0, 50, 0 ) );
+    gasO2Spinner_06.setAlignmentX( 1.0f );
+    gasHESpinner_06 = new JSpinner();
+    GridBagConstraints gbc_gasHESpinner_07 = new GridBagConstraints();
+    gbc_gasHESpinner_07.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasHESpinner_07.insets = new Insets( 0, 0, 5, 5 );
+    gbc_gasHESpinner_07.gridx = 5;
+    gbc_gasHESpinner_07.gridy = 7;
+    gasMatrixPanel.add( gasHESpinner_06, gbc_gasHESpinner_07 );
+    gasHESpinner_06.setAlignmentX( 1.0f );
+    diluent1Checkbox_06 = new JCheckBox( "D1" );
+    GridBagConstraints gbc_diluent1Checkbox_06 = new GridBagConstraints();
+    gbc_diluent1Checkbox_06.anchor = GridBagConstraints.WEST;
+    gbc_diluent1Checkbox_06.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent1Checkbox_06.gridx = 7;
+    gbc_diluent1Checkbox_06.gridy = 7;
+    gasMatrixPanel.add( diluent1Checkbox_06, gbc_diluent1Checkbox_06 );
+    diluent1ButtonGroup.add( diluent1Checkbox_06 );
+    diluent2Checkbox_06 = new JCheckBox( "D2" );
+    GridBagConstraints gbc_diluent2Checkbox_06 = new GridBagConstraints();
+    gbc_diluent2Checkbox_06.anchor = GridBagConstraints.WEST;
+    gbc_diluent2Checkbox_06.insets = new Insets( 0, 0, 5, 5 );
+    gbc_diluent2Checkbox_06.gridx = 8;
+    gbc_diluent2Checkbox_06.gridy = 7;
+    gasMatrixPanel.add( diluent2Checkbox_06, gbc_diluent2Checkbox_06 );
+    diluent2ButtonGroup.add( diluent2Checkbox_06 );
+    bailoutCheckbox_06 = new JCheckBox( "B" );
+    GridBagConstraints gbc_bailoutCheckbox_06 = new GridBagConstraints();
+    gbc_bailoutCheckbox_06.insets = new Insets( 0, 0, 5, 5 );
+    gbc_bailoutCheckbox_06.gridx = 9;
+    gbc_bailoutCheckbox_06.gridy = 7;
+    gasMatrixPanel.add( bailoutCheckbox_06, gbc_bailoutCheckbox_06 );
+    gasReadFromSPXButton = new JButton( "READ" );
+    gasReadFromSPXButton.addActionListener( new ActionListener() {
+      @Override
+      public void actionPerformed( ActionEvent arg0 )
+      {}
+    } );
+    gasReadFromSPXButton.addMouseMotionListener( this );
+    gasReadFromSPXButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Download.png" ) ) );
+    gasReadFromSPXButton.setSize( new Dimension( 160, 40 ) );
+    gasReadFromSPXButton.setPreferredSize( new Dimension( 180, 40 ) );
+    gasReadFromSPXButton.setMaximumSize( new Dimension( 160, 40 ) );
+    gasReadFromSPXButton.setMargin( new Insets( 2, 30, 2, 30 ) );
+    gasReadFromSPXButton.setForeground( new Color( 0, 100, 0 ) );
+    gasReadFromSPXButton.setBackground( new Color( 152, 251, 152 ) );
+    gasReadFromSPXButton.setActionCommand( "read_gaslist" );
+    gasReadFromSPXButton.addActionListener( this );
+    gasWriteToSPXButton = new JButton( "WRITE" );
+    gasWriteToSPXButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Upload.png" ) ) );
+    gasWriteToSPXButton.setForeground( Color.RED );
+    gasWriteToSPXButton.setBackground( new Color( 255, 192, 203 ) );
+    gasWriteToSPXButton.setActionCommand( "write_gaslist" );
+    gasWriteToSPXButton.addMouseMotionListener( this );
+    gasWriteToSPXButton.addActionListener( this );
+    customPresetComboBox = new JComboBox();
+    customPresetComboBox.setEnabled( false );
+    customPresetComboBox.addMouseMotionListener( this );
+    customPresetComboBox.setModel( new DefaultComboBoxModel( new String[]
+    { "-EMPTY-" } ) );
+    customPresetComboBox.addActionListener( this );
+    readGasPresetButton = new JButton( "READPRESET" );
+    readGasPresetButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/31.png" ) ) );
+    readGasPresetButton.setSize( new Dimension( 160, 40 ) );
+    readGasPresetButton.setPreferredSize( new Dimension( 180, 40 ) );
+    readGasPresetButton.setMaximumSize( new Dimension( 160, 40 ) );
+    readGasPresetButton.setMargin( new Insets( 2, 30, 2, 30 ) );
+    readGasPresetButton.setForeground( new Color( 0, 100, 0 ) );
+    readGasPresetButton.setBackground( new Color( 152, 251, 152 ) );
+    readGasPresetButton.setActionCommand( "read_gaslist_preset" );
+    readGasPresetButton.addMouseMotionListener( this );
+    readGasPresetButton.addActionListener( this );
+    userPresetLabel = new JLabel( "USERPRESET" );
+    writeGasPresetButton = new JButton( "WRITEPRESELECT" );
+    writeGasPresetButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Upload.png" ) ) );
+    writeGasPresetButton.setForeground( new Color( 255, 0, 0 ) );
+    writeGasPresetButton.setBackground( new Color( 255, 192, 203 ) );
+    writeGasPresetButton.setActionCommand( "write_gaslist_preset" );
+    writeGasPresetButton.addMouseMotionListener( this );
+    writeGasPresetButton.addActionListener( this );
+    GroupLayout gl_GasConfigPanel = new GroupLayout( GasConfigPanel );
+    gl_GasConfigPanel.setHorizontalGroup( gl_GasConfigPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_GasConfigPanel
+                    .createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(
+                            gl_GasConfigPanel
+                                    .createParallelGroup( Alignment.TRAILING )
+                                    .addGroup(
+                                            Alignment.LEADING,
+                                            gl_GasConfigPanel.createSequentialGroup()
+                                                    .addComponent( gasReadFromSPXButton, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED, 133, Short.MAX_VALUE )
+                                                    .addComponent( gasWriteToSPXButton, GroupLayout.PREFERRED_SIZE, 217, GroupLayout.PREFERRED_SIZE ) )
+                                    .addComponent( gasMatrixPanel, GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE ) )
+                    .addPreferredGap( ComponentPlacement.RELATED )
+                    .addGroup(
+                            gl_GasConfigPanel.createParallelGroup( Alignment.LEADING )
+                                    .addComponent( userPresetLabel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE )
+                                    .addComponent( customPresetComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                    .addComponent( writeGasPresetButton, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                    .addComponent( readGasPresetButton, GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE ) ).addContainerGap() ) );
+    gl_GasConfigPanel.setVerticalGroup( gl_GasConfigPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_GasConfigPanel
+                    .createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(
+                            gl_GasConfigPanel
+                                    .createParallelGroup( Alignment.LEADING )
+                                    .addGroup(
+                                            gl_GasConfigPanel.createSequentialGroup().addComponent( userPresetLabel ).addPreferredGap( ComponentPlacement.RELATED )
+                                                    .addComponent( customPresetComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED, 217, Short.MAX_VALUE ).addComponent( writeGasPresetButton )
+                                                    .addPreferredGap( ComponentPlacement.RELATED )
+                                                    .addComponent( readGasPresetButton, GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE ).addGap( 37 ) )
+                                    .addComponent( gasMatrixPanel, GroupLayout.PREFERRED_SIZE, 368, GroupLayout.PREFERRED_SIZE ) )
+                    .addPreferredGap( ComponentPlacement.RELATED )
+                    .addGroup(
+                            gl_GasConfigPanel.createParallelGroup( Alignment.BASELINE )
+                                    .addComponent( gasReadFromSPXButton, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( gasWriteToSPXButton, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE ) ).addGap( 22 ) ) );
+    gasNameLabel_06 = new JLabel( "AIR" );
+    gasNameLabel_06.setForeground( new Color( 0, 0, 128 ) );
+    gasNameLabel_06.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    GridBagConstraints gbc_gasNameLabel_06 = new GridBagConstraints();
+    gbc_gasNameLabel_06.anchor = GridBagConstraints.WEST;
+    gbc_gasNameLabel_06.insets = new Insets( 0, 0, 5, 0 );
+    gbc_gasNameLabel_06.gridx = 10;
+    gbc_gasNameLabel_06.gridy = 7;
+    gasMatrixPanel.add( gasNameLabel_06, gbc_gasNameLabel_06 );
+    gasLabel_07 = new JLabel( "GAS07" );
+    GridBagConstraints gbc_gasLabel_07 = new GridBagConstraints();
+    gbc_gasLabel_07.anchor = GridBagConstraints.WEST;
+    gbc_gasLabel_07.insets = new Insets( 0, 0, 0, 5 );
+    gbc_gasLabel_07.gridx = 1;
+    gbc_gasLabel_07.gridy = 8;
+    gasMatrixPanel.add( gasLabel_07, gbc_gasLabel_07 );
+    gasO2Spinner_07 = new JSpinner();
+    gasO2Spinner_07.setBounds( new Rectangle( 0, 0, 50, 0 ) );
+    gasO2Spinner_07.setAlignmentX( 1.0f );
+    GridBagConstraints gbc_gasO2Spinner_08 = new GridBagConstraints();
+    gbc_gasO2Spinner_08.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasO2Spinner_08.insets = new Insets( 0, 0, 0, 5 );
+    gbc_gasO2Spinner_08.gridx = 3;
+    gbc_gasO2Spinner_08.gridy = 8;
+    gasMatrixPanel.add( gasO2Spinner_07, gbc_gasO2Spinner_08 );
+    gasHESpinner_07 = new JSpinner();
+    gasHESpinner_07.setAlignmentX( 1.0f );
+    GridBagConstraints gbc_gasHESpinner_08 = new GridBagConstraints();
+    gbc_gasHESpinner_08.fill = GridBagConstraints.HORIZONTAL;
+    gbc_gasHESpinner_08.insets = new Insets( 0, 0, 0, 5 );
+    gbc_gasHESpinner_08.gridx = 5;
+    gbc_gasHESpinner_08.gridy = 8;
+    gasMatrixPanel.add( gasHESpinner_07, gbc_gasHESpinner_08 );
+    diluent1Checkbox_07 = new JCheckBox( "D1" );
+    diluent1ButtonGroup.add( diluent1Checkbox_07 );
+    GridBagConstraints gbc_diluent1Checkbox_07 = new GridBagConstraints();
+    gbc_diluent1Checkbox_07.insets = new Insets( 0, 0, 0, 5 );
+    gbc_diluent1Checkbox_07.gridx = 7;
+    gbc_diluent1Checkbox_07.gridy = 8;
+    gasMatrixPanel.add( diluent1Checkbox_07, gbc_diluent1Checkbox_07 );
+    diluent2Checkbox_07 = new JCheckBox( "D2" );
+    diluent2ButtonGroup.add( diluent2Checkbox_07 );
+    GridBagConstraints gbc_diluent2Checkbox_07 = new GridBagConstraints();
+    gbc_diluent2Checkbox_07.insets = new Insets( 0, 0, 0, 5 );
+    gbc_diluent2Checkbox_07.gridx = 8;
+    gbc_diluent2Checkbox_07.gridy = 8;
+    gasMatrixPanel.add( diluent2Checkbox_07, gbc_diluent2Checkbox_07 );
+    bailoutCheckbox_07 = new JCheckBox( "B" );
+    GridBagConstraints gbc_bailoutCheckbox_07 = new GridBagConstraints();
+    gbc_bailoutCheckbox_07.insets = new Insets( 0, 0, 0, 5 );
+    gbc_bailoutCheckbox_07.gridx = 9;
+    gbc_bailoutCheckbox_07.gridy = 8;
+    gasMatrixPanel.add( bailoutCheckbox_07, gbc_bailoutCheckbox_07 );
+    gasNameLabel_07 = new JLabel( "AIR" );
+    gasNameLabel_07.setForeground( new Color( 0, 0, 128 ) );
+    gasNameLabel_07.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    GridBagConstraints gbc_gasNameLabel_07 = new GridBagConstraints();
+    gbc_gasNameLabel_07.anchor = GridBagConstraints.WEST;
+    gbc_gasNameLabel_07.gridx = 10;
+    gbc_gasNameLabel_07.gridy = 8;
+    gasMatrixPanel.add( gasNameLabel_07, gbc_gasNameLabel_07 );
+    GasConfigPanel.setLayout( gl_GasConfigPanel );
     // Debug-Panel
     debugPanel = new JPanel();
     debugPanel.setBorder( new EtchedBorder( EtchedBorder.LOWERED, Color.GRAY, Color.DARK_GRAY ) );
@@ -1039,7 +1525,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
                                     .addComponent( testCmdTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
                                     .addComponent( testSubmitButton ) ).addContainerGap( 456, Short.MAX_VALUE ) ) );
     debugPanel.setLayout( gl_debugPanel );
-    tabbedPane.setEnabledAt( 2, true );
+    tabbedPane.setEnabledAt( 1, true );
     // tabbedPane.setEnabledAt(1, false);
     // MENÜ
     JMenuBar menuBar = new JMenuBar();
@@ -1273,6 +1759,52 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // //////////////////////////////////////////////////////////////////////
       // Tabbes Pane gas
       tabbedPane.setTitleAt( 2, stringsBundle.getString( "MainCommGUI.gasPanel.title" ) );
+      String gasLabelStr = stringsBundle.getString( "MainCommGUI.gasPanel.gasLabel" );
+      gasLabel_00.setText( String.format( "%s %02d", gasLabelStr, 1 ) );
+      gasLabel_01.setText( String.format( "%s %02d", gasLabelStr, 2 ) );
+      gasLabel_02.setText( String.format( "%s %02d", gasLabelStr, 3 ) );
+      gasLabel_03.setText( String.format( "%s %02d", gasLabelStr, 4 ) );
+      gasLabel_04.setText( String.format( "%s %02d", gasLabelStr, 5 ) );
+      gasLabel_05.setText( String.format( "%s %02d", gasLabelStr, 6 ) );
+      gasLabel_06.setText( String.format( "%s %02d", gasLabelStr, 7 ) );
+      gasLabel_07.setText( String.format( "%s %02d", gasLabelStr, 8 ) );
+      gasLabelStr = stringsBundle.getString( "MainCommGUI.gasPanel.diluentLabel" ) + "1";
+      diluent1Checkbox_00.setText( gasLabelStr );
+      diluent1Checkbox_01.setText( gasLabelStr );
+      diluent1Checkbox_02.setText( gasLabelStr );
+      diluent1Checkbox_03.setText( gasLabelStr );
+      diluent1Checkbox_04.setText( gasLabelStr );
+      diluent1Checkbox_05.setText( gasLabelStr );
+      diluent1Checkbox_06.setText( gasLabelStr );
+      diluent1Checkbox_07.setText( gasLabelStr );
+      gasLabelStr = stringsBundle.getString( "MainCommGUI.gasPanel.diluentLabel" ) + "2";
+      diluent2Checkbox_00.setText( gasLabelStr );
+      diluent2Checkbox_01.setText( gasLabelStr );
+      diluent2Checkbox_02.setText( gasLabelStr );
+      diluent2Checkbox_03.setText( gasLabelStr );
+      diluent2Checkbox_04.setText( gasLabelStr );
+      diluent2Checkbox_05.setText( gasLabelStr );
+      diluent2Checkbox_06.setText( gasLabelStr );
+      diluent2Checkbox_07.setText( gasLabelStr );
+      gasLabelStr = stringsBundle.getString( "MainCommGUI.gasPanel.bailoutLabel" );
+      bailoutCheckbox_00.setText( gasLabelStr );
+      bailoutCheckbox_01.setText( gasLabelStr );
+      bailoutCheckbox_02.setText( gasLabelStr );
+      bailoutCheckbox_03.setText( gasLabelStr );
+      bailoutCheckbox_04.setText( gasLabelStr );
+      bailoutCheckbox_05.setText( gasLabelStr );
+      bailoutCheckbox_06.setText( gasLabelStr );
+      bailoutCheckbox_07.setText( gasLabelStr );
+      gasReadFromSPXButton.setText( stringsBundle.getString( "MainCommGUI.gasPanel.gasReadFromSPXButton.text" ) );
+      gasReadFromSPXButton.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.gasReadFromSPXButton.tooltiptext" ) );
+      gasWriteToSPXButton.setText( stringsBundle.getString( "MainCommGUI.gasPanel.gasWriteToSPXButton.text" ) );
+      gasWriteToSPXButton.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.gasWriteToSPXButton.tooltiptext" ) );
+      readGasPresetButton.setText( stringsBundle.getString( "MainCommGUI.gasPanel.readGasPresetButton.text" ) );
+      readGasPresetButton.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.readGasPresetButton.tooltiptext" ) );
+      writeGasPresetButton.setText( stringsBundle.getString( "MainCommGUI.gasPanel.writeGasPresetButton.text" ) );
+      writeGasPresetButton.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.writeGasPresetButton.tooltiptext" ) );
+      customPresetComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.customPresetComboBox.tooltiptext" ) );
+      userPresetLabel.setText( stringsBundle.getString( "MainCommGUI.gasPanel.userPresetLabel.text" ) );
     }
     catch( NullPointerException ex )
     {
@@ -1795,6 +2327,28 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       LOGGER.log( Level.INFO, "call set pin for device..." );
       setPinForDevice();
     }
+    // /////////////////////////////////////////////////////////////////////////
+    // ich will die Gasliste haben!
+    else if( cmd.equals( "read_gaslist" ) )
+    {
+      LOGGER.log( Level.INFO, "call read gaslist from device..." );
+      if( btComm != null )
+      {
+        if( btComm.isConnected() )
+        {
+          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+          wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
+          wDial.setVisible( true );
+          btComm.readGaslistFromSPX42();
+        }
+        else
+        {
+          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+        }
+      }
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Da hab ich nix passendes gefunden!
     else
     {
       LOGGER.log( Level.WARNING, "unknown button command <" + cmd + "> recived." );
@@ -1812,7 +2366,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * 
    *         Stand: 11.04.2012
    * @param cnf
-   *          TODO: Auslagern der eigentlichen Kommandierung in ein Objekt, Vorgehen abhängig von der Versionsnummer der Firmware
+   *          Config objekt
    */
   private void writeConfigToSPX( SPX42Config cnf )
   {
@@ -2100,15 +2654,15 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       case ProjectConst.MESSAGE_CONNECTED:
         LOGGER.log( Level.INFO, "CONNECT" );
         setElementsConnected( true );
-        // Gleich mal Fragen, wer da dran ist!
-        btComm.askForDeviceName();
-        btComm.askForSerialNumber();
-        btComm.askForFirmwareVersion();
         if( wDial != null )
         {
           wDial.dispose();
           wDial = null;
         }
+        // Gleich mal Fragen, wer da dran ist!
+        btComm.askForDeviceName();
+        btComm.askForSerialNumber();
+        btComm.askForFirmwareVersion();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Device wurde getrennt
@@ -2205,6 +2759,40 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           if( cmd.equals( "config_write" ) )
           {
             savedConfig = new SPX42Config( currentConfig );
+          }
+        }
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nachricht über den Empfang einer Gaseinstellung
+      case ProjectConst.MESSAGE_GAS_READ:
+        // Gibts schon ein GasListObjekt
+        if( currGasList == null )
+        {
+          // erzeuge eines!
+          currGasList = new SPX42GasList( LOGGER );
+        }
+        // läßt sich das Teil parsen?
+        if( currGasList.setGas( cmd ) )
+        {
+          // ist alle initialisiert?
+          if( currGasList.isInitialized() )
+          {
+            // Mach mal alles in die Spinner rein
+            ignoreAction = true;
+            for( int i = 0; i < currGasList.getGasCount(); i++ )
+            {
+              ( heSpinnerMap.get( i ) ).setValue( currGasList.getHEFromGas( i ) );
+              ( o2SpinnerMap.get( i ) ).setValue( currGasList.getO2FromGas( i ) );
+              ( gasLblMap.get( i ) ).setText( getNameForGas( i ) );
+            }
+            setGasMatrixPanelEnabled( true );
+            ignoreAction = false;
+            // dann kann das fenster ja wech!
+            if( wDial != null )
+            {
+              wDial.dispose();
+              wDial = null;
+            }
           }
         }
         break;
@@ -2439,7 +3027,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * 
    *         Stand: 13.04.2012
    * @param active
-   *          TODO
+   *          Aktiv oder nicht
    */
   private void setElementsInactive( boolean active )
   {
@@ -2593,6 +3181,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     if( ev.getSource() instanceof JSpinner )
     {
       currSpinner = ( JSpinner )ev.getSource();
+      // //////////////////////////////////////////////////////////////////////
+      // Deco gradient Hith
       if( currSpinner.equals( decoGradientenHighSpinner ) )
       {
         // wert für High ändern
@@ -2601,6 +3191,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         currentConfig.setDecoGfHigh( currValue );
         setDecoComboAfterSpinnerChange();
       }
+      // //////////////////////////////////////////////////////////////////////
+      // Deco gradient Low
       else if( currSpinner.equals( decoGradientenLowSpinner ) )
       {
         // Wert für LOW ändern
@@ -2611,12 +3203,199 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
       else
       {
+        // //////////////////////////////////////////////////////////////////////
+        // Nix gefunden, also versuch mal die Listen durch
+        for( int gasNr = 0; gasNr < currGasList.getGasCount(); gasNr++ )
+        {
+          if( currSpinner.equals( o2SpinnerMap.get( gasNr ) ) )
+          {
+            // O2 Spinner betätigt
+            // Gas <gasNr> Sauerstoffanteil ändern
+            currValue = ( Integer )currSpinner.getValue();
+            changeO2FromGas( gasNr, currValue );
+            return;
+          }
+          else if( currSpinner.equals( heSpinnerMap.get( gasNr ) ) )
+          {
+            // Heliumspinner betätigt
+            // Gas <gasNr> Heliumanteil ändern
+            currValue = ( Integer )currSpinner.getValue();
+            changeHEFromGas( gasNr, currValue );
+            return;
+          }
+        }
         LOGGER.log( Level.WARNING, "unknown spinner recived!" );
       }
     }
     else
     {
       LOGGER.log( Level.WARNING, "unknown source type recived!" );
+    }
+  }
+
+  /**
+   * 
+   * Ändere Heliumanteil vom Gas Nummer X
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.04.2012
+   * @param gasNr
+   *          welches Gas denn
+   * @param he
+   *          Heliumanteil
+   */
+  private void changeHEFromGas( int gasNr, int he )
+  {
+    int o2;
+    o2 = currGasList.getO2FromGas( gasNr );
+    ignoreAction = true;
+    if( he < 0 )
+    {
+      he = 0;
+      ( heSpinnerMap.get( gasNr ) ).setValue( 0 );
+    }
+    else if( he > 100 )
+    {
+      // Mehr als 100% geht nicht!
+      // ungesundes Zeug!
+      o2 = 0;
+      he = 100;
+      ( heSpinnerMap.get( gasNr ) ).setValue( he );
+      ( o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      LOGGER.log( Level.WARNING, String.format( "change helium (max) in Gas %d Value: <%d/0x%02x>...", gasNr, he, he ) );
+    }
+    else if( ( o2 + he ) > 100 )
+    {
+      // Auch hier geht nicht mehr als 100%
+      // Sauerstoff verringern!
+      o2 = 100 - he;
+      ( o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
+    }
+    else
+    {
+      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
+    }
+    currGasList.setGas( gasNr, o2, he );
+    ( gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
+    if( o2 < 14 )
+    {
+      ( gasLblMap.get( gasNr ) ).setForeground( gasDangerousColor );
+    }
+    else if( o2 < 21 )
+    {
+      ( gasLblMap.get( gasNr ) ).setForeground( gasNoNormOxicColor );
+    }
+    else
+    {
+      ( gasLblMap.get( gasNr ) ).setForeground( gasNameNormalColor );
+    }
+    ignoreAction = false;
+  }
+
+  /**
+   * 
+   * Ändere Sauerstoffanteil vom Gas Nummer X
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.04.2012
+   * @param gasNr
+   *          welches Gas
+   * @param o2
+   *          Sauerstoffanteil
+   */
+  private void changeO2FromGas( int gasNr, int o2 )
+  {
+    int he;
+    he = currGasList.getHEFromGas( gasNr );
+    ignoreAction = true;
+    if( o2 < 0 )
+    {
+      // das Zeut ist dann auch ungesund!
+      o2 = 0;
+      ( o2SpinnerMap.get( gasNr ) ).setValue( 0 );
+    }
+    else if( o2 > 100 )
+    {
+      // Mehr als 100% geht nicht!
+      o2 = 100;
+      he = 0;
+      ( heSpinnerMap.get( gasNr ) ).setValue( he );
+      ( o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      LOGGER.log( Level.WARNING, String.format( "change oxygen (max) in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
+    }
+    else if( ( o2 + he ) > 100 )
+    {
+      // Auch hier geht nicht mehr als 100%
+      // Helium verringern!
+      he = 100 - o2;
+      ( heSpinnerMap.get( gasNr ) ).setValue( he );
+      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
+    }
+    else
+    {
+      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
+    }
+    currGasList.setGas( gasNr, o2, he );
+    // erzeuge und setze noch den Gasnamen
+    ( gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
+    if( o2 < 14 )
+    {
+      ( gasLblMap.get( gasNr ) ).setForeground( gasDangerousColor );
+    }
+    else if( o2 < 21 )
+    {
+      ( gasLblMap.get( gasNr ) ).setForeground( gasNoNormOxicColor );
+    }
+    else
+    {
+      ( gasLblMap.get( gasNr ) ).setForeground( gasNameNormalColor );
+    }
+    ignoreAction = false;
+  }
+
+  /**
+   * 
+   * Gib einen Kurznamen für das Gasgemisch
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.04.2012
+   * @param gasNr
+   *          Gasnummer
+   */
+  private String getNameForGas( int gasNr )
+  {
+    int o2, he;
+    // Hexenküche: Was haben wir denn da....
+    o2 = currGasList.getO2FromGas( gasNr );
+    he = currGasList.getHEFromGas( gasNr );
+    // Mal sondieren
+    if( he == 0 )
+    {
+      // eindeutig Nitrox
+      if( o2 == 21 )
+      {
+        return( "AIR" );
+      }
+      if( o2 == 100 )
+      {
+        return( "O2" );
+      }
+      return( String.format( "NX%02d", o2 ) );
+    }
+    else
+    {
+      // das ist dan wohl Trimix
+      return( String.format( "TX%d/%d", o2, he ) );
     }
   }
 
@@ -2860,6 +3639,31 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
   }
 
+  private void setAllGasPanelsEnabled( boolean en )
+  {
+    setGasMatrixPanelEnabled( en );
+    // momentan IMMER disabled
+    setGasPresetObjectsEnabled( false );
+  }
+
+  private void setGasPresetObjectsEnabled( boolean en )
+  {
+    customPresetComboBox.setEnabled( en );
+    writeGasPresetButton.setEnabled( en );
+    readGasPresetButton.setEnabled( en );
+  }
+
+  private void setGasMatrixPanelEnabled( boolean en )
+  {
+    for( Component cp : gasMatrixPanel.getComponents() )
+    {
+      cp.setEnabled( en );
+    }
+    gasMatrixPanel.setEnabled( en );
+    // TODO: wieder erlauben nach einlesen
+    gasWriteToSPXButton.setEnabled( false );
+  }
+
   /**
    * 
    * Das Individual Panel ausblenden
@@ -2971,5 +3775,101 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       cp.setEnabled( en );
     }
     setpointPanel.setEnabled( en );
+  }
+
+  /**
+   * 
+   * Alle Change Listener für Spinner setzen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.04.2012 TODO
+   */
+  private void setGlobalChangeListener()
+  {
+    decoGradientenLowSpinner.addChangeListener( this );
+    decoGradientenHighSpinner.addChangeListener( this );
+    //
+    gasO2Spinner_00.addChangeListener( this );
+    gasO2Spinner_00.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+    gasHESpinner_00.addChangeListener( this );
+    gasHESpinner_00.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    //
+    gasO2Spinner_01.addChangeListener( this );
+    gasO2Spinner_01.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+    gasHESpinner_01.addChangeListener( this );
+    gasHESpinner_01.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    //
+    gasO2Spinner_02.addChangeListener( this );
+    gasO2Spinner_02.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+    gasHESpinner_02.addChangeListener( this );
+    gasHESpinner_02.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    //
+    gasO2Spinner_03.addChangeListener( this );
+    gasO2Spinner_03.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+    gasHESpinner_03.addChangeListener( this );
+    gasHESpinner_03.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    //
+    gasO2Spinner_04.addChangeListener( this );
+    gasO2Spinner_04.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+    gasHESpinner_04.addChangeListener( this );
+    gasHESpinner_04.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    //
+    gasO2Spinner_05.addChangeListener( this );
+    gasO2Spinner_05.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+    gasHESpinner_05.addChangeListener( this );
+    gasHESpinner_05.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    //
+    gasO2Spinner_06.addChangeListener( this );
+    gasO2Spinner_06.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+    gasHESpinner_06.addChangeListener( this );
+    gasHESpinner_06.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    //
+    gasO2Spinner_07.addChangeListener( this );
+    gasO2Spinner_07.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+    gasHESpinner_07.addChangeListener( this );
+    gasHESpinner_07.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+  }
+
+  /**
+   * 
+   * Für unkomplizierteren Zugriff die Objekte Indizieren
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.04.2012
+   */
+  private void initGasObjectMaps()
+  {
+    o2SpinnerMap.put( 0, gasO2Spinner_00 );
+    o2SpinnerMap.put( 1, gasO2Spinner_01 );
+    o2SpinnerMap.put( 2, gasO2Spinner_02 );
+    o2SpinnerMap.put( 3, gasO2Spinner_03 );
+    o2SpinnerMap.put( 4, gasO2Spinner_04 );
+    o2SpinnerMap.put( 5, gasO2Spinner_05 );
+    o2SpinnerMap.put( 6, gasO2Spinner_06 );
+    o2SpinnerMap.put( 7, gasO2Spinner_07 );
+    //
+    heSpinnerMap.put( 0, gasHESpinner_00 );
+    heSpinnerMap.put( 1, gasHESpinner_01 );
+    heSpinnerMap.put( 2, gasHESpinner_02 );
+    heSpinnerMap.put( 3, gasHESpinner_03 );
+    heSpinnerMap.put( 4, gasHESpinner_04 );
+    heSpinnerMap.put( 5, gasHESpinner_05 );
+    heSpinnerMap.put( 6, gasHESpinner_06 );
+    heSpinnerMap.put( 7, gasHESpinner_07 );
+    //
+    gasLblMap.put( 0, gasNameLabel_00 );
+    gasLblMap.put( 1, gasNameLabel_01 );
+    gasLblMap.put( 2, gasNameLabel_02 );
+    gasLblMap.put( 3, gasNameLabel_03 );
+    gasLblMap.put( 4, gasNameLabel_04 );
+    gasLblMap.put( 5, gasNameLabel_05 );
+    gasLblMap.put( 6, gasNameLabel_06 );
+    gasLblMap.put( 7, gasNameLabel_07 );
   }
 }

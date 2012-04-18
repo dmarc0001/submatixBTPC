@@ -46,6 +46,8 @@ public interface IBTCommunication
 
   public void readConfigFromSPX42();
 
+  public void readGaslistFromSPX42();
+
   public void askForDeviceName();
 
   public void askForFirmwareVersion();

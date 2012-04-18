@@ -1375,4 +1375,16 @@ public class BTCommunication implements IBTCommunication
       if( log ) LOGGER.log( Level.SEVERE, "write for this firmware version not confirmed! CANCEL!" );
     }
   }
+
+  @Override
+  public void readGaslistFromSPX42()
+  {
+    String kdoString;
+    kdoString = String.format( "%s~%x%s", ProjectConst.STX, ProjectConst.SPX_GET_SETUP_GASLIST, ProjectConst.ETX );
+    if( log )
+    {
+      LOGGER.log( Level.FINE, "readGaslistFromSPX42()...send <" + kdoString + ">" );
+    }
+    this.writeToDevice( kdoString );
+  }
 }

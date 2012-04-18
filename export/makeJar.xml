@@ -1,22 +1,17 @@
-<launch4jConfig>
-  <dontWrapJar>false</dontWrapJar>
-  <headerType>gui</headerType>
-  <jar>C:\DATEN\submatix\submatixBTConfigPC.jar</jar>
-  <outfile>C:\DATEN\submatix\submatixBluethoothLoggerBT.exe</outfile>
-  <errTitle></errTitle>
-  <cmdLine></cmdLine>
-  <chdir></chdir>
-  <priority>normal</priority>
-  <downloadUrl>http://java.com/download</downloadUrl>
-  <supportUrl></supportUrl>
-  <customProcName>false</customProcName>
-  <stayAlive>false</stayAlive>
-  <manifest></manifest>
-  <icon></icon>
-  <jre>
-    <path>C:\Program Files (x86)\Java\jre6</path>
-    <minVersion></minVersion>
-    <maxVersion></maxVersion>
-    <jdkPreference>preferJre</jdkPreference>
-  </jre>
-</launch4jConfig>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project SubmatixBTForPC">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="C:/DATEN/submatix/submatixBTForPC.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="de.dmarcini.submatix.pclogger.gui.MainCommGUI"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="C:/DATEN/eclipseWorkspace/SubmatixBTForPC/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/RXTXcomm.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/commons-cli-1.2/commons-cli-1.2.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/bluecove-2.1.0.jar"/>
+        </jar>
+    </target>
+</project>

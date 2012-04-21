@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 //@formatter:off
 public class SPX42GasList implements ISPX42GasList
 {
-  private static int GASCOUNT                                = 8;
+  private static int                                GASCOUNT = 8;
   protected Logger                                    LOGGER = null;
   private final Pattern                       fieldPatternDp = Pattern.compile( ":" );
   protected boolean                                      log = false;
@@ -57,6 +57,7 @@ public class SPX42GasList implements ISPX42GasList
     for( int i = 0; i < GASCOUNT; i++ )
     {
       init[i] = false;
+      diluent[i] = 0;
     }
   }
 
@@ -261,22 +262,42 @@ public class SPX42GasList implements ISPX42GasList
   }
 
   @Override
-  public boolean isBailout( int number )
+  public int getBailout( int number )
   {
     if( number >= GASCOUNT )
     {
-      return false;
+      return 0;
     }
     if( bailout[number] > 0 )
     {
-      return( true );
+      return( bailout[number] );
     }
-    return( false );
+    return( 0 );
   }
 
   @Override
   public int getGasCount()
   {
     return( GASCOUNT );
+  }
+
+  @Override
+  public int getDiluent( int number )
+  {
+    if( number < GASCOUNT )
+    {
+      return( 0 );
+    }
+    return( diluent[number] );
+  }
+
+  @Override
+  public int getCurrGas( int number )
+  {
+    if( number < GASCOUNT || currgas != number )
+    {
+      return( 0 );
+    }
+    return( 1 );
   }
 }

@@ -142,7 +142,7 @@ public interface ISPX42Config
    *         Stand: 07.01.2012
    * @return Gültigkeit
    */
-  public boolean wasInit();
+  public boolean isInitialized();
 
   /**
    * 

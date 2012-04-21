@@ -865,7 +865,7 @@ public class SPX42Config implements ISPX42Config
   }
 
   @Override
-  public boolean wasInit()
+  public boolean isInitialized()
   {
     return( wasCorrectInitialized );
   }

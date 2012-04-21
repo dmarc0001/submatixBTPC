@@ -12,6 +12,7 @@ package de.dmarcini.submatix.pclogger.comm;
 import java.awt.event.ActionListener;
 
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
+import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 
 /**
  * HEADLINE
@@ -47,6 +48,10 @@ public interface IBTCommunication
   public void readConfigFromSPX42();
 
   public void readGaslistFromSPX42();
+
+  public void askForLicenseFromSPX();
+
+  public void writeGaslistToSPX42( SPX42GasList gList, String spxVersion );
 
   public void askForDeviceName();
 

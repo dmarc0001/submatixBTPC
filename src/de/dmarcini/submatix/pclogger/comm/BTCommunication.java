@@ -30,6 +30,7 @@ import com.intel.bluetooth.RemoteDeviceHelper;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
+import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 
 /**
  * 
@@ -1214,6 +1215,12 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
+  public void askForLicenseFromSPX()
+  {
+    this.writeToDevice( String.format( "%s~%x%s", ProjectConst.STX, ProjectConst.SPX_LICENSE_STATE, ProjectConst.ETX ) );
+  }
+
+  @Override
   public String getDeviceInfos()
   {
     // Mach aus den HashMaps einen String zum Wiedereinlesen
@@ -1252,7 +1259,7 @@ public class BTCommunication implements IBTCommunication
     String spxVersion = config.getFirmwareVersion();
     Thread configWriteThread = null;
     //
-    if( !config.wasInit() )
+    if( !config.isInitialized() )
     {
       if( log ) LOGGER.log( Level.SEVERE, "config was not initialized! CANCEL!" );
       return;
@@ -1386,5 +1393,72 @@ public class BTCommunication implements IBTCommunication
       LOGGER.log( Level.FINE, "readGaslistFromSPX42()...send <" + kdoString + ">" );
     }
     this.writeToDevice( kdoString );
+  }
+
+  @Override
+  public void writeGaslistToSPX42( final SPX42GasList gList, final String spxVersion )
+  {
+    Thread gasListWriteThread = null;
+    //
+    if( !gList.isInitialized() )
+    {
+      if( log ) LOGGER.log( Level.SEVERE, "config was not initialized! CANCEL!" );
+      return;
+    }
+    if( spxVersion.equals( "V2.6.7.7_V" ) )
+    {
+      // Schreibe für die leicht Fehlerhafte Version
+      // Führe als eigenen Thread aus, damit die Swing-Oberfläche
+      // Gelegenheit bekommt, sich zu zeichnen
+      gasListWriteThread = new Thread() {
+        ActionEvent ae;
+
+        @Override
+        public void run()
+        {
+          String command;
+          int gasCount = gList.getGasCount();
+          int gasNr;
+          //
+          // Alle Gase des Computers durchexerzieren
+          //
+          for( gasNr = 0; gasNr < gasCount; gasNr++ )
+          {
+            // Kommando SPX_SET_SETUP_GASLIST
+            // ~40:NR:HE:N2:BO:DI:CU
+            // NR -> Gas Nummer
+            // HE -> Heliumanteil
+            // N2 -> Stickstoffanteil
+            // BO -> Bailoutgas? (3?)
+            // DI -> Diluent ( 0, 1 oder 2 )
+            // CU Current Gas (0 oder 1)
+            if( log ) LOGGER.log( Level.INFO, String.format( "write gas number %d to SPX...", gasNr ) );
+            command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_GASLIST, gasNr, gList.getHEFromGas( gasNr ), gList.getN2FromGas( gasNr ),
+                    gList.getBailout( gasNr ), gList.getDiluent( gasNr ), gList.getCurrGas( gasNr ) );
+            if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+            writeSPXMsgToDevice( command );
+            // gib Bescheid
+            if( aListener != null )
+            {
+              ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_NEXT, null );
+              aListener.actionPerformed( ae );
+            }
+          }
+          // gib Bescheid Vorgang zuende
+          if( log ) LOGGER.log( Level.INFO, "write gaslist success." );
+          if( aListener != null )
+          {
+            ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_END, null );
+            aListener.actionPerformed( ae );
+          }
+        }
+      };
+      gasListWriteThread.setName( "write_gaslist_to_spx" );
+      gasListWriteThread.start();
+    }
+    else
+    {
+      if( log ) LOGGER.log( Level.SEVERE, "write for this firmware version not confirmed! CANCEL!" );
+    }
   }
 }

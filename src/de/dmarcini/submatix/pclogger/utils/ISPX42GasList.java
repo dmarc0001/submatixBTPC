@@ -22,7 +22,11 @@ public interface ISPX42GasList
 
   public int getDiluent2();
 
-  public boolean isBailout( int number );
+  public int getBailout( int number );
+
+  public int getDiluent( int number );
+
+  public int getCurrGas( int number );
 
   public boolean isInitialized();
 

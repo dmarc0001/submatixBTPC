@@ -87,172 +87,176 @@ import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 //@formatter:off
 public class MainCommGUI extends JFrame implements ActionListener, MouseMotionListener, ChangeListener, ItemListener
 {  //
-  private static final long                 serialVersionUID    = 2L;
-  private final static int                  VERY_CONSERVATIVE   = 0;
-  private final static int                  CONSERVATIVE        = 1;
-  private final static int                  MODERATE            = 2;
-  private final static int                  AGGRESSIVE          = 3;
-  private final static int                  VERY_AGGRESSIVE     = 4;
+  private static final long                  serialVersionUID    = 2L;
+  private final static int                   VERY_CONSERVATIVE   = 0;
+  private final static int                   CONSERVATIVE        = 1;
+  private final static int                   MODERATE            = 2;
+  private final static int                   AGGRESSIVE          = 3;
+  private final static int                   VERY_AGGRESSIVE     = 4;
   // private final static int CUSTOMIZED = 5;
-  private static ResourceBundle             stringsBundle       = null;
-  private Locale                            programLocale       = null;
-  static Logger                             LOGGER              = null;
-  static Handler                            fHandler            = null;
-  static Handler                            cHandler            = null;
-  private BTCommunication                   btComm              = null;
-  private final ArrayList<String>           messagesList        = new ArrayList<String>();
-  private final SPX42Config                 currentConfig       = new SPX42Config();
-  private SPX42Config                       savedConfig         = null;
-  private SPX42GasList                      currGasList         = null;
-  private PleaseWaitDialog                  wDial               = null;
-  private boolean                           ignoreAction        = false;
-  private static Level                      optionLogLevel      = Level.FINE;
-  private static boolean                    readBtCacheOnStart  = false;
-  private static File                       logFile             = new File( "logfile.log" );
-  private static boolean                    DEBUG               = false;
-  private static Color                      gasNameNormalColor  = new Color( 0x000088 );
-  private static Color                      gasDangerousColor   = Color.red;
-  private static Color                      gasNoNormOxicColor  = Color.MAGENTA;
-  private static HashMap<Integer, JSpinner> o2SpinnerMap        = new HashMap<Integer, JSpinner>();
-  private static HashMap<Integer, JSpinner> heSpinnerMap        = new HashMap<Integer, JSpinner>();
-  private static HashMap<Integer, JLabel>   gasLblMap           = new HashMap<Integer, JLabel>();
+  private static ResourceBundle              stringsBundle       = null;
+  private Locale                             programLocale       = null;
+  static Logger                              LOGGER              = null;
+  static Handler                             fHandler            = null;
+  static Handler                             cHandler            = null;
+  private BTCommunication                    btComm              = null;
+  private final ArrayList<String>            messagesList        = new ArrayList<String>();
+  private final SPX42Config                  currentConfig       = new SPX42Config();
+  private SPX42Config                        savedConfig         = null;
+  private SPX42GasList                       currGasList         = null;
+  private PleaseWaitDialog                   wDial               = null;
+  private boolean                            ignoreAction        = false;
+  private static Level                       optionLogLevel      = Level.FINE;
+  private static boolean                     readBtCacheOnStart  = false;
+  private static File                        logFile             = new File( "logfile.log" );
+  private static boolean                     DEBUG               = false;
+  private static Color                       gasNameNormalColor  = new Color( 0x000088 );
+  private static Color                       gasDangerousColor   = Color.red;
+  private static Color                       gasNoNormOxicColor  = Color.MAGENTA;
+  private static final Pattern               fieldPatternDp      = Pattern.compile( ":" );
+  private int                                licenseState        = -1;
+  private static HashMap<Integer, JSpinner>  o2SpinnerMap        = new HashMap<Integer, JSpinner>();
+  private static HashMap<Integer, JSpinner>  heSpinnerMap        = new HashMap<Integer, JSpinner>();
+  private static HashMap<Integer, JLabel>    gasLblMap           = new HashMap<Integer, JLabel>();
+  private static HashMap<Integer, JCheckBox> bailoutMap          = new HashMap<Integer, JCheckBox>();
   //
   // @formatter:on
-  private JFrame                            frmMainwindowtitle;
-  private JTextField                        statusTextField;
-  private JMenuItem                         mntmExit;
-  private JPanel                            connectionPanel;
-  private JPanel                            conigPanel;
-  private JButton                           connectButton;
-  private JComboBox                         deviceToConnectComboBox;
-  private JMenu                             mnLanguages;
-  private JTabbedPane                       tabbedPane;
-  private JMenu                             mnFile;
-  private JMenu                             mnOptions;
-  private JMenu                             mnHelp;
-  private JMenuItem                         mntmHelp;
-  private JMenuItem                         mntmInfo;
-  private JLabel                            serialNumberLabel;
-  protected JLabel                          serialNumberText;
-  private JButton                           readSPX42ConfigButton;
-  private JPanel                            decompressionPanel;
-  private JLabel                            decoGradientsHighLabel;
-  private JSpinner                          decoGradientenHighSpinner;
-  private JLabel                            decoLaststopLabel;
-  private JComboBox                         decoLastStopComboBox;
-  private JLabel                            decoDyngradientsLabel;
-  private JLabel                            decoDeepstopsLabel;
-  private JLabel                            decoGradientsLowLabel;
-  private JCheckBox                         decoDeepStopCheckBox;
-  private JSpinner                          decoGradientenLowSpinner;
-  private JComboBox                         decoGradientenPresetComboBox;
-  private JLabel                            lblSetpointAutosetpoint;
-  private JComboBox                         autoSetpointComboBox;
-  private JLabel                            lblSetpointHighsetpoint;
-  private JComboBox                         highSetpointComboBox;
-  private JPanel                            setpointPanel;
-  private JPanel                            displayPanel;
-  private JLabel                            lblDisplayBrightness;
-  private JComboBox                         displayBrightnessComboBox;
-  private JLabel                            lblDisplayOrientation;
-  private JComboBox                         displayOrientationComboBox;
-  private JPanel                            unitsPanel;
-  private JLabel                            lblUnitsTemperature;
-  private JComboBox                         unitsTemperatureComboBox;
-  private JLabel                            lblUnitsDepth;
-  private JComboBox                         unitsDepthComboBox;
-  private JLabel                            lblUnitsSalinity;
-  private JComboBox                         unitsSalnityComboBox;
-  private JPanel                            individualPanel;
-  private JLabel                            lblSenormode;
-  private JLabel                            individualsLogintervalLabel;
-  private JComboBox                         individualsLogintervalComboBox;
-  private JLabel                            lblIndividualsPscrMode;
-  private JCheckBox                         individualsSensorsOnCheckbox;
-  private JCheckBox                         individualsPscrModeOnCheckbox;
-  private JComboBox                         individualsSensorWarnComboBox;
-  private JLabel                            individualsAcusticWarningsLabel;
-  private JCheckBox                         decoDynGradientsCheckBox;
-  private JLabel                            lblSensorwarnings;
-  private JCheckBox                         individualsWarningsOnCheckBox;
-  private JLabel                            individualsNotLicensedLabel;
-  private JButton                           writeSPX42ConfigButton;
-  private JPanel                            debugPanel;
-  private JTextField                        testCmdTextField;
-  private JButton                           testSubmitButton;
-  private JLabel                            firmwareVersionLabel;
-  private JLabel                            firmwareVersionValueLabel;
-  private JButton                           connectBtRefreshButton;
-  private JProgressBar                      discoverProgressBar;
-  private JButton                           pinButton;
-  private JLabel                            ackuLabel;
-  private JLabel                            gasLabel_00;
-  private JSpinner                          gasO2Spinner_00;
-  private JSpinner                          gasHESpinner_00;
-  private JLabel                            lblO;
-  private JLabel                            lblHe;
-  private JLabel                            gasLabel_01;
-  private JCheckBox                         diluent1Checkbox_00;
-  private JCheckBox                         diluent2Checkbox_00;
-  private JCheckBox                         bailoutCheckbox_00;
-  private JSpinner                          gasO2Spinner_01;
-  private JSpinner                          gasO2Spinner_02;
-  private JSpinner                          gasO2Spinner_03;
-  private JSpinner                          gasO2Spinner_04;
-  private JSpinner                          gasO2Spinner_05;
-  private JSpinner                          gasO2Spinner_06;
-  private JLabel                            gasLabel_02;
-  private JSpinner                          gasHESpinner_01;
-  private JSpinner                          gasHESpinner_02;
-  private JSpinner                          gasHESpinner_03;
-  private JSpinner                          gasHESpinner_04;
-  private JSpinner                          gasHESpinner_05;
-  private JSpinner                          gasHESpinner_06;
-  private JLabel                            gasLabel_03;
-  private JLabel                            gasLabel_04;
-  private JLabel                            gasLabel_05;
-  private JLabel                            gasLabel_06;
-  private JCheckBox                         diluent1Checkbox_01;
-  private JCheckBox                         diluent1Checkbox_02;
-  private JCheckBox                         diluent1Checkbox_03;
-  private JCheckBox                         diluent1Checkbox_04;
-  private JCheckBox                         diluent1Checkbox_05;
-  private JCheckBox                         diluent1Checkbox_06;
-  private final ButtonGroup                 diluent1ButtonGroup = new ButtonGroup();
-  private final ButtonGroup                 diluent2ButtonGroup = new ButtonGroup();
-  private JCheckBox                         diluent2Checkbox_01;
-  private JCheckBox                         diluent2Checkbox_02;
-  private JCheckBox                         diluent2Checkbox_03;
-  private JCheckBox                         diluent2Checkbox_04;
-  private JCheckBox                         diluent2Checkbox_05;
-  private JCheckBox                         diluent2Checkbox_06;
-  private JCheckBox                         bailoutCheckbox_01;
-  private JCheckBox                         bailoutCheckbox_02;
-  private JCheckBox                         bailoutCheckbox_03;
-  private JCheckBox                         bailoutCheckbox_04;
-  private JCheckBox                         bailoutCheckbox_05;
-  private JCheckBox                         bailoutCheckbox_06;
-  private JPanel                            gasMatrixPanel;
-  private JComboBox                         customPresetComboBox;
-  private JButton                           gasReadFromSPXButton;
-  private JButton                           gasWriteToSPXButton;
-  private JButton                           readGasPresetButton;
-  private JLabel                            userPresetLabel;
-  private JButton                           writeGasPresetButton;
-  private JLabel                            gasLabel_07;
-  private JSpinner                          gasO2Spinner_07;
-  private JCheckBox                         diluent1Checkbox_07;
-  private JCheckBox                         bailoutCheckbox_07;
-  private JCheckBox                         diluent2Checkbox_07;
-  private JLabel                            gasNameLabel_00;
-  private JLabel                            gasNameLabel_01;
-  private JLabel                            gasNameLabel_02;
-  private JLabel                            gasNameLabel_03;
-  private JLabel                            gasNameLabel_04;
-  private JLabel                            gasNameLabel_05;
-  private JLabel                            gasNameLabel_06;
-  private JLabel                            gasNameLabel_07;
-  private JSpinner                          gasHESpinner_07;
+  private JFrame                             frmMainwindowtitle;
+  private JTextField                         statusTextField;
+  private JMenuItem                          mntmExit;
+  private JPanel                             connectionPanel;
+  private JPanel                             conigPanel;
+  private JButton                            connectButton;
+  private JComboBox                          deviceToConnectComboBox;
+  private JMenu                              mnLanguages;
+  private JTabbedPane                        tabbedPane;
+  private JMenu                              mnFile;
+  private JMenu                              mnOptions;
+  private JMenu                              mnHelp;
+  private JMenuItem                          mntmHelp;
+  private JMenuItem                          mntmInfo;
+  private JLabel                             serialNumberLabel;
+  protected JLabel                           serialNumberText;
+  private JButton                            readSPX42ConfigButton;
+  private JPanel                             decompressionPanel;
+  private JLabel                             decoGradientsHighLabel;
+  private JSpinner                           decoGradientenHighSpinner;
+  private JLabel                             decoLaststopLabel;
+  private JComboBox                          decoLastStopComboBox;
+  private JLabel                             decoDyngradientsLabel;
+  private JLabel                             decoDeepstopsLabel;
+  private JLabel                             decoGradientsLowLabel;
+  private JCheckBox                          decoDeepStopCheckBox;
+  private JSpinner                           decoGradientenLowSpinner;
+  private JComboBox                          decoGradientenPresetComboBox;
+  private JLabel                             lblSetpointAutosetpoint;
+  private JComboBox                          autoSetpointComboBox;
+  private JLabel                             lblSetpointHighsetpoint;
+  private JComboBox                          highSetpointComboBox;
+  private JPanel                             setpointPanel;
+  private JPanel                             displayPanel;
+  private JLabel                             lblDisplayBrightness;
+  private JComboBox                          displayBrightnessComboBox;
+  private JLabel                             lblDisplayOrientation;
+  private JComboBox                          displayOrientationComboBox;
+  private JPanel                             unitsPanel;
+  private JLabel                             lblUnitsTemperature;
+  private JComboBox                          unitsTemperatureComboBox;
+  private JLabel                             lblUnitsDepth;
+  private JComboBox                          unitsDepthComboBox;
+  private JLabel                             lblUnitsSalinity;
+  private JComboBox                          unitsSalnityComboBox;
+  private JPanel                             individualPanel;
+  private JLabel                             lblSenormode;
+  private JLabel                             individualsLogintervalLabel;
+  private JComboBox                          individualsLogintervalComboBox;
+  private JLabel                             lblIndividualsPscrMode;
+  private JCheckBox                          individualsSensorsOnCheckbox;
+  private JCheckBox                          individualsPscrModeOnCheckbox;
+  private JComboBox                          individualsSensorWarnComboBox;
+  private JLabel                             individualsAcusticWarningsLabel;
+  private JCheckBox                          decoDynGradientsCheckBox;
+  private JLabel                             lblSensorwarnings;
+  private JCheckBox                          individualsWarningsOnCheckBox;
+  private JLabel                             individualsNotLicensedLabel;
+  private JButton                            writeSPX42ConfigButton;
+  private JPanel                             debugPanel;
+  private JTextField                         testCmdTextField;
+  private JButton                            testSubmitButton;
+  private JLabel                             firmwareVersionLabel;
+  private JLabel                             firmwareVersionValueLabel;
+  private JButton                            connectBtRefreshButton;
+  private JProgressBar                       discoverProgressBar;
+  private JButton                            pinButton;
+  private JLabel                             ackuLabel;
+  private JLabel                             gasLabel_00;
+  private JSpinner                           gasO2Spinner_00;
+  private JSpinner                           gasHESpinner_00;
+  private JLabel                             lblO;
+  private JLabel                             lblHe;
+  private JLabel                             gasLabel_01;
+  private JCheckBox                          diluent1Checkbox_00;
+  private JCheckBox                          diluent2Checkbox_00;
+  private JCheckBox                          bailoutCheckbox_00;
+  private JSpinner                           gasO2Spinner_01;
+  private JSpinner                           gasO2Spinner_02;
+  private JSpinner                           gasO2Spinner_03;
+  private JSpinner                           gasO2Spinner_04;
+  private JSpinner                           gasO2Spinner_05;
+  private JSpinner                           gasO2Spinner_06;
+  private JLabel                             gasLabel_02;
+  private JSpinner                           gasHESpinner_01;
+  private JSpinner                           gasHESpinner_02;
+  private JSpinner                           gasHESpinner_03;
+  private JSpinner                           gasHESpinner_04;
+  private JSpinner                           gasHESpinner_05;
+  private JSpinner                           gasHESpinner_06;
+  private JLabel                             gasLabel_03;
+  private JLabel                             gasLabel_04;
+  private JLabel                             gasLabel_05;
+  private JLabel                             gasLabel_06;
+  private JCheckBox                          diluent1Checkbox_01;
+  private JCheckBox                          diluent1Checkbox_02;
+  private JCheckBox                          diluent1Checkbox_03;
+  private JCheckBox                          diluent1Checkbox_04;
+  private JCheckBox                          diluent1Checkbox_05;
+  private JCheckBox                          diluent1Checkbox_06;
+  private final ButtonGroup                  diluent1ButtonGroup = new ButtonGroup();
+  private final ButtonGroup                  diluent2ButtonGroup = new ButtonGroup();
+  private JCheckBox                          diluent2Checkbox_01;
+  private JCheckBox                          diluent2Checkbox_02;
+  private JCheckBox                          diluent2Checkbox_03;
+  private JCheckBox                          diluent2Checkbox_04;
+  private JCheckBox                          diluent2Checkbox_05;
+  private JCheckBox                          diluent2Checkbox_06;
+  private JCheckBox                          bailoutCheckbox_01;
+  private JCheckBox                          bailoutCheckbox_02;
+  private JCheckBox                          bailoutCheckbox_03;
+  private JCheckBox                          bailoutCheckbox_04;
+  private JCheckBox                          bailoutCheckbox_05;
+  private JCheckBox                          bailoutCheckbox_06;
+  private JPanel                             gasMatrixPanel;
+  private JComboBox                          customPresetComboBox;
+  private JButton                            gasReadFromSPXButton;
+  private JButton                            gasWriteToSPXButton;
+  private JButton                            readGasPresetButton;
+  private JLabel                             userPresetLabel;
+  private JButton                            writeGasPresetButton;
+  private JLabel                             gasLabel_07;
+  private JSpinner                           gasO2Spinner_07;
+  private JCheckBox                          diluent1Checkbox_07;
+  private JCheckBox                          bailoutCheckbox_07;
+  private JCheckBox                          diluent2Checkbox_07;
+  private JLabel                             gasNameLabel_00;
+  private JLabel                             gasNameLabel_01;
+  private JLabel                             gasNameLabel_02;
+  private JLabel                             gasNameLabel_03;
+  private JLabel                             gasNameLabel_04;
+  private JLabel                             gasNameLabel_05;
+  private JLabel                             gasNameLabel_06;
+  private JLabel                             gasNameLabel_07;
+  private JSpinner                           gasHESpinner_07;
+  private JLabel                             licenseStatusLabel;
 
   /**
    * Launch the application.
@@ -349,8 +353,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages_en" );
     }
     initialize();
-    setGlobalChangeListener();
+    // zuerst Maps erzeugen
     initGasObjectMaps();
+    // Listener setzen (braucht auch die Maps)
+    setGlobalChangeListener();
     currentConfig.setLogger( LOGGER );
     btComm = new BTCommunication( LOGGER );
     btComm.addActionListener( this );
@@ -1395,28 +1401,43 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     writeGasPresetButton.setActionCommand( "write_gaslist_preset" );
     writeGasPresetButton.addMouseMotionListener( this );
     writeGasPresetButton.addActionListener( this );
+    licenseStatusLabel = new JLabel( "LICENSE" );
     GroupLayout gl_GasConfigPanel = new GroupLayout( GasConfigPanel );
-    gl_GasConfigPanel.setHorizontalGroup( gl_GasConfigPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_GasConfigPanel
-                    .createSequentialGroup()
-                    .addContainerGap()
+    gl_GasConfigPanel
+            .setHorizontalGroup( gl_GasConfigPanel.createParallelGroup( Alignment.LEADING )
                     .addGroup(
                             gl_GasConfigPanel
-                                    .createParallelGroup( Alignment.TRAILING )
+                                    .createSequentialGroup()
+                                    .addContainerGap()
                                     .addGroup(
-                                            Alignment.LEADING,
-                                            gl_GasConfigPanel.createSequentialGroup()
-                                                    .addComponent( gasReadFromSPXButton, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE )
-                                                    .addPreferredGap( ComponentPlacement.RELATED, 133, Short.MAX_VALUE )
-                                                    .addComponent( gasWriteToSPXButton, GroupLayout.PREFERRED_SIZE, 217, GroupLayout.PREFERRED_SIZE ) )
-                                    .addComponent( gasMatrixPanel, GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_GasConfigPanel.createParallelGroup( Alignment.LEADING )
-                                    .addComponent( userPresetLabel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE )
-                                    .addComponent( customPresetComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                    .addComponent( writeGasPresetButton, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                    .addComponent( readGasPresetButton, GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE ) ).addContainerGap() ) );
+                                            gl_GasConfigPanel
+                                                    .createParallelGroup( Alignment.LEADING )
+                                                    .addGroup(
+                                                            gl_GasConfigPanel
+                                                                    .createSequentialGroup()
+                                                                    .addGroup(
+                                                                            gl_GasConfigPanel
+                                                                                    .createParallelGroup( Alignment.LEADING )
+                                                                                    .addGroup(
+                                                                                            gl_GasConfigPanel
+                                                                                                    .createSequentialGroup()
+                                                                                                    .addComponent( gasReadFromSPXButton, GroupLayout.PREFERRED_SIZE, 199,
+                                                                                                            GroupLayout.PREFERRED_SIZE )
+                                                                                                    .addPreferredGap( ComponentPlacement.RELATED, 137, Short.MAX_VALUE )
+                                                                                                    .addComponent( gasWriteToSPXButton, GroupLayout.PREFERRED_SIZE, 217,
+                                                                                                            GroupLayout.PREFERRED_SIZE ) )
+                                                                                    .addComponent( gasMatrixPanel, GroupLayout.DEFAULT_SIZE, 553, Short.MAX_VALUE ) )
+                                                                    .addPreferredGap( ComponentPlacement.RELATED )
+                                                                    .addGroup(
+                                                                            gl_GasConfigPanel
+                                                                                    .createParallelGroup( Alignment.LEADING )
+                                                                                    .addComponent( userPresetLabel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 210,
+                                                                                            Short.MAX_VALUE )
+                                                                                    .addComponent( customPresetComboBox, 0, 210, Short.MAX_VALUE )
+                                                                                    .addComponent( writeGasPresetButton, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 210,
+                                                                                            Short.MAX_VALUE )
+                                                                                    .addComponent( readGasPresetButton, GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE ) ) )
+                                                    .addComponent( licenseStatusLabel ) ).addContainerGap() ) );
     gl_GasConfigPanel.setVerticalGroup( gl_GasConfigPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_GasConfigPanel
                     .createSequentialGroup()
@@ -1427,10 +1448,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
                                     .addGroup(
                                             gl_GasConfigPanel.createSequentialGroup().addComponent( userPresetLabel ).addPreferredGap( ComponentPlacement.RELATED )
                                                     .addComponent( customPresetComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                                    .addPreferredGap( ComponentPlacement.RELATED, 217, Short.MAX_VALUE ).addComponent( writeGasPresetButton )
+                                                    .addPreferredGap( ComponentPlacement.RELATED, 259, Short.MAX_VALUE ).addComponent( writeGasPresetButton )
                                                     .addPreferredGap( ComponentPlacement.RELATED )
                                                     .addComponent( readGasPresetButton, GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE ).addGap( 37 ) )
-                                    .addComponent( gasMatrixPanel, GroupLayout.PREFERRED_SIZE, 368, GroupLayout.PREFERRED_SIZE ) )
+                                    .addGroup(
+                                            gl_GasConfigPanel.createSequentialGroup().addComponent( gasMatrixPanel, GroupLayout.PREFERRED_SIZE, 368, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( licenseStatusLabel ) ) )
                     .addPreferredGap( ComponentPlacement.RELATED )
                     .addGroup(
                             gl_GasConfigPanel.createParallelGroup( Alignment.BASELINE )
@@ -2111,7 +2134,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       LOGGER.log( Level.FINE, "gradient preset <" + entry + ">, Index: <" + srcBox.getSelectedIndex() + ">..." );
       currentConfig.setDecoGfPreset( srcBox.getSelectedIndex() );
       // Spinner setzen
-      setSpinnersAfterPreset( srcBox.getSelectedIndex() );
+      setGradientSpinnersAfterPreset( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
     // Autosetpoint Voreinstellung
@@ -2203,7 +2226,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * @param selectedIndex
    *          Der Index der Combobox
    */
-  private void setSpinnersAfterPreset( int selectedIndex )
+  private void setGradientSpinnersAfterPreset( int selectedIndex )
   {
     // nach Preset einstellen?
     switch ( selectedIndex )
@@ -2283,7 +2306,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       if( btComm != null )
       {
-        if( !currentConfig.wasInit() || savedConfig == null )
+        if( !currentConfig.isInitialized() || savedConfig == null )
         {
           showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConfig.text" ) );
           return;
@@ -2344,6 +2367,33 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         else
         {
           showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+        }
+      }
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // ich will die Gasliste haben!
+    else if( cmd.equals( "write_gaslist" ) )
+    {
+      LOGGER.log( Level.INFO, "call write gaslist to device..." );
+      if( btComm != null )
+      {
+        if( btComm.isConnected() && currGasList.isInitialized() )
+        {
+          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+          wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
+          wDial.setVisible( true );
+          btComm.writeGaslistToSPX42( currGasList, currentConfig.getFirmwareVersion() );
+        }
+        else
+        {
+          if( !btComm.isConnected() )
+          {
+            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+          }
+          else
+          {
+            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.gasNotLoadet.text" ) );
+          }
         }
       }
     }
@@ -2641,7 +2691,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // /////////////////////////////////////////////////////////////////////////
       // Der Lizenzstatus
       case ProjectConst.MESSAGE_LICENSE_STATE_READ:
+        LOGGER.log( Level.INFO, "lizense state from SPX42 recived..." );
         currentConfig.setLicenseStatus( cmd );
+        licenseState = currentConfig.getLicenseState();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Versuche Verbindung mit Bluetooht Gerät
@@ -2662,6 +2714,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         // Gleich mal Fragen, wer da dran ist!
         btComm.askForDeviceName();
         btComm.askForSerialNumber();
+        btComm.askForLicenseFromSPX();
         btComm.askForFirmwareVersion();
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -2785,7 +2838,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
               ( o2SpinnerMap.get( i ) ).setValue( currGasList.getO2FromGas( i ) );
               ( gasLblMap.get( i ) ).setText( getNameForGas( i ) );
             }
-            setGasMatrixPanelEnabled( true );
+            setElementsGasMatrixPanelEnabled( true );
             ignoreAction = false;
             // dann kann das fenster ja wech!
             if( wDial != null )
@@ -2795,6 +2848,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             }
           }
         }
+        break;
+      case ProjectConst.MESSAGE_GAS_WRITTEN:
+        LOGGER.log( Level.FINE, "gas written to SPX..." );
         break;
       default:
         LOGGER.log( Level.WARNING, "unknown message recived!" );
@@ -3457,6 +3513,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         LOGGER.log( Level.FINE, "warnings on  <" + cb.isSelected() + ">" );
         currentConfig.setSountEnabled( cb.isSelected() );
       }
+      else if( cmd.startsWith( "bailout_" ) )
+      {
+        String[] fields = fieldPatternDp.split( cmd );
+        try
+        {
+          int idx = Integer.parseInt( fields[1] );
+          LOGGER.log( Level.FINE, String.format( "Bailout %s changed.", cmd ) );
+          currGasList.setBailout( idx, cb.isSelected() );
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.log( Level.SEVERE, "Exception while recive bailout checkbox event: " + ex.getLocalizedMessage() );
+        }
+      }
       else
       {
         LOGGER.log( Level.WARNING, "unknown item changed: <" + cb.getActionCommand() + "> <" + cb.isSelected() + ">" );
@@ -3641,7 +3711,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
 
   private void setAllGasPanelsEnabled( boolean en )
   {
-    setGasMatrixPanelEnabled( en );
+    setElementsGasMatrixPanelEnabled( en );
     // momentan IMMER disabled
     setGasPresetObjectsEnabled( false );
   }
@@ -3653,15 +3723,102 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     readGasPresetButton.setEnabled( en );
   }
 
-  private void setGasMatrixPanelEnabled( boolean en )
+  private void setElementsGasMatrixPanelEnabled( boolean en )
   {
     for( Component cp : gasMatrixPanel.getComponents() )
     {
-      cp.setEnabled( en );
+      // License State 0=Nitrox,1=Normoxic Trimix,2=Full Trimix
+      // isses ein Spinner?
+      if( cp instanceof JSpinner )
+      {
+        JSpinner currSpinner = ( JSpinner )cp;
+        // welcher Lizenzstatus
+        // Ist es NITROX?
+        if( licenseState < 1 )
+        {
+          // issen einer von den Helium-Teilen
+          for( Integer idx : heSpinnerMap.keySet() )
+          {
+            JSpinner sp = heSpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein Helium-Teil, NITROX enabled
+              cp.setEnabled( false );
+            }
+          }
+          // ein Sauerstoffteil?
+          for( Integer idx : o2SpinnerMap.keySet() )
+          {
+            JSpinner sp = o2SpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein Helium-Teil, NITROX enabled
+              cp.setEnabled( en );
+              currSpinner.setModel( new SpinnerNumberModel( 21, 21, 100, 1 ) );
+            }
+          }
+        }
+        // ist es Normoxic Trimix?
+        if( licenseState == 1 )
+        {
+          // issen einer von den Helium-Teilen / Normoxic Trimix enabled
+          for( Integer idx : heSpinnerMap.keySet() )
+          {
+            JSpinner sp = heSpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein Helium-Teil, max 79 Prozent Helium
+              cp.setEnabled( en );
+              currSpinner.setModel( new SpinnerNumberModel( 0, 0, 79, 1 ) );
+            }
+          }
+          // ein Sauerstoffteil?
+          for( Integer idx : o2SpinnerMap.keySet() )
+          {
+            JSpinner sp = o2SpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein O2-Teil, NORMOXIC Trimix enabled
+              cp.setEnabled( en );
+              currSpinner.setModel( new SpinnerNumberModel( 21, 21, 100, 1 ) );
+            }
+          }
+        }
+        // ist es FULL Trimix
+        else if( licenseState == 2 )
+        {
+          // Normoxic Trimix
+          // issen einer von den Helium-Teilen
+          for( Integer idx : heSpinnerMap.keySet() )
+          {
+            JSpinner sp = heSpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein Helium-Teil, full Trimix
+              cp.setEnabled( en );
+              sp.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+            }
+          }
+          // ein Sauerstoffteil?
+          for( Integer idx : o2SpinnerMap.keySet() )
+          {
+            JSpinner sp = o2SpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein O2-Teil, Full Trimmix enabled
+              cp.setEnabled( en );
+              currSpinner.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+            }
+          }
+        }
+      }
+      else
+      {
+        cp.setEnabled( en );
+      }
     }
     gasMatrixPanel.setEnabled( en );
-    // TODO: wieder erlauben nach einlesen
-    gasWriteToSPXButton.setEnabled( false );
+    gasWriteToSPXButton.setEnabled( en );
   }
 
   /**
@@ -3791,46 +3948,26 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     decoGradientenLowSpinner.addChangeListener( this );
     decoGradientenHighSpinner.addChangeListener( this );
+    for( Integer idx : o2SpinnerMap.keySet() )
+    {
+      JSpinner sp = o2SpinnerMap.get( idx );
+      sp.addChangeListener( this );
+      sp.setModel( new SpinnerNumberModel( 21, 21, 100, 1 ) );
+    }
     //
-    gasO2Spinner_00.addChangeListener( this );
-    gasO2Spinner_00.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
-    gasHESpinner_00.addChangeListener( this );
-    gasHESpinner_00.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    for( Integer idx : heSpinnerMap.keySet() )
+    {
+      JSpinner sp = heSpinnerMap.get( idx );
+      sp.addChangeListener( this );
+      sp.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    }
     //
-    gasO2Spinner_01.addChangeListener( this );
-    gasO2Spinner_01.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
-    gasHESpinner_01.addChangeListener( this );
-    gasHESpinner_01.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
-    //
-    gasO2Spinner_02.addChangeListener( this );
-    gasO2Spinner_02.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
-    gasHESpinner_02.addChangeListener( this );
-    gasHESpinner_02.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
-    //
-    gasO2Spinner_03.addChangeListener( this );
-    gasO2Spinner_03.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
-    gasHESpinner_03.addChangeListener( this );
-    gasHESpinner_03.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
-    //
-    gasO2Spinner_04.addChangeListener( this );
-    gasO2Spinner_04.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
-    gasHESpinner_04.addChangeListener( this );
-    gasHESpinner_04.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
-    //
-    gasO2Spinner_05.addChangeListener( this );
-    gasO2Spinner_05.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
-    gasHESpinner_05.addChangeListener( this );
-    gasHESpinner_05.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
-    //
-    gasO2Spinner_06.addChangeListener( this );
-    gasO2Spinner_06.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
-    gasHESpinner_06.addChangeListener( this );
-    gasHESpinner_06.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
-    //
-    gasO2Spinner_07.addChangeListener( this );
-    gasO2Spinner_07.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
-    gasHESpinner_07.addChangeListener( this );
-    gasHESpinner_07.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    for( Integer idx : bailoutMap.keySet() )
+    {
+      JCheckBox cb = bailoutMap.get( idx );
+      cb.addItemListener( this );
+      cb.setActionCommand( String.format( "bailout:%d", idx ) );
+    }
   }
 
   /**
@@ -3871,5 +4008,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     gasLblMap.put( 5, gasNameLabel_05 );
     gasLblMap.put( 6, gasNameLabel_06 );
     gasLblMap.put( 7, gasNameLabel_07 );
+    //
+    bailoutMap.put( 0, bailoutCheckbox_00 );
+    bailoutMap.put( 1, bailoutCheckbox_01 );
+    bailoutMap.put( 2, bailoutCheckbox_02 );
+    bailoutMap.put( 3, bailoutCheckbox_03 );
+    bailoutMap.put( 4, bailoutCheckbox_04 );
+    bailoutMap.put( 5, bailoutCheckbox_05 );
+    bailoutMap.put( 6, bailoutCheckbox_06 );
+    bailoutMap.put( 7, bailoutCheckbox_07 );
   }
 }

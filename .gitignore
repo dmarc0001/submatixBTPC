@@ -1,0 +1,5 @@
+# binaere Ausgaben des Java-Compilers
+bin/
+*.log
+javadoc/
+

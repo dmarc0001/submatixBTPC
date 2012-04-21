@@ -73,7 +73,7 @@ public interface ISPX42Config
    *         Stand: 11.04.2012
    * @return Ja oder nein
    */
-  public boolean isCustomEnabled();
+  public int getCustomEnabled();
 
   /**
    * 

@@ -939,9 +939,13 @@ public class SPX42Config implements ISPX42Config
   }
 
   @Override
-  public boolean isCustomEnabled()
+  public int getCustomEnabled()
   {
-    return( customEnabled );
+    if( customEnabled )
+    {
+      return( 1 );
+    }
+    return( 0 );
   }
 
   @Override

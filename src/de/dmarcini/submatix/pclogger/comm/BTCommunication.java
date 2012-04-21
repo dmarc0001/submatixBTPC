@@ -1344,7 +1344,7 @@ public class BTCommunication implements IBTCommunication
             aListener.actionPerformed( ae );
           }
           //
-          if( config.isCustomEnabled() )
+          if( config.getCustomEnabled() == 1 )
           {
             // Kommando SPX_SET_SETUP_INDIVIDUAL
             // ~33:SM:PS:SC:AC:LT
@@ -1419,6 +1419,7 @@ public class BTCommunication implements IBTCommunication
           String command;
           int gasCount = gList.getGasCount();
           int gasNr;
+          int diluent;
           //
           // Alle Gase des Computers durchexerzieren
           //
@@ -1432,9 +1433,22 @@ public class BTCommunication implements IBTCommunication
             // BO -> Bailoutgas? (3?)
             // DI -> Diluent ( 0, 1 oder 2 )
             // CU Current Gas (0 oder 1)
+            if( gList.getDiulent1() == gasNr )
+            {
+              diluent = 1;
+            }
+            else if( gList.getDiluent2() == gasNr )
+            {
+              diluent = 2;
+            }
+            else
+            {
+              diluent = 0;
+            }
+            //
             if( log ) LOGGER.log( Level.INFO, String.format( "write gas number %d to SPX...", gasNr ) );
             command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_GASLIST, gasNr, gList.getHEFromGas( gasNr ), gList.getN2FromGas( gasNr ),
-                    gList.getBailout( gasNr ), gList.getDiluent( gasNr ), gList.getCurrGas( gasNr ) );
+                    gList.getBailout( gasNr ), diluent, gList.getCurrGas( gasNr ) );
             if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
             writeSPXMsgToDevice( command );
             // gib Bescheid

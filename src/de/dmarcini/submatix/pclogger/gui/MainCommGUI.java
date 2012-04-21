@@ -115,10 +115,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static Color                       gasNoNormOxicColor  = Color.MAGENTA;
   private static final Pattern               fieldPatternDp      = Pattern.compile( ":" );
   private int                                licenseState        = -1;
+  private int                                customConfig        = -1;
   private static HashMap<Integer, JSpinner>  o2SpinnerMap        = new HashMap<Integer, JSpinner>();
   private static HashMap<Integer, JSpinner>  heSpinnerMap        = new HashMap<Integer, JSpinner>();
   private static HashMap<Integer, JLabel>    gasLblMap           = new HashMap<Integer, JLabel>();
   private static HashMap<Integer, JCheckBox> bailoutMap          = new HashMap<Integer, JCheckBox>();
+  private static HashMap<Integer, JCheckBox> diluent1Map         = new HashMap<Integer, JCheckBox>();
+  private static HashMap<Integer, JCheckBox> diluent2Map         = new HashMap<Integer, JCheckBox>();
   //
   // @formatter:on
   private JFrame                             frmMainwindowtitle;
@@ -1495,6 +1498,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     diluent1Checkbox_07 = new JCheckBox( "D1" );
     diluent1ButtonGroup.add( diluent1Checkbox_07 );
     GridBagConstraints gbc_diluent1Checkbox_07 = new GridBagConstraints();
+    gbc_diluent1Checkbox_07.anchor = GridBagConstraints.WEST;
     gbc_diluent1Checkbox_07.insets = new Insets( 0, 0, 0, 5 );
     gbc_diluent1Checkbox_07.gridx = 7;
     gbc_diluent1Checkbox_07.gridy = 8;
@@ -1502,6 +1506,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     diluent2Checkbox_07 = new JCheckBox( "D2" );
     diluent2ButtonGroup.add( diluent2Checkbox_07 );
     GridBagConstraints gbc_diluent2Checkbox_07 = new GridBagConstraints();
+    gbc_diluent2Checkbox_07.anchor = GridBagConstraints.WEST;
     gbc_diluent2Checkbox_07.insets = new Insets( 0, 0, 0, 5 );
     gbc_diluent2Checkbox_07.gridx = 8;
     gbc_diluent2Checkbox_07.gridy = 8;
@@ -1828,6 +1833,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       writeGasPresetButton.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.writeGasPresetButton.tooltiptext" ) );
       customPresetComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.customPresetComboBox.tooltiptext" ) );
       userPresetLabel.setText( stringsBundle.getString( "MainCommGUI.gasPanel.userPresetLabel.text" ) );
+      setLicenseLabel();
     }
     catch( NullPointerException ex )
     {
@@ -2694,6 +2700,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         LOGGER.log( Level.INFO, "lizense state from SPX42 recived..." );
         currentConfig.setLicenseStatus( cmd );
         licenseState = currentConfig.getLicenseState();
+        customConfig = currentConfig.getCustomEnabled();
+        setLicenseLabel();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Versuche Verbindung mit Bluetooht Gerät
@@ -2830,6 +2838,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           // ist alle initialisiert?
           if( currGasList.isInitialized() )
           {
+            // wenn die Gaslkiste initialisiert ist
+            setElementsGasMatrixPanelEnabled( true );
             // Mach mal alles in die Spinner rein
             ignoreAction = true;
             for( int i = 0; i < currGasList.getGasCount(); i++ )
@@ -2837,8 +2847,26 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
               ( heSpinnerMap.get( i ) ).setValue( currGasList.getHEFromGas( i ) );
               ( o2SpinnerMap.get( i ) ).setValue( currGasList.getO2FromGas( i ) );
               ( gasLblMap.get( i ) ).setText( getNameForGas( i ) );
+              // ist dieses Gas Diluent 1?
+              if( currGasList.getDiulent1() == i )
+              {
+                ( diluent1Map.get( i ) ).setSelected( true );
+              }
+              // ist dieses Gas Diluent 2?
+              if( currGasList.getDiluent2() == i )
+              {
+                ( diluent2Map.get( i ) ).setSelected( true );
+              }
+              // Status als Bailoutgas?
+              if( currGasList.getBailout( i ) == 3 )
+              {
+                ( bailoutMap.get( i ) ).setSelected( true );
+              }
+              else
+              {
+                ( bailoutMap.get( i ) ).setSelected( false );
+              }
             }
-            setElementsGasMatrixPanelEnabled( true );
             ignoreAction = false;
             // dann kann das fenster ja wech!
             if( wDial != null )
@@ -2857,6 +2885,54 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         break;
     }
     return;
+  }
+
+  /**
+   * 
+   * Entsprechend der Lizenzlage Anzeigen, welcher Lizenzstatus korrekt ist.
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 21.04.2012
+   */
+  private void setLicenseLabel()
+  {
+    // MainCommGUI.gasPanel.licenseLabel.nitrox.text=License: Nitrox
+    // MainCommGUI.gasPanel.licenseLabel.normoxic.text=License: Normoxic Trimix
+    // MainCommGUI.gasPanel.licenseLabel.fulltrimix.text=License: Full Trimix
+    // MainCommGUI.gasPanel.licenseLabel.customconfigEnabled.text=custom config enabled
+    String licString;
+    switch ( licenseState )
+    {
+      case -1:
+        // nicht konfiguriert
+        licString = " ";
+      case 0:
+        // Nitrox
+        licString = stringsBundle.getString( "MainCommGUI.gasPanel.licenseLabel.nitrox.text" );
+        break;
+      case 1:
+        licString = stringsBundle.getString( "MainCommGUI.gasPanel.licenseLabel.normoxic.text" );
+        break;
+      default:
+        licString = stringsBundle.getString( "MainCommGUI.gasPanel.licenseLabel.fulltrimix.text" );
+    }
+    //
+    switch ( customConfig )
+    {
+      case -1:
+      case 0:
+        // nicht konfiguriert/nicht erlaubt
+        licenseStatusLabel.setText( licString );
+        break;
+      case 1:
+        // erlaubt
+        licenseStatusLabel.setText( licString + " - " + stringsBundle.getString( "MainCommGUI.gasPanel.licenseLabel.customconfigEnabled.text" ) );
+      default:
+        licenseStatusLabel.setText( licString );
+    }
   }
 
   /**
@@ -3484,36 +3560,50 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   public void itemStateChanged( ItemEvent ev )
   {
     if( ignoreAction ) return;
+    // ////////////////////////////////////////////////////////////////////////
+    // Checkbox Event?
     if( ev.getSource() instanceof JCheckBox )
     {
       JCheckBox cb = ( JCheckBox )ev.getItemSelectable();
       String cmd = cb.getActionCommand();
+      // //////////////////////////////////////////////////////////////////////
+      // Dynamische Gradienten?
       if( cmd.equals( "dyn_gradients_on" ) )
       {
         LOGGER.log( Level.FINE, "dynamic gradients <" + cb.isSelected() + ">" );
         currentConfig.setDynGradientsEnable( cb.isSelected() );
       }
+      // //////////////////////////////////////////////////////////////////////
+      // Deepstops
       else if( cmd.equals( "deepstops_on" ) )
       {
         LOGGER.log( Level.FINE, "depstops <" + cb.isSelected() + ">" );
         currentConfig.setDeepStopEnable( cb.isSelected() );
       }
+      // //////////////////////////////////////////////////////////////////////
+      // Passive Semiclose Rebreather Mode?
       else if( cmd.equals( "individuals_pscr_on" ) )
       {
         LOGGER.log( Level.FINE, "pscr mode  <" + cb.isSelected() + ">" );
         currentConfig.setPscrModeEnabled( cb.isSelected() );
       }
+      // //////////////////////////////////////////////////////////////////////
+      // Sensor warning on/off
       else if( cmd.equals( "individual_sensors_on" ) )
       {
         LOGGER.log( Level.FINE, "sensors on  <" + cb.isSelected() + ">" );
         currentConfig.setSensorsEnabled( cb.isSelected() );
       }
+      // //////////////////////////////////////////////////////////////////////
+      // Warnungen an/aus
       else if( cmd.equals( "individuals_warnings_on" ) )
       {
         LOGGER.log( Level.FINE, "warnings on  <" + cb.isSelected() + ">" );
         currentConfig.setSountEnabled( cb.isSelected() );
       }
-      else if( cmd.startsWith( "bailout_" ) )
+      // //////////////////////////////////////////////////////////////////////
+      // Bailout checkbox für ein Gas?
+      else if( cmd.startsWith( "bailout:" ) )
       {
         String[] fields = fieldPatternDp.split( cmd );
         try
@@ -3525,6 +3615,44 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         catch( NumberFormatException ex )
         {
           LOGGER.log( Level.SEVERE, "Exception while recive bailout checkbox event: " + ex.getLocalizedMessage() );
+        }
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Diluent 1 für ein Gsas setzen?
+      else if( cmd.startsWith( "diluent1:" ) )
+      {
+        String[] fields = fieldPatternDp.split( cmd );
+        try
+        {
+          int idx = Integer.parseInt( fields[1] );
+          LOGGER.log( Level.FINE, String.format( "Diluent 1  to %d changed.", idx ) );
+          if( cb.isSelected() )
+          {
+            currGasList.setDiluent1( idx );
+          }
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.log( Level.SEVERE, "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
+        }
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Diluent 2 für ein Gsas setzen?
+      else if( cmd.startsWith( "diluent2:" ) )
+      {
+        String[] fields = fieldPatternDp.split( cmd );
+        try
+        {
+          int idx = Integer.parseInt( fields[1] );
+          LOGGER.log( Level.FINE, String.format( "Diluent 2  to %d changed.", idx ) );
+          if( cb.isSelected() )
+          {
+            currGasList.setDiluent2( idx );
+          }
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.log( Level.SEVERE, "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
         }
       }
       else
@@ -3693,7 +3821,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     if( savedConfig != null )
     {
       // Gibt es eine Lizenz für Custom Config?
-      if( currentConfig.isCustomEnabled() )
+      if( currentConfig.getCustomEnabled() == 1 )
       {
         setIndividualsPanelEnabled( true );
       }
@@ -3733,6 +3861,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         JSpinner currSpinner = ( JSpinner )cp;
         // welcher Lizenzstatus
+        // ////////////////////////////////////////////////////////////////////
         // Ist es NITROX?
         if( licenseState < 1 )
         {
@@ -3758,6 +3887,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             }
           }
         }
+        // ////////////////////////////////////////////////////////////////////
         // ist es Normoxic Trimix?
         if( licenseState == 1 )
         {
@@ -3784,6 +3914,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             }
           }
         }
+        // ////////////////////////////////////////////////////////////////////
         // ist es FULL Trimix
         else if( licenseState == 2 )
         {
@@ -3968,6 +4099,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       cb.addItemListener( this );
       cb.setActionCommand( String.format( "bailout:%d", idx ) );
     }
+    //
+    for( Integer idx : diluent1Map.keySet() )
+    {
+      JCheckBox cb = diluent1Map.get( idx );
+      cb.addItemListener( this );
+      cb.setActionCommand( String.format( "diluent1:%d", idx ) );
+    }
+    //
+    for( Integer idx : diluent2Map.keySet() )
+    {
+      JCheckBox cb = diluent2Map.get( idx );
+      cb.addItemListener( this );
+      cb.setActionCommand( String.format( "diluent2:%d", idx ) );
+    }
   }
 
   /**
@@ -4017,5 +4162,23 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     bailoutMap.put( 5, bailoutCheckbox_05 );
     bailoutMap.put( 6, bailoutCheckbox_06 );
     bailoutMap.put( 7, bailoutCheckbox_07 );
+    //
+    diluent1Map.put( 0, diluent1Checkbox_00 );
+    diluent1Map.put( 1, diluent1Checkbox_01 );
+    diluent1Map.put( 2, diluent1Checkbox_02 );
+    diluent1Map.put( 3, diluent1Checkbox_03 );
+    diluent1Map.put( 4, diluent1Checkbox_04 );
+    diluent1Map.put( 5, diluent1Checkbox_05 );
+    diluent1Map.put( 6, diluent1Checkbox_06 );
+    diluent1Map.put( 7, diluent1Checkbox_07 );
+    //
+    diluent2Map.put( 0, diluent2Checkbox_00 );
+    diluent2Map.put( 1, diluent2Checkbox_01 );
+    diluent2Map.put( 2, diluent2Checkbox_02 );
+    diluent2Map.put( 3, diluent2Checkbox_03 );
+    diluent2Map.put( 4, diluent2Checkbox_04 );
+    diluent2Map.put( 5, diluent2Checkbox_05 );
+    diluent2Map.put( 6, diluent2Checkbox_06 );
+    diluent2Map.put( 7, diluent2Checkbox_07 );
   }
 }

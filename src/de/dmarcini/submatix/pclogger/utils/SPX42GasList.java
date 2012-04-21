@@ -14,8 +14,9 @@ public class SPX42GasList implements ISPX42GasList
   protected final int                                   n2[] = new int[GASCOUNT];
   protected final int                                   he[] = new int[GASCOUNT];
   protected final int                              bailout[] = new int[GASCOUNT];
-  protected final int                              diluent[] = new int[GASCOUNT];
   protected final boolean                             init[] = new boolean[GASCOUNT]; 
+  protected int                                     diluent1 = -1;
+  protected int                                     diluent2 = -1;
   protected int                                      currgas = 0;
   protected boolean                            isInitialized = false;
 
@@ -53,12 +54,13 @@ public class SPX42GasList implements ISPX42GasList
     else
       log = true;
     isInitialized = false;
-    // Alle Gase als niocht initialisiert markieren
+    // Alle Gase als nicht initialisiert markieren
     for( int i = 0; i < GASCOUNT; i++ )
     {
       init[i] = false;
-      diluent[i] = 0;
     }
+    diluent1 = -1;
+    diluent2 = -1;
   }
 
   /**
@@ -82,9 +84,10 @@ public class SPX42GasList implements ISPX42GasList
       n2[i] = gl.n2[i];
       he[i] = gl.he[i];
       bailout[i] = gl.bailout[i];
-      diluent[i] = gl.diluent[i];
       init[i] = gl.init[i];
       currgas = gl.currgas;
+      diluent1 = gl.diluent1;
+      diluent2 = gl.diluent2;
       isInitialized = gl.isInitialized;
     }
   }
@@ -97,7 +100,7 @@ public class SPX42GasList implements ISPX42GasList
     // NR: Nummer des Gases 0..7
     // N2: Sticksoff in %
     // HE: Heluim in %
-    // BO: Bailout
+    // BO: Bailout (Werte 0,1 und 3 gefunden, 0 kein BO, 3 BO Wert 1 unbekannt?)
     // DI: Diluent 1 oder 2
     // CU: Current Gas
     if( log ) LOGGER.log( Level.FINE, "setGas() <" + fromSpx + ">" );
@@ -121,7 +124,14 @@ public class SPX42GasList implements ISPX42GasList
     n2[vals[0]] = vals[1];
     he[vals[0]] = vals[2];
     bailout[vals[0]] = vals[3];
-    diluent[vals[0]] = vals[4];
+    if( vals[4] == 1 )
+    {
+      diluent1 = vals[0];
+    }
+    else if( vals[4] == 2 )
+    {
+      diluent2 = vals[0];
+    }
     if( vals[5] > 0 )
     {
       currgas = vals[0];
@@ -129,7 +139,7 @@ public class SPX42GasList implements ISPX42GasList
     init[vals[0]] = true;
     if( log )
       LOGGER.log( Level.INFO, String.format( "gas: NR %d: %d%% O2, %d%% HE, %d%% N2, DIL: %d, Bailout: %d...", vals[0], 100 - n2[vals[0]] - he[vals[0]], he[vals[0]], n2[vals[0]],
-              diluent[vals[0]], bailout[vals[0]] ) );
+              vals[4], bailout[vals[0]] ) );
     // vor dem Ende noch checken, ob nun alle Gase eingetragen sind
     for( int i = 0; i < GASCOUNT; i++ )
     {
@@ -202,7 +212,7 @@ public class SPX42GasList implements ISPX42GasList
     {
       return false;
     }
-    diluent[number] = 1;
+    diluent1 = number;
     return( true );
   }
 
@@ -213,7 +223,7 @@ public class SPX42GasList implements ISPX42GasList
     {
       return false;
     }
-    diluent[number] = 2;
+    diluent2 = number;
     return( true );
   }
 
@@ -226,7 +236,7 @@ public class SPX42GasList implements ISPX42GasList
     }
     if( toSet )
     {
-      bailout[number] = 1;
+      bailout[number] = 3;
     }
     else
     {
@@ -238,27 +248,13 @@ public class SPX42GasList implements ISPX42GasList
   @Override
   public int getDiulent1()
   {
-    for( int i = 0; i < GASCOUNT; i++ )
-    {
-      if( diluent[i] == 1 )
-      {
-        return( i );
-      }
-    }
-    return( 0 );
+    return( diluent1 );
   }
 
   @Override
   public int getDiluent2()
   {
-    for( int i = 0; i < GASCOUNT; i++ )
-    {
-      if( diluent[i] == 2 )
-      {
-        return( i );
-      }
-    }
-    return( 0 );
+    return( diluent2 );
   }
 
   @Override
@@ -279,16 +275,6 @@ public class SPX42GasList implements ISPX42GasList
   public int getGasCount()
   {
     return( GASCOUNT );
-  }
-
-  @Override
-  public int getDiluent( int number )
-  {
-    if( number < GASCOUNT )
-    {
-      return( 0 );
-    }
-    return( diluent[number] );
   }
 
   @Override

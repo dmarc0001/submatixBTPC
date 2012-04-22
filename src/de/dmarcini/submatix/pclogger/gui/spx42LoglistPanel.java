@@ -1,6 +1,5 @@
 package de.dmarcini.submatix.pclogger.gui;
 
-import java.awt.BorderLayout;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
@@ -31,7 +30,7 @@ public class spx42LoglistPanel extends JPanel
   @SuppressWarnings( "unused" )
   private spx42LoglistPanel()
   {
-    setLayout( new BorderLayout( 0, 0 ) );
+    setLayout( null );
     initPanel();
   }
 

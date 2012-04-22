@@ -2,4 +2,5 @@
 bin/
 *.log
 javadoc/
-
+*.log.?
+*.log.lck

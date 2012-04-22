@@ -683,6 +683,15 @@ public class BTCommunication implements IBTCommunication
             }
           }
           break;
+        case ProjectConst.SPX_GET_DEVICE_OFF:
+          // SPX meldet, er geht aus dem Sync-Mode
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SYCSTAT_OFF, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+            aListener.actionPerformed( ex );
+          }
+          if( log ) LOGGER.log( Level.FINE, "SPX42 switch syncmode OFF! Connection will failure!" );
+          break;
         case ProjectConst.SPX_LICENSE_STATE:
           // LICENSE_STATE gefunden
           if( aListener != null )

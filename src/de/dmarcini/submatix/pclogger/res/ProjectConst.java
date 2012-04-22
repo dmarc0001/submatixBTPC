@@ -114,6 +114,7 @@ public final class ProjectConst
   public static final int    MESSAGE_SPXALIVE           = ActionEvent.RESERVED_ID_MAX + 36;
   public static final int    MESSAGE_PROCESS_NEXT       = ActionEvent.RESERVED_ID_MAX + 37;
   public static final int    MESSAGE_PROCESS_END        = ActionEvent.RESERVED_ID_MAX + 38;
+  public static final int    MESSAGE_SYCSTAT_OFF        = ActionEvent.RESERVED_ID_MAX + 39;
   
   // Interne Messages
   private static final int   INT_MESSAGE_OFFSET         = 100;

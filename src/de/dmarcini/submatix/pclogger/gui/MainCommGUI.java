@@ -2,12 +2,9 @@ package de.dmarcini.submatix.pclogger.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -44,24 +41,18 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EtchedBorder;
-import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -113,74 +104,21 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   //
   // @formatter:on
   private JFrame                  frmMainwindowtitle;
-  private JTextField              statusTextField;
-  private JMenuItem               mntmExit;
-  private JPanel                  connectionPanel;
-  private JPanel                  conigPanel;
-  private JButton                 connectButton;
-  private JComboBox               deviceToConnectComboBox;
-  private JMenu                   mnLanguages;
   private JTabbedPane             tabbedPane;
+  private spx42ConnectPanel       connectionPanel;
+  private spx42ConfigPanel        configPanel;
+  private spx42GaslistEditPanel   gasConfigPanel;
+  private JMenuItem               mntmExit;
+  private JMenu                   mnLanguages;
   private JMenu                   mnFile;
   private JMenu                   mnOptions;
   private JMenu                   mnHelp;
   private JMenuItem               mntmHelp;
   private JMenuItem               mntmInfo;
-  private JLabel                  serialNumberLabel;
-  protected JLabel                serialNumberText;
-  private JButton                 readSPX42ConfigButton;
-  private JPanel                  decompressionPanel;
-  private JLabel                  decoGradientsHighLabel;
-  private JSpinner                decoGradientenHighSpinner;
-  private JLabel                  decoLaststopLabel;
-  private JComboBox               decoLastStopComboBox;
-  private JLabel                  decoDyngradientsLabel;
-  private JLabel                  decoDeepstopsLabel;
-  private JLabel                  decoGradientsLowLabel;
-  private JCheckBox               decoDeepStopCheckBox;
-  private JSpinner                decoGradientenLowSpinner;
-  private JComboBox               decoGradientenPresetComboBox;
-  private JLabel                  lblSetpointAutosetpoint;
-  private JComboBox               autoSetpointComboBox;
-  private JLabel                  lblSetpointHighsetpoint;
-  private JComboBox               highSetpointComboBox;
-  private JPanel                  setpointPanel;
-  private JPanel                  displayPanel;
-  private JLabel                  lblDisplayBrightness;
-  private JComboBox               displayBrightnessComboBox;
-  private JLabel                  lblDisplayOrientation;
-  private JComboBox               displayOrientationComboBox;
-  private JPanel                  unitsPanel;
-  private JLabel                  lblUnitsTemperature;
-  private JComboBox               unitsTemperatureComboBox;
-  private JLabel                  lblUnitsDepth;
-  private JComboBox               unitsDepthComboBox;
-  private JLabel                  lblUnitsSalinity;
-  private JComboBox               unitsSalnityComboBox;
-  private JPanel                  individualPanel;
-  private JLabel                  lblSenormode;
-  private JLabel                  individualsLogintervalLabel;
-  private JComboBox               individualsLogintervalComboBox;
-  private JLabel                  lblIndividualsPscrMode;
-  private JCheckBox               individualsSensorsOnCheckbox;
-  private JCheckBox               individualsPscrModeOnCheckbox;
-  private JComboBox               individualsSensorWarnComboBox;
-  private JLabel                  individualsAcusticWarningsLabel;
-  private JCheckBox               decoDynGradientsCheckBox;
-  private JLabel                  lblSensorwarnings;
-  private JCheckBox               individualsWarningsOnCheckBox;
-  private JLabel                  individualsNotLicensedLabel;
-  private JButton                 writeSPX42ConfigButton;
   private JPanel                  debugPanel;
   private JTextField              testCmdTextField;
+  private JTextField              statusTextField;
   private JButton                 testSubmitButton;
-  private JLabel                  firmwareVersionLabel;
-  private JLabel                  firmwareVersionValueLabel;
-  private JButton                 connectBtRefreshButton;
-  private JProgressBar            discoverProgressBar;
-  private JButton                 pinButton;
-  private JLabel                  ackuLabel;
-  private gaslistEditPanel        gasConfigPanel;
 
   /**
    * Launch the application.
@@ -284,7 +222,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     btComm.addActionListener( this );
     String[] entrys = btComm.getNameArray();
     ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
-    deviceToConnectComboBox.setModel( portBoxModel );
+    connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
     initLanuageMenu( programLocale );
     tabbedPane.setEnabledAt( 3, DEBUG );
     if( !DEBUG )
@@ -328,547 +266,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     frmMainwindowtitle.getContentPane().add( tabbedPane, BorderLayout.CENTER );
     tabbedPane.addMouseMotionListener( this );
     // Connection Panel
-    connectionPanel = new JPanel();
+    connectionPanel = new spx42ConnectPanel( LOGGER );
     tabbedPane.addTab( "CONNECTION", null, connectionPanel, null );
     tabbedPane.setEnabledAt( 0, true );
-    deviceToConnectComboBox = new JComboBox();
-    deviceToConnectComboBox.addActionListener( this );
-    deviceToConnectComboBox.addMouseMotionListener( this );
-    deviceToConnectComboBox.setPreferredSize( new Dimension( 220, 40 ) );
-    deviceToConnectComboBox.setMinimumSize( new Dimension( 180, 20 ) );
-    deviceToConnectComboBox.setMaximumSize( new Dimension( 500, 40 ) );
-    connectButton = new JButton( "CONNECT" );
-    connectButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112-mono.png" ) ) );
-    connectButton.addActionListener( this );
-    connectButton.setActionCommand( "connect" );
-    connectButton.addMouseMotionListener( this );
-    connectButton.setPreferredSize( new Dimension( 180, 40 ) );
-    connectButton.setMaximumSize( new Dimension( 160, 40 ) );
-    connectButton.setSize( new Dimension( 160, 40 ) );
-    connectButton.setMargin( new Insets( 2, 30, 2, 30 ) );
-    connectBtRefreshButton = new JButton( "REFRESH" );
-    connectBtRefreshButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Refresh.png" ) ) );
-    connectBtRefreshButton.addActionListener( this );
-    connectBtRefreshButton.addMouseMotionListener( this );
-    connectBtRefreshButton.setActionCommand( "refresh_bt_devices" );
-    discoverProgressBar = new JProgressBar();
-    discoverProgressBar.setBorder( null );
-    discoverProgressBar.setBackground( new Color( 240, 248, 255 ) );
-    discoverProgressBar.setForeground( new Color( 176, 224, 230 ) );
-    pinButton = new JButton( "PINBUTTON" );
-    pinButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) ) );
-    pinButton.addActionListener( this );
-    pinButton.setActionCommand( "set_pin_for_dev" );
-    pinButton.addMouseMotionListener( this );
-    ackuLabel = new JLabel( " " );
-    GroupLayout gl_connectionPanel = new GroupLayout( connectionPanel );
-    gl_connectionPanel.setHorizontalGroup( gl_connectionPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_connectionPanel
-                    .createSequentialGroup()
-                    .addGroup(
-                            gl_connectionPanel
-                                    .createParallelGroup( Alignment.LEADING )
-                                    .addGroup(
-                                            gl_connectionPanel
-                                                    .createSequentialGroup()
-                                                    .addGap( 45 )
-                                                    .addGroup(
-                                                            gl_connectionPanel.createParallelGroup( Alignment.LEADING, false )
-                                                                    .addComponent( ackuLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                    .addComponent( deviceToConnectComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) )
-                                                    .addGap( 70 )
-                                                    .addGroup(
-                                                            gl_connectionPanel
-                                                                    .createParallelGroup( Alignment.LEADING, false )
-                                                                    .addComponent( connectBtRefreshButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                    .addGroup(
-                                                                            gl_connectionPanel.createSequentialGroup()
-                                                                                    .addComponent( connectButton, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE )
-                                                                                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( pinButton ) ) ) )
-                                    .addGroup(
-                                            gl_connectionPanel.createSequentialGroup().addContainerGap()
-                                                    .addComponent( discoverProgressBar, GroupLayout.PREFERRED_SIZE, 763, GroupLayout.PREFERRED_SIZE ) ) )
-                    .addContainerGap( 52, Short.MAX_VALUE ) ) );
-    gl_connectionPanel.setVerticalGroup( gl_connectionPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_connectionPanel
-                    .createSequentialGroup()
-                    .addGap( 22 )
-                    .addGroup(
-                            gl_connectionPanel
-                                    .createParallelGroup( Alignment.LEADING )
-                                    .addGroup(
-                                            gl_connectionPanel
-                                                    .createSequentialGroup()
-                                                    .addGroup(
-                                                            gl_connectionPanel.createParallelGroup( Alignment.LEADING, false )
-                                                                    .addComponent( pinButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                    .addComponent( connectButton, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) )
-                                                    .addGap( 18 ).addComponent( connectBtRefreshButton, GroupLayout.PREFERRED_SIZE, 39, GroupLayout.PREFERRED_SIZE ) )
-                                    .addGroup(
-                                            gl_connectionPanel.createSequentialGroup()
-                                                    .addComponent( deviceToConnectComboBox, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE )
-                                                    .addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( ackuLabel ) ) )
-                    .addPreferredGap( ComponentPlacement.RELATED, 356, Short.MAX_VALUE )
-                    .addComponent( discoverProgressBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ).addContainerGap() ) );
-    connectionPanel.setLayout( gl_connectionPanel );
     // config Panel
-    conigPanel = new JPanel();
-    tabbedPane.addTab( "CONFIG", null, conigPanel, null );
-    readSPX42ConfigButton = new JButton( "READ" );
-    readSPX42ConfigButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Download.png" ) ) );
-    readSPX42ConfigButton.setForeground( new Color( 0, 100, 0 ) );
-    readSPX42ConfigButton.setBackground( new Color( 152, 251, 152 ) );
-    readSPX42ConfigButton.addActionListener( this );
-    readSPX42ConfigButton.addMouseMotionListener( this );
-    readSPX42ConfigButton.setActionCommand( "read_config" );
-    readSPX42ConfigButton.setPreferredSize( new Dimension( 180, 40 ) );
-    readSPX42ConfigButton.setMaximumSize( new Dimension( 160, 40 ) );
-    readSPX42ConfigButton.setSize( new Dimension( 160, 40 ) );
-    readSPX42ConfigButton.setMargin( new Insets( 2, 30, 2, 30 ) );
-    writeSPX42ConfigButton = new JButton( "WRITE" );
-    writeSPX42ConfigButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Upload.png" ) ) );
-    writeSPX42ConfigButton.setForeground( new Color( 255, 0, 0 ) );
-    writeSPX42ConfigButton.setBackground( new Color( 255, 192, 203 ) );
-    writeSPX42ConfigButton.addActionListener( this );
-    writeSPX42ConfigButton.setActionCommand( "write_config" );
-    writeSPX42ConfigButton.addMouseMotionListener( this );
-    serialNumberLabel = new JLabel( "SERIAL" );
-    serialNumberLabel.setAlignmentX( Component.RIGHT_ALIGNMENT );
-    serialNumberLabel.setMaximumSize( new Dimension( 250, 40 ) );
-    serialNumberLabel.setPreferredSize( new Dimension( 140, 20 ) );
-    serialNumberText = new JLabel( "0" );
-    serialNumberText.setMaximumSize( new Dimension( 250, 40 ) );
-    serialNumberText.setPreferredSize( new Dimension( 140, 20 ) );
-    firmwareVersionLabel = new JLabel( "FIRMW-VERSION" );
-    firmwareVersionValueLabel = new JLabel( "V0.0" );
-    // config -> DECO-Panel
-    decompressionPanel = new JPanel();
-    decompressionPanel.setBounds( new Rectangle( 0, 0, 200, 160 ) );
-    decompressionPanel.setBorder( new TitledBorder( new LineBorder( new Color( 128, 128, 128 ), 1, true ), "Deco", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
-    // config -> DECO-Panel -> inhalt
-    decoGradientsLowLabel = new JLabel( "GF-low" );
-    decoGradientsLowLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    decoGradientenLowSpinner = new JSpinner();
-    decoGradientsLowLabel.setLabelFor( decoGradientenLowSpinner );
-    decoGradientenLowSpinner.addMouseMotionListener( this );
-    decoGradientenPresetComboBox = new JComboBox();
-    decoGradientenPresetComboBox.addActionListener( this );
-    decoGradientenPresetComboBox.setActionCommand( "deco_gradient_preset" );
-    decoGradientenPresetComboBox.addMouseMotionListener( this );
-    decoGradientsHighLabel = new JLabel( "GF-High" );
-    decoGradientsHighLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    decoGradientenHighSpinner = new JSpinner();
-    decoGradientsHighLabel.setLabelFor( decoGradientenHighSpinner );
-    decoGradientenHighSpinner.addMouseMotionListener( this );
-    decoLaststopLabel = new JLabel( "last stop" );
-    decoLaststopLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    decoLastStopComboBox = new JComboBox();
-    decoLastStopComboBox.addActionListener( this );
-    decoLastStopComboBox.setActionCommand( "deco_last_stop" );
-    decoLastStopComboBox.addMouseMotionListener( this );
-    decoLaststopLabel.setLabelFor( decoLastStopComboBox );
-    decoDyngradientsLabel = new JLabel( "dyn.Gradients" );
-    decoDyngradientsLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    decoDynGradientsCheckBox = new JCheckBox( "dyn Gradients ON" );
-    decoDynGradientsCheckBox.setActionCommand( "dyn_gradients_on" );
-    // decoDynGradientsCheckBox.addChangeListener( this );
-    decoDynGradientsCheckBox.addMouseMotionListener( this );
-    decoDynGradientsCheckBox.addItemListener( this );
-    decoDyngradientsLabel.setLabelFor( decoDynGradientsCheckBox );
-    decoDeepstopsLabel = new JLabel( "deepstops" );
-    decoDeepstopsLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    decoDeepStopCheckBox = new JCheckBox( "Deepstops ON" );
-    decoDeepStopCheckBox.setActionCommand( "deepstops_on" );
-    // decoDeepStopCheckBox.addChangeListener( this );
-    decoDeepStopCheckBox.addItemListener( this );
-    decoDeepStopCheckBox.addMouseMotionListener( this );
-    decoDeepstopsLabel.setLabelFor( decoDeepStopCheckBox );
-    // config -> DECO-Panel -> Positionierung
-    GroupLayout gl_decompressionPanel = new GroupLayout( decompressionPanel );
-    gl_decompressionPanel.setHorizontalGroup( gl_decompressionPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_decompressionPanel
-                    .createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(
-                            gl_decompressionPanel.createParallelGroup( Alignment.TRAILING, false )
-                                    .addComponent( decoDyngradientsLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                    .addComponent( decoDeepstopsLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                    .addComponent( decoLaststopLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                    .addComponent( decoGradientsHighLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                    .addComponent( decoGradientsLowLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) )
-                    .addGap( 18 )
-                    .addGroup(
-                            gl_decompressionPanel
-                                    .createParallelGroup( Alignment.LEADING )
-                                    .addGroup(
-                                            gl_decompressionPanel
-                                                    .createSequentialGroup()
-                                                    .addGroup(
-                                                            gl_decompressionPanel.createParallelGroup( Alignment.LEADING, false )
-                                                                    .addComponent( decoLastStopComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                    .addComponent( decoGradientenLowSpinner, GroupLayout.DEFAULT_SIZE, 49, Short.MAX_VALUE )
-                                                                    .addComponent( decoGradientenHighSpinner ) ).addGap( 18 )
-                                                    .addComponent( decoGradientenPresetComboBox, 0, 151, Short.MAX_VALUE ) ).addComponent( decoDynGradientsCheckBox )
-                                    .addComponent( decoDeepStopCheckBox ) ).addContainerGap() ) );
-    gl_decompressionPanel.setVerticalGroup( gl_decompressionPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_decompressionPanel
-                    .createSequentialGroup()
-                    .addGroup(
-                            gl_decompressionPanel.createParallelGroup( Alignment.BASELINE ).addComponent( decoGradientsLowLabel )
-                                    .addComponent( decoGradientenLowSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( decoGradientenPresetComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_decompressionPanel.createParallelGroup( Alignment.BASELINE ).addComponent( decoGradientsHighLabel )
-                                    .addComponent( decoGradientenHighSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_decompressionPanel.createParallelGroup( Alignment.BASELINE ).addComponent( decoLaststopLabel )
-                                    .addComponent( decoLastStopComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
-                    .addPreferredGap( ComponentPlacement.RELATED, 6, Short.MAX_VALUE )
-                    .addGroup( gl_decompressionPanel.createParallelGroup( Alignment.BASELINE ).addComponent( decoDyngradientsLabel ).addComponent( decoDynGradientsCheckBox ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup( gl_decompressionPanel.createParallelGroup( Alignment.LEADING ).addComponent( decoDeepstopsLabel ).addComponent( decoDeepStopCheckBox ) )
-                    .addContainerGap() ) );
-    decompressionPanel.setLayout( gl_decompressionPanel );
-    // config -> setpoint Panel -> Inhalt
-    setpointPanel = new JPanel();
-    setpointPanel.setBorder( new TitledBorder( new LineBorder( new Color( 128, 128, 128 ), 1, true ), "Setpoint", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
-    lblSetpointAutosetpoint = new JLabel( "Autosetpoint" );
-    lblSetpointAutosetpoint.setHorizontalAlignment( SwingConstants.RIGHT );
-    autoSetpointComboBox = new JComboBox();
-    lblSetpointAutosetpoint.setLabelFor( autoSetpointComboBox );
-    autoSetpointComboBox.setActionCommand( "set_autosetpoint" );
-    autoSetpointComboBox.addActionListener( this );
-    autoSetpointComboBox.addMouseMotionListener( this );
-    lblSetpointHighsetpoint = new JLabel( "Highsetpoint" );
-    lblSetpointHighsetpoint.setHorizontalAlignment( SwingConstants.RIGHT );
-    highSetpointComboBox = new JComboBox();
-    highSetpointComboBox.setActionCommand( "set_highsetpoint" );
-    highSetpointComboBox.addActionListener( this );
-    highSetpointComboBox.addMouseMotionListener( this );
-    lblSetpointHighsetpoint.setLabelFor( highSetpointComboBox );
-    // config -> setpoint panel => layout
-    GroupLayout gl_setpointPanel = new GroupLayout( setpointPanel );
-    gl_setpointPanel.setHorizontalGroup( gl_setpointPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_setpointPanel
-                    .createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(
-                            gl_setpointPanel.createParallelGroup( Alignment.TRAILING )
-                                    .addComponent( lblSetpointHighsetpoint, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( lblSetpointAutosetpoint, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) )
-                    .addGap( 18 )
-                    .addGroup(
-                            gl_setpointPanel.createParallelGroup( Alignment.LEADING ).addComponent( autoSetpointComboBox, 0, 188, Short.MAX_VALUE )
-                                    .addComponent( highSetpointComboBox, 0, 188, Short.MAX_VALUE ) ).addContainerGap() ) );
-    gl_setpointPanel.setVerticalGroup( gl_setpointPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
-            Alignment.LEADING,
-            gl_setpointPanel
-                    .createSequentialGroup()
-                    .addGroup(
-                            gl_setpointPanel.createParallelGroup( Alignment.BASELINE )
-                                    .addComponent( autoSetpointComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( lblSetpointAutosetpoint ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_setpointPanel.createParallelGroup( Alignment.LEADING ).addComponent( lblSetpointHighsetpoint )
-                                    .addComponent( highSetpointComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
-                    .addContainerGap( 78, Short.MAX_VALUE ) ) );
-    setpointPanel.setLayout( gl_setpointPanel );
-    // config -> display panel -> Inhalt
-    displayPanel = new JPanel();
-    displayPanel.setBorder( new TitledBorder( new LineBorder( new Color( 128, 128, 128 ), 1, true ), "Display", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
-    lblDisplayBrightness = new JLabel( "brightness" );
-    lblDisplayBrightness.setHorizontalAlignment( SwingConstants.RIGHT );
-    displayBrightnessComboBox = new JComboBox();
-    lblDisplayBrightness.setLabelFor( displayBrightnessComboBox );
-    displayBrightnessComboBox.setActionCommand( "set_disp_brightness" );
-    displayBrightnessComboBox.addActionListener( this );
-    displayBrightnessComboBox.addMouseMotionListener( this );
-    lblDisplayOrientation = new JLabel( "orientation" );
-    lblDisplayOrientation.setHorizontalAlignment( SwingConstants.RIGHT );
-    displayOrientationComboBox = new JComboBox();
-    lblDisplayOrientation.setLabelFor( displayOrientationComboBox );
-    displayOrientationComboBox.setActionCommand( "set_display_orientation" );
-    displayOrientationComboBox.addActionListener( this );
-    displayOrientationComboBox.addMouseMotionListener( this );
-    // config -> display panel .-> layout
-    GroupLayout gl_displayPanel = new GroupLayout( displayPanel );
-    gl_displayPanel.setHorizontalGroup( gl_displayPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_displayPanel
-                    .createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(
-                            gl_displayPanel.createParallelGroup( Alignment.LEADING, false )
-                                    .addComponent( lblDisplayOrientation, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                    .addComponent( lblDisplayBrightness, GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE ) )
-                    .addGap( 18 )
-                    .addGroup(
-                            gl_displayPanel.createParallelGroup( Alignment.TRAILING ).addComponent( displayBrightnessComboBox, 0, 235, Short.MAX_VALUE )
-                                    .addComponent( displayOrientationComboBox, 0, 235, Short.MAX_VALUE ) ).addContainerGap() ) );
-    gl_displayPanel.setVerticalGroup( gl_displayPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_displayPanel
-                    .createSequentialGroup()
-                    .addGroup(
-                            gl_displayPanel.createParallelGroup( Alignment.BASELINE ).addComponent( lblDisplayBrightness )
-                                    .addComponent( displayBrightnessComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_displayPanel.createParallelGroup( Alignment.BASELINE ).addComponent( lblDisplayOrientation )
-                                    .addComponent( displayOrientationComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
-                    .addContainerGap( 14, Short.MAX_VALUE ) ) );
-    displayPanel.setLayout( gl_displayPanel );
-    // config -> untits panel -> Inhalt
-    unitsPanel = new JPanel();
-    unitsPanel.setBorder( new TitledBorder( new LineBorder( new Color( 128, 128, 128 ), 1, true ), "Units", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
-    lblUnitsTemperature = new JLabel( "temperature" );
-    lblUnitsTemperature.setHorizontalAlignment( SwingConstants.RIGHT );
-    unitsTemperatureComboBox = new JComboBox();
-    lblUnitsTemperature.setLabelFor( unitsTemperatureComboBox );
-    unitsTemperatureComboBox.setActionCommand( "set_temperature_unit" );
-    unitsTemperatureComboBox.addActionListener( this );
-    unitsTemperatureComboBox.addMouseMotionListener( this );
-    lblUnitsDepth = new JLabel( "depth" );
-    lblUnitsDepth.setHorizontalAlignment( SwingConstants.RIGHT );
-    unitsDepthComboBox = new JComboBox();
-    lblUnitsDepth.setLabelFor( unitsDepthComboBox );
-    unitsDepthComboBox.setActionCommand( "set_depth_unit" );
-    unitsDepthComboBox.addActionListener( this );
-    unitsDepthComboBox.addMouseMotionListener( this );
-    lblUnitsSalinity = new JLabel( "salinity" );
-    lblUnitsSalinity.setHorizontalAlignment( SwingConstants.RIGHT );
-    unitsSalnityComboBox = new JComboBox();
-    lblUnitsSalinity.setLabelFor( unitsSalnityComboBox );
-    unitsSalnityComboBox.setActionCommand( "set_salnity" );
-    unitsSalnityComboBox.addActionListener( this );
-    unitsSalnityComboBox.addMouseMotionListener( this );
-    // config -> units panel -> Layout
-    GroupLayout gl_unitsPanel = new GroupLayout( unitsPanel );
-    gl_unitsPanel.setHorizontalGroup( gl_unitsPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_unitsPanel
-                    .createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(
-                            gl_unitsPanel
-                                    .createParallelGroup( Alignment.LEADING )
-                                    .addGroup( Alignment.TRAILING,
-                                            gl_unitsPanel.createSequentialGroup().addComponent( lblUnitsTemperature, GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE ).addGap( 19 ) )
-                                    .addGroup(
-                                            Alignment.TRAILING,
-                                            gl_unitsPanel
-                                                    .createSequentialGroup()
-                                                    .addGroup(
-                                                            gl_unitsPanel.createParallelGroup( Alignment.TRAILING )
-                                                                    .addComponent( lblUnitsDepth, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 79, Short.MAX_VALUE )
-                                                                    .addComponent( lblUnitsSalinity, GroupLayout.DEFAULT_SIZE, 78, Short.MAX_VALUE ) ).addGap( 18 ) ) )
-                    .addGroup(
-                            gl_unitsPanel.createParallelGroup( Alignment.TRAILING ).addComponent( unitsSalnityComboBox, 0, 207, Short.MAX_VALUE )
-                                    .addComponent( unitsDepthComboBox, 0, 207, Short.MAX_VALUE ).addComponent( unitsTemperatureComboBox, 0, 207, Short.MAX_VALUE ) )
-                    .addContainerGap() ) );
-    gl_unitsPanel.setVerticalGroup( gl_unitsPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_unitsPanel
-                    .createSequentialGroup()
-                    .addGroup(
-                            gl_unitsPanel.createParallelGroup( Alignment.BASELINE )
-                                    .addComponent( unitsTemperatureComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( lblUnitsTemperature ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_unitsPanel.createParallelGroup( Alignment.BASELINE )
-                                    .addComponent( unitsDepthComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( lblUnitsDepth ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_unitsPanel.createParallelGroup( Alignment.BASELINE )
-                                    .addComponent( unitsSalnityComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( lblUnitsSalinity ) ).addContainerGap( 13, Short.MAX_VALUE ) ) );
-    unitsPanel.setLayout( gl_unitsPanel );
-    // config -> individual panel -> inhalt
-    individualPanel = new JPanel();
-    individualPanel.setBorder( new TitledBorder( new LineBorder( new Color( 128, 128, 128 ), 1, true ), "Individuals", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
-    lblSenormode = new JLabel( "sensormode" );
-    lblSenormode.setHorizontalAlignment( SwingConstants.RIGHT );
-    individualsSensorsOnCheckbox = new JCheckBox( "Sensors ON" );
-    lblSenormode.setLabelFor( individualsSensorsOnCheckbox );
-    // chIndividualsSensorsOnCheckbox.addChangeListener( this );
-    individualsSensorsOnCheckbox.setActionCommand( "individual_sensors_on" );
-    individualsSensorsOnCheckbox.addItemListener( this );
-    individualsSensorsOnCheckbox.addMouseMotionListener( this );
-    // chIndividualsSensorsOnCheckbox.addActionListener( this );
-    lblIndividualsPscrMode = new JLabel( "PSCR Mode" );
-    lblIndividualsPscrMode.setHorizontalAlignment( SwingConstants.RIGHT );
-    individualsPscrModeOnCheckbox = new JCheckBox( "PSCR Mode ON" );
-    individualsPscrModeOnCheckbox.setForeground( new Color( 128, 0, 128 ) );
-    lblIndividualsPscrMode.setLabelFor( individualsPscrModeOnCheckbox );
-    // IndividualsPscrModoOnCheckbox.addChangeListener( this );
-    individualsPscrModeOnCheckbox.setActionCommand( "individuals_pscr_on" );
-    individualsPscrModeOnCheckbox.addItemListener( this );
-    individualsPscrModeOnCheckbox.addMouseMotionListener( this );
-    lblSensorwarnings = new JLabel( "sensorwarnings" );
-    lblSensorwarnings.setHorizontalAlignment( SwingConstants.RIGHT );
-    individualsSensorWarnComboBox = new JComboBox();
-    lblSensorwarnings.setLabelFor( individualsSensorWarnComboBox );
-    individualsSensorWarnComboBox.addActionListener( this );
-    individualsSensorWarnComboBox.setActionCommand( "set_sensorwarnings" );
-    individualsSensorWarnComboBox.addMouseMotionListener( this );
-    individualsAcusticWarningsLabel = new JLabel( "acustic warnings" );
-    individualsAcusticWarningsLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    individualsWarningsOnCheckBox = new JCheckBox( "warnings ON" );
-    individualsAcusticWarningsLabel.setLabelFor( individualsWarningsOnCheckBox );
-    // individualsWarningsOnCheckBox.addChangeListener( this );
-    individualsWarningsOnCheckBox.setActionCommand( "individuals_warnings_on" );
-    individualsWarningsOnCheckBox.addItemListener( this );
-    individualsWarningsOnCheckBox.addMouseMotionListener( this );
-    individualsLogintervalLabel = new JLabel( "loginterval" );
-    individualsLogintervalLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    individualsLogintervalComboBox = new JComboBox();
-    individualsLogintervalLabel.setLabelFor( individualsLogintervalComboBox );
-    individualsLogintervalComboBox.addActionListener( this );
-    individualsLogintervalComboBox.setActionCommand( "set_loginterval" );
-    individualsLogintervalComboBox.addMouseMotionListener( this );
-    individualsNotLicensedLabel = new JLabel( "------" );
-    individualsNotLicensedLabel.setForeground( Color.DARK_GRAY );
-    individualsNotLicensedLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
-    individualsNotLicensedLabel.setHorizontalAlignment( SwingConstants.CENTER );
-    // config -> individuals panel -> layout
-    GroupLayout gl_individualPanel = new GroupLayout( individualPanel );
-    gl_individualPanel.setHorizontalGroup( gl_individualPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
-            gl_individualPanel
-                    .createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(
-                            gl_individualPanel
-                                    .createParallelGroup( Alignment.TRAILING )
-                                    .addComponent( individualsNotLicensedLabel, GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE )
-                                    .addGroup(
-                                            gl_individualPanel
-                                                    .createSequentialGroup()
-                                                    .addGroup(
-                                                            gl_individualPanel
-                                                                    .createParallelGroup( Alignment.LEADING )
-                                                                    .addComponent( individualsLogintervalLabel, GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE )
-                                                                    .addComponent( individualsAcusticWarningsLabel, GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE )
-                                                                    .addComponent( lblIndividualsPscrMode, Alignment.TRAILING )
-                                                                    .addComponent( lblSenormode, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 106, Short.MAX_VALUE )
-                                                                    .addComponent( lblSensorwarnings, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 97,
-                                                                            GroupLayout.PREFERRED_SIZE ) )
-                                                    .addGap( 18 )
-                                                    .addGroup(
-                                                            gl_individualPanel.createParallelGroup( Alignment.LEADING )
-                                                                    .addComponent( individualsLogintervalComboBox, 0, 181, Short.MAX_VALUE )
-                                                                    .addComponent( individualsSensorsOnCheckbox, GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE )
-                                                                    .addComponent( individualsSensorWarnComboBox, 0, 181, Short.MAX_VALUE )
-                                                                    .addComponent( individualsPscrModeOnCheckbox, GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE )
-                                                                    .addComponent( individualsWarningsOnCheckBox, GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE ) ) ) )
-                    .addGap( 17 ) ) );
-    gl_individualPanel.setVerticalGroup( gl_individualPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_individualPanel
-                    .createSequentialGroup()
-                    .addGroup( gl_individualPanel.createParallelGroup( Alignment.BASELINE ).addComponent( individualsSensorsOnCheckbox ).addComponent( lblSenormode ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup( gl_individualPanel.createParallelGroup( Alignment.BASELINE ).addComponent( lblIndividualsPscrMode ).addComponent( individualsPscrModeOnCheckbox ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_individualPanel.createParallelGroup( Alignment.BASELINE ).addComponent( lblSensorwarnings )
-                                    .addComponent( individualsSensorWarnComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_individualPanel.createParallelGroup( Alignment.BASELINE ).addComponent( individualsAcusticWarningsLabel )
-                                    .addComponent( individualsWarningsOnCheckBox ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_individualPanel.createParallelGroup( Alignment.BASELINE )
-                                    .addComponent( individualsLogintervalComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( individualsLogintervalLabel ) ).addGap( 32 ).addComponent( individualsNotLicensedLabel )
-                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) ) );
-    individualPanel.setLayout( gl_individualPanel );
-    // config -> layout
-    GroupLayout gl_conigPanel = new GroupLayout( conigPanel );
-    gl_conigPanel.setHorizontalGroup( gl_conigPanel.createParallelGroup( Alignment.TRAILING )
-            .addGroup(
-                    gl_conigPanel
-                            .createSequentialGroup()
-                            .addGroup(
-                                    gl_conigPanel
-                                            .createParallelGroup( Alignment.TRAILING )
-                                            .addGroup(
-                                                    Alignment.LEADING,
-                                                    gl_conigPanel.createSequentialGroup().addContainerGap()
-                                                            .addComponent( readSPX42ConfigButton, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE ).addGap( 339 )
-                                                            .addComponent( writeSPX42ConfigButton, GroupLayout.PREFERRED_SIZE, 217, GroupLayout.PREFERRED_SIZE ) )
-                                            .addGroup(
-                                                    gl_conigPanel
-                                                            .createSequentialGroup()
-                                                            .addGroup(
-                                                                    gl_conigPanel
-                                                                            .createParallelGroup( Alignment.TRAILING )
-                                                                            .addGroup(
-                                                                                    gl_conigPanel
-                                                                                            .createSequentialGroup()
-                                                                                            .addContainerGap()
-                                                                                            .addGroup(
-                                                                                                    gl_conigPanel
-                                                                                                            .createParallelGroup( Alignment.LEADING )
-                                                                                                            .addComponent( unitsPanel, GroupLayout.DEFAULT_SIZE, 389,
-                                                                                                                    Short.MAX_VALUE )
-                                                                                                            .addComponent( displayPanel, GroupLayout.PREFERRED_SIZE,
-                                                                                                                    GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                                                            .addComponent( decompressionPanel, GroupLayout.PREFERRED_SIZE, 385,
-                                                                                                                    GroupLayout.PREFERRED_SIZE ) )
-                                                                                            .addPreferredGap( ComponentPlacement.UNRELATED ) )
-                                                                            .addGroup(
-                                                                                    gl_conigPanel
-                                                                                            .createSequentialGroup()
-                                                                                            .addGap( 82 )
-                                                                                            .addComponent( serialNumberLabel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                                                                                                    GroupLayout.PREFERRED_SIZE )
-                                                                                            .addPreferredGap( ComponentPlacement.RELATED )
-                                                                                            .addComponent( serialNumberText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                                                                                                    GroupLayout.PREFERRED_SIZE ).addGap( 41 ) ) )
-                                                            .addGroup(
-                                                                    gl_conigPanel
-                                                                            .createParallelGroup( Alignment.LEADING )
-                                                                            .addGroup(
-                                                                                    gl_conigPanel
-                                                                                            .createSequentialGroup()
-                                                                                            .addComponent( firmwareVersionLabel )
-                                                                                            .addGap( 56 )
-                                                                                            .addComponent( firmwareVersionValueLabel, GroupLayout.PREFERRED_SIZE, 212,
-                                                                                                    GroupLayout.PREFERRED_SIZE ) )
-                                                                            .addComponent( setpointPanel, GroupLayout.PREFERRED_SIZE, 344, GroupLayout.PREFERRED_SIZE )
-                                                                            .addComponent( individualPanel, GroupLayout.PREFERRED_SIZE, 344, GroupLayout.PREFERRED_SIZE ) ) ) )
-                            .addGap( 10 ) ) );
-    gl_conigPanel.setVerticalGroup( gl_conigPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_conigPanel
-                    .createSequentialGroup()
-                    .addGap( 20 )
-                    .addGroup(
-                            gl_conigPanel.createParallelGroup( Alignment.BASELINE )
-                                    .addComponent( serialNumberLabel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( serialNumberText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( firmwareVersionLabel ).addComponent( firmwareVersionValueLabel ) )
-                    .addPreferredGap( ComponentPlacement.UNRELATED )
-                    .addGroup(
-                            gl_conigPanel.createParallelGroup( Alignment.BASELINE )
-                                    .addComponent( decompressionPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( setpointPanel, GroupLayout.PREFERRED_SIZE, 147, GroupLayout.PREFERRED_SIZE ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_conigPanel
-                                    .createParallelGroup( Alignment.LEADING )
-                                    .addGroup(
-                                            gl_conigPanel.createSequentialGroup().addComponent( displayPanel, GroupLayout.PREFERRED_SIZE, 81, GroupLayout.PREFERRED_SIZE )
-                                                    .addPreferredGap( ComponentPlacement.RELATED )
-                                                    .addComponent( unitsPanel, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE ) )
-                                    .addComponent( individualPanel, 0, 0, Short.MAX_VALUE ) )
-                    .addPreferredGap( ComponentPlacement.RELATED )
-                    .addGroup(
-                            gl_conigPanel.createParallelGroup( Alignment.LEADING ).addComponent( writeSPX42ConfigButton, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE )
-                                    .addComponent( readSPX42ConfigButton, GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE ) ).addContainerGap() ) );
-    conigPanel.setLayout( gl_conigPanel );
+    configPanel = new spx42ConfigPanel( LOGGER );
+    tabbedPane.addTab( "CONFIG", null, configPanel, null );
     // GASPANEL
-    gasConfigPanel = new gaslistEditPanel( LOGGER );
+    gasConfigPanel = new spx42GaslistEditPanel( LOGGER );
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     // Debug-Panel
     debugPanel = new JPanel();
@@ -935,7 +340,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     mntmInfo.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/javax/swing/plaf/metal/icons/ocean/expanded.gif" ) ) );
     mntmInfo.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_I, InputEvent.CTRL_MASK ) );
     mnHelp.add( mntmInfo );
-    discoverProgressBar.setVisible( false );
+    connectionPanel.discoverProgressBar.setVisible( false );
   }
 
   /**
@@ -950,8 +355,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private int setLanguageStrings()
   {
-    String[] entrys = null;
-    ComboBoxModel portBoxModel = null;
     // so, ignoriere mal alles....
     ignoreAction = true;
     try
@@ -985,149 +388,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       mntmInfo.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmInfo.tooltiptext" ) );
       // Tabbed Panes
       // //////////////////////////////////////////////////////////////////////
-      // Tabbes Pane connect
+      // Tabbed Pane connect
       tabbedPane.setTitleAt( 0, stringsBundle.getString( "MainCommGUI.connectPanel.title" ) );
-      deviceToConnectComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.portComboBox.tooltiptext" ) );
-      connectButton.setToolTipText( stringsBundle.getString( "MainCommGUI.connectButton.tooltiptext" ) );
-      pinButton.setToolTipText( stringsBundle.getString( "MainCommGUI.pinButton.tooltiptext" ) );
-      pinButton.setText( stringsBundle.getString( "MainCommGUI.pinButton.text" ) );
-      // if( sComm.isConnected() )
-      if( btComm.isConnected() )
-      {
-        connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.disconnectText" ) );
-        connectButton.setActionCommand( "disconnect" );
-      }
-      else
-      {
-        connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.connectText" ) );
-        connectButton.setActionCommand( "connect" );
-      }
-      connectBtRefreshButton.setText( stringsBundle.getString( "MainCommGUI.connectBtRefreshButton.text" ) );
-      connectBtRefreshButton.setToolTipText( stringsBundle.getString( "MainCommGUI.connectBtRefreshButton.tooltiptext" ) );
+      connectionPanel.setLanguageStrings( stringsBundle, btComm.isConnected() );
       // //////////////////////////////////////////////////////////////////////
-      // Tabbes Pane config
+      // Tabbed Pane config
       tabbedPane.setTitleAt( 1, stringsBundle.getString( "MainCommGUI.conigPanel.title" ) );
-      serialNumberLabel.setText( stringsBundle.getString( "MainCommGUI.serialNumberLabel.text" ) );
-      readSPX42ConfigButton.setText( stringsBundle.getString( "MainCommGUI.readSPX42ConfigButton.text" ) );
-      readSPX42ConfigButton.setToolTipText( stringsBundle.getString( "MainCommGUI.readSPX42ConfigButton.tooltiptext" ) );
-      writeSPX42ConfigButton.setText( stringsBundle.getString( "MainCommGUI.writeSPX42ConfigButton.text" ) );
-      writeSPX42ConfigButton.setToolTipText( stringsBundle.getString( "MainCommGUI.writeSPX42ConfigButton.tooltiptext" ) );
-      firmwareVersionLabel.setText( stringsBundle.getString( "MainCommGUI.firmwareVersionLabel.text" ) );
-      // DECO
-      ( ( TitledBorder )( decompressionPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.decoTitleBorder.text" ) );
-      decoGradientenPresetComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoGradientenPresetComboBox.tooltiptext" ) );
-      decoGradientsHighLabel.setText( stringsBundle.getString( "MainCommGUI.decoGradientsHighLabel.text" ) );
-      decoGradientsLowLabel.setText( stringsBundle.getString( "MainCommGUI.decoGradientsLowLabel.text" ) );
-      decoGradientenLowSpinner.setToolTipText( stringsBundle.getString( "MainCommGUI.decoGradientenLowSpinner.tooltiptext" ) );
-      decoGradientenHighSpinner.setToolTipText( stringsBundle.getString( "MainCommGUI.decoGradientenHighSpinner.tooltiptext" ) );
-      decoLaststopLabel.setText( stringsBundle.getString( "MainCommGUI.decoLaststopLabel.text" ) );
-      decoLastStopComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.decoLastStopComboBox.3m.text" ), stringsBundle.getString( "MainCommGUI.decoLastStopComboBox.6m.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      decoLastStopComboBox.setModel( portBoxModel );
-      decoLastStopComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoLastStopComboBox.tooltipttext" ) );
-      decoGradientenPresetComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.vconservative.text" ), stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.conservative.text" ),
-          stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.moderate.text" ), stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.aggressive.text" ),
-          stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.vaggressive.text" ), stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.custom.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      decoGradientenPresetComboBox.setModel( portBoxModel );
-      decoDyngradientsLabel.setText( stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.text" ) );
-      decoDynGradientsCheckBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoDynGradientsCheckBox.tooltiptext" ) );
-      decoDeepstopsLabel.setText( stringsBundle.getString( "MainCommGUI.decoDeepstopsLabel.text" ) );
-      decoDeepStopCheckBox.setText( stringsBundle.getString( "MainCommGUI.decoDeepStopCheckBox.text" ) );
-      decoDynGradientsCheckBox.setText( stringsBundle.getString( "MainCommGUI.decoDynGradientsCheckBox.text" ) );
-      decoDeepStopCheckBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoDeepStopCheckBox.tooltiptext" ) );
-      // SETPOINT
-      ( ( TitledBorder )( setpointPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.setpointPanel.text" ) );
-      lblSetpointAutosetpoint.setText( stringsBundle.getString( "MainCommGUI.lblSetpointAutosetpoint.text" ) );
-      autoSetpointComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.off.text" ), stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.5m.text" ),
-          stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.10m.text" ), stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.15m.text" ),
-          stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.20m.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      autoSetpointComboBox.setModel( portBoxModel );
-      autoSetpointComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.tooltiptext" ) );
-      lblSetpointHighsetpoint.setText( stringsBundle.getString( "MainCommGUI.lblSetpointHighsetpoint.text" ) );
-      highSetpointComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.highSetpointComboBox.10.text" ), stringsBundle.getString( "MainCommGUI.highSetpointComboBox.11.text" ),
-          stringsBundle.getString( "MainCommGUI.highSetpointComboBox.12.text" ), stringsBundle.getString( "MainCommGUI.highSetpointComboBox.13.text" ),
-          stringsBundle.getString( "MainCommGUI.highSetpointComboBox.14.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      highSetpointComboBox.setModel( portBoxModel );
-      highSetpointComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.highSetpointComboBox.tooltiptext" ) );
-      // DISPLAY
-      ( ( TitledBorder )( displayPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.displayPanel.text" ) );
-      lblDisplayBrightness.setText( stringsBundle.getString( "MainCommGUI.lblDisplayBrightness.text" ) );
-      displayBrightnessComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.10.text" ), stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.50.text" ),
-          stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.100.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      displayBrightnessComboBox.setModel( portBoxModel );
-      displayBrightnessComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.tooltiptext" ) );
-      lblDisplayOrientation.setText( stringsBundle.getString( "MainCommGUI.lblDisplayOrientation.text" ) );
-      displayOrientationComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.displayOrientationComboBox.landscape.text" ), stringsBundle.getString( "MainCommGUI.displayOrientationComboBox.landscape180.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      displayOrientationComboBox.setModel( portBoxModel );
-      displayOrientationComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.displayOrientationComboBox.tooltiptext" ) );
-      // UNITS
-      ( ( TitledBorder )( unitsPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.unitsPanel.text" ) );
-      lblUnitsTemperature.setText( stringsBundle.getString( "MainCommGUI.lblUnitsTemperature.text" ) );
-      unitsTemperatureComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.unitsTemperatureComboBox.fahrenheit.text" ), stringsBundle.getString( "MainCommGUI.unitsTemperatureComboBox.celsius.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      unitsTemperatureComboBox.setModel( portBoxModel );
-      unitsTemperatureComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.unitsTemperatureComboBox.tooltiptext" ) );
-      lblUnitsDepth.setText( stringsBundle.getString( "MainCommGUI.lblUnitsDepth.text" ) );
-      unitsDepthComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.unitsDepthComboBox.metrical.text" ), stringsBundle.getString( "MainCommGUI.unitsDepthComboBox.imperial.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      unitsDepthComboBox.setModel( portBoxModel );
-      unitsDepthComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.unitsDepthComboBox.tooltiptext" ) );
-      lblUnitsSalinity.setText( stringsBundle.getString( "MainCommGUI.lblUnitsSalinity.text" ) );
-      unitsSalnityComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.unitsSalnityComboBox.saltwater.text" ), stringsBundle.getString( "MainCommGUI.unitsSalnityComboBox.clearwater.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      unitsSalnityComboBox.setModel( portBoxModel );
-      unitsSalnityComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.unitsSalnityComboBox.tooltiptext" ) );
-      // INDIVIDUALS
-      ( ( TitledBorder )( individualPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.individualPanel.text" ) );
-      lblSenormode.setText( stringsBundle.getString( "MainCommGUI.lblSenormode.text" ) );
-      individualsSensorsOnCheckbox.setText( stringsBundle.getString( "MainCommGUI.chIndividualsSensorsOnCheckbox.text" ) );
-      individualsSensorsOnCheckbox.setToolTipText( "MainCommGUI.chIndividualsSensorsOnCheckbox.tooltiptext" );
-      lblIndividualsPscrMode.setText( stringsBundle.getString( "MainCommGUI.lblIndividualsPscrMode.text" ) );
-      individualsPscrModeOnCheckbox.setText( stringsBundle.getString( "MainCommGUI.IndividualsPscrModoOnCheckbox.text" ) );
-      individualsPscrModeOnCheckbox.setToolTipText( stringsBundle.getString( "MainCommGUI.IndividualsPscrModoOnCheckbox.tooltiptext" ) );
-      lblSensorwarnings.setText( stringsBundle.getString( "MainCommGUI.lblSensorwarnings.text" ) );
-      individualsSensorWarnComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.1.text" ), stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.2.text" ),
-          stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.3.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      individualsSensorWarnComboBox.setModel( portBoxModel );
-      individualsSensorWarnComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.tooltiptext" ) );
-      individualsAcusticWarningsLabel.setText( stringsBundle.getString( "MainCommGUI.individualsAcusticWarningsLabel.text" ) );
-      individualsWarningsOnCheckBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsWarningsOnCheckBox.tooltiptext" ) );
-      individualsLogintervalLabel.setText( stringsBundle.getString( "MainCommGUI.individualsLogintervalLabel.text" ) );
-      individualsLogintervalComboBox.removeAllItems();
-      entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.10s.text" ), stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.20s.text" ),
-          stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.60s.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
-      individualsLogintervalComboBox.setModel( portBoxModel );
-      individualsLogintervalComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.tooltiptext" ) );
-      individualsNotLicensedLabel.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsNotLicensedLabel.tooltiptext" ) );
-      individualsNotLicensedLabel.setText( " " );
+      configPanel.setLanguageStrings( stringsBundle );
       // //////////////////////////////////////////////////////////////////////
       // Tabbes Pane gas
       tabbedPane.setTitleAt( 2, stringsBundle.getString( "MainCommGUI.gasPanel.title" ) );
@@ -1412,7 +679,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     JComboBox srcBox = ( JComboBox )ev.getSource();
     // /////////////////////////////////////////////////////////////////////////
     // Auswahl welches Gerät soll verbunden werden
-    if( deviceToConnectComboBox.equals( srcBox ) )
+    if( connectionPanel.deviceToConnectComboBox.equals( srcBox ) )
     {
       if( srcBox.getSelectedIndex() == -1 )
       {
@@ -1542,8 +809,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       case VERY_AGGRESSIVE:
         // in den oben genannten Fällen die Spinner auf den Preset einstellen
         ignoreAction = true;
-        decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
-        decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
+        configPanel.decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
+        configPanel.decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
         ignoreAction = false;
         LOGGER.log( Level.FINE, "spinner korrected for preset." );
         break;
@@ -1749,13 +1016,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     ImageIcon icon = null;
     String pinString = null;
     // Welche Schnittstelle?
-    if( deviceToConnectComboBox.getSelectedIndex() == -1 )
+    if( connectionPanel.deviceToConnectComboBox.getSelectedIndex() == -1 )
     {
       LOGGER.log( Level.WARNING, "no connection device selected!" );
       showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
       return;
     }
-    deviceName = ( String )deviceToConnectComboBox.getItemAt( deviceToConnectComboBox.getSelectedIndex() );
+    deviceName = ( String )connectionPanel.deviceToConnectComboBox.getItemAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
     icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) );
     pinString = ( String )JOptionPane.showInputDialog( this, stringsBundle.getString( "MainCommGUI.setPinDialog.text" ) + " <" + deviceName + ">",
             stringsBundle.getString( "MainCommGUI.setPinDialog.headline" ), JOptionPane.PLAIN_MESSAGE, icon, null, btComm.getPinForDevice( deviceName ) );
@@ -1858,13 +1125,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       case ProjectConst.MESSAGE_FWVERSION_READ:
         LOGGER.log( Level.INFO, "Firmware Version <" + cmd + "> recived..." );
         currentConfig.setFirmwareVersion( cmd );
-        firmwareVersionValueLabel.setText( cmd );
+        configPanel.firmwareVersionValueLabel.setText( cmd );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Seriennummer vom SPX42
       case ProjectConst.MESSAGE_SERIAL_READ:
         LOGGER.log( Level.INFO, "Serial Number from SPX42 recived..." );
-        serialNumberText.setText( cmd );
+        configPanel.serialNumberText.setText( cmd );
         currentConfig.setSerial( cmd );
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1878,19 +1145,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setDecoGf( cmd ) )
         {
           LOGGER.log( Level.INFO, "DECO propertys set to GUI..." );
-          decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
-          decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
-          decoGradientenPresetComboBox.setSelectedIndex( currentConfig.getDecoGfPreset() );
+          configPanel.decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
+          configPanel.decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
+          configPanel.decoGradientenPresetComboBox.setSelectedIndex( currentConfig.getDecoGfPreset() );
           if( currentConfig.getLastStop() == 3 )
           {
-            decoLastStopComboBox.setSelectedIndex( 0 );
+            configPanel.decoLastStopComboBox.setSelectedIndex( 0 );
           }
           else
           {
-            decoLastStopComboBox.setSelectedIndex( 1 );
+            configPanel.decoLastStopComboBox.setSelectedIndex( 1 );
           }
-          decoDynGradientsCheckBox.setSelected( currentConfig.isDynGradientsEnable() );
-          decoDeepStopCheckBox.setSelected( currentConfig.isDeepStopEnable() );
+          configPanel.decoDynGradientsCheckBox.setSelected( currentConfig.isDynGradientsEnable() );
+          configPanel.decoDeepStopCheckBox.setSelected( currentConfig.isDeepStopEnable() );
           LOGGER.log( Level.INFO, "DECO propertys set to GUI...OK" );
         }
         break;
@@ -1905,9 +1172,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setUnits( cmd ) )
         {
           LOGGER.log( Level.INFO, "UNITS propertys set to GUI..." );
-          unitsTemperatureComboBox.setSelectedIndex( currentConfig.getUnitTemperature() );
-          unitsDepthComboBox.setSelectedIndex( currentConfig.getUnitDepth() );
-          unitsSalnityComboBox.setSelectedIndex( currentConfig.getUnitSalnity() );
+          configPanel.unitsTemperatureComboBox.setSelectedIndex( currentConfig.getUnitTemperature() );
+          configPanel.unitsDepthComboBox.setSelectedIndex( currentConfig.getUnitDepth() );
+          configPanel.unitsSalnityComboBox.setSelectedIndex( currentConfig.getUnitSalnity() );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1921,8 +1188,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setDisplay( cmd ) )
         {
           LOGGER.log( Level.INFO, "DISPLAY propertys set to GUI..." );
-          displayBrightnessComboBox.setSelectedIndex( currentConfig.getDisplayBrightness() );
-          displayOrientationComboBox.setSelectedIndex( currentConfig.getDisplayOrientation() );
+          configPanel.displayBrightnessComboBox.setSelectedIndex( currentConfig.getDisplayBrightness() );
+          configPanel.displayOrientationComboBox.setSelectedIndex( currentConfig.getDisplayOrientation() );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1936,8 +1203,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setSetpoint( cmd ) )
         {
           LOGGER.log( Level.INFO, "SETPOINT propertys set to GUI..." );
-          autoSetpointComboBox.setSelectedIndex( currentConfig.getAutoSetpoint() );
-          highSetpointComboBox.setSelectedIndex( currentConfig.getMaxSetpoint() );
+          configPanel.autoSetpointComboBox.setSelectedIndex( currentConfig.getAutoSetpoint() );
+          configPanel.highSetpointComboBox.setSelectedIndex( currentConfig.getMaxSetpoint() );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1951,45 +1218,45 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setIndividuals( cmd ) )
         {
           LOGGER.log( Level.INFO, "INDIVIDUAL propertys set to GUI..." );
-          if( !individualPanel.isEnabled() )
+          if( !configPanel.individualPanel.isEnabled() )
           {
-            setIndividualsPanelEnabled( true );
+            configPanel.setIndividualsPanelEnabled( true );
           }
           // Sensormode eintragen
           if( currentConfig.getSensorsOn() == 1 )
           {
-            individualsSensorsOnCheckbox.setSelected( true );
+            configPanel.individualsSensorsOnCheckbox.setSelected( true );
           }
           else
           {
-            individualsSensorsOnCheckbox.setSelected( false );
+            configPanel.individualsSensorsOnCheckbox.setSelected( false );
           }
           // Passiver MCCR Mode
           if( currentConfig.getPscrModeOn() == 1 )
           {
-            individualsPscrModeOnCheckbox.setSelected( true );
+            configPanel.individualsPscrModeOnCheckbox.setSelected( true );
           }
           else
           {
-            individualsPscrModeOnCheckbox.setSelected( false );
+            configPanel.individualsPscrModeOnCheckbox.setSelected( false );
           }
           // Sensor Anzahl Warning
-          individualsSensorWarnComboBox.setSelectedIndex( currentConfig.getSensorsCount() );
+          configPanel.individualsSensorWarnComboBox.setSelectedIndex( currentConfig.getSensorsCount() );
           // akustische warnuingen
           if( currentConfig.getSoundOn() == 1 )
           {
-            individualsWarningsOnCheckBox.setSelected( true );
+            configPanel.individualsWarningsOnCheckBox.setSelected( true );
           }
           else
           {
-            individualsWarningsOnCheckBox.setSelected( false );
+            configPanel.individualsWarningsOnCheckBox.setSelected( false );
           }
           // Loginterval
-          individualsLogintervalComboBox.setSelectedIndex( currentConfig.getLogInterval() );
+          configPanel.individualsLogintervalComboBox.setSelectedIndex( currentConfig.getLogInterval() );
         }
         else
         {
-          setIndividualsPanelEnabled( false );
+          configPanel.setIndividualsPanelEnabled( false );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -2034,6 +1301,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           wDial = null;
         }
         setElementsConnected( false );
+        setAllConfigPanlelsEnabled( false );
+        gasConfigPanel.setElementsGasMatrixPanelEnabled( false );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // BT Discovering war erfolgreich
@@ -2086,7 +1355,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         setAllConfigPanlelsEnabled( true );
         if( currentConfig.isBuggyFirmware() )
         {
-          unitsTemperatureComboBox.setBackground( new Color( 0xffafaf ) );
+          configPanel.unitsTemperatureComboBox.setBackground( new Color( 0xffafaf ) );
         }
         wDial.dispose();
         wDial = null;
@@ -2211,7 +1480,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       int val = Integer.parseInt( fields[1], 16 );
       ackuValue = ( float )( val / 100.0 );
-      ackuLabel.setText( String.format( stringsBundle.getString( "MainCommGUI.ackuLabel.text" ), ackuValue ) );
+      connectionPanel.ackuLabel.setText( String.format( stringsBundle.getString( "MainCommGUI.ackuLabel.text" ), ackuValue ) );
       LOGGER.log( Level.FINE, String.format( "Acku value: %02.02f", ackuValue ) );
     }
   }
@@ -2230,7 +1499,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     String[] entrys = btComm.getNameArray();
     ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
-    deviceToConnectComboBox.setModel( portBoxModel );
+    connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
   }
 
   /**
@@ -2245,12 +1514,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void moveStatusBar()
   {
-    if( discoverProgressBar.getMaximum() == discoverProgressBar.getValue() )
+    if( connectionPanel.discoverProgressBar.getMaximum() == connectionPanel.discoverProgressBar.getValue() )
     {
-      discoverProgressBar.setValue( 0 );
+      connectionPanel.discoverProgressBar.setValue( 0 );
       return;
     }
-    discoverProgressBar.setValue( discoverProgressBar.getValue() + 1 );
+    connectionPanel.discoverProgressBar.setValue( connectionPanel.discoverProgressBar.getValue() + 1 );
   }
 
   /**
@@ -2266,11 +1535,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void setElementsDiscovering( boolean isDiscovering )
   {
-    connectBtRefreshButton.setEnabled( !isDiscovering );
-    discoverProgressBar.setVisible( isDiscovering );
-    connectButton.setEnabled( !isDiscovering );
-    pinButton.setEnabled( !isDiscovering );
-    deviceToConnectComboBox.setEnabled( !isDiscovering );
+    connectionPanel.connectBtRefreshButton.setEnabled( !isDiscovering );
+    connectionPanel.discoverProgressBar.setVisible( isDiscovering );
+    connectionPanel.connectButton.setEnabled( !isDiscovering );
+    connectionPanel.pinButton.setEnabled( !isDiscovering );
+    connectionPanel.deviceToConnectComboBox.setEnabled( !isDiscovering );
   }
 
   /**
@@ -2419,11 +1688,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void setElementsInactive( boolean active )
   {
-    deviceToConnectComboBox.setEnabled( !active );
+    connectionPanel.deviceToConnectComboBox.setEnabled( !active );
     tabbedPane.setEnabledAt( 1, active );
-    connectButton.setEnabled( !active );
-    pinButton.setEnabled( !active );
-    connectBtRefreshButton.setEnabled( active );
+    connectionPanel.connectButton.setEnabled( !active );
+    connectionPanel.pinButton.setEnabled( !active );
+    connectionPanel.connectBtRefreshButton.setEnabled( active );
   }
 
   /**
@@ -2439,26 +1708,26 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void setElementsConnected( boolean active )
   {
-    deviceToConnectComboBox.setEnabled( !active );
-    connectBtRefreshButton.setEnabled( !active );
+    connectionPanel.deviceToConnectComboBox.setEnabled( !active );
+    connectionPanel.connectBtRefreshButton.setEnabled( !active );
     tabbedPane.setEnabledAt( 1, active );
     tabbedPane.setEnabledAt( 2, active );
-    connectButton.setEnabled( true );
-    pinButton.setEnabled( !active );
+    connectionPanel.connectButton.setEnabled( true );
+    connectionPanel.pinButton.setEnabled( !active );
     if( active )
     {
-      connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.disconnectText" ) );
-      connectButton.setActionCommand( "disconnect" );
-      connectButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112.png" ) ) );
+      connectionPanel.connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.disconnectText" ) );
+      connectionPanel.connectButton.setActionCommand( "disconnect" );
+      connectionPanel.connectButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112.png" ) ) );
     }
     else
     {
-      connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.connectText" ) );
-      connectButton.setActionCommand( "connect" );
-      connectButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112-mono.png" ) ) );
-      ackuLabel.setText( "-" );
-      serialNumberText.setText( "-" );
-      firmwareVersionValueLabel.setText( "-" );
+      connectionPanel.connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.connectText" ) );
+      connectionPanel.connectButton.setActionCommand( "connect" );
+      connectionPanel.connectButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112-mono.png" ) ) );
+      connectionPanel.ackuLabel.setText( "-" );
+      configPanel.serialNumberText.setText( "-" );
+      configPanel.firmwareVersionValueLabel.setText( "-" );
       if( savedConfig != null )
       {
         savedConfig = null;
@@ -2480,13 +1749,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void connectSPX()
   {
     // Welche Schnittstelle?
-    if( deviceToConnectComboBox.getSelectedIndex() == -1 )
+    if( connectionPanel.deviceToConnectComboBox.getSelectedIndex() == -1 )
     {
       LOGGER.log( Level.WARNING, "no connection device selected!" );
       showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
       return;
     }
-    String deviceName = ( String )deviceToConnectComboBox.getItemAt( deviceToConnectComboBox.getSelectedIndex() );
+    String deviceName = ( String )connectionPanel.deviceToConnectComboBox.getItemAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
     LOGGER.log( Level.FINE, "connect via device <" + deviceName + ">..." );
     if( btComm.isConnected() )
     {
@@ -2571,7 +1840,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       currSpinner = ( JSpinner )ev.getSource();
       // //////////////////////////////////////////////////////////////////////
       // Deco gradient Hith
-      if( currSpinner.equals( decoGradientenHighSpinner ) )
+      if( currSpinner.equals( configPanel.decoGradientenHighSpinner ) )
       {
         // wert für High ändern
         currValue = ( Integer )currSpinner.getValue();
@@ -2581,7 +1850,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
       // //////////////////////////////////////////////////////////////////////
       // Deco gradient Low
-      else if( currSpinner.equals( decoGradientenLowSpinner ) )
+      else if( currSpinner.equals( configPanel.decoGradientenLowSpinner ) )
       {
         // Wert für LOW ändern
         currValue = ( Integer )currSpinner.getValue();
@@ -2808,10 +2077,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void setDecoComboAfterSpinnerChange()
   {
     int currentPreset = currentConfig.getDecoGfPreset();
-    if( decoGradientenPresetComboBox.getSelectedIndex() != currentPreset )
+    if( configPanel.decoGradientenPresetComboBox.getSelectedIndex() != currentPreset )
     {
       ignoreAction = true;
-      decoGradientenPresetComboBox.setSelectedIndex( currentPreset );
+      configPanel.decoGradientenPresetComboBox.setSelectedIndex( currentPreset );
       ignoreAction = false;
     }
   }
@@ -3076,147 +2345,44 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
 
   private void setAllConfigPanlelsEnabled( boolean en )
   {
-    setDecoPanelEnabled( en );
-    setDisplayPanelEnabled( en );
-    setUnitsPanelEnabled( en );
-    setSetpointPanel( en );
+    configPanel.setDecoPanelEnabled( en );
+    configPanel.setDisplayPanelEnabled( en );
+    configPanel.setUnitsPanelEnabled( en );
+    configPanel.setSetpointPanel( en );
     // nur, wenn eine gültige Konfiguration gelesen wurde
     if( savedConfig != null )
     {
       // Gibt es eine Lizenz für Custom Config?
       if( currentConfig.getCustomEnabled() == 1 )
       {
-        setIndividualsPanelEnabled( true );
+        configPanel.setIndividualsPanelEnabled( true );
       }
       else
       {
-        setIndividualsPanelEnabled( false );
+        configPanel.setIndividualsPanelEnabled( false );
       }
     }
     else
     {
       // Keine Config gelesen!
-      setIndividualsPanelEnabled( false );
+      configPanel.setIndividualsPanelEnabled( false );
     }
   }
 
   /**
    * 
-   * Das Individual Panel ausblenden
+   * Die Callbacks setzen, wenn sich in den Panels was ändert!
    * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.04.2012
-   * @param en
-   */
-  private void setIndividualsPanelEnabled( boolean en )
-  {
-    for( Component cp : individualPanel.getComponents() )
-    {
-      cp.setEnabled( en );
-    }
-    if( !en )
-    {
-      individualsNotLicensedLabel.setEnabled( false );
-      individualsNotLicensedLabel.setText( individualsNotLicensedLabel.getToolTipText() );
-    }
-    else
-    {
-      individualsNotLicensedLabel.setEnabled( true );
-    }
-    individualPanel.setEnabled( en );
-  }
-
-  /**
-   * 
-   * Das Panel für Dekompressionseinstellungen ein/ausblenden
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 13.04.2012
-   * @param en
-   *          aktiv oder nicht
+   *         Stand: 22.04.2012 TODO
    */
-  private void setDecoPanelEnabled( boolean en )
-  {
-    for( Component cp : decompressionPanel.getComponents() )
-    {
-      cp.setEnabled( en );
-    }
-    decompressionPanel.setEnabled( en );
-  }
-
-  /**
-   * 
-   * Das Panel für Displayeinstellungen erlauben/verbieten
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.04.2012
-   * @param en
-   *          aktiv oder nicht
-   */
-  private void setDisplayPanelEnabled( boolean en )
-  {
-    for( Component cp : displayPanel.getComponents() )
-    {
-      cp.setEnabled( en );
-    }
-    displayPanel.setEnabled( en );
-  }
-
-  /**
-   * 
-   * Das Panel für Einheiten Einstellungen erlauben/verbieten
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.04.2012
-   * @param en
-   *          erlauben oder nicht
-   */
-  private void setUnitsPanelEnabled( boolean en )
-  {
-    for( Component cp : unitsPanel.getComponents() )
-    {
-      cp.setEnabled( en );
-    }
-    unitsPanel.setEnabled( en );
-  }
-
-  /**
-   * 
-   * Das Panel für Autosetpoint/Setpint erlauben/verbieten
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.04.2012
-   * @param en
-   *          erlauben oder nicht
-   */
-  private void setSetpointPanel( boolean en )
-  {
-    for( Component cp : setpointPanel.getComponents() )
-    {
-      cp.setEnabled( en );
-    }
-    setpointPanel.setEnabled( en );
-  }
-
   private void setGlobalChangeListener()
   {
-    decoGradientenLowSpinner.addChangeListener( this );
-    decoGradientenHighSpinner.addChangeListener( this );
+    connectionPanel.setGlobalChangeListener( this );
+    configPanel.setGlobalChangeListener( this );
     gasConfigPanel.setGlobalChangeListener( this );
   }
 }

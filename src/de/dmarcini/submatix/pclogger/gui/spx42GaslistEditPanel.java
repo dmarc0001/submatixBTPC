@@ -1051,7 +1051,7 @@ public class spx42GaslistEditPanel extends JPanel
    * 
    *         Stand: 22.04.2012
    * @param en
-   *          TODO
+   *          enabled?
    */
   public void setAllGasPanelsEnabled( boolean en )
   {
@@ -1070,7 +1070,6 @@ public class spx42GaslistEditPanel extends JPanel
    * 
    *         Stand: 22.04.2012
    * @param en
-   *          TODO
    */
   public void setGasPresetObjectsEnabled( boolean en )
   {

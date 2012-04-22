@@ -23,6 +23,7 @@ public class spx42ConnectPanel extends JPanel
    * 
    */
   private static final long serialVersionUID = 1L;
+  protected Logger          LOGGER           = null;
   JComboBox                 deviceToConnectComboBox;
   JButton                   connectButton;
   JButton                   connectBtRefreshButton;
@@ -39,13 +40,24 @@ public class spx42ConnectPanel extends JPanel
   /**
    * Create the panel.
    * 
-   * @param lOGGER
+   * @param LOGGER
    */
   public spx42ConnectPanel( Logger lOGGER )
   {
+    this.LOGGER = LOGGER;
     initPanel();
   }
 
+  /**
+   * 
+   * Initialisiere das Panel für die Verbindungen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.04.2012 TODO
+   */
   private void initPanel()
   {
     deviceToConnectComboBox = new JComboBox();
@@ -122,6 +134,18 @@ public class spx42ConnectPanel extends JPanel
     setLayout( gl_connectionPanel );
   }
 
+  /**
+   * 
+   * Setze die Listener auf das Hauptobjekt
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.04.2012
+   * @param mainCommGUI
+   *          das Hauptobjekt
+   */
   public void setGlobalChangeListener( MainCommGUI mainCommGUI )
   {
     deviceToConnectComboBox.addActionListener( mainCommGUI );
@@ -134,9 +158,23 @@ public class spx42ConnectPanel extends JPanel
     pinButton.addMouseMotionListener( mainCommGUI );
   }
 
+  /**
+   * 
+   * Sezte alle Strings in die entsprechende Landessprache!
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.04.2012
+   * @param stringsBundle
+   *          REsource für die Strings
+   * @param connected
+   *          ISt der SPX verbbunden?
+   * @return in Ordnung oder nicht
+   */
   public int setLanguageStrings( ResourceBundle stringsBundle, boolean connected )
   {
-    String[] entrys;
     try
     {
       deviceToConnectComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.portComboBox.tooltiptext" ) );

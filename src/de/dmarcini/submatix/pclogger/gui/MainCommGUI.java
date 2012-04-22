@@ -34,8 +34,6 @@ import java.util.regex.Pattern;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -45,14 +43,12 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -108,6 +104,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private spx42ConnectPanel       connectionPanel;
   private spx42ConfigPanel        configPanel;
   private spx42GaslistEditPanel   gasConfigPanel;
+  private spx42LoglistPanel       logListPanel;
   private JMenuItem               mntmExit;
   private JMenu                   mnLanguages;
   private JMenu                   mnFile;
@@ -115,10 +112,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private JMenu                   mnHelp;
   private JMenuItem               mntmHelp;
   private JMenuItem               mntmInfo;
-  private JPanel                  debugPanel;
-  private JTextField              testCmdTextField;
   private JTextField              statusTextField;
-  private JButton                 testSubmitButton;
 
   /**
    * Launch the application.
@@ -224,7 +218,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
     connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
     initLanuageMenu( programLocale );
-    tabbedPane.setEnabledAt( 3, DEBUG );
     if( !DEBUG )
     {
       setAllConfigPanlelsEnabled( false );
@@ -275,35 +268,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // GASPANEL
     gasConfigPanel = new spx42GaslistEditPanel( LOGGER );
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
-    // Debug-Panel
-    debugPanel = new JPanel();
-    debugPanel.setBorder( new EtchedBorder( EtchedBorder.LOWERED, Color.GRAY, Color.DARK_GRAY ) );
-    tabbedPane.addTab( "DEBUG/TEST", null, debugPanel, null );
-    testCmdTextField = new JTextField();
-    testCmdTextField.setForeground( Color.MAGENTA );
-    testCmdTextField.setFont( new Font( "SansSerif", Font.PLAIN, 12 ) );
-    testCmdTextField.setBackground( Color.LIGHT_GRAY );
-    testCmdTextField.setColumns( 10 );
-    testSubmitButton = new JButton( "submit !" );
-    testSubmitButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/57.png" ) ) );
-    testSubmitButton.addActionListener( this );
-    testSubmitButton.setActionCommand( "send_test_cmd" );
-    // debug-Panel Layout
-    GroupLayout gl_debugPanel = new GroupLayout( debugPanel );
-    gl_debugPanel.setHorizontalGroup( gl_debugPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_debugPanel.createSequentialGroup().addGap( 22 ).addComponent( testCmdTextField, GroupLayout.PREFERRED_SIZE, 266, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( testSubmitButton, GroupLayout.PREFERRED_SIZE, 231, GroupLayout.PREFERRED_SIZE ).addContainerGap( 248, Short.MAX_VALUE ) ) );
-    gl_debugPanel.setVerticalGroup( gl_debugPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_debugPanel
-                    .createSequentialGroup()
-                    .addGap( 23 )
-                    .addGroup(
-                            gl_debugPanel.createParallelGroup( Alignment.BASELINE )
-                                    .addComponent( testCmdTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( testSubmitButton ) ).addContainerGap( 456, Short.MAX_VALUE ) ) );
-    debugPanel.setLayout( gl_debugPanel );
     tabbedPane.setEnabledAt( 1, true );
-    // tabbedPane.setEnabledAt(1, false);
+    // Loglisten Panel
+    logListPanel = new spx42LoglistPanel( LOGGER );
+    tabbedPane.addTab( "LOG", null, logListPanel, null );
+    tabbedPane.setEnabledAt( 2, true );
     // MENÜ
     JMenuBar menuBar = new JMenuBar();
     frmMainwindowtitle.setJMenuBar( menuBar );
@@ -883,27 +852,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           return;
         }
         writeConfigToSPX( savedConfig );
-      }
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Test von DEBUG-Seite an SPX senden
-    else if( cmd.equals( "send_test_cmd" ) )
-    {
-      if( btComm != null )
-      {
-        if( btComm.isConnected() )
-        {
-          String cmdStr = testCmdTextField.getText();
-          if( cmdStr.isEmpty() )
-          {
-            LOGGER.log( Level.FINER, "not command to send found!" );
-          }
-          else
-          {
-            LOGGER.log( Level.FINER, "send Command to SPX42 <" + cmdStr + ">..." );
-            btComm.writeSPXMsgToDevice( cmdStr );
-          }
-        }
       }
     }
     // /////////////////////////////////////////////////////////////////////////

@@ -70,10 +70,10 @@ public class SPX42Config implements ISPX42Config
   public SPX42Config()
   {
     // Preferenzen als String erzeugen und ablegen
-    prefs.add( 0, "22:45" ); // very conservative
-    prefs.add( 1, "1e:55" ); // conservative
+    prefs.add( 0, "23:46" ); // very conservative
+    prefs.add( 1, "1e:55" ); // conservative/standart
     prefs.add( 2, "19:55" ); // moderate
-    prefs.add( 3, "0f:59" ); // agressive
+    prefs.add( 3, "0f:5a" ); // agressive
     prefs.add( 4, "0a:64" ); // very aggressive
     prefs.add( 5, "32:32" ); // custom
     wasCorrectInitialized = false;
@@ -240,6 +240,12 @@ public class SPX42Config implements ISPX42Config
     }
     gradientLow = vals[0];
     gradientHigh = vals[1];
+    // if( ProjectConst.BUGGY_FIRMWARE_01.equals( firmwareVersion ) )
+    // {
+    // untersuche mal, wie der Firmwarebug zurückgerechnet werden kann....
+    // gradientLow++;
+    // gradientHigh++;
+    // }
     if( vals[2] == 0 )
     {
       enableDeepStops = false;

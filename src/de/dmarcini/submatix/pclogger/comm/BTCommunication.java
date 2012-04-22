@@ -1265,7 +1265,6 @@ public class BTCommunication implements IBTCommunication
   @Override
   public void writeConfigToSPX( final SPX42Config config )
   {
-    String spxVersion = config.getFirmwareVersion();
     Thread configWriteThread = null;
     //
     if( !config.isInitialized() )
@@ -1273,7 +1272,7 @@ public class BTCommunication implements IBTCommunication
       if( log ) LOGGER.log( Level.SEVERE, "config was not initialized! CANCEL!" );
       return;
     }
-    if( spxVersion.equals( "V2.6.7.7_V" ) )
+    if( ProjectConst.BUGGY_FIRMWARE_01.equals( config.getFirmwareVersion() ) )
     {
       // Schreibe für die leicht Fehlerhafte Version
       // Führe als eigenen Thread aus, damit die Swing-Oberfläche

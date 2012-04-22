@@ -24,6 +24,10 @@ public final class ProjectConst
 
   // interne Begrenzung für Empfangspuffer
   public static final int    MAXINBUFFER                = 10 * 1024;
+  
+  // Buggy Firmware, Temperatur-Lesen, Gradienten-Bug
+  public static final String BUGGY_FIRMWARE_01          = "V2.6.7.7_V";
+  
 
   // Messages für SPX 42
   public static final String STX                        = new String( new byte[] { 0x02 } );

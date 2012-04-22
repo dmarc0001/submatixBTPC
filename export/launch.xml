@@ -2,9 +2,9 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>C:\DATEN\submatix\submatixBTForPC.jar</jar>
-  <outfile>C:\DATEN\submatix\submatixForPC.exe</outfile>
+  <outfile>C:\DATEN\submatix\submatixForPC-XP.exe</outfile>
   <errTitle>Kein Java vohanden?</errTitle>
-  <cmdLine>--cacheonstart --loglevel INFO --logfile spxCommLogFile.log</cmdLine>
+  <cmdLine>--loglevel DEBUG --logfile spxCommLogFile.log</cmdLine>
   <chdir></chdir>
   <priority>normal</priority>
   <downloadUrl>http://java.com/download</downloadUrl>
@@ -14,10 +14,10 @@
   <manifest></manifest>
   <icon></icon>
   <jre>
-    <path>C:\Program Files (x86)\Java\jre6</path>
+    <path>C:\Programme\jre6</path>
     <minVersion>1.6.0</minVersion>
     <maxVersion>1.7.9</maxVersion>
-    <jdkPreference>jdkOnly</jdkPreference>
+    <jdkPreference>preferJre</jdkPreference>
     <initialHeapSize>40</initialHeapSize>
     <maxHeapSize>256</maxHeapSize>
   </jre>

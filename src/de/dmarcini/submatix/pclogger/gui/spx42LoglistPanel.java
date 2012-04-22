@@ -4,6 +4,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
+import javax.swing.JList;
 import javax.swing.JPanel;
 
 /**
@@ -23,6 +24,7 @@ public class spx42LoglistPanel extends JPanel
    */
   private static final long serialVersionUID = 1L;
   protected Logger          LOGGER           = null;
+  private JList             logDirList;
 
   /**
    * Create the panel.
@@ -31,6 +33,9 @@ public class spx42LoglistPanel extends JPanel
   private spx42LoglistPanel()
   {
     setLayout( null );
+    logDirList = new JList();
+    logDirList.setBounds( 10, 11, 320, 405 );
+    add( logDirList );
     initPanel();
   }
 
@@ -74,7 +79,7 @@ public class spx42LoglistPanel extends JPanel
     return( 1 );
   }
 
-  public void setAllGasPanelsEnabled( boolean en )
+  public void setAllLogPanelsEnabled( boolean en )
   {
     //
   }

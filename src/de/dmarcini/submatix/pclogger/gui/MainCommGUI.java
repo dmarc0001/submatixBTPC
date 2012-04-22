@@ -222,6 +222,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       setAllConfigPanlelsEnabled( false );
       gasConfigPanel.setAllGasPanelsEnabled( false );
+      logListPanel.setAllLogPanelsEnabled( false );
       setElementsConnected( false );
     }
     if( readBtCacheOnStart )
@@ -1660,6 +1661,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     connectionPanel.connectBtRefreshButton.setEnabled( !active );
     tabbedPane.setEnabledAt( 1, active );
     tabbedPane.setEnabledAt( 2, active );
+    tabbedPane.setEnabledAt( 3, active );
     connectionPanel.connectButton.setEnabled( true );
     connectionPanel.pinButton.setEnabled( !active );
     if( active )

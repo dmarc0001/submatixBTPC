@@ -23,7 +23,7 @@ import javax.swing.border.TitledBorder;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                      /**
+{                        /**
    * 
    */
   private static final long serialVersionUID = 1L;
@@ -342,6 +342,7 @@ public class spx42ConfigPanel extends JPanel
     readSPX42ConfigButton.addMouseMotionListener( mainCommGUI );
     writeSPX42ConfigButton.addActionListener( mainCommGUI );
     writeSPX42ConfigButton.addMouseMotionListener( mainCommGUI );
+    decoGradientenPresetComboBox.addActionListener( mainCommGUI );
     decoLastStopComboBox.addActionListener( mainCommGUI );
     decoLastStopComboBox.addMouseMotionListener( mainCommGUI );
     decoDynGradientsCheckBox.addMouseMotionListener( mainCommGUI );

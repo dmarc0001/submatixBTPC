@@ -4,3 +4,5 @@ bin/
 javadoc/
 *.log.?
 *.log.lck
+spx42Base.db
+

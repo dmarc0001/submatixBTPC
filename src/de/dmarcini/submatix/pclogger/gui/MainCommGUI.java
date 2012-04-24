@@ -59,8 +59,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.almworks.sqlite4java.SQLiteConnection;
+
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
+import de.dmarcini.submatix.pclogger.utils.DatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
@@ -97,6 +100,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static final Pattern               fieldPatternDp      = Pattern.compile( ":" );
   private int                                licenseState        = -1;
   private int                                customConfig        = -1;
+  private DatabaseUtil                       sqliteDbUtil        = null;
+  private SQLiteConnection                   dbConn              = null;
   //
   // @formatter:on
   private JFrame                  frmMainwindowtitle;
@@ -235,6 +240,36 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       System.exit( -1 );
     }
+    prepareDatabase();
+  }
+
+  /**
+   * 
+   * Datenbankfür das Programm vorbereiten oder erzeugen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 24.04.2012
+   */
+  private void prepareDatabase()
+  {
+    // Verbindung zum Datenbanktreiber
+    sqliteDbUtil = new DatabaseUtil( LOGGER, ProjectConst.DB_FILENAME );
+    if( sqliteDbUtil == null )
+    {
+      LOGGER.log( Level.SEVERE, "can connect to database drivers!" );
+      System.exit( -1 );
+    }
+    // öffne die Datenbank
+    dbConn = sqliteDbUtil.createConnection();
+    // ging das?
+    if( dbConn == null )
+    {
+      System.exit( -1 );
+    }
+    // hier ist alles gut...
   }
 
   /**
@@ -356,19 +391,25 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       mntmHelp.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmHelp.tooltiptext" ) );
       mntmInfo.setText( stringsBundle.getString( "MainCommGUI.mntmInfo.text" ) );
       mntmInfo.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmInfo.tooltiptext" ) );
+      // //////////////////////////////////////////////////////////////////////
+      // //////////////////////////////////////////////////////////////////////
       // Tabbed Panes
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane connect
-      tabbedPane.setTitleAt( 0, stringsBundle.getString( "MainCommGUI.connectPanel.title" ) );
+      tabbedPane.setTitleAt( 0, stringsBundle.getString( "spx42ConnectPanel.title" ) );
       connectionPanel.setLanguageStrings( stringsBundle, btComm.isConnected() );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane config
-      tabbedPane.setTitleAt( 1, stringsBundle.getString( "MainCommGUI.conigPanel.title" ) );
+      tabbedPane.setTitleAt( 1, stringsBundle.getString( "spx42ConfigPanel.title" ) );
       configPanel.setLanguageStrings( stringsBundle );
       // //////////////////////////////////////////////////////////////////////
-      // Tabbes Pane gas
-      tabbedPane.setTitleAt( 2, stringsBundle.getString( "MainCommGUI.gasPanel.title" ) );
+      // Tabbed Pane gas
+      tabbedPane.setTitleAt( 2, stringsBundle.getString( "spx42GaslistEditPanel.title" ) );
       gasConfigPanel.setLanguageStrings( stringsBundle );
+      // //////////////////////////////////////////////////////////////////////
+      // Tabbed Pane log
+      tabbedPane.setTitleAt( 3, stringsBundle.getString( "spx42LoglistPanel.title" ) );
+      logListPanel.setLanguageStrings( stringsBundle );
     }
     catch( NullPointerException ex )
     {
@@ -511,6 +552,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void exitProgram()
   {
+    if( sqliteDbUtil != null )
+    {
+      sqliteDbUtil.closeDB();
+      dbConn = null;
+    }
     if( btComm != null )
     {
       if( btComm.isConnected() )

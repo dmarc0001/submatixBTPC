@@ -12,6 +12,7 @@
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/RXTXcomm.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/commons-cli-1.2/commons-cli-1.2.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/bluecove-2.1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/sqlite4java-282/sqlite4java.jar"/>
         </jar>
     </target>
 </project>

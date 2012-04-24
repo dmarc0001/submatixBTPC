@@ -690,7 +690,7 @@ public class spx42GaslistEditPanel extends JPanel
     {
       // //////////////////////////////////////////////////////////////////////
       // Tabbes Pane gas
-      String gasLabelStr = stringsBundle.getString( "MainCommGUI.gasPanel.gasLabel" );
+      String gasLabelStr = stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.gasLabel" );
       gasLabel_00.setText( String.format( "%s %02d", gasLabelStr, 1 ) );
       gasLabel_01.setText( String.format( "%s %02d", gasLabelStr, 2 ) );
       gasLabel_02.setText( String.format( "%s %02d", gasLabelStr, 3 ) );
@@ -699,7 +699,7 @@ public class spx42GaslistEditPanel extends JPanel
       gasLabel_05.setText( String.format( "%s %02d", gasLabelStr, 6 ) );
       gasLabel_06.setText( String.format( "%s %02d", gasLabelStr, 7 ) );
       gasLabel_07.setText( String.format( "%s %02d", gasLabelStr, 8 ) );
-      gasLabelStr = stringsBundle.getString( "MainCommGUI.gasPanel.diluentLabel" ) + "1";
+      gasLabelStr = stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.diluentLabel" ) + "1";
       diluent1Checkbox_00.setText( gasLabelStr );
       diluent1Checkbox_01.setText( gasLabelStr );
       diluent1Checkbox_02.setText( gasLabelStr );
@@ -708,7 +708,7 @@ public class spx42GaslistEditPanel extends JPanel
       diluent1Checkbox_05.setText( gasLabelStr );
       diluent1Checkbox_06.setText( gasLabelStr );
       diluent1Checkbox_07.setText( gasLabelStr );
-      gasLabelStr = stringsBundle.getString( "MainCommGUI.gasPanel.diluentLabel" ) + "2";
+      gasLabelStr = stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.diluentLabel" ) + "2";
       diluent2Checkbox_00.setText( gasLabelStr );
       diluent2Checkbox_01.setText( gasLabelStr );
       diluent2Checkbox_02.setText( gasLabelStr );
@@ -717,7 +717,7 @@ public class spx42GaslistEditPanel extends JPanel
       diluent2Checkbox_05.setText( gasLabelStr );
       diluent2Checkbox_06.setText( gasLabelStr );
       diluent2Checkbox_07.setText( gasLabelStr );
-      gasLabelStr = stringsBundle.getString( "MainCommGUI.gasPanel.bailoutLabel" );
+      gasLabelStr = stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.bailoutLabel" );
       bailoutCheckbox_00.setText( gasLabelStr );
       bailoutCheckbox_01.setText( gasLabelStr );
       bailoutCheckbox_02.setText( gasLabelStr );
@@ -726,16 +726,16 @@ public class spx42GaslistEditPanel extends JPanel
       bailoutCheckbox_05.setText( gasLabelStr );
       bailoutCheckbox_06.setText( gasLabelStr );
       bailoutCheckbox_07.setText( gasLabelStr );
-      gasReadFromSPXButton.setText( stringsBundle.getString( "MainCommGUI.gasPanel.gasReadFromSPXButton.text" ) );
-      gasReadFromSPXButton.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.gasReadFromSPXButton.tooltiptext" ) );
-      gasWriteToSPXButton.setText( stringsBundle.getString( "MainCommGUI.gasPanel.gasWriteToSPXButton.text" ) );
-      gasWriteToSPXButton.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.gasWriteToSPXButton.tooltiptext" ) );
-      readGasPresetButton.setText( stringsBundle.getString( "MainCommGUI.gasPanel.readGasPresetButton.text" ) );
-      readGasPresetButton.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.readGasPresetButton.tooltiptext" ) );
-      writeGasPresetButton.setText( stringsBundle.getString( "MainCommGUI.gasPanel.writeGasPresetButton.text" ) );
-      writeGasPresetButton.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.writeGasPresetButton.tooltiptext" ) );
-      customPresetComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.gasPanel.customPresetComboBox.tooltiptext" ) );
-      userPresetLabel.setText( stringsBundle.getString( "MainCommGUI.gasPanel.userPresetLabel.text" ) );
+      gasReadFromSPXButton.setText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.gasReadFromSPXButton.text" ) );
+      gasReadFromSPXButton.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.gasReadFromSPXButton.tooltiptext" ) );
+      gasWriteToSPXButton.setText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.gasWriteToSPXButton.text" ) );
+      gasWriteToSPXButton.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.gasWriteToSPXButton.tooltiptext" ) );
+      readGasPresetButton.setText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.readGasPresetButton.text" ) );
+      readGasPresetButton.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.readGasPresetButton.tooltiptext" ) );
+      writeGasPresetButton.setText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.writeGasPresetButton.text" ) );
+      writeGasPresetButton.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.writeGasPresetButton.tooltiptext" ) );
+      customPresetComboBox.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.customPresetComboBox.tooltiptext" ) );
+      userPresetLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.userPresetLabel.text" ) );
       setLicenseLabel( stringsBundle );
     }
     catch( NullPointerException ex )
@@ -769,10 +769,10 @@ public class spx42GaslistEditPanel extends JPanel
    */
   public void setLicenseLabel( ResourceBundle stringsBundle )
   {
-    // MainCommGUI.gasPanel.licenseLabel.nitrox.text=License: Nitrox
-    // MainCommGUI.gasPanel.licenseLabel.normoxic.text=License: Normoxic Trimix
-    // MainCommGUI.gasPanel.licenseLabel.fulltrimix.text=License: Full Trimix
-    // MainCommGUI.gasPanel.licenseLabel.customconfigEnabled.text=custom config enabled
+    // spx42GaslistEditPanel.gasPanel.licenseLabel.nitrox.text=License: Nitrox
+    // spx42GaslistEditPanel.gasPanel.licenseLabel.normoxic.text=License: Normoxic Trimix
+    // spx42GaslistEditPanel.gasPanel.licenseLabel.fulltrimix.text=License: Full Trimix
+    // spx42GaslistEditPanel.gasPanel.licenseLabel.customconfigEnabled.text=custom config enabled
     String licString;
     switch ( licenseState )
     {
@@ -781,13 +781,13 @@ public class spx42GaslistEditPanel extends JPanel
         licString = " ";
       case 0:
         // Nitrox
-        licString = stringsBundle.getString( "MainCommGUI.gasPanel.licenseLabel.nitrox.text" );
+        licString = stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.licenseLabel.nitrox.text" );
         break;
       case 1:
-        licString = stringsBundle.getString( "MainCommGUI.gasPanel.licenseLabel.normoxic.text" );
+        licString = stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.licenseLabel.normoxic.text" );
         break;
       default:
-        licString = stringsBundle.getString( "MainCommGUI.gasPanel.licenseLabel.fulltrimix.text" );
+        licString = stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.licenseLabel.fulltrimix.text" );
     }
     //
     switch ( customConfig )
@@ -799,7 +799,7 @@ public class spx42GaslistEditPanel extends JPanel
         break;
       case 1:
         // erlaubt
-        licenseStatusLabel.setText( licString + " - " + stringsBundle.getString( "MainCommGUI.gasPanel.licenseLabel.customconfigEnabled.text" ) );
+        licenseStatusLabel.setText( licString + " - " + stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.licenseLabel.customconfigEnabled.text" ) );
       default:
         licenseStatusLabel.setText( licString );
     }

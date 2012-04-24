@@ -128,6 +128,22 @@ public final class ProjectConst
   public static final int    INT_STOPTWAITDIAL          = INT_MESSAGE_OFFSET + 4;
   public static final int    INT_SETTITLEDIAL           = INT_MESSAGE_OFFSET + 5;
 
+  // DATENBANK
+  // Dateiname für SQLite3
+  public static final String DB_FILENAME                = "spx42Base.db";
+  public static int          DB_VERSION                 = 1;
+  // Datenbanktabellen
+  //
+  // Tabelle für die Versionsnummer der Datenbank (bei Updates evtl gebraucht)
+  public static final String V_DBVERSION                = "dbversion";
+  public static final String V_VERSION                  = "version";
+  //
+  // Tabelle für Alias und PIN des Gerätes
+  public static final String A_DBALIAS                  = "aliases";
+  public static final String A_DEVNAME                  = "devname";
+  public static final String A_ALIAS                    = "alias";
+  public static final String A_PIN                      = "pin";
+
 
   //@formatter:on
 }

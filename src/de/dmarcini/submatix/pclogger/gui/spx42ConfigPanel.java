@@ -23,7 +23,7 @@ import javax.swing.border.TitledBorder;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                        /**
+{                            /**
    * 
    */
   private static final long serialVersionUID = 1L;
@@ -97,7 +97,7 @@ public class spx42ConfigPanel extends JPanel
   {
     readSPX42ConfigButton = new JButton( "READ" );
     readSPX42ConfigButton.setBounds( 10, 432, 199, 60 );
-    readSPX42ConfigButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Download.png" ) ) );
+    readSPX42ConfigButton.setIcon( new ImageIcon( spx42ConfigPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Download.png" ) ) );
     readSPX42ConfigButton.setForeground( new Color( 0, 100, 0 ) );
     readSPX42ConfigButton.setBackground( new Color( 152, 251, 152 ) );
     readSPX42ConfigButton.setActionCommand( "read_config" );
@@ -106,7 +106,7 @@ public class spx42ConfigPanel extends JPanel
     readSPX42ConfigButton.setMargin( new Insets( 2, 30, 2, 30 ) );
     writeSPX42ConfigButton = new JButton( "WRITE" );
     writeSPX42ConfigButton.setBounds( 548, 432, 217, 60 );
-    writeSPX42ConfigButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Upload.png" ) ) );
+    writeSPX42ConfigButton.setIcon( new ImageIcon( spx42ConfigPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Upload.png" ) ) );
     writeSPX42ConfigButton.setForeground( new Color( 255, 0, 0 ) );
     writeSPX42ConfigButton.setBackground( new Color( 255, 192, 203 ) );
     writeSPX42ConfigButton.setActionCommand( "write_config" );
@@ -385,126 +385,129 @@ public class spx42ConfigPanel extends JPanel
     {
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane config
-      serialNumberLabel.setText( stringsBundle.getString( "MainCommGUI.serialNumberLabel.text" ) );
-      readSPX42ConfigButton.setText( stringsBundle.getString( "MainCommGUI.readSPX42ConfigButton.text" ) );
-      readSPX42ConfigButton.setToolTipText( stringsBundle.getString( "MainCommGUI.readSPX42ConfigButton.tooltiptext" ) );
-      writeSPX42ConfigButton.setText( stringsBundle.getString( "MainCommGUI.writeSPX42ConfigButton.text" ) );
-      writeSPX42ConfigButton.setToolTipText( stringsBundle.getString( "MainCommGUI.writeSPX42ConfigButton.tooltiptext" ) );
-      firmwareVersionLabel.setText( stringsBundle.getString( "MainCommGUI.firmwareVersionLabel.text" ) );
+      serialNumberLabel.setText( stringsBundle.getString( "spx42ConfigPanel.serialNumberLabel.text" ) );
+      readSPX42ConfigButton.setText( stringsBundle.getString( "spx42ConfigPanel.readSPX42ConfigButton.text" ) );
+      readSPX42ConfigButton.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.readSPX42ConfigButton.tooltiptext" ) );
+      writeSPX42ConfigButton.setText( stringsBundle.getString( "spx42ConfigPanel.writeSPX42ConfigButton.text" ) );
+      writeSPX42ConfigButton.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.writeSPX42ConfigButton.tooltiptext" ) );
+      firmwareVersionLabel.setText( stringsBundle.getString( "spx42ConfigPanel.firmwareVersionLabel.text" ) );
       // DECO
-      ( ( TitledBorder )( decompressionPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.decoTitleBorder.text" ) );
-      decoGradientenPresetComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoGradientenPresetComboBox.tooltiptext" ) );
-      decoGradientsHighLabel.setText( stringsBundle.getString( "MainCommGUI.decoGradientsHighLabel.text" ) );
-      decoGradientsLowLabel.setText( stringsBundle.getString( "MainCommGUI.decoGradientsLowLabel.text" ) );
-      decoGradientenLowSpinner.setToolTipText( stringsBundle.getString( "MainCommGUI.decoGradientenLowSpinner.tooltiptext" ) );
-      decoGradientenHighSpinner.setToolTipText( stringsBundle.getString( "MainCommGUI.decoGradientenHighSpinner.tooltiptext" ) );
-      decoLaststopLabel.setText( stringsBundle.getString( "MainCommGUI.decoLaststopLabel.text" ) );
+      ( ( TitledBorder )( decompressionPanel.getBorder() ) ).setTitle( stringsBundle.getString( "spx42ConfigPanel.decoTitleBorder.text" ) );
+      decoGradientenPresetComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.decoGradientenPresetComboBox.tooltiptext" ) );
+      decoGradientsHighLabel.setText( stringsBundle.getString( "spx42ConfigPanel.decoGradientsHighLabel.text" ) );
+      decoGradientsLowLabel.setText( stringsBundle.getString( "spx42ConfigPanel.decoGradientsLowLabel.text" ) );
+      decoGradientenLowSpinner.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.decoGradientenLowSpinner.tooltiptext" ) );
+      decoGradientenHighSpinner.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.decoGradientenHighSpinner.tooltiptext" ) );
+      decoLaststopLabel.setText( stringsBundle.getString( "spx42ConfigPanel.decoLaststopLabel.text" ) );
       decoLastStopComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.decoLastStopComboBox.3m.text" ), stringsBundle.getString( "MainCommGUI.decoLastStopComboBox.6m.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.decoLastStopComboBox.3m.text" ), stringsBundle.getString( "spx42ConfigPanel.decoLastStopComboBox.6m.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       decoLastStopComboBox.setModel( portBoxModel );
-      decoLastStopComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoLastStopComboBox.tooltipttext" ) );
+      decoLastStopComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.decoLastStopComboBox.tooltipttext" ) );
       decoGradientenPresetComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.vconservative.text" ), stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.conservative.text" ),
-          stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.moderate.text" ), stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.aggressive.text" ),
-          stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.vaggressive.text" ), stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.custom.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.decoDyngradientsLabel.vconservative.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.decoDyngradientsLabel.conservative.text" ), stringsBundle.getString( "spx42ConfigPanel.decoDyngradientsLabel.moderate.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.decoDyngradientsLabel.aggressive.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.decoDyngradientsLabel.vaggressive.text" ), stringsBundle.getString( "spx42ConfigPanel.decoDyngradientsLabel.custom.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       decoGradientenPresetComboBox.setModel( portBoxModel );
-      decoDyngradientsLabel.setText( stringsBundle.getString( "MainCommGUI.decoDyngradientsLabel.text" ) );
-      decoDynGradientsCheckBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoDynGradientsCheckBox.tooltiptext" ) );
-      decoDeepstopsLabel.setText( stringsBundle.getString( "MainCommGUI.decoDeepstopsLabel.text" ) );
-      decoDeepStopCheckBox.setText( stringsBundle.getString( "MainCommGUI.decoDeepStopCheckBox.text" ) );
-      decoDynGradientsCheckBox.setText( stringsBundle.getString( "MainCommGUI.decoDynGradientsCheckBox.text" ) );
-      decoDeepStopCheckBox.setToolTipText( stringsBundle.getString( "MainCommGUI.decoDeepStopCheckBox.tooltiptext" ) );
+      decoDyngradientsLabel.setText( stringsBundle.getString( "spx42ConfigPanel.decoDyngradientsLabel.text" ) );
+      decoDynGradientsCheckBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.decoDynGradientsCheckBox.tooltiptext" ) );
+      decoDeepstopsLabel.setText( stringsBundle.getString( "spx42ConfigPanel.decoDeepstopsLabel.text" ) );
+      decoDeepStopCheckBox.setText( stringsBundle.getString( "spx42ConfigPanel.decoDeepStopCheckBox.text" ) );
+      decoDynGradientsCheckBox.setText( stringsBundle.getString( "spx42ConfigPanel.decoDynGradientsCheckBox.text" ) );
+      decoDeepStopCheckBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.decoDeepStopCheckBox.tooltiptext" ) );
       // SETPOINT
-      ( ( TitledBorder )( setpointPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.setpointPanel.text" ) );
-      lblSetpointAutosetpoint.setText( stringsBundle.getString( "MainCommGUI.lblSetpointAutosetpoint.text" ) );
+      ( ( TitledBorder )( setpointPanel.getBorder() ) ).setTitle( stringsBundle.getString( "spx42ConfigPanel.setpointPanel.text" ) );
+      lblSetpointAutosetpoint.setText( stringsBundle.getString( "spx42ConfigPanel.lblSetpointAutosetpoint.text" ) );
       autoSetpointComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.off.text" ), stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.5m.text" ),
-          stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.10m.text" ), stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.15m.text" ),
-          stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.20m.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.autoSetpointComboBox.off.text" ), stringsBundle.getString( "spx42ConfigPanel.autoSetpointComboBox.5m.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.autoSetpointComboBox.10m.text" ), stringsBundle.getString( "spx42ConfigPanel.autoSetpointComboBox.15m.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.autoSetpointComboBox.20m.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       autoSetpointComboBox.setModel( portBoxModel );
-      autoSetpointComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.autoSetpointComboBox.tooltiptext" ) );
-      lblSetpointHighsetpoint.setText( stringsBundle.getString( "MainCommGUI.lblSetpointHighsetpoint.text" ) );
+      autoSetpointComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.autoSetpointComboBox.tooltiptext" ) );
+      lblSetpointHighsetpoint.setText( stringsBundle.getString( "spx42ConfigPanel.lblSetpointHighsetpoint.text" ) );
       highSetpointComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.highSetpointComboBox.10.text" ), stringsBundle.getString( "MainCommGUI.highSetpointComboBox.11.text" ),
-          stringsBundle.getString( "MainCommGUI.highSetpointComboBox.12.text" ), stringsBundle.getString( "MainCommGUI.highSetpointComboBox.13.text" ),
-          stringsBundle.getString( "MainCommGUI.highSetpointComboBox.14.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.highSetpointComboBox.10.text" ), stringsBundle.getString( "spx42ConfigPanel.highSetpointComboBox.11.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.highSetpointComboBox.12.text" ), stringsBundle.getString( "spx42ConfigPanel.highSetpointComboBox.13.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.highSetpointComboBox.14.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       highSetpointComboBox.setModel( portBoxModel );
-      highSetpointComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.highSetpointComboBox.tooltiptext" ) );
+      highSetpointComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.highSetpointComboBox.tooltiptext" ) );
       // DISPLAY
-      ( ( TitledBorder )( displayPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.displayPanel.text" ) );
-      lblDisplayBrightness.setText( stringsBundle.getString( "MainCommGUI.lblDisplayBrightness.text" ) );
+      ( ( TitledBorder )( displayPanel.getBorder() ) ).setTitle( stringsBundle.getString( "spx42ConfigPanel.displayPanel.text" ) );
+      lblDisplayBrightness.setText( stringsBundle.getString( "spx42ConfigPanel.lblDisplayBrightness.text" ) );
       displayBrightnessComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.10.text" ), stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.50.text" ),
-          stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.100.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.displayBrightnessComboBox.10.text" ), stringsBundle.getString( "spx42ConfigPanel.displayBrightnessComboBox.50.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.displayBrightnessComboBox.100.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       displayBrightnessComboBox.setModel( portBoxModel );
-      displayBrightnessComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.displayBrightnessComboBox.tooltiptext" ) );
-      lblDisplayOrientation.setText( stringsBundle.getString( "MainCommGUI.lblDisplayOrientation.text" ) );
+      displayBrightnessComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.displayBrightnessComboBox.tooltiptext" ) );
+      lblDisplayOrientation.setText( stringsBundle.getString( "spx42ConfigPanel.lblDisplayOrientation.text" ) );
       displayOrientationComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.displayOrientationComboBox.landscape.text" ), stringsBundle.getString( "MainCommGUI.displayOrientationComboBox.landscape180.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.displayOrientationComboBox.landscape.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.displayOrientationComboBox.landscape180.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       displayOrientationComboBox.setModel( portBoxModel );
-      displayOrientationComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.displayOrientationComboBox.tooltiptext" ) );
+      displayOrientationComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.displayOrientationComboBox.tooltiptext" ) );
       // UNITS
-      ( ( TitledBorder )( unitsPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.unitsPanel.text" ) );
-      lblUnitsTemperature.setText( stringsBundle.getString( "MainCommGUI.lblUnitsTemperature.text" ) );
+      ( ( TitledBorder )( unitsPanel.getBorder() ) ).setTitle( stringsBundle.getString( "spx42ConfigPanel.unitsPanel.text" ) );
+      lblUnitsTemperature.setText( stringsBundle.getString( "spx42ConfigPanel.lblUnitsTemperature.text" ) );
       unitsTemperatureComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.unitsTemperatureComboBox.fahrenheit.text" ), stringsBundle.getString( "MainCommGUI.unitsTemperatureComboBox.celsius.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.unitsTemperatureComboBox.fahrenheit.text" ), stringsBundle.getString( "spx42ConfigPanel.unitsTemperatureComboBox.celsius.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       unitsTemperatureComboBox.setModel( portBoxModel );
-      unitsTemperatureComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.unitsTemperatureComboBox.tooltiptext" ) );
-      lblUnitsDepth.setText( stringsBundle.getString( "MainCommGUI.lblUnitsDepth.text" ) );
+      unitsTemperatureComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.unitsTemperatureComboBox.tooltiptext" ) );
+      lblUnitsDepth.setText( stringsBundle.getString( "spx42ConfigPanel.lblUnitsDepth.text" ) );
       unitsDepthComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.unitsDepthComboBox.metrical.text" ), stringsBundle.getString( "MainCommGUI.unitsDepthComboBox.imperial.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.unitsDepthComboBox.metrical.text" ), stringsBundle.getString( "spx42ConfigPanel.unitsDepthComboBox.imperial.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       unitsDepthComboBox.setModel( portBoxModel );
-      unitsDepthComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.unitsDepthComboBox.tooltiptext" ) );
-      lblUnitsSalinity.setText( stringsBundle.getString( "MainCommGUI.lblUnitsSalinity.text" ) );
+      unitsDepthComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.unitsDepthComboBox.tooltiptext" ) );
+      lblUnitsSalinity.setText( stringsBundle.getString( "spx42ConfigPanel.lblUnitsSalinity.text" ) );
       unitsSalnityComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.unitsSalnityComboBox.saltwater.text" ), stringsBundle.getString( "MainCommGUI.unitsSalnityComboBox.clearwater.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.unitsSalnityComboBox.saltwater.text" ), stringsBundle.getString( "spx42ConfigPanel.unitsSalnityComboBox.clearwater.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       unitsSalnityComboBox.setModel( portBoxModel );
-      unitsSalnityComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.unitsSalnityComboBox.tooltiptext" ) );
+      unitsSalnityComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.unitsSalnityComboBox.tooltiptext" ) );
       // INDIVIDUALS
-      ( ( TitledBorder )( individualPanel.getBorder() ) ).setTitle( stringsBundle.getString( "MainCommGUI.individualPanel.text" ) );
-      lblSenormode.setText( stringsBundle.getString( "MainCommGUI.lblSenormode.text" ) );
-      individualsSensorsOnCheckbox.setText( stringsBundle.getString( "MainCommGUI.chIndividualsSensorsOnCheckbox.text" ) );
-      individualsSensorsOnCheckbox.setToolTipText( "MainCommGUI.chIndividualsSensorsOnCheckbox.tooltiptext" );
-      lblIndividualsPscrMode.setText( stringsBundle.getString( "MainCommGUI.lblIndividualsPscrMode.text" ) );
-      individualsPscrModeOnCheckbox.setText( stringsBundle.getString( "MainCommGUI.IndividualsPscrModoOnCheckbox.text" ) );
-      individualsPscrModeOnCheckbox.setToolTipText( stringsBundle.getString( "MainCommGUI.IndividualsPscrModoOnCheckbox.tooltiptext" ) );
-      lblSensorwarnings.setText( stringsBundle.getString( "MainCommGUI.lblSensorwarnings.text" ) );
+      ( ( TitledBorder )( individualPanel.getBorder() ) ).setTitle( stringsBundle.getString( "spx42ConfigPanel.individualPanel.text" ) );
+      lblSenormode.setText( stringsBundle.getString( "spx42ConfigPanel.lblSenormode.text" ) );
+      individualsSensorsOnCheckbox.setText( stringsBundle.getString( "spx42ConfigPanel.chIndividualsSensorsOnCheckbox.text" ) );
+      individualsSensorsOnCheckbox.setToolTipText( "spx42ConfigPanel.chIndividualsSensorsOnCheckbox.tooltiptext" );
+      lblIndividualsPscrMode.setText( stringsBundle.getString( "spx42ConfigPanel.lblIndividualsPscrMode.text" ) );
+      individualsPscrModeOnCheckbox.setText( stringsBundle.getString( "spx42ConfigPanel.IndividualsPscrModoOnCheckbox.text" ) );
+      individualsPscrModeOnCheckbox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.IndividualsPscrModoOnCheckbox.tooltiptext" ) );
+      lblSensorwarnings.setText( stringsBundle.getString( "spx42ConfigPanel.lblSensorwarnings.text" ) );
       individualsSensorWarnComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.1.text" ), stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.2.text" ),
-          stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.3.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.1.text" ), stringsBundle.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.2.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.3.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       individualsSensorWarnComboBox.setModel( portBoxModel );
-      individualsSensorWarnComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsSensorwarnComboBox.tooltiptext" ) );
-      individualsAcusticWarningsLabel.setText( stringsBundle.getString( "MainCommGUI.individualsAcusticWarningsLabel.text" ) );
-      individualsWarningsOnCheckBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsWarningsOnCheckBox.tooltiptext" ) );
-      individualsLogintervalLabel.setText( stringsBundle.getString( "MainCommGUI.individualsLogintervalLabel.text" ) );
+      individualsSensorWarnComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.tooltiptext" ) );
+      individualsAcusticWarningsLabel.setText( stringsBundle.getString( "spx42ConfigPanel.individualsAcusticWarningsLabel.text" ) );
+      individualsWarningsOnCheckBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.individualsWarningsOnCheckBox.tooltiptext" ) );
+      individualsLogintervalLabel.setText( stringsBundle.getString( "spx42ConfigPanel.individualsLogintervalLabel.text" ) );
       individualsLogintervalComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.10s.text" ), stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.20s.text" ),
-          stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.60s.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.individualsLogintervalComboBox.10s.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.individualsLogintervalComboBox.20s.text" ),
+          stringsBundle.getString( "spx42ConfigPanel.individualsLogintervalComboBox.60s.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       individualsLogintervalComboBox.setModel( portBoxModel );
-      individualsLogintervalComboBox.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsLogintervalComboBox.tooltiptext" ) );
-      individualsNotLicensedLabel.setToolTipText( stringsBundle.getString( "MainCommGUI.individualsNotLicensedLabel.tooltiptext" ) );
+      individualsLogintervalComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.individualsLogintervalComboBox.tooltiptext" ) );
+      individualsNotLicensedLabel.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.individualsNotLicensedLabel.tooltiptext" ) );
       individualsNotLicensedLabel.setText( " " );
     }
     catch( NullPointerException ex )
@@ -539,6 +542,7 @@ public class spx42ConfigPanel extends JPanel
     else
     {
       individualsNotLicensedLabel.setEnabled( true );
+      individualsNotLicensedLabel.setText( "" );
     }
     individualPanel.setEnabled( en );
   }

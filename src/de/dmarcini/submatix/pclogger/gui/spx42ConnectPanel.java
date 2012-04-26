@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.ImageIcon;
@@ -16,25 +17,32 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
-import de.dmarcini.submatix.pclogger.utils.AliasTableModel;
+import de.dmarcini.submatix.pclogger.utils.AliasEditTableModel;
+import de.dmarcini.submatix.pclogger.utils.DatabaseUtil;
 
-public class spx42ConnectPanel extends JPanel
+public class spx42ConnectPanel extends JPanel implements TableModelListener
 {
   /**
    * 
    */
   private static final long serialVersionUID = 1L;
   protected Logger          LOGGER           = null;
-  JComboBox                 deviceToConnectComboBox;
-  JButton                   connectButton;
-  JButton                   connectBtRefreshButton;
-  JProgressBar              discoverProgressBar;
-  JButton                   pinButton;
-  JLabel                    ackuLabel;
-  JButton                   deviceAliasButton;
-  private JTable            AliasEditTable;
+  public JComboBox          deviceToConnectComboBox;
+  public JButton            connectButton;
+  public JButton            connectBtRefreshButton;
+  public JProgressBar       discoverProgressBar;
+  public JButton            pinButton;
+  public JLabel             ackuLabel;
+  public JButton            deviceAliasButton;
+  public JTable             AliasEditTable;
   private JScrollPane       aliasScrollPane;
+  private String[]          columnNames      = null;
+  private String[][]        aliasData        = null;
+  private DatabaseUtil      dbUtil           = null;
+  private ResourceBundle    stringsBundle    = null;
 
   @SuppressWarnings( "unused" )
   private spx42ConnectPanel()
@@ -46,12 +54,23 @@ public class spx42ConnectPanel extends JPanel
    * Create the panel.
    * 
    * @param LOGGER
+   * @param _dbUtil
    * 
    */
-  public spx42ConnectPanel( Logger LOGGER )
+  public spx42ConnectPanel( Logger LOGGER, final DatabaseUtil _dbUtil )
   {
     this.LOGGER = LOGGER;
+    LOGGER.log( Level.FINE, "constructor..." );
+    this.dbUtil = _dbUtil;
+    dbUtil.closeDB();
+    aliasData = null;
+    columnNames = new String[2];
+    columnNames[0] = "DEVICE";
+    columnNames[1] = "ALIAS";
     initPanel();
+    dbUtil.createConnection();
+    aliasData = dbUtil.getAliasData();
+    dbUtil.closeDB();
   }
 
   /**
@@ -64,7 +83,6 @@ public class spx42ConnectPanel extends JPanel
    * 
    *         Stand: 22.04.2012 TODO
    */
-  @SuppressWarnings( "serial" )
   private void initPanel()
   {
     deviceToConnectComboBox = new JComboBox();
@@ -159,6 +177,7 @@ public class spx42ConnectPanel extends JPanel
    */
   public int setLanguageStrings( ResourceBundle stringsBundle, boolean connected )
   {
+    this.stringsBundle = stringsBundle;
     try
     {
       deviceToConnectComboBox.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.portComboBox.tooltiptext" ) );
@@ -181,25 +200,18 @@ public class spx42ConnectPanel extends JPanel
       deviceAliasButton.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.deviceAliasButton.tooltiptext" ) );
       //
       //
-      String[][] strField = new String[5][2];
-      strField[0][0] = "A0";
-      strField[0][1] = "D0";
-      strField[1][0] = "A1";
-      strField[1][1] = "D1";
-      strField[2][0] = "A2";
-      strField[2][1] = "D2";
-      strField[3][0] = "A3";
-      strField[3][1] = "D3";
-      strField[4][0] = "A4";
-      strField[4][1] = "D4";
-      AliasTableModel alMod = new AliasTableModel( strField );
-      String[] cNames = new String[2];
-      cNames[0] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn00.text" );
-      cNames[1] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn01.text" );
-      alMod.setCoumnNames( cNames );
-      AliasEditTable.setModel( alMod );
-      AliasEditTable.getColumnModel().getColumn( 0 ).setPreferredWidth( 153 );
-      AliasEditTable.getColumnModel().getColumn( 1 ).setPreferredWidth( 186 );
+      columnNames[0] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn00.text" );
+      columnNames[1] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn01.text" );
+      LOGGER.log( Level.FINE, "fill aliases in stringarray..." );
+      dbUtil.createConnection();
+      aliasData = dbUtil.getAliasData();
+      dbUtil.closeDB();
+      if( aliasData != null )
+      {
+        AliasEditTableModel alMod = new AliasEditTableModel( aliasData, columnNames );
+        alMod.addTableModelListener( this );
+        AliasEditTable.setModel( alMod );
+      }
     }
     catch( NullPointerException ex )
     {
@@ -217,5 +229,101 @@ public class spx42ConnectPanel extends JPanel
       return( 0 );
     }
     return( 1 );
+  }
+
+  /**
+   * 
+   * Bei wechsel des Verbindungszustandes muss einiges umgeräumt wereden
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 26.04.2012
+   * @param active
+   */
+  public void setElementsConnected( boolean active )
+  {
+    deviceToConnectComboBox.setEnabled( !active );
+    connectBtRefreshButton.setEnabled( !active );
+    connectButton.setEnabled( true );
+    pinButton.setEnabled( !active );
+    if( active )
+    {
+      connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.disconnectText" ) );
+      connectButton.setActionCommand( "disconnect" );
+      connectButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112.png" ) ) );
+    }
+    else
+    {
+      connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.connectText" ) );
+      connectButton.setActionCommand( "connect" );
+      connectButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112-mono.png" ) ) );
+    }
+  }
+
+  /**
+   * 
+   * Alias tabelle auffrischen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 26.04.2012 TODO
+   */
+  public void refreshAliasTable()
+  {
+    columnNames[0] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn00.text" );
+    columnNames[1] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn01.text" );
+    LOGGER.log( Level.FINE, "fill aliases in stringarray..." );
+    dbUtil.createConnection();
+    aliasData = dbUtil.getAliasData();
+    dbUtil.closeDB();
+    if( aliasData != null )
+    {
+      AliasEditTableModel alMod = new AliasEditTableModel( aliasData, columnNames );
+      alMod.addTableModelListener( this );
+      AliasEditTable.setModel( alMod );
+    }
+  }
+
+  /**
+   * 
+   * Elemente bei Bedarf abschalten
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 26.04.2012
+   * @param active
+   */
+  public void setElementsInactive( boolean active )
+  {
+    deviceToConnectComboBox.setEnabled( !active );
+    connectButton.setEnabled( !active );
+    pinButton.setEnabled( !active );
+    connectBtRefreshButton.setEnabled( active );
+  }
+
+  @Override
+  public void tableChanged( TableModelEvent ev )
+  {
+    int row;
+    String devName, devAlias;
+    //
+    // Es wurde die ALIAS-Tabelle verändert
+    // was hat er verändert?
+    row = ev.getFirstRow();
+    LOGGER.log( Level.FINE, String.format( "changedd row %d", row ) );
+    // devicename erfragen
+    devName = ( String )AliasEditTable.getModel().getValueAt( row, 0 );
+    // AliasName erfrage
+    devAlias = ( String )AliasEditTable.getModel().getValueAt( row, 1 );
+    dbUtil.createConnection();
+    dbUtil.updateDeviceAlias( devName, devAlias );
+    dbUtil.closeDB();
+    // TODO: Combobox ändern!!!!
   }
 }

@@ -47,6 +47,14 @@ public class DatabaseUtil implements IDatabaseUtil
     String sql;
     SQLiteStatement st;
     int version = 0;
+    // ist die Verbindung schon offen, einfach das Teil zurückgeben
+    if( db != null )
+    {
+      if( db.isOpen() )
+      {
+        return( db );
+      }
+    }
     // erzeuge eine Verbindung zur DB-Engine
     db = new SQLiteConnection( dbFile );
     try
@@ -252,5 +260,209 @@ public class DatabaseUtil implements IDatabaseUtil
       db = null;
     }
     LOGGER.log( Level.FINE, "close database...OK" );
+  }
+
+  @Override
+  public boolean updateDeviceAlias( final String devName, final String devAlias )
+  {
+    String sql;
+    //
+    LOGGER.log( Level.FINE, "try to update alias..." );
+    if( db == null )
+    {
+      LOGGER.log( Level.WARNING, "try to update alias even if database is not created! ABORT!" );
+      return( false );
+    }
+    if( !db.isOpen() )
+    {
+      LOGGER.log( Level.WARNING, "try to update alias even if database is closed! ABORT!" );
+      return( false );
+    }
+    // Ok, Datenbank da und geöffnet!
+    sql = String.format( "update %s set %s='%s' where %s like '%s';", ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, devAlias, ProjectConst.A_DEVNAME, devName );
+    LOGGER.log( Level.FINE, String.format( "update device alias <%s> to <%s>", devName, devAlias ) );
+    try
+    {
+      db.exec( sql );
+    }
+    catch( SQLiteException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to update device alias for device <%s> (%s)", devName, ex.getLocalizedMessage() ) );
+      return( false );
+    }
+    return( true );
+  }
+
+  @Override
+  public String[][] getAliasData()
+  {
+    String sql;
+    String[][] aliasData;
+    SQLiteStatement st;
+    String devName, aliasName;
+    int rows = 0, cnt = 0;
+    //
+    try
+    {
+      LOGGER.log( Level.FINE, "try to read aliases..." );
+      //
+      // Wie viele Einträge
+      //
+      sql = String.format( "select count(*) from %s", ProjectConst.A_DBALIAS );
+      st = db.prepare( sql );
+      if( st.step() )
+      {
+        rows = st.columnInt( 0 );
+        LOGGER.log( Level.FINE, String.format( "Aliases in database: %d", rows ) );
+      }
+      st.dispose();
+      if( rows == 0 )
+      {
+        return( null );
+      }
+      // Erzeuge das Array für die Tabelle
+      aliasData = new String[rows][2];
+      //
+      // Gib her die Einträge, wenn welche vorhanden sind
+      //
+      sql = String.format( "select %s,%s from %s order by %s;", ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME );
+      st = db.prepare( sql );
+      cnt = 0;
+      while( st.step() )
+      {
+        devName = st.columnString( 0 );
+        aliasName = st.columnString( 1 );
+        aliasData[cnt][0] = devName;
+        aliasData[cnt][1] = aliasName;
+        cnt++;
+        LOGGER.log( Level.FINE, String.format( "Read:%s::%s", devName, aliasName ) );
+      }
+      st.dispose();
+      return( aliasData );
+    }
+    catch( SQLiteException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to read device alias for devices (%s)", ex.getLocalizedMessage() ) );
+    }
+    return( null );
+  }
+
+  @Override
+  public String getAliasForName( final String devName )
+  {
+    String sql;
+    SQLiteStatement st;
+    String aliasName = null;
+    //
+    LOGGER.log( Level.FINE, "try to read aliases..." );
+    sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, devName );
+    try
+    {
+      st = db.prepare( sql );
+      if( st.step() )
+      {
+        aliasName = st.columnString( 0 );
+        LOGGER.log( Level.FINE, String.format( "Alias for device %s : %s", devName, aliasName ) );
+      }
+      st.dispose();
+    }
+    catch( SQLiteException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to read device alias for device %s (%s)", devName, ex.getLocalizedMessage() ) );
+      LOGGER.log( Level.SEVERE, sql );
+    }
+    return( aliasName );
+  }
+
+  @Override
+  public boolean addAliasForName( final String dev, final String alias )
+  {
+    String sql;
+    //
+    LOGGER.log( Level.FINE, "try to add alias..." );
+    sql = String.format( "insert into %s (%s, %s) values ('%s', '%s');", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, dev, alias );
+    try
+    {
+      db.exec( sql );
+    }
+    catch( SQLiteException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to insert device alias for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
+      return( false );
+    }
+    return( true );
+  }
+
+  @Override
+  public String getNameForAlias( final String aliasName )
+  {
+    String sql;
+    SQLiteStatement st;
+    String deviceName = null;
+    //
+    //
+    LOGGER.log( Level.FINE, "try to read device name for alias..." );
+    sql = String.format( "select %s from %s where %s like '%s';", ProjectConst.A_DEVNAME, ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, aliasName );
+    try
+    {
+      st = db.prepare( sql );
+      if( st.step() )
+      {
+        deviceName = st.columnString( 0 );
+        LOGGER.log( Level.FINE, String.format( "device name for alias %s : %s", aliasName, deviceName ) );
+      }
+      st.dispose();
+    }
+    catch( SQLiteException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to read device name for alias %s (%s)", aliasName, ex.getLocalizedMessage() ) );
+    }
+    return( deviceName );
+  }
+
+  @Override
+  public boolean setPinForDevice( final String dev, final String pin )
+  {
+    String sql;
+    //
+    LOGGER.log( Level.FINE, "try to set pin for device..." );
+    sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_PIN, pin, ProjectConst.A_DEVNAME, dev );
+    try
+    {
+      db.exec( sql );
+    }
+    catch( SQLiteException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to update pin for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
+      return( false );
+    }
+    return( true );
+  }
+
+  @Override
+  public String getPinForDevice( final String deviceName )
+  {
+    String sql;
+    SQLiteStatement st;
+    String pin = null;
+    //
+    //
+    LOGGER.log( Level.FINE, "try to read pin for device..." );
+    sql = String.format( "select %s from %s where %s like '%s';", ProjectConst.A_PIN, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, deviceName );
+    try
+    {
+      st = db.prepare( sql );
+      if( st.step() )
+      {
+        pin = st.columnString( 0 );
+        LOGGER.log( Level.FINE, String.format( "pin for device %s : %s", deviceName, pin ) );
+      }
+      st.dispose();
+    }
+    catch( SQLiteException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to read pin for device %s (%s)", deviceName, ex.getLocalizedMessage() ) );
+    }
+    return( pin );
   }
 }

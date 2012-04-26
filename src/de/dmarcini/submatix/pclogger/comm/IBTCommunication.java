@@ -31,6 +31,17 @@ public interface IBTCommunication
 
   public boolean discoverDevices( final boolean cached );
 
+  /**
+   * 
+   * Gibt ein Array von Namen zurück. Es handelt sich aber um die Aliase
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 26.04.2012
+   * @return TODO
+   */
   public String[] getNameArray();
 
   public boolean isConnected();

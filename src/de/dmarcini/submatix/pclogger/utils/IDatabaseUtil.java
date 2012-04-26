@@ -11,5 +11,19 @@ public interface IDatabaseUtil
 
   public SQLiteConnection createConnection();
 
+  public String[][] getAliasData();
+
+  public String getAliasForName( final String name );
+
+  public String getNameForAlias( final String alias );
+
+  public boolean addAliasForName( final String dev, final String alias );
+
+  public boolean setPinForDevice( final String dev, final String pin );
+
+  public String getPinForDevice( final String deviceName );
+
+  public boolean updateDeviceAlias( final String devName, final String devAlias );
+
   public void closeDB();
 }

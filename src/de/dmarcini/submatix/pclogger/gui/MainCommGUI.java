@@ -213,11 +213,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       System.out.println( "ERROR get resources <" + ex.getMessage() + "> try standart Strings..." );
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages_en" );
     }
+    prepareDatabase();
     initialize();
     // Listener setzen (braucht auch die Maps)
     setGlobalChangeListener();
     currentConfig.setLogger( LOGGER );
-    btComm = new BTCommunication( LOGGER );
+    btComm = new BTCommunication( LOGGER, sqliteDbUtil );
     btComm.addActionListener( this );
     String[] entrys = btComm.getNameArray();
     ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
@@ -240,7 +241,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       System.exit( -1 );
     }
-    prepareDatabase();
   }
 
   /**
@@ -295,7 +295,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     frmMainwindowtitle.getContentPane().add( tabbedPane, BorderLayout.CENTER );
     tabbedPane.addMouseMotionListener( this );
     // Connection Panel
-    connectionPanel = new spx42ConnectPanel( LOGGER );
+    connectionPanel = new spx42ConnectPanel( LOGGER, sqliteDbUtil );
     tabbedPane.addTab( "CONNECTION", null, connectionPanel, null );
     tabbedPane.setEnabledAt( 0, true );
     // config Panel
@@ -1285,6 +1285,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         btComm.askForSerialNumber();
         btComm.askForLicenseFromSPX();
         btComm.askForFirmwareVersion();
+        connectionPanel.refreshAliasTable();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Device wurde getrennt
@@ -1298,6 +1299,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         setElementsConnected( false );
         setAllConfigPanlelsEnabled( false );
         gasConfigPanel.setElementsGasMatrixPanelEnabled( false );
+        connectionPanel.refreshAliasTable();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // BT Discovering war erfolgreich
@@ -1683,11 +1685,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void setElementsInactive( boolean active )
   {
-    connectionPanel.deviceToConnectComboBox.setEnabled( !active );
+    connectionPanel.setElementsInactive( active );
     tabbedPane.setEnabledAt( 1, active );
-    connectionPanel.connectButton.setEnabled( !active );
-    connectionPanel.pinButton.setEnabled( !active );
-    connectionPanel.connectBtRefreshButton.setEnabled( active );
   }
 
   /**
@@ -1703,25 +1702,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void setElementsConnected( boolean active )
   {
-    connectionPanel.deviceToConnectComboBox.setEnabled( !active );
-    connectionPanel.connectBtRefreshButton.setEnabled( !active );
+    connectionPanel.setElementsConnected( active );
     tabbedPane.setEnabledAt( 1, active );
     tabbedPane.setEnabledAt( 2, active );
     tabbedPane.setEnabledAt( 3, active );
-    connectionPanel.connectButton.setEnabled( true );
-    connectionPanel.pinButton.setEnabled( !active );
-    if( active )
+    if( !active )
     {
-      connectionPanel.connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.disconnectText" ) );
-      connectionPanel.connectButton.setActionCommand( "disconnect" );
-      connectionPanel.connectButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112.png" ) ) );
-    }
-    else
-    {
-      connectionPanel.connectButton.setText( stringsBundle.getString( "MainCommGUI.connectButton.connectText" ) );
-      connectionPanel.connectButton.setActionCommand( "connect" );
-      connectionPanel.connectButton.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112-mono.png" ) ) );
-      connectionPanel.ackuLabel.setText( "-" );
       configPanel.serialNumberText.setText( "-" );
       configPanel.firmwareVersionValueLabel.setText( "-" );
       if( savedConfig != null )

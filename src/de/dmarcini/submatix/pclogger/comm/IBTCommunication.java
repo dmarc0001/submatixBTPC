@@ -40,9 +40,10 @@ public interface IBTCommunication
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 26.04.2012
+   * @param aliasFromDB
    * @return TODO
    */
-  public String[] getNameArray();
+  public String[] getNameArray( boolean aliasFromDB );
 
   public boolean isConnected();
 

@@ -1,15 +1,15 @@
 package de.dmarcini.submatix.pclogger.utils;
 
-import com.almworks.sqlite4java.SQLiteConnection;
-import com.almworks.sqlite4java.SQLiteException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public interface IDatabaseUtil
 {
-  public SQLiteConnection createNewDatabase() throws SQLiteException;
+  public Connection createNewDatabase() throws SQLException, ClassNotFoundException;
 
-  public SQLiteConnection createNewDatabase( String dbFileName ) throws SQLiteException;
+  public Connection createNewDatabase( String dbFileName ) throws SQLException, ClassNotFoundException;
 
-  public SQLiteConnection createConnection();
+  public Connection createConnection();
 
   public String[][] getAliasData();
 
@@ -24,6 +24,8 @@ public interface IDatabaseUtil
   public String getPinForDevice( final String deviceName );
 
   public boolean updateDeviceAlias( final String devName, final String devAlias );
+
+  public boolean isOpenDB();
 
   public void closeDB();
 }

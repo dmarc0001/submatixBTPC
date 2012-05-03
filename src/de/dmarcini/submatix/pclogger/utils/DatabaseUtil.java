@@ -1,22 +1,27 @@
 package de.dmarcini.submatix.pclogger.utils;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.almworks.sqlite4java.SQLiteConnection;
-import com.almworks.sqlite4java.SQLiteException;
-import com.almworks.sqlite4java.SQLiteStatement;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
 //@formatter:off
+/**
+ * @author dmarc
+ *
+ */
 public class DatabaseUtil implements IDatabaseUtil
 {
   private Logger                             LOGGER = null;
   private File                               dbFile = null; 
-  private SQLiteConnection                       db = null; 
-
+  private Connection                         conn   = null;
+  
   
 //@formatter:on
   @SuppressWarnings( "unused" )
@@ -24,14 +29,9 @@ public class DatabaseUtil implements IDatabaseUtil
   {};
 
   /**
+   * Konstruktor der Datenbank-Utilitys Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * Konstruktor der Datenbank-Utilitys
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 23.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 23.04.2012
    * @param LOGGER
    * @param dbFileName
    */
@@ -39,122 +39,143 @@ public class DatabaseUtil implements IDatabaseUtil
   {
     this.LOGGER = LOGGER;
     dbFile = new File( dbFileName );
+    conn = null;
   }
 
   @Override
-  public SQLiteConnection createConnection()
+  public Connection createConnection()
   {
-    String sql;
-    SQLiteStatement st;
     int version = 0;
-    // ist die Verbindung schon offen, einfach das Teil zurückgeben
-    if( db != null )
-    {
-      if( db.isOpen() )
-      {
-        return( db );
-      }
-    }
-    // erzeuge eine Verbindung zur DB-Engine
-    db = new SQLiteConnection( dbFile );
+    //
     try
     {
-      // Datenbank öffnen, wenn File vorhanden
-      db.open( false );
-      LOGGER.log( Level.FINE, "database opened, read version..." );
-      //@formatter:off
-      sql = String.format( 
-              "select max( %s ) from %s;",
-              ProjectConst.V_VERSION,
-              ProjectConst.V_DBVERSION
-             );
-      //@formatter:on
-      st = db.prepare( sql );
-      // st.bind( 0, version );
-      // gibt es ein Ergebnis
-      if( st.step() )
+      if( conn != null )
       {
-        version = st.columnInt( 0 );
-        LOGGER.log( Level.FINE, String.format( "database read version:%d", version ) );
+        if( !conn.isClosed() )
+        {
+          return( conn );
+        }
       }
+      // erzeuge eine Verbindung zur DB-Engine
+      conn = null;
+      Class.forName( "org.sqlite.JDBC" );
+      conn = DriverManager.getConnection( "jdbc:sqlite:" + dbFile.getAbsoluteFile() );
+      conn.setAutoCommit( false );
+      // Datenbank öffnen, wenn File vorhanden
+      LOGGER.log( Level.FINE, "database <" + dbFile.getAbsoluteFile() + "> opened..." );
+      version = readDatabaseVersion();
       if( version != ProjectConst.DB_VERSION )
       {
-        // ACHTUNG, da hat sich was geändert!
+        // ACHTUNG, da hat sich was geändert! Oder die DB war nicht vorhanden
         // ich muß mir was einfallen lassen
         _updateDatabaseVersion( version );
       }
     }
-    catch( SQLiteException ex )
+    catch( ClassNotFoundException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ClassNotFoundException <" + ex.getLocalizedMessage() + ">" );
+      return( null );
+    }
+    catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, "Can't open/recreate Database <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      try
+      return( null );
+    }
+    return( conn );
+  }
+
+  /**
+   * HEADER
+   * 
+   * @author Dirk Marciniak 02.05.2012 void
+   */
+  private int readDatabaseVersion()
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    int version = 0;
+    //
+    LOGGER.log( Level.FINE, "read database version..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( 0 );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select max( %s ) from %s;",
+            ProjectConst.V_VERSION,
+            ProjectConst.V_DBVERSION
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
       {
-        return( _createNewDatabase( dbFile ) );
-      }
-      catch( SQLiteException ex1 )
-      {
-        LOGGER.log( Level.SEVERE, "Can't create/open Database <" + dbFile.getName() + "> (" + ex1.getLocalizedMessage() + ")" );
-        return( null );
+        version = rs.getInt( 1 );
+        LOGGER.log( Level.FINE, String.format( "database read version:%d", version ) );
+        rs.close();
+        return( version );
       }
     }
-    return( db );
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return( 0 );
+    }
+    return( 0 );
   }
 
   @Override
-  public SQLiteConnection createNewDatabase() throws SQLiteException
+  public Connection createNewDatabase() throws SQLException, ClassNotFoundException
   {
     return( _createNewDatabase( dbFile ) );
   }
 
   @Override
-  public SQLiteConnection createNewDatabase( String dbFileName ) throws SQLiteException
+  public Connection createNewDatabase( String dbFileName ) throws SQLException, ClassNotFoundException
   {
     dbFile = new File( dbFileName );
     return( _createNewDatabase( dbFile ) );
   }
 
   /**
+   * Interne Funktion zum erzeugen einer nagelneuen Datenbank Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * Interne Funktion zum erzeugen einer nagelneuen Datenbank
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 23.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 23.04.2012
    * @param dbFl
    *          Fileobjekt
-   * @throws SQLiteException
+   * @throws ClassNotFoundException
    */
-  private SQLiteConnection _createNewDatabase( File dbFl ) throws SQLiteException
+  private Connection _createNewDatabase( File dbFl ) throws SQLException, ClassNotFoundException
   {
     String sql;
+    Statement stat;
     //
     LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
     dbFile = dbFl;
     // DB schliessen, wenn offen
-    if( db != null )
+    if( conn != null )
     {
-      if( db.isOpen() )
+      if( conn.isClosed() )
       {
-        db.dispose();
+        conn = null;
       }
-      db = null;
+      else
+      {
+        conn.close();
+        conn = null;
+      }
     }
     // Datendatei verschwinden lassen
     dbFile.delete();
-    db = new SQLiteConnection( dbFile );
-    try
-    {
-      // //////////////////////////////////////////////////////////////////////
-      // Datenbank öffnen / erzeugen
-      db.open( true );
-    }
-    catch( SQLiteException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't create Database <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
+    Class.forName( "org.sqlite.JDBC" );
+    conn = DriverManager.getConnection( "jdbc:sqlite:" + dbFile.getAbsolutePath() );
+    conn.setAutoCommit( true );
+    stat = conn.createStatement();
     // ////////////////////////////////////////////////////////////////////////
     // Datentabellen erzeugen
     //
@@ -167,7 +188,7 @@ public class DatabaseUtil implements IDatabaseUtil
             ProjectConst.V_VERSION
            );
     LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.V_DBVERSION ) );
-    db.exec( sql );
+    stat.execute(sql);
     // Versionsnummer reinschreiben
     sql = String.format( 
             "insert into %s ( %s ) values ( '%d' );",
@@ -176,7 +197,8 @@ public class DatabaseUtil implements IDatabaseUtil
             ProjectConst.DB_VERSION
            );
     LOGGER.log( Level.FINE, String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
-    db.exec( sql );
+    stat.execute(sql);
+    stat.close();
     //@formatter:on
     //
     // ////////////////////////////////////////////////////////////////////////
@@ -191,58 +213,58 @@ public class DatabaseUtil implements IDatabaseUtil
             );
     //@formatter:on
     LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.V_DBVERSION ) );
-    db.exec( sql );
+    stat.execute( sql );
+    stat.close();
+    conn.commit();
     // TODO: weitere Tabellen :-)
-    return( db );
+    return( conn );
   }
 
   /**
+   * Aus der DB alle Tabellen löschen... Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * Aus der DB alle Tabellen löschen...
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 24.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.04.2012
+   * @throws SQLException
    * @throws SQLiteException
    */
-  private void _dropTablesFromDatabase() throws SQLiteException
+  private void _dropTablesFromDatabase() throws SQLException
   {
     String sql;
+    Statement stat;
+    stat = conn.createStatement();
     //@formatter:off
     sql = String.format( 
-            "drop table %s;",
+            "drop table if exists %s;",
             ProjectConst.V_DBVERSION
            );
     LOGGER.log( Level.FINE, String.format( "drop table: %s", ProjectConst.V_DBVERSION ) );
-    db.exec( sql );
+    stat.execute(sql);
+    stat.close();
     //@formatter:on
     //
     // ////////////////////////////////////////////////////////////////////////
     // Die Tabelle für Geräte (Tauchcompis mit aliasnamen und PIN)
     //@formatter:off
     sql = String.format( 
-            "drop table %s;",
+            "drop table if exists %s;",
             ProjectConst.A_DBALIAS
             );
     //@formatter:on
     LOGGER.log( Level.FINE, String.format( "drop table: %s", ProjectConst.A_DBALIAS ) );
-    db.exec( sql );
+    stat.execute( sql );
+    stat.close();
+    conn.commit();
   }
 
   /**
+   * Wenn sich die Versionsnummer der DB verändert hat, Datenbankinhalt/Struktur anpassen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * Wenn sich die Versionsnummer der DB verändert hat, Datenbankinhalt/Struktur anpassen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 24.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.04.2012
+   * @throws SQLException
+   * @throws ClassNotFoundException
    * @throws SQLiteException
    */
-  private void _updateDatabaseVersion( int oldVersion ) throws SQLiteException
+  private void _updateDatabaseVersion( int oldVersion ) throws SQLException, ClassNotFoundException
   {
     // erst mal vor dem Release: stumpf Tabellen löschen und neu anlegen
     LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
@@ -253,11 +275,24 @@ public class DatabaseUtil implements IDatabaseUtil
   @Override
   public void closeDB()
   {
-    LOGGER.log( Level.FINE, "close database..." );
-    if( db != null )
+    LOGGER.log( Level.FINE, "try close database..." );
+    if( conn != null )
     {
-      db.dispose();
-      db = null;
+      try
+      {
+        if( !conn.isClosed() )
+        {
+          conn.commit();
+          LOGGER.log( Level.FINE, "close database..." );
+          conn.close();
+          conn = null;
+        }
+      }
+      catch( SQLException ex )
+      {
+        LOGGER.log( Level.SEVERE, "Can't close Database <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+        return;
+      }
     }
     LOGGER.log( Level.FINE, "close database...OK" );
   }
@@ -266,26 +301,30 @@ public class DatabaseUtil implements IDatabaseUtil
   public boolean updateDeviceAlias( final String devName, final String devAlias )
   {
     String sql;
+    Statement stat;
     //
     LOGGER.log( Level.FINE, "try to update alias..." );
-    if( db == null )
+    if( conn == null )
     {
       LOGGER.log( Level.WARNING, "try to update alias even if database is not created! ABORT!" );
       return( false );
     }
-    if( !db.isOpen() )
-    {
-      LOGGER.log( Level.WARNING, "try to update alias even if database is closed! ABORT!" );
-      return( false );
-    }
-    // Ok, Datenbank da und geöffnet!
-    sql = String.format( "update %s set %s='%s' where %s like '%s';", ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, devAlias, ProjectConst.A_DEVNAME, devName );
-    LOGGER.log( Level.FINE, String.format( "update device alias <%s> to <%s>", devName, devAlias ) );
     try
     {
-      db.exec( sql );
+      if( conn.isClosed() )
+      {
+        LOGGER.log( Level.WARNING, "try to update alias even if database is closed! ABORT!" );
+        return( false );
+      }
+      // Ok, Datenbank da und geöffnet!
+      stat = conn.createStatement();
+      sql = String.format( "update %s set %s='%s' where %s like '%s';", ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, devAlias, ProjectConst.A_DEVNAME, devName );
+      LOGGER.log( Level.FINE, String.format( "update device alias <%s> to <%s>", devName, devAlias ) );
+      stat.execute( sql );
+      stat.close();
+      conn.commit();
     }
-    catch( SQLiteException ex )
+    catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, String.format( "fail to update device alias for device <%s> (%s)", devName, ex.getLocalizedMessage() ) );
       return( false );
@@ -298,24 +337,31 @@ public class DatabaseUtil implements IDatabaseUtil
   {
     String sql;
     String[][] aliasData;
-    SQLiteStatement st;
+    Statement stat;
+    ResultSet rs;
     String devName, aliasName;
     int rows = 0, cnt = 0;
     //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
     try
     {
       LOGGER.log( Level.FINE, "try to read aliases..." );
+      stat = conn.createStatement();
       //
       // Wie viele Einträge
       //
       sql = String.format( "select count(*) from %s", ProjectConst.A_DBALIAS );
-      st = db.prepare( sql );
-      if( st.step() )
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
       {
-        rows = st.columnInt( 0 );
+        rows = rs.getInt( 1 );
         LOGGER.log( Level.FINE, String.format( "Aliases in database: %d", rows ) );
       }
-      st.dispose();
+      rs.close();
       if( rows == 0 )
       {
         return( null );
@@ -326,21 +372,22 @@ public class DatabaseUtil implements IDatabaseUtil
       // Gib her die Einträge, wenn welche vorhanden sind
       //
       sql = String.format( "select %s,%s from %s order by %s;", ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME );
-      st = db.prepare( sql );
+      rs = stat.executeQuery( sql );
       cnt = 0;
-      while( st.step() )
+      while( rs.next() )
       {
-        devName = st.columnString( 0 );
-        aliasName = st.columnString( 1 );
+        devName = rs.getString( 1 );
+        aliasName = rs.getString( 2 );
         aliasData[cnt][0] = devName;
         aliasData[cnt][1] = aliasName;
         cnt++;
         LOGGER.log( Level.FINE, String.format( "Read:%s::%s", devName, aliasName ) );
       }
-      st.dispose();
+      rs.close();
+      stat.close();
       return( aliasData );
     }
-    catch( SQLiteException ex )
+    catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, String.format( "fail to read device alias for devices (%s)", ex.getLocalizedMessage() ) );
     }
@@ -351,22 +398,30 @@ public class DatabaseUtil implements IDatabaseUtil
   public String getAliasForName( final String devName )
   {
     String sql;
-    SQLiteStatement st;
+    Statement stat;
+    ResultSet rs;
     String aliasName = null;
     //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
     LOGGER.log( Level.FINE, "try to read aliases..." );
     sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, devName );
     try
     {
-      st = db.prepare( sql );
-      if( st.step() )
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
       {
-        aliasName = st.columnString( 0 );
+        aliasName = rs.getString( 1 );
         LOGGER.log( Level.FINE, String.format( "Alias for device %s : %s", devName, aliasName ) );
       }
-      st.dispose();
+      rs.close();
+      stat.close();
     }
-    catch( SQLiteException ex )
+    catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, String.format( "fail to read device alias for device %s (%s)", devName, ex.getLocalizedMessage() ) );
       LOGGER.log( Level.SEVERE, sql );
@@ -378,14 +433,23 @@ public class DatabaseUtil implements IDatabaseUtil
   public boolean addAliasForName( final String dev, final String alias )
   {
     String sql;
+    Statement stat;
     //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( false );
+    }
     LOGGER.log( Level.FINE, "try to add alias..." );
     sql = String.format( "insert into %s (%s, %s) values ('%s', '%s');", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, dev, alias );
     try
     {
-      db.exec( sql );
+      stat = conn.createStatement();
+      stat.executeQuery( sql );
+      stat.close();
+      conn.commit();
     }
-    catch( SQLiteException ex )
+    catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, String.format( "fail to insert device alias for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
       return( false );
@@ -397,23 +461,31 @@ public class DatabaseUtil implements IDatabaseUtil
   public String getNameForAlias( final String aliasName )
   {
     String sql;
-    SQLiteStatement st;
+    Statement stat;
+    ResultSet rs;
     String deviceName = null;
     //
     //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
     LOGGER.log( Level.FINE, "try to read device name for alias..." );
     sql = String.format( "select %s from %s where %s like '%s';", ProjectConst.A_DEVNAME, ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, aliasName );
     try
     {
-      st = db.prepare( sql );
-      if( st.step() )
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
       {
-        deviceName = st.columnString( 0 );
+        deviceName = rs.getString( 1 );
         LOGGER.log( Level.FINE, String.format( "device name for alias %s : %s", aliasName, deviceName ) );
       }
-      st.dispose();
+      rs.close();
+      stat.close();
     }
-    catch( SQLiteException ex )
+    catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, String.format( "fail to read device name for alias %s (%s)", aliasName, ex.getLocalizedMessage() ) );
     }
@@ -424,14 +496,23 @@ public class DatabaseUtil implements IDatabaseUtil
   public boolean setPinForDevice( final String dev, final String pin )
   {
     String sql;
+    Statement stat;
     //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( false );
+    }
     LOGGER.log( Level.FINE, "try to set pin for device..." );
     sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_PIN, pin, ProjectConst.A_DEVNAME, dev );
     try
     {
-      db.exec( sql );
+      stat = conn.createStatement();
+      stat.executeQuery( sql );
+      stat.close();
+      conn.commit();
     }
-    catch( SQLiteException ex )
+    catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, String.format( "fail to update pin for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
       return( false );
@@ -443,26 +524,52 @@ public class DatabaseUtil implements IDatabaseUtil
   public String getPinForDevice( final String deviceName )
   {
     String sql;
-    SQLiteStatement st;
+    Statement stat;
+    ResultSet rs;
     String pin = null;
     //
     //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
     LOGGER.log( Level.FINE, "try to read pin for device..." );
     sql = String.format( "select %s from %s where %s like '%s';", ProjectConst.A_PIN, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, deviceName );
     try
     {
-      st = db.prepare( sql );
-      if( st.step() )
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
       {
-        pin = st.columnString( 0 );
+        pin = rs.getString( 1 );
         LOGGER.log( Level.FINE, String.format( "pin for device %s : %s", deviceName, pin ) );
       }
-      st.dispose();
+      rs.close();
+      stat.close();
     }
-    catch( SQLiteException ex )
+    catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, String.format( "fail to read pin for device %s (%s)", deviceName, ex.getLocalizedMessage() ) );
     }
     return( pin );
+  }
+
+  @Override
+  public boolean isOpenDB()
+  {
+    if( conn == null )
+    {
+      return( false );
+    }
+    try
+    {
+      return( !conn.isClosed() );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to check database ist opened (%s))", ex.getLocalizedMessage() ) );
+    }
+    return( false );
   }
 }

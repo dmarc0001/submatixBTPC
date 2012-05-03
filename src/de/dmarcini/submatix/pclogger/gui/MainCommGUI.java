@@ -59,8 +59,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.almworks.sqlite4java.SQLiteConnection;
-
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.DatabaseUtil;
@@ -69,6 +67,10 @@ import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 
 //@formatter:off
+/**
+ * @author dmarc
+ *
+ */
 public class MainCommGUI extends JFrame implements ActionListener, MouseMotionListener, ChangeListener, ItemListener
 {  //
   private static final long                  serialVersionUID    = 2L;
@@ -101,7 +103,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private int                                licenseState        = -1;
   private int                                customConfig        = -1;
   private DatabaseUtil                       sqliteDbUtil        = null;
-  private SQLiteConnection                   dbConn              = null;
   //
   // @formatter:on
   private JFrame                  frmMainwindowtitle;
@@ -214,13 +215,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages_en" );
     }
     prepareDatabase();
-    initialize();
-    // Listener setzen (braucht auch die Maps)
-    setGlobalChangeListener();
     currentConfig.setLogger( LOGGER );
     btComm = new BTCommunication( LOGGER, sqliteDbUtil );
     btComm.addActionListener( this );
-    String[] entrys = btComm.getNameArray();
+    initialize();
+    // Listener setzen (braucht auch die Maps)
+    setGlobalChangeListener();
+    String[] entrys = btComm.getNameArray( false );
     ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
     connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
     initLanuageMenu( programLocale );
@@ -244,14 +245,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Datenbankfür das Programm vorbereiten oder erzeugen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Datenbankfür das Programm vorbereiten oder erzeugen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 24.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.04.2012
    */
   private void prepareDatabase()
   {
@@ -263,9 +259,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       System.exit( -1 );
     }
     // öffne die Datenbank
-    dbConn = sqliteDbUtil.createConnection();
     // ging das?
-    if( dbConn == null )
+    if( sqliteDbUtil.createConnection() == null )
     {
       System.exit( -1 );
     }
@@ -295,7 +290,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     frmMainwindowtitle.getContentPane().add( tabbedPane, BorderLayout.CENTER );
     tabbedPane.addMouseMotionListener( this );
     // Connection Panel
-    connectionPanel = new spx42ConnectPanel( LOGGER, sqliteDbUtil );
+    connectionPanel = new spx42ConnectPanel( LOGGER, sqliteDbUtil, btComm );
     tabbedPane.addTab( "CONNECTION", null, connectionPanel, null );
     tabbedPane.setEnabledAt( 0, true );
     // config Panel
@@ -349,14 +344,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Setze alle Strings im Form Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Setze alle Strings im Form
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.12.2011
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
    */
   private int setLanguageStrings()
   {
@@ -437,14 +427,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * verfügbare Sprachen in Menü eintragen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * verfügbare Sprachen in Menü eintragen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.12.2011
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
    * @param programLocale
    */
   private void initLanuageMenu( Locale programLocale )
@@ -522,14 +507,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Statustext in der Statuszeile setzen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Statustext in der Statuszeile setzen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 24.12.2011
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.12.2011
    * @param msg
    */
   private void setStatus( String msg )
@@ -541,21 +521,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Eventuell geordnetes Aufräumen hier Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Eventuell geordnetes Aufräumen hier
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.12.2011
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
    */
   private void exitProgram()
   {
     if( sqliteDbUtil != null )
     {
-      sqliteDbUtil.closeDB();
-      dbConn = null;
+      if( sqliteDbUtil.isOpenDB() )
+      {
+        sqliteDbUtil.closeDB();
+      }
+      sqliteDbUtil = null;
     }
     if( btComm != null )
     {
@@ -574,14 +552,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Systemlogger machen! Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Systemlogger machen!
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.12.2011
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
    * @param logFile
    * @param logLevel
    */
@@ -677,14 +650,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Bearbeitet Combobox actions Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Bearbeitet Combobox actions
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 07.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
    * @param ev
    *          Avtion event
    */
@@ -802,14 +770,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Wurde das Preset verändert, Spinner entsprechend ausfüllen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Wurde das Preset verändert, Spinner entsprechend ausfüllen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
    * @param selectedIndex
    *          Der Index der Combobox
    */
@@ -834,14 +797,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Bearbeitet Button Actions Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Bearbeitet Button Actions
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 07.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
    * @param ev
    *          Avtion event
    */
@@ -917,6 +875,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       setPinForDevice();
     }
     // /////////////////////////////////////////////////////////////////////////
+    // Alias editor zeigen
+    else if( cmd.equals( "alias_bt_devices_on" ) )
+    {
+      LOGGER.log( Level.INFO, "alias editor show..." );
+      connectionPanel.setAliasesEditable( true );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Alias editor zeigen
+    else if( cmd.equals( "alias_bt_devices_off" ) )
+    {
+      LOGGER.log( Level.INFO, "alias editor hide..." );
+      connectionPanel.setAliasesEditable( false );
+    }
+    // /////////////////////////////////////////////////////////////////////////
     // ich will die Gasliste haben!
     else if( cmd.equals( "read_gaslist" ) )
     {
@@ -937,7 +909,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     // /////////////////////////////////////////////////////////////////////////
-    // ich will die Gasliste haben!
+    // ich will die Gasliste schreiben!
     else if( cmd.equals( "write_gaslist" ) )
     {
       LOGGER.log( Level.INFO, "call write gaslist to device..." );
@@ -973,14 +945,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Schreibe die aktuelle Konfiguration in den SPX42 Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Schreibe die aktuelle Konfiguration in den SPX42
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 11.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.04.2012
    * @param cnf
    *          Config objekt
    */
@@ -996,14 +963,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Setze PIN für Gerät in der Auswahl Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Setze PIN für Gerät in der Auswahl
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 22.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.01.2012
    */
   private void setPinForDevice()
   {
@@ -1028,14 +990,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Bearbeitet Menüaktionen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Bearbeitet Menüaktionen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 07.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
    * @param ev
    *          Avtion event
    */
@@ -1080,14 +1037,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Bearbeitet meine "Messages" Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Bearbeitet meine "Messages"
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 07.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
    * @param ev
    *          Avtion event
    */
@@ -1458,14 +1410,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Ackuwert des SPX anzeigen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Ackuwert des SPX anzeigen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 22.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.01.2012
    */
   private void setAckuValue( String vl )
   {
@@ -1483,31 +1430,21 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Die devicebox neu befüllen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Die devicebox neu befüllen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 11.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.01.2012
    */
   private void refillPortComboBox()
   {
-    String[] entrys = btComm.getNameArray();
+    String[] entrys = btComm.getNameArray( false );
     ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
     connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
   }
 
   /**
+   * Die Statusbar soll sich bewegen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Die Statusbar soll sich bewegen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 10.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 10.01.2012
    */
   private void moveStatusBar()
   {
@@ -1520,14 +1457,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Oberfläche für/nach Discover bereiten Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Oberfläche für/nach Discover bereiten
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 10.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 10.01.2012
    * @param isDiscovering
    */
   private void setElementsDiscovering( boolean isDiscovering )
@@ -1540,14 +1472,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Zeigt eine Warnung an Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Zeigt eine Warnung an
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 07.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
    * @param msg
    *          Warnmessage
    */
@@ -1581,14 +1508,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Zeige eine klein Info über das Proggi an Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Zeige eine klein Info über das Proggi an
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 05.01.2012
    */
   private void showInfoDialog()
   {
@@ -1624,14 +1546,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Zeige ein Hilfe-Fenster Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Zeige ein Hilfe-Fenster
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 28.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
    */
   private void showHelpForm()
   {
@@ -1672,14 +1589,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Beim Verbindungsaufbau inaktiv zeigen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Beim Verbindungsaufbau inaktiv zeigen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
    * @param active
    *          Aktiv oder nicht
    */
@@ -1690,14 +1602,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Elemente abhängig vom Connectstatus erlauben/sperren Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Elemente abhängig vom Connectstatus erlauben/sperren
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 22.12.2011
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.12.2011
    * @param active
    */
   private void setElementsConnected( boolean active )
@@ -1719,14 +1626,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Verbine mit SPX42 Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Verbine mit SPX42
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 20.12.2011
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 20.12.2011
    */
   private void connectSPX()
   {
@@ -1758,14 +1660,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Verbindung trennen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Verbindung trennen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 20.12.2011
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 20.12.2011
    */
   private void disconnectSPX()
   {
@@ -1777,14 +1674,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Programmsprache wechseln Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Programmsprache wechseln
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 19.12.2011
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 19.12.2011
    * @param cmd
    *          Sprachenk�rzel
    */
@@ -1873,14 +1765,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Ändere Heliumanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Ändere Heliumanteil vom Gas Nummer X
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
    * @param gasNr
    *          welches Gas denn
    * @param he
@@ -1936,14 +1823,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Ändere Sauerstoffanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Ändere Sauerstoffanteil vom Gas Nummer X
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
    * @param gasNr
    *          welches Gas
    * @param o2
@@ -2000,14 +1882,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Gib einen Kurznamen für das Gasgemisch Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Gib einen Kurznamen für das Gasgemisch
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
    * @param gasNr
    *          Gasnummer
    */
@@ -2046,14 +1923,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Setze combobox für Deco Gradienten Preset entsprechend der Angaben in den Spinnern Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Setze combobox für Deco Gradienten Preset entsprechend der Angaben in den Spinnern
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
    * @param decoValue
    */
   private void setDecoComboAfterSpinnerChange()
@@ -2177,14 +2049,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * CLI-Optionen einlesen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * CLI-Optionen einlesen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 28.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
    * @param args
    * @return
    */
@@ -2222,14 +2089,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Aus dem String von Loglevel den Logging-Wert machen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Aus dem String von Loglevel den Logging-Wert machen
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 28.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
    * @param optionValue
    * @return
    */
@@ -2279,14 +2141,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Setze das neue Logfile, wenn gewünscht Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Setze das neue Logfile, wenn gewünscht
-   * 
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 28.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
    * @param optionValue
    * @return File
    */
@@ -2352,14 +2209,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Die Callbacks setzen, wenn sich in den Panels was ändert! Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Die Callbacks setzen, wenn sich in den Panels was ändert!
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 22.04.2012 TODO
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012 TODO
    */
   private void setGlobalChangeListener()
   {

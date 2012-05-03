@@ -752,13 +752,15 @@ public class BTCommunication implements IBTCommunication
   {
     LOGGER = lg;
     this.dbUtil = dbUtil;
-    dbUtil.closeDB();
     if( lg == null )
       log = false;
     else
       log = true;
     // besorg mir die Gerätenamen aus der Datenbank
-    dbUtil.createConnection();
+    if( !this.dbUtil.isOpenDB() )
+    {
+      this.dbUtil.createConnection();
+    }
     String[][] alData = dbUtil.getAliasData();
     // gibt es welche: eintragen
     if( alData != null )
@@ -768,7 +770,6 @@ public class BTCommunication implements IBTCommunication
         deviceAliasHash.put( pair[0], pair[1] );
       }
     }
-    dbUtil.closeDB();
   }
 
   @Override
@@ -987,10 +988,29 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
-  public String[] getNameArray()
+  public String[] getNameArray( boolean alFromDb )
   {
     ArrayList<String> nList = new ArrayList<String>();
     String alias = null;
+    //
+    // wenn aliase verändert wurden, neu einlesen
+    //
+    if( alFromDb )
+    {
+      String[][] alData = dbUtil.getAliasData();
+      deviceAliasHash.clear();
+      // gibt es welche: eintragen
+      if( alData != null )
+      {
+        for( String[] pair : alData )
+        {
+          deviceAliasHash.put( pair[0], pair[1] );
+        }
+      }
+    }
+    //
+    // jetzt das eigentliche Geschäft
+    //
     if( log ) LOGGER.log( Level.FINE, "make stringarray of Services..." );
     for( String dev : deviceHash.keySet() )
     {
@@ -1023,7 +1043,6 @@ public class BTCommunication implements IBTCommunication
     String url = null;
     String deviceName, deviceAlias = null, devicePin = null;
     //
-    dbUtil.createConnection();
     deviceName = devName;
     // suche die URL für die Verbindung
     // hab ich hier direkt den Devicenamen erwischt?
@@ -1065,7 +1084,6 @@ public class BTCommunication implements IBTCommunication
           ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTNODEVCONN, null );
           aListener.actionPerformed( ex );
         }
-        dbUtil.closeDB();
         return;
       }
     }
@@ -1124,11 +1142,9 @@ public class BTCommunication implements IBTCommunication
           }
           // isConnected = false;
           connectedDevice = null;
-          dbUtil.closeDB();
           return;
         }
       }
-      dbUtil.closeDB();
       //
       // Wollen wir mal unser Glück versuchen?
       //
@@ -1328,9 +1344,7 @@ public class BTCommunication implements IBTCommunication
     devicePinHash.put( dev, pin );
     // wenn da noch was anderes stehen sollte...
     // ansonsten passiert nix
-    dbUtil.createConnection();
     dbUtil.setPinForDevice( dev, pin );
-    dbUtil.closeDB();
   }
 
   @Override

@@ -47,10 +47,10 @@ public final class ProjectConst
   public static final int SPX_TIME                      = 0x20;
   public static final int SPX_DATE                      = 0x21;
   public static final int SPX_TEMPSTICK                 = 0x22;
-  public static final int SPX_HUD                       = 0x23;      //! HUD Status senden
-  public static final int SPX_UBAT                      = 0x24;     //! UBAT anfordern auswerten
+  public static final int SPX_HUD                       = 0x23; //! HUD Status senden
+  public static final int SPX_UBAT                      = 0x24; //! UBAT anfordern auswerten
   public static final int SPX_IO_STATUS                 = 0x25;
-  public static final int SPX_CAL_CO2                   = 0x25;        //! CO2 Kalibrierung
+  public static final int SPX_CAL_CO2                   = 0x25; //! CO2 Kalibrierung
   public static final int SPX_CAL_CO2_IS_CALIBRATED     = 0x27; //! CO2 Flag ob kalibriert wurde
   public static final int SPX_DEBUG_DEPTH               = 0x28;
   public static final int SPX_SET_SETUP_DEKO            = 0x29; //! Bluetoothkommunikation, setzen der Dekodaten
@@ -77,7 +77,10 @@ public final class ProjectConst
   //
   public static final String IS_END_LOGLISTENTRY        = ":41";
   
-  
+  // Zeitformat Voreinstelling
+  public static final int TIMEFORMAT_ISO                = 1;  // ISO Date = 'YYYY-MM-DD hh:mm:ss'
+  public static final int TIMEFORMAT_DE                 = 2;
+  public static final int TIMEFORMAT_EN                 = 2;  //EnglishDate ='MM/DD/YYYY hh:mm:ss';
   
   // Message Bezeichnungen
   public static final int    MESSAGE_NONE               = ActionEvent.RESERVED_ID_MAX + 1;

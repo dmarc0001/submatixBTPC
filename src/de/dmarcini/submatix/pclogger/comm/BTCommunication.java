@@ -232,7 +232,6 @@ public class BTCommunication implements IBTCommunication
     private InputStream                             inStream = null;
     private boolean                                  running = false;
     private volatile boolean                    isLogentryMode = false;
-    private final ArrayList<String>                    dirList = new ArrayList<String>();
     private final StringBuffer                          mInStrBuffer = new StringBuffer( 1024 );  
     //@formatter:on
     public ReaderRunnable( InputStream inStr )
@@ -657,8 +656,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DIRENTRY_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          dirList.add( readMessage );
-          if( log ) LOGGER.log( Level.FINE, "GET_LOG_INDEX recived! Stored in Cache" );
+          if( log ) LOGGER.log( Level.FINE, "SPX_GET_LOG_INDEX recived!" );
           break;
         case ProjectConst.SPX_GET_LOG_NUMBER_SE:
           if( 0 == fields[1].indexOf( "1" ) )
@@ -1577,5 +1575,17 @@ public class BTCommunication implements IBTCommunication
     {
       if( log ) LOGGER.log( Level.SEVERE, "write for this firmware version not confirmed! CANCEL!" );
     }
+  }
+
+  @Override
+  public void readLogDirectoryFromSPX()
+  {
+    String kdoString;
+    kdoString = String.format( "%s~%x%s", ProjectConst.STX, ProjectConst.SPX_GET_LOG_INDEX, ProjectConst.ETX );
+    if( log )
+    {
+      LOGGER.log( Level.FINE, "readLogDirectoryFromSPX()...send <" + kdoString + ">" );
+    }
+    this.writeToDevice( kdoString );
   }
 }

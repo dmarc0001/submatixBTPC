@@ -100,6 +100,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static Color                       gasDangerousColor   = Color.red;
   private static Color                       gasNoNormOxicColor  = Color.MAGENTA;
   private static final Pattern               fieldPatternDp      = Pattern.compile( ":" );
+  private static final Pattern               fieldPatternUnderln = Pattern.compile( "[_.]" );
   private int                                licenseState        = -1;
   private int                                customConfig        = -1;
   private DatabaseUtil                       sqliteDbUtil        = null;
@@ -218,7 +219,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     currentConfig.setLogger( LOGGER );
     btComm = new BTCommunication( LOGGER, sqliteDbUtil );
     btComm.addActionListener( this );
-    initialize();
+    initializeGUI();
     // Listener setzen (braucht auch die Maps)
     setGlobalChangeListener();
     String[] entrys = btComm.getNameArray( false );
@@ -270,7 +271,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   /**
    * Initialize the contents of the frame.
    */
-  private void initialize()
+  private void initializeGUI()
   {
     frmMainwindowtitle = new JFrame();
     frmMainwindowtitle.setFont( new Font( "Arial", Font.PLAIN, 12 ) );
@@ -936,6 +937,27 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     // /////////////////////////////////////////////////////////////////////////
+    // lese Logdir aus Device
+    else if( cmd.equals( "read_logdir_from_spx" ) )
+    {
+      if( btComm != null )
+      {
+        if( btComm.isConnected() )
+        {
+          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+          wDial.setVisible( true );
+          // beginne mit leerem Cache
+          logListPanel.clearLogdirCache();
+          // Sag dem SPX er soll alles schicken
+          btComm.readLogDirectoryFromSPX();
+        }
+        else
+        {
+          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+        }
+      }
+    }
+    // /////////////////////////////////////////////////////////////////////////
     // Da hab ich nix passendes gefunden!
     else
     {
@@ -1394,19 +1416,116 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           }
         }
         break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nachricht Syncronisation wird beendet
       case ProjectConst.MESSAGE_SYCSTAT_OFF:
         LOGGER.log( Level.WARNING, "SPX42 switched SYNC OFF! Connetion will failure...." );
         // disconnect!
         btComm.disconnectDevice();
         break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nachricht Gase wurden erfolgreich geschrieben
       case ProjectConst.MESSAGE_GAS_WRITTEN:
         LOGGER.log( Level.FINE, "gas written to SPX..." );
         break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nachricht ein Logbuch Verzeichniseintrag wurde gelesen
+      case ProjectConst.MESSAGE_DIRENTRY_READ:
+        LOGGER.log( Level.FINE, "logdir entry recived..." );
+        String decodet = decodeLogDirEntry( cmd );
+        if( decodet != null )
+        {
+          logListPanel.addLogdirEntry( decodet );
+        }
+        if( !logListPanel.isReadingComplete() )
+        {
+          // hab noch zu tun...
+          if( wDial != null )
+          {
+            wDial.incrementProgress();
+          }
+        }
+        else
+        {
+          // dann kann das fenster ja wech!
+          if( wDial != null )
+          {
+            wDial.dispose();
+            wDial = null;
+          }
+        }
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nichts traf zu....
       default:
         LOGGER.log( Level.WARNING, "unknown message recived!" );
         break;
     }
     return;
+  }
+
+  /**
+   * 
+   * Decodiere die Nachricht über einen Logverzeichniseintrag
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.05.2012
+   * @param entryMsg
+   * @return
+   */
+  private String decodeLogDirEntry( String entryMsg )
+  {
+    // Message etwa so <~41:21:9_4_10_20_44_55.txt:22>
+    // Haben will: "Nummer;filename;readableName"
+    String[] fields;
+    String fileName;
+    String isInDB = " "; // TODO: Noch abfragen
+    int number, max;
+    int day, month, year, hour, minute, secound;
+    //
+    // Felder aufteilen
+    fields = fieldPatternDp.split( entryMsg );
+    if( fields.length < 4 )
+    {
+      LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
+      return( null );
+    }
+    // Wandel die Nummerierung in Integer um
+    try
+    {
+      number = Integer.parseInt( fields[1], 16 );
+      max = Integer.parseInt( fields[3], 16 );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
+      return( null );
+    }
+    fileName = fields[2];
+    // verwandle die Dateiangabe in eine lesbare Datumsangabe
+    // Format des Strings ist ja
+    // TAG_MONAT_JAHR_STUNDE_MINUTE_SEKUNDE
+    // des Beginns der Aufzeichnung
+    fields = fieldPatternUnderln.split( fields[2] );
+    try
+    {
+      day = Integer.parseInt( fields[0] );
+      month = Integer.parseInt( fields[1] );
+      year = Integer.parseInt( fields[2] ) + 2000;
+      hour = Integer.parseInt( fields[3] );
+      minute = Integer.parseInt( fields[4] );
+      secound = Integer.parseInt( fields[5] );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
+      return( null );
+    }
+    // TODO: Datumsformat internationalisieren
+    return( String.format( "%d;%s;%02d.%02d.%04d - %02d:%02d:%02d;%d;%s", number, fileName, day, month, year, hour, minute, secound, max, isInDB ) );
   }
 
   /**
@@ -2206,17 +2325,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Keine Config gelesen!
       configPanel.setIndividualsPanelEnabled( false );
     }
+    logListPanel.setAllLogPanelsEnabled( en );
   }
 
   /**
    * Die Callbacks setzen, wenn sich in den Panels was ändert! Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012 TODO
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
    */
   private void setGlobalChangeListener()
   {
     connectionPanel.setGlobalChangeListener( this );
     configPanel.setGlobalChangeListener( this );
     gasConfigPanel.setGlobalChangeListener( this );
+    logListPanel.setGlobalChangeListener( this );
   }
 }

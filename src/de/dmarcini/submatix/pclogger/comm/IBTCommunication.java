@@ -77,6 +77,8 @@ public interface IBTCommunication
 
   public void writeConfigToSPX( SPX42Config config );
 
+  public void readLogDirectoryFromSPX();
+
   // experimentell...
   public String getDeviceInfos();
 

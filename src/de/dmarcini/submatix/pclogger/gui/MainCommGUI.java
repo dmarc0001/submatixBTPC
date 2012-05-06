@@ -58,6 +58,9 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
@@ -82,6 +85,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   // private final static int CUSTOMIZED = 5;
   private static ResourceBundle              stringsBundle       = null;
   private Locale                             programLocale       = null;
+  private String                             timeFormatterString = "yyyy-MM-dd - hh:mm:ss";
   static Logger                              LOGGER              = null;
   static Handler                             fHandler            = null;
   static Handler                             cHandler            = null;
@@ -323,7 +327,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     mnOptions = new JMenu( "OPTIONS" );
     mnOptions.addMouseMotionListener( this );
     menuBar.add( mnOptions );
-    JMenuItem mntmEmpty = new JMenuItem( "EMPTY" );
+    JMenuItem mntmEmpty = new JMenuItem( "DATEFORMAT" );
     mntmEmpty.addMouseMotionListener( this );
     mnOptions.add( mntmEmpty );
     mnHelp = new JMenu( "HELP" );
@@ -365,6 +369,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     try
     {
       setStatus( "" );
+      timeFormatterString = stringsBundle.getString( "MainCommGUI.timeFormatterString" );
       // Hauptfenster
       frmMainwindowtitle.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) );
       // Menü
@@ -948,6 +953,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           wDial.setVisible( true );
           // beginne mit leerem Cache
           logListPanel.clearLogdirCache();
+          logListPanel.cleanDetails();
           // Sag dem SPX er soll alles schicken
           btComm.readLogDirectoryFromSPX();
         }
@@ -1478,12 +1484,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private String decodeLogDirEntry( String entryMsg )
   {
     // Message etwa so <~41:21:9_4_10_20_44_55.txt:22>
-    // Haben will: "Nummer;filename;readableName"
     String[] fields;
     String fileName;
     String isInDB = " "; // TODO: Noch abfragen
     int number, max;
-    int day, month, year, hour, minute, secound;
+    int day, month, year, hour, minute, second;
     //
     // Felder aufteilen
     fields = fieldPatternDp.split( entryMsg );
@@ -1516,7 +1521,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       year = Integer.parseInt( fields[2] ) + 2000;
       hour = Integer.parseInt( fields[3] );
       minute = Integer.parseInt( fields[4] );
-      secound = Integer.parseInt( fields[5] );
+      second = Integer.parseInt( fields[5] );
     }
     catch( NumberFormatException ex )
     {
@@ -1524,7 +1529,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       return( null );
     }
     // TODO: Datumsformat internationalisieren
-    return( String.format( "%d;%s;%02d.%02d.%04d - %02d:%02d:%02d;%d;%s", number, fileName, day, month, year, hour, minute, secound, max, isInDB ) );
+    // So, die Angaben des SPX sind immer im Localtime-Format
+    // daher werde ich die auch so interpretieren
+    // programLocale
+    DateTime tm = new DateTime( year, month, day, hour, minute, second );
+    DateTimeFormatter fmt = DateTimeFormat.forPattern( timeFormatterString );
+    DateTimeFormatter ger = fmt.withLocale( Locale.GERMAN );
+    // return( String.format( "%d;%s;%02d.%02d.%04d - %02d:%02d:%02d;%d;%s", number, fileName, day, month, year, hour, minute, second, max, isInDB ) );
+    return( String.format( "%d;%s;%s;%d;%s", number, fileName, tm.toString( ger ), max, isInDB ) );
   }
 
   /**
@@ -1796,7 +1808,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 19.12.2011
    * @param cmd
-   *          Sprachenk�rzel
+   *          Sprachenkürzel
    */
   private void changeProgramLanguage( String cmd )
   {
@@ -1813,7 +1825,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     Locale.setDefault( programLocale );
     if( currentConfig != null )
     {
-      // da verändern sich die Einstellungen, dahre ungültig setzen
+      // da verändern sich die Einstellungen, daher ungültig setzen
       currentConfig.setWasInit( false );
     }
     setLanguageStrings();

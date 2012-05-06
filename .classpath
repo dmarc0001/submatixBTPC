@@ -10,5 +10,10 @@
 	<classpathentry exported="true" kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/bluecove-2.1.0.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre6-x86-32"/>
 	<classpathentry kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/sqlitejdbc-v056.jar"/>
+	<classpathentry kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/joda-time-2.1/joda-time-2.1.jar" sourcepath="C:/DATEN/eclipseWorkspace/extLibs/joda-time-2.1/joda-time-2.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/DATEN/eclipseWorkspace/extLibs/joda-time-2.1/joda-time-2.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -148,7 +148,38 @@ public final class ProjectConst
   public static final String A_DEVNAME                  = "devname";
   public static final String A_ALIAS                    = "alias";
   public static final String A_PIN                      = "pin";
-
+  //
+  // Tabelle für die Kopfdaten des Tauchgangs
+  // Tabelle dive_logs
+  // speichert "Kopfdaten" der Logs
+  public static final String H_TABLE_DIVELOGS           = "dive_logs";
+  public static final String H_DIVEID                   = "dive_id";
+  public static final String H_DEVICEID                 = "device_id";
+  public static final String H_STARTTIME                = "starttime";
+  public static final String H_HADSEND                  = "had_send";
+  public static final String H_FIRSTTEMP                = "airtemp";
+  public static final String H_LOWTEMP                  = "lowesttemp";
+  public static final String H_MAXDEPTH                 = "maxdepth";
+  public static final String H_SAMPLES                  = "samples";
+  //
+  // Tabelle für die relevanten Daten des Tauchganges
+  // Tabelle logdata
+  public static final String D_TABLE_DIVEDETAIL         = "logdata";
+  public static final String D_DIVEID                   = "dive_id";
+  public static final String D_DEPTH                    = "depth";
+  public static final String D_TEMPERATURE              = "temperature";
+  public static final String D_PPO                      = "ppo";
+  public static final String D_PPO_1                    = "ppo1";
+  public static final String D_PPO_2                    = "ppo2";
+  public static final String D_PPO_3                    = "ppo3";
+  public static final String D_SETPOINT                 = "setpoint";
+  public static final String D_N2                       = "n2";
+  public static final String D_HE                       = "he";
+  public static final String D_NULLTIME                 = "nulltime";
+  public static final String D_DELTATIME                = "deltatime";
+  
+  
+  
 
   //@formatter:on
 }

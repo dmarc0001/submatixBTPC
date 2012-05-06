@@ -29,7 +29,7 @@ import javax.microedition.io.StreamConnection;
 import com.intel.bluetooth.RemoteDeviceHelper;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
-import de.dmarcini.submatix.pclogger.utils.DatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 
@@ -54,7 +54,7 @@ public class BTCommunication implements IBTCommunication
   private final HashMap<String,String>         devicePinHash = new HashMap<String,String>();
   private final HashMap<String,String>       deviceAliasHash = new HashMap<String,String>();
   static Logger                                       LOGGER = null;
-  private DatabaseUtil                                dbUtil = null;
+  private ConnectDatabaseUtil                                dbUtil = null;
   private boolean                                        log = false;
   private boolean                                isConnected = false;
   private ActionListener                           aListener = null;
@@ -62,6 +62,7 @@ public class BTCommunication implements IBTCommunication
   StreamConnection                                      conn = null;
   private WriterRunnable                              writer = null;
   private ReaderRunnable                              reader = null;
+  private AliveTask                                    alive = null;
   private RemoteDevice                       connectedDevice = null;
   @SuppressWarnings( "unused" )
   private static final Pattern              fieldPattern0x09 = Pattern.compile( ProjectConst.LOGSELECTOR );
@@ -730,6 +731,56 @@ public class BTCommunication implements IBTCommunication
     }
   }
 
+  /**
+   * 
+   * Task soll einfach von Zeit zu Zeit gucken, ob alles noch läuft
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 06.05.2012
+   */
+  private class AliveTask implements Runnable
+  {
+    private boolean running = false;
+
+    @Override
+    public void run()
+    {
+      this.running = true;
+      while( this.running == true && isConnected )
+      {
+        try
+        {
+          // 120 Sekunden schlafen gehen
+          Thread.sleep( 120000 );
+        }
+        catch( InterruptedException ex )
+        {}
+        if( isConnected )
+        {
+          askForSPXAlive();
+        }
+      }
+    }
+
+    /**
+     * 
+     * Sol es möglich machen, den Task abzubrechen
+     * 
+     * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
+     * 
+     * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+     * 
+     *         Stand: 06.05.2012 TODO
+     */
+    public synchronized void doTeminate()
+    {
+      this.running = false;
+    }
+  }
+
   @SuppressWarnings( "unused" )
   private BTCommunication()
   {};
@@ -746,7 +797,7 @@ public class BTCommunication implements IBTCommunication
    * @param lg
    * @param dbUtil
    */
-  public BTCommunication( Logger lg, final DatabaseUtil dbUtil )
+  public BTCommunication( Logger lg, final ConnectDatabaseUtil dbUtil )
   {
     LOGGER = lg;
     this.dbUtil = dbUtil;
@@ -878,14 +929,15 @@ public class BTCommunication implements IBTCommunication
               }
               DataElement serviceName = servRecord[i].getAttributeValue( 0x0100 );
               String devName;
-              try
-              {
-                devName = servRecord[i].getHostDevice().getFriendlyName( false );
-              }
-              catch( IOException ex )
-              {
-                devName = "unknown";
-              }
+              // try
+              // {
+              // devName = servRecord[i].getHostDevice().getFriendlyName( false );
+              devName = servRecord[i].getHostDevice().getBluetoothAddress();
+              // }
+              // catch( IOException ex )
+              // {
+              // devName = "unknown";
+              // }
               if( serviceName != null )
               {
                 String sName = ( ( String )serviceName.getValue() );
@@ -1167,6 +1219,14 @@ public class BTCommunication implements IBTCommunication
         ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTED, null );
         aListener.actionPerformed( ex );
       }
+      //
+      // jetzt noch alle 30 Sekunden das ALIVE abfragen...
+      //
+      alive = new AliveTask();
+      Thread al = new Thread( alive );
+      al.setName( "bt_alive_taslk" );
+      al.setPriority( Thread.NORM_PRIORITY - 2 );
+      al.start();
     }
     catch( BluetoothConnectionException ex )
     {
@@ -1235,6 +1295,10 @@ public class BTCommunication implements IBTCommunication
     {
       reader.doTeminate();
     }
+    if( alive != null )
+    {
+      alive.doTeminate();
+    }
     try
     {
       Thread.sleep( 500 );
@@ -1254,6 +1318,7 @@ public class BTCommunication implements IBTCommunication
     }
     writer = null;
     reader = null;
+    alive = null;
     conn = null;
   }
 

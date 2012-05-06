@@ -23,7 +23,7 @@ import javax.swing.border.TitledBorder;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                            /**
+{                              /**
    * 
    */
   private static final long serialVersionUID = 1L;
@@ -111,18 +111,18 @@ public class spx42ConfigPanel extends JPanel
     writeSPX42ConfigButton.setBackground( new Color( 255, 192, 203 ) );
     writeSPX42ConfigButton.setActionCommand( "write_config" );
     serialNumberLabel = new JLabel( "SERIAL" );
-    serialNumberLabel.setBounds( 101, 20, 140, 20 );
+    serialNumberLabel.setBounds( 10, 20, 140, 20 );
     serialNumberLabel.setAlignmentX( Component.RIGHT_ALIGNMENT );
     serialNumberLabel.setMaximumSize( new Dimension( 250, 40 ) );
     serialNumberLabel.setPreferredSize( new Dimension( 140, 20 ) );
     serialNumberText = new JLabel( "0" );
-    serialNumberText.setBounds( 247, 20, 140, 20 );
+    serialNumberText.setBounds( 160, 20, 235, 20 );
     serialNumberText.setMaximumSize( new Dimension( 250, 40 ) );
     serialNumberText.setPreferredSize( new Dimension( 140, 20 ) );
     firmwareVersionLabel = new JLabel( "FIRMW-VERSION" );
-    firmwareVersionLabel.setBounds( 428, 23, 83, 14 );
+    firmwareVersionLabel.setBounds( 428, 23, 159, 14 );
     firmwareVersionValueLabel = new JLabel( "V0.0" );
-    firmwareVersionValueLabel.setBounds( 567, 23, 212, 14 );
+    firmwareVersionValueLabel.setBounds( 597, 23, 182, 14 );
     // config -> DECO-Panel
     decompressionPanel = new JPanel();
     decompressionPanel.setBounds( 10, 51, 385, 154 );

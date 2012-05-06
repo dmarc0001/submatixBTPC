@@ -1653,4 +1653,14 @@ public class BTCommunication implements IBTCommunication
     }
     this.writeToDevice( kdoString );
   }
+
+  @Override
+  public String getConnectedDevice()
+  {
+    if( isConnected )
+    {
+      return( connectedDevice.getBluetoothAddress() );
+    }
+    return null;
+  }
 }

@@ -49,6 +49,8 @@ public interface IBTCommunication
 
   public void connectDevice( String deviceName ) throws Exception;
 
+  public String getConnectedDevice();
+
   public void disconnectDevice();
 
   public void writeToDevice( String msg );

@@ -24,7 +24,7 @@ import javax.swing.event.TableModelListener;
 
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.utils.AliasEditTableModel;
-import de.dmarcini.submatix.pclogger.utils.DatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 
 public class spx42ConnectPanel extends JPanel implements TableModelListener
 {
@@ -44,7 +44,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
   private JScrollPane       aliasScrollPane;
   private String[]          columnNames      = null;
   private String[][]        aliasData        = null;
-  private DatabaseUtil      dbUtil           = null;
+  private ConnectDatabaseUtil      dbUtil           = null;
   private ResourceBundle    stringsBundle    = null;
   private BTCommunication   btComm           = null;
 
@@ -61,7 +61,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
    * @param _dbUtil
    * @param btComm
    */
-  public spx42ConnectPanel( Logger LOGGER, final DatabaseUtil _dbUtil, final BTCommunication btComm )
+  public spx42ConnectPanel( Logger LOGGER, final ConnectDatabaseUtil _dbUtil, final BTCommunication btComm )
   {
     this.LOGGER = LOGGER;
     LOGGER.log( Level.FINE, "constructor..." );

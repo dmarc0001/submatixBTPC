@@ -85,7 +85,7 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
   }
 
   /**
-   * HEADER
+   * Version der Datenbank lesen
    * 
    * @author Dirk Marciniak 02.05.2012 void
    */

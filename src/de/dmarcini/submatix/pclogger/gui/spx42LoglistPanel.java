@@ -21,6 +21,7 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogdirListModel;
 
 /**
@@ -46,6 +47,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private static final Pattern           fieldPatternDtTm    = Pattern.compile( " - " );
   private final LogdirListModel          logListModel        = new LogdirListModel();
   private boolean                        isDirectoryComplete = false;
+  private LogForDeviceDatabaseUtil       logDatabaseUtil     = null;
+  private String                         deviceToLog         = null;
   private JList                          logListField;
   private JButton                        readLogDirectoryButton;
   private JButton                        readLogfilesFromSPXButton;
@@ -89,6 +92,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     logdirFiles.clear();
     logdirReadable.clear();
     isDirectoryComplete = false;
+    logDatabaseUtil = null;
+    deviceToLog = null;
   }
 
   /**
@@ -281,6 +286,32 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     isDirectoryComplete = false;
   }
 
+  public boolean prepareReadLogdir( String device )
+  {
+    deviceToLog = device;
+    if( deviceToLog == null )
+    {
+      return( false );
+    }
+    LOGGER.log( Level.FINE, "prepare to read logdir..." );
+    // wenn da noch was ist, entferne
+    if( logDatabaseUtil != null )
+    {
+      if( logDatabaseUtil.isOpenDB() )
+      {
+        logDatabaseUtil.closeDB();
+      }
+      logDatabaseUtil = null;
+    }
+    // das Datenbankutility initialisieren
+    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, deviceToLog );
+    if( logDatabaseUtil.createConnection() == null )
+    {
+      return( false );
+    }
+    return( true );
+  }
+
   /**
    * 
    * Einen Eintrag in das Verzeichnis einfügen
@@ -325,6 +356,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     if( number == max )
     {
       isDirectoryComplete = true;
+      return;
     }
     LOGGER.log( Level.FINE, "add to logdir number: <" + number + "> name: <" + readableName + ">" );
     // Sichere die Dateiangabe
@@ -387,7 +419,10 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    *         Stand: 06.05.2012 TODO
    */
   public void cleanDetails()
-  {}
+  {
+    diveDateShowLabel.setText( "-" );
+    diveTimeShowLabel.setText( "-" );
+  }
 
   /**
    * 
@@ -403,5 +438,65 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   public boolean isReadingComplete()
   {
     return( isDirectoryComplete );
+  }
+
+  /**
+   * 
+   * Vorbereitungen zum download der Logdaten treffen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 06.05.2012
+   * @param device
+   * @return Erfolgreich?
+   */
+  public int[] prepareDownloadLogdata( String device )
+  {
+    int[] logList = null;
+    int[] logSelected = null;
+    deviceToLog = device;
+    if( deviceToLog == null )
+    {
+      return( null );
+    }
+    LOGGER.log( Level.FINE, "prepare to download logdata..." );
+    // wen da noch was ist, entfernen
+    if( logDatabaseUtil != null )
+    {
+      if( logDatabaseUtil.isOpenDB() )
+      {
+        logDatabaseUtil.closeDB();
+      }
+      logDatabaseUtil = null;
+    }
+    // das Datenbankutility initialisieren
+    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, deviceToLog );
+    if( logDatabaseUtil.createConnection() == null )
+    {
+      return( null );
+    }
+    //
+    // Ok, das sieht so aus, als könne es losgehen
+    //
+    LOGGER.log( Level.FINE, "test for selected logentrys..." );
+    logSelected = logListField.getSelectedIndices();
+    if( logSelected.length > 0 )
+    {
+      // es ist auch etwas markiert!
+      // Array erzeugen
+      logList = new int[logSelected.length];
+      // für jeden markierten index die Lognummer holen
+      for( int idx = 0; idx < logSelected.length; idx++ )
+      {
+        logList[idx] = logListModel.getLognumberAt( logSelected[idx] );
+        LOGGER.log( Level.FINE, "select dive number <" + logList[idx] + "> for download..." );
+      }
+      return( logList );
+    }
+    // Es ist nichts markiert
+    LOGGER.log( Level.WARNING, "prepare to download logdata...NOTHING selected!" );
+    return( null );
   }
 }

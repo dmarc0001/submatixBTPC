@@ -86,6 +86,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static ResourceBundle              stringsBundle       = null;
   private Locale                             programLocale       = null;
   private String                             timeFormatterString = "yyyy-MM-dd - hh:mm:ss";
+  private final File                         programDir          = new File( System.getProperty("user.dir") );
+  private File                               logdataDir          = null;
   static Logger                              LOGGER              = null;
   static Handler                             fHandler            = null;
   static Handler                             cHandler            = null;
@@ -209,6 +211,16 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     setDefaultLookAndFeelDecorated( isDefaultLookAndFeelDecorated() );
     makeLogger( logFile, optionLogLevel );
+    logdataDir = new File( programDir.getAbsolutePath() + File.separator + ProjectConst.LOGDATADIR );
+    if( !logdataDir.isDirectory() )
+    {
+      if( false == logdataDir.mkdirs() )
+      {
+        LOGGER.log( Level.SEVERE, "can't create data directory <" + logdataDir.getAbsolutePath() + ">" );
+        System.exit( -1 );
+      }
+      LOGGER.log( Level.FINE, "created data directory <" + logdataDir.getAbsolutePath() + ">" );
+    }
     try
     {
       programLocale = Locale.getDefault();
@@ -257,7 +269,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void prepareDatabase()
   {
     // Verbindung zum Datenbanktreiber
-    sqliteDbUtil = new ConnectDatabaseUtil( LOGGER, ProjectConst.DB_FILENAME );
+    sqliteDbUtil = new ConnectDatabaseUtil( LOGGER, logdataDir.getAbsolutePath() + File.separator + ProjectConst.DB_FILENAME );
     if( sqliteDbUtil == null )
     {
       LOGGER.log( Level.SEVERE, "can connect to database drivers!" );
@@ -949,13 +961,41 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         if( btComm.isConnected() )
         {
+          if( logListPanel.prepareReadLogdir( btComm.getConnectedDevice() ) )
+          {
+            wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+            wDial.setVisible( true );
+            // beginne mit leerem Cache
+            logListPanel.clearLogdirCache();
+            logListPanel.cleanDetails();
+            // Sag dem SPX er soll alles schicken
+            btComm.readLogDirectoryFromSPX();
+          }
+        }
+        else
+        {
+          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+        }
+      }
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // lese Logdir aus Device
+    else if( cmd.equals( "read_logfile_from_spx" ) )
+    {
+      if( btComm != null )
+      {
+        if( btComm.isConnected() )
+        {
+          int[] logListIdx = logListPanel.prepareDownloadLogdata( btComm.getConnectedDevice() );
+          if( logListIdx == null )
+          {
+            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notLogentrySelected.text" ) );
+            return;
+          }
           wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
           wDial.setVisible( true );
-          // beginne mit leerem Cache
-          logListPanel.clearLogdirCache();
-          logListPanel.cleanDetails();
           // Sag dem SPX er soll alles schicken
-          btComm.readLogDirectoryFromSPX();
+          // TODO
         }
         else
         {
@@ -1528,15 +1568,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
       return( null );
     }
-    // TODO: Datumsformat internationalisieren
     // So, die Angaben des SPX sind immer im Localtime-Format
     // daher werde ich die auch so interpretieren
-    // programLocale
     DateTime tm = new DateTime( year, month, day, hour, minute, second );
     DateTimeFormatter fmt = DateTimeFormat.forPattern( timeFormatterString );
-    DateTimeFormatter ger = fmt.withLocale( Locale.GERMAN );
-    // return( String.format( "%d;%s;%02d.%02d.%04d - %02d:%02d:%02d;%d;%s", number, fileName, day, month, year, hour, minute, second, max, isInDB ) );
-    return( String.format( "%d;%s;%s;%d;%s", number, fileName, tm.toString( ger ), max, isInDB ) );
+    return( String.format( "%d;%s;%s;%d;%s", number, fileName, tm.toString( fmt ), max, isInDB ) );
   }
 
   /**

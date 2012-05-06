@@ -28,6 +28,7 @@ public class RemoteDeviceDiscovery
 
 
 
+
   //@formatter:off
   static Logger                                       LOGGER = null;
   private static boolean                                log = false;
@@ -158,7 +159,7 @@ public class RemoteDeviceDiscovery
       }
 
       /**
-       * Service suchen auf dem Ger�t fertig
+       * Service suchen auf dem Gerät fertig
        */
       @Override
       public void serviceSearchCompleted( int transID, int respCode )

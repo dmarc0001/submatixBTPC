@@ -27,6 +27,10 @@ public class LogdirListModel extends DefaultListModel
   @Override
   public Object getElementAt( int index )
   {
+    if( super.isEmpty() )
+    {
+      return( null );
+    }
     String[] element = ( String[] )super.getElementAt( index );
     if( element[2] == null )
     {
@@ -73,6 +77,10 @@ public class LogdirListModel extends DefaultListModel
    */
   public String[] getLogentryAt( int number )
   {
+    if( super.isEmpty() )
+    {
+      return( null );
+    }
     String[] element = ( String[] )super.getElementAt( number );
     return( element );
   }
@@ -92,6 +100,10 @@ public class LogdirListModel extends DefaultListModel
   public int getLognumberAt( int number )
   {
     int logNumber = 0;
+    if( super.isEmpty() )
+    {
+      return( -1 );
+    }
     String[] element = ( String[] )super.getElementAt( number );
     try
     {
@@ -118,12 +130,20 @@ public class LogdirListModel extends DefaultListModel
    */
   public String getLogNameAt( int number )
   {
+    if( super.isEmpty() )
+    {
+      return( null );
+    }
     String[] element = ( String[] )super.getElementAt( number );
     return( element[1] );
   }
 
   public boolean istInDb( int number )
   {
+    if( super.isEmpty() )
+    {
+      return( false );
+    }
     String[] element = ( String[] )super.getElementAt( number );
     if( element[2] == null )
     {

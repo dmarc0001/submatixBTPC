@@ -61,7 +61,7 @@ import org.apache.commons.cli.ParseException;
 
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
-import de.dmarcini.submatix.pclogger.utils.DatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
@@ -103,7 +103,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static final Pattern               fieldPatternUnderln = Pattern.compile( "[_.]" );
   private int                                licenseState        = -1;
   private int                                customConfig        = -1;
-  private DatabaseUtil                       sqliteDbUtil        = null;
+  private ConnectDatabaseUtil                       sqliteDbUtil        = null;
   //
   // @formatter:on
   private JFrame                  frmMainwindowtitle;
@@ -253,7 +253,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void prepareDatabase()
   {
     // Verbindung zum Datenbanktreiber
-    sqliteDbUtil = new DatabaseUtil( LOGGER, ProjectConst.DB_FILENAME );
+    sqliteDbUtil = new ConnectDatabaseUtil( LOGGER, ProjectConst.DB_FILENAME );
     if( sqliteDbUtil == null )
     {
       LOGGER.log( Level.SEVERE, "can connect to database drivers!" );
@@ -1309,13 +1309,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Lebenszeichen mit Ackuspannugn empfangen
       case ProjectConst.MESSAGE_SPXALIVE:
         LOGGER.log( Level.INFO, "acku value from spx42 recived..." );
-        if( wDial != null )
-        {
-          wDial.incrementProgress();
-        }
         setAckuValue( cmd );
         // wenn noch keine Konfiguration fertig ist,
-        // dann sollte das hier zeigen, daß ich alles gelsen habe
+        // dann sollte das hier zeigen, daß ich alles gelesen habe
         // und eine gesicherte Config erstellt werden kann
         // ALIVE wird bei readSPXConfig als letztes Kommando gesendet.
         if( savedConfig == null )
@@ -1328,8 +1324,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           configPanel.unitsTemperatureComboBox.setBackground( new Color( 0xffafaf ) );
         }
-        wDial.dispose();
-        wDial = null;
+        if( wDial != null )
+        {
+          wDial.dispose();
+          wDial = null;
+        }
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht, daß da etwas passiert, also Hinweisbox weiterzählen lassen

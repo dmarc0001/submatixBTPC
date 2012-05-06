@@ -14,4 +14,6 @@ public interface ILogForDeviceDatabaseUtil
   public void closeDB();
 
   public boolean isOpenDB();
+
+  public boolean isLogSaved( String filename );
 }

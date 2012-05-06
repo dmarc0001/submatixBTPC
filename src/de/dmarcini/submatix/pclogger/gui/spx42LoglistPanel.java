@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.io.File;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -43,8 +44,10 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   protected Logger                       LOGGER              = null;
   private final HashMap<Integer, String> logdirFiles         = new HashMap<Integer, String>();
   private final HashMap<Integer, String> logdirReadable      = new HashMap<Integer, String>();
+  private File                           dataDir             = null;
   private static final Pattern           fieldPatternSem     = Pattern.compile( ";" );
   private static final Pattern           fieldPatternDtTm    = Pattern.compile( " - " );
+  private static final Pattern           fieldPatternSp      = Pattern.compile( " " );
   private final LogdirListModel          logListModel        = new LogdirListModel();
   private boolean                        isDirectoryComplete = false;
   private LogForDeviceDatabaseUtil       logDatabaseUtil     = null;
@@ -64,6 +67,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private JLabel                         diveMaxDepthShowLabel;
   private JLabel                         diveLengthLabel;
   private JLabel                         diveLengthShowLabel;
+  private JLabel                         timeZoneLabel;
+  private JLabel                         timeZoneShowLabel;
 
   /**
    * Create the panel.
@@ -84,8 +89,9 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    * 
    *         Stand: 05.05.2012
    * @param LOGGER
+   * @param dataDir
    */
-  public spx42LoglistPanel( Logger LOGGER )
+  public spx42LoglistPanel( Logger LOGGER, String dataDir )
   {
     this.LOGGER = LOGGER;
     initPanel();
@@ -94,6 +100,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     isDirectoryComplete = false;
     logDatabaseUtil = null;
     deviceToLog = null;
+    this.dataDir = new File( dataDir );
   }
 
   /**
@@ -147,6 +154,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     fileNameLabel.setBounds( 268, 31, 282, 14 );
     add( fileNameLabel );
     fileNameShowLabel = new JLabel( "-" );
+    fileNameShowLabel.setForeground( new Color( 0, 0, 139 ) );
     fileNameLabel.setLabelFor( fileNameShowLabel );
     fileNameShowLabel.setBounds( 268, 56, 282, 14 );
     add( fileNameShowLabel );
@@ -155,6 +163,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveDateLabel.setBounds( 268, 90, 282, 14 );
     add( diveDateLabel );
     diveDateShowLabel = new JLabel( "-" );
+    diveDateShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveDateLabel.setLabelFor( diveDateShowLabel );
     diveDateShowLabel.setBounds( 268, 106, 282, 14 );
     add( diveDateShowLabel );
@@ -163,24 +172,36 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveTimeLabel.setBounds( 268, 141, 282, 14 );
     add( diveTimeLabel );
     diveTimeShowLabel = new JLabel( "-" );
+    diveTimeShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveTimeLabel.setLabelFor( diveTimeShowLabel );
     diveTimeShowLabel.setBounds( 268, 158, 282, 14 );
     add( diveTimeShowLabel );
     diveMaxDepthLabel = new JLabel( "DIVEMAXDEPTH" );
     diveMaxDepthLabel.setForeground( Color.DARK_GRAY );
-    diveMaxDepthLabel.setBounds( 268, 194, 282, 14 );
+    diveMaxDepthLabel.setBounds( 268, 241, 282, 14 );
     add( diveMaxDepthLabel );
     diveMaxDepthShowLabel = new JLabel( "-" );
+    diveMaxDepthShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveMaxDepthLabel.setLabelFor( diveMaxDepthShowLabel );
-    diveMaxDepthShowLabel.setBounds( 268, 208, 282, 14 );
+    diveMaxDepthShowLabel.setBounds( 268, 255, 282, 14 );
     add( diveMaxDepthShowLabel );
     diveLengthLabel = new JLabel( "DIVELENGTH" );
     diveLengthLabel.setForeground( Color.DARK_GRAY );
-    diveLengthLabel.setBounds( 268, 243, 282, 14 );
+    diveLengthLabel.setBounds( 268, 290, 282, 14 );
     add( diveLengthLabel );
     diveLengthShowLabel = new JLabel( "-" );
-    diveLengthShowLabel.setBounds( 268, 259, 282, 14 );
+    diveLengthShowLabel.setForeground( new Color( 0, 0, 139 ) );
+    diveLengthShowLabel.setBounds( 268, 306, 282, 14 );
     add( diveLengthShowLabel );
+    timeZoneLabel = new JLabel( "TIMEZONE" );
+    timeZoneLabel.setForeground( Color.DARK_GRAY );
+    timeZoneLabel.setBounds( 268, 183, 282, 14 );
+    add( timeZoneLabel );
+    timeZoneShowLabel = new JLabel( "-" );
+    timeZoneLabel.setLabelFor( timeZoneShowLabel );
+    timeZoneShowLabel.setForeground( new Color( 0, 0, 128 ) );
+    timeZoneShowLabel.setBounds( 268, 202, 282, 14 );
+    add( timeZoneShowLabel );
   }
 
   /**
@@ -231,6 +252,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       diveTimeLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveTimeLabel.text" ) );
       diveMaxDepthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveMaxDepthLabel.text" ) );
       diveLengthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveLengthLabel.text" ) );
+      timeZoneLabel.setText( stringsBundle.getString( "spx42LoglistPanel.timeZoneLabel.text" ) );
     }
     catch( NullPointerException ex )
     {
@@ -304,7 +326,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       logDatabaseUtil = null;
     }
     // das Datenbankutility initialisieren
-    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, deviceToLog );
+    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, deviceToLog, dataDir.getAbsolutePath() );
     if( logDatabaseUtil.createConnection() == null )
     {
       return( false );
@@ -326,16 +348,16 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   public void addLogdirEntry( String entryMsg )
   {
-    // Message etwa so "Nummer;filename;readableName;maxNumber;wasSaved"
+    // Message etwa so "Nummer;filename;readableName;maxNumber"
     String[] fields;
-    String fileName, readableName, wasSaved;
+    String fileName, readableName, wasSaved = " ";
     int number, max;
     //
     // Felder aufteilen
     fields = fieldPatternSem.split( entryMsg );
-    if( fields.length < 5 )
+    if( fields.length < 4 )
     {
-      LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 5 fields. It is wrong! Abort!" );
+      LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
       return;
     }
     // Wandel die Nummerierung in Integer um
@@ -351,7 +373,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     }
     fileName = fields[1];
     readableName = fields[2];
-    wasSaved = fields[4];
     // Alles ging gut....
     if( number == max )
     {
@@ -364,6 +385,13 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     // Sichere Lesbares Format
     logdirReadable.put( number, readableName );
     // in die Liste einfügen
+    if( logDatabaseUtil != null )
+    {
+      if( logDatabaseUtil.isLogSaved( fileName ) )
+      {
+        wasSaved = "x";
+      }
+    }
     logListModel.addLogentry( number, readableName, wasSaved );
   }
 
@@ -396,7 +424,16 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         if( fields.length == 2 )
         {
           diveDateShowLabel.setText( fields[0] );
-          diveTimeShowLabel.setText( fields[1] );
+          fields = fieldPatternSp.split( fields[1] );
+          if( fields.length == 2 )
+          {
+            diveTimeShowLabel.setText( fields[0] );
+            timeZoneShowLabel.setText( fields[1] );
+          }
+          else
+          {
+            diveTimeShowLabel.setText( fields[0] );
+          }
         }
         else
         {
@@ -422,6 +459,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   {
     diveDateShowLabel.setText( "-" );
     diveTimeShowLabel.setText( "-" );
+    timeZoneShowLabel.setText( "-" );
   }
 
   /**
@@ -472,7 +510,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       logDatabaseUtil = null;
     }
     // das Datenbankutility initialisieren
-    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, deviceToLog );
+    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, deviceToLog, dataDir.getAbsolutePath() );
     if( logDatabaseUtil.createConnection() == null )
     {
       return( null );

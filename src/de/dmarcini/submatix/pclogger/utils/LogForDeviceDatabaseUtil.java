@@ -11,6 +11,17 @@ import java.util.logging.Logger;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
+/**
+ * 
+ * Helferlein für Logdaten in der Datenbank. Alle zeitangaben werden in der DB in UTC abgelegt und werden je nach Zeitzohne des PC wieder in Localzeit umgerechnet.
+ * 
+ * 
+ * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+ * 
+ * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+ * 
+ *         Stand: 06.05.2012 TODO
+ */
 public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
 {
   private Logger     LOGGER = null;
@@ -42,11 +53,12 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
    *         Stand: 06.05.2012
    * @param lg
    * @param device
+   * @param logdataDir
    */
-  public LogForDeviceDatabaseUtil( Logger lg, String device )
+  public LogForDeviceDatabaseUtil( Logger lg, String device, String logdataDir )
   {
     LOGGER = lg;
-    dbFile = new File( String.format( "divelog_%s.db", device ) );
+    dbFile = new File( String.format( "%s%sdivelog_%s.db", logdataDir, File.separator, device ) );
     conn = null;
   }
 
@@ -216,6 +228,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "   %s integer primary key autoincrement,\n" +
             "   %s text not null,\n" +
             "   %s text not null,\n" +
+            "   %s text not null,\n" +
             "   %s integer,\n" +
             "   %s real,\n" +
             "   %s real,\n" +
@@ -224,6 +237,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             " );",
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVEID,
+            ProjectConst.H_FILEONSPX,
             ProjectConst.H_DEVICEID,
             ProjectConst.H_STARTTIME,
             ProjectConst.H_HADSEND,
@@ -404,6 +418,51 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, String.format( "fail to check database ist opened (%s))", ex.getLocalizedMessage() ) );
+    }
+    return( false );
+  }
+
+  @Override
+  public boolean isLogSaved( String filename )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    //
+    LOGGER.log( Level.FINE, "was log <" + filename + "> always saved?" );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( false );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s from %s where %s like '%s';",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_FILEONSPX,
+            filename
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        LOGGER.log( Level.FINE, String.format( "file <%s> was saved.", filename ) );
+        rs.close();
+        stat.close();
+        return( true );
+      }
+      LOGGER.log( Level.FINE, "log <" + filename + "> was not saved." );
+      rs.close();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't select from database! (" + ex.getLocalizedMessage() + ")" );
+      return( false );
     }
     return( false );
   }

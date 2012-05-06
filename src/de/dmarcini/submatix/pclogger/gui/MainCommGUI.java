@@ -318,7 +318,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( 1, true );
     // Loglisten Panel
-    logListPanel = new spx42LoglistPanel( LOGGER );
+    logListPanel = new spx42LoglistPanel( LOGGER, logdataDir.getAbsolutePath() );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
     tabbedPane.setEnabledAt( 2, true );
     // MENÜ
@@ -1526,7 +1526,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // Message etwa so <~41:21:9_4_10_20_44_55.txt:22>
     String[] fields;
     String fileName;
-    String isInDB = " "; // TODO: Noch abfragen
     int number, max;
     int day, month, year, hour, minute, second;
     //
@@ -1570,9 +1569,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     // So, die Angaben des SPX sind immer im Localtime-Format
     // daher werde ich die auch so interpretieren
+    // Die Funktion macht das in der default-Lokalzone, sollte also
+    // da sein, wio der SPX auch ist... (schwieriges Thema)
     DateTime tm = new DateTime( year, month, day, hour, minute, second );
     DateTimeFormatter fmt = DateTimeFormat.forPattern( timeFormatterString );
-    return( String.format( "%d;%s;%s;%d;%s", number, fileName, tm.toString( fmt ), max, isInDB ) );
+    return( String.format( "%d;%s;%s;%d", number, fileName, tm.toString( fmt ), max ) );
   }
 
   /**

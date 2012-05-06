@@ -351,6 +351,11 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         fIndex = logListField.getSelectedIndex();
         LOGGER.log( Level.FINE, String.format( "first selected Index: %d ", fIndex ) );
         spxNumber = logListModel.getLognumberAt( fIndex );
+        if( spxNumber == -1 )
+        {
+          cleanDetails();
+          return;
+        }
         LOGGER.log( Level.FINE, String.format( "number on SPX: %d, readable Name: %s, filename: %s", spxNumber, logListModel.getLogNameAt( fIndex ), logdirFiles.get( spxNumber ) ) );
         // erst mal die allgemeinen Daten des Dives anzeigen
         fileNameShowLabel.setText( logdirFiles.get( spxNumber ) );
@@ -370,6 +375,19 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       }
     }
   }
+
+  /**
+   * 
+   * Die Details für einen TG löschen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 06.05.2012 TODO
+   */
+  public void cleanDetails()
+  {}
 
   /**
    * 

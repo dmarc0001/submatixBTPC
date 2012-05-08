@@ -229,6 +229,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "   %s text not null,\n" +
             "   %s text not null,\n" +
             "   %s text not null,\n" +
+            "   %s text not null,\n" +
             "   %s integer,\n" +
             "   %s real,\n" +
             "   %s real,\n" +
@@ -239,6 +240,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.H_DIVEID,
             ProjectConst.H_FILEONSPX,
             ProjectConst.H_DEVICEID,
+            ProjectConst.H_TIMEZONE,
             ProjectConst.H_STARTTIME,
             ProjectConst.H_HADSEND,
             ProjectConst.H_FIRSTTEMP,

@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 import java.util.MissingResourceException;
@@ -14,6 +16,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -22,8 +25,11 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.joda.time.DateTimeZone;
+
 import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogdirListModel;
+import de.dmarcini.submatix.pclogger.utils.TimeZoneComboBoxModel;
 
 /**
  * 
@@ -35,23 +41,28 @@ import de.dmarcini.submatix.pclogger.utils.LogdirListModel;
  * 
  *         Stand: 22.04.2012
  */
-public class spx42LoglistPanel extends JPanel implements ListSelectionListener
+public class spx42LoglistPanel extends JPanel implements ListSelectionListener, ActionListener
 {
   /**
    * 
    */
-  private static final long              serialVersionUID    = 1L;
-  protected Logger                       LOGGER              = null;
-  private final HashMap<Integer, String> logdirFiles         = new HashMap<Integer, String>();
-  private final HashMap<Integer, String> logdirReadable      = new HashMap<Integer, String>();
-  private File                           dataDir             = null;
-  private static final Pattern           fieldPatternSem     = Pattern.compile( ";" );
-  private static final Pattern           fieldPatternDtTm    = Pattern.compile( " - " );
-  private static final Pattern           fieldPatternSp      = Pattern.compile( " " );
-  private final LogdirListModel          logListModel        = new LogdirListModel();
-  private boolean                        isDirectoryComplete = false;
-  private LogForDeviceDatabaseUtil       logDatabaseUtil     = null;
-  private String                         deviceToLog         = null;
+  private static final long              serialVersionUID     = 1L;
+  protected Logger                       LOGGER               = null;
+  private final HashMap<Integer, String> logdirFiles          = new HashMap<Integer, String>();
+  private final HashMap<Integer, String> logdirReadable       = new HashMap<Integer, String>();
+  private File                           dataDir              = null;
+  private static final Pattern           fieldPatternSem      = Pattern.compile( ";" );
+  private static final Pattern           fieldPatternDp       = Pattern.compile( ":" );
+  private static final Pattern           fieldPatternDtTm     = Pattern.compile( " - " );
+  private static final Pattern           fieldPatternSp       = Pattern.compile( " " );
+  private final LogdirListModel          logListModel         = new LogdirListModel();
+  private boolean                        isDirectoryComplete  = false;
+  private LogForDeviceDatabaseUtil       logDatabaseUtil      = null;
+  private String                         deviceToLog          = null;
+  private String                         timeOffsetString     = "+00:00";
+  // private DateTimeZone spx42TimeZone = null;
+  private int                            timeOffset           = 0;
+  private TimeZoneComboBoxModel          tmZoneComboBoxModell = null;
   private JList                          logListField;
   private JButton                        readLogDirectoryButton;
   private JButton                        readLogfilesFromSPXButton;
@@ -69,6 +80,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private JLabel                         diveLengthShowLabel;
   private JLabel                         timeZoneLabel;
   private JLabel                         timeZoneShowLabel;
+  private JLabel                         timeZoneComboLabel;
+  private JComboBox                      timeZoneComboBox;
 
   /**
    * Create the panel.
@@ -93,6 +106,9 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   public spx42LoglistPanel( Logger LOGGER, String dataDir )
   {
+    int idx;
+    String tmStr;
+    //
     this.LOGGER = LOGGER;
     initPanel();
     logdirFiles.clear();
@@ -101,6 +117,32 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     logDatabaseUtil = null;
     deviceToLog = null;
     this.dataDir = new File( dataDir );
+    // erfrage die default Zeitzohne für diesen APC
+    DateTimeZone spx42TimeZone = DateTimeZone.getDefault();
+    // wie ist der offset zur UTC
+    timeOffset = spx42TimeZone.getOffset( 0 );
+    if( timeOffset < 0 )
+    {
+      timeOffsetString = String.format( "-%02d:%02d", ( Math.abs( timeOffset ) / 1000 / 60 / 60 ), ( Math.abs( timeOffset ) / 1000 / 60 % 60 ) );
+    }
+    else
+    {
+      timeOffsetString = String.format( "+%02d:%02d", ( timeOffset / 1000 / 60 / 60 ), ( timeOffset / 1000 / 60 % 60 ) );
+    }
+    tmStr = timeOffsetString.replace( "+", "" );
+    //
+    // Combobox auf default Zeitzohne setzen
+    //
+    for( idx = 0; idx < tmZoneComboBoxModell.getSize(); idx++ )
+    {
+      if( tmZoneComboBoxModell.getTimeValAt( idx ).equals( tmStr ) )
+      {
+        // ich hab die Übereinstimmung gefunden!
+        timeZoneComboBox.setSelectedIndex( idx );
+        break;
+      }
+    }
+    LOGGER.log( Level.FINE, String.format( "default timezone for this workstation : <%s>, offset to utc is <%s h>", spx42TimeZone.getID(), timeOffsetString ) );
   }
 
   /**
@@ -202,6 +244,17 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     timeZoneShowLabel.setForeground( new Color( 0, 0, 128 ) );
     timeZoneShowLabel.setBounds( 268, 202, 282, 14 );
     add( timeZoneShowLabel );
+    timeZoneComboBox = new JComboBox();
+    tmZoneComboBoxModell = new TimeZoneComboBoxModel();
+    timeZoneComboBox.setModel( tmZoneComboBoxModell );
+    timeZoneComboBox.setSelectedIndex( 14 );
+    timeZoneComboBox.setActionCommand( "change_spx_timezone" );
+    timeZoneComboBox.setBounds( 560, 180, 199, 20 );
+    add( timeZoneComboBox );
+    timeZoneComboLabel = new JLabel( "TIMEZONELABEL" );
+    timeZoneComboLabel.setLabelFor( timeZoneComboBox );
+    timeZoneComboLabel.setBounds( 560, 154, 199, 14 );
+    add( timeZoneComboLabel );
   }
 
   /**
@@ -223,6 +276,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     readLogfilesFromSPXButton.addMouseMotionListener( mainCommGUI );
     logListField.addMouseMotionListener( mainCommGUI );
     logListField.addListSelectionListener( this );
+    timeZoneComboBox.addActionListener( this );
   }
 
   /**
@@ -253,6 +307,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       diveMaxDepthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveMaxDepthLabel.text" ) );
       diveLengthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveLengthLabel.text" ) );
       timeZoneLabel.setText( stringsBundle.getString( "spx42LoglistPanel.timeZoneLabel.text" ) );
+      timeZoneComboLabel.setText( stringsBundle.getString( "spx42LoglistPanel.timeZoneComboLabel.text" ) );
     }
     catch( NullPointerException ex )
     {
@@ -308,6 +363,18 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     isDirectoryComplete = false;
   }
 
+  /**
+   * 
+   * Bereite das Lesen des Logverzeichnisses vor
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 08.05.2012
+   * @param device
+   * @return In Ordnung
+   */
   public boolean prepareReadLogdir( String device )
   {
     deviceToLog = device;
@@ -372,7 +439,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       return;
     }
     fileName = fields[1];
-    readableName = fields[2];
+    // Ich geb noch die eingestellte Zeitzohne mit dazu
+    readableName = fields[2] + " " + timeOffsetString;
     // Alles ging gut....
     if( number == max )
     {
@@ -398,7 +466,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   @Override
   public void valueChanged( ListSelectionEvent ev )
   {
-    // Wen die Selektion verändert wurde...
+    // Wen die Selektion der Liste verändert wurde...
     int fIndex, spxNumber;
     String[] fields;
     //
@@ -425,6 +493,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         {
           diveDateShowLabel.setText( fields[0] );
           fields = fieldPatternSp.split( fields[1] );
+          // Zeit und zeitzohne
           if( fields.length == 2 )
           {
             diveTimeShowLabel.setText( fields[0] );
@@ -432,6 +501,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
           }
           else
           {
+            // nur Zeit
             diveTimeShowLabel.setText( fields[0] );
           }
         }
@@ -440,7 +510,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
           diveDateShowLabel.setText( "??" );
           diveTimeShowLabel.setText( "??" );
         }
-        // logListField.getSelectedIndices();
       }
     }
   }
@@ -453,7 +522,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 06.05.2012 TODO
+   *         Stand: 06.05.2012
    */
   public void cleanDetails()
   {
@@ -536,5 +605,76 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     // Es ist nichts markiert
     LOGGER.log( Level.WARNING, "prepare to download logdata...NOTHING selected!" );
     return( null );
+  }
+
+  /**
+   * 
+   * Wenn die Combobox verändert wurde, setze den Offset für die UTC Zeit neu
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 08.05.2012
+   */
+  @Override
+  public void actionPerformed( ActionEvent ev )
+  {
+    String cmd = ev.getActionCommand();
+    JComboBox actionBox;
+    int idx, hours, mins;
+    String timeString;
+    String[] fields;
+    //
+    // War das eine Combobox
+    if( ev.getSource() instanceof JComboBox )
+    {
+      actionBox = ( JComboBox )ev.getSource();
+      // war das die Zeitoffset-Box?
+      if( actionBox.equals( timeZoneComboBox ) )
+      {
+        // OK, hier verzichte ich mal auf die Auswertung des Kommandos
+        idx = actionBox.getSelectedIndex();
+        timeString = tmZoneComboBoxModell.getTimeValAt( idx );
+        LOGGER.log( Level.FINE, String.format( "timezone fpr SPX switched to <%s>", timeString ) );
+        // Umrechnug in Offset in Milisekunden
+        //
+        // Erst mal String parsen
+        // Zerlegen nach Stunden und Minuten
+        fields = fieldPatternDp.split( timeString );
+        try
+        {
+          hours = Integer.parseInt( fields[0] );
+          mins = Integer.parseInt( fields[1] );
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.log( Level.SEVERE, "Offset convert fail: <" + ex.getLocalizedMessage() + ">" );
+          return;
+        }
+        //
+        if( hours < 0 )
+        {
+          timeOffset = 0 - ( ( ( Math.abs( hours ) * 60 ) + mins ) * 60000 );
+          timeOffsetString = String.format( "-%02d:%02d", ( Math.abs( timeOffset ) / 1000 / 60 / 60 ), ( Math.abs( timeOffset ) / 1000 / 60 % 60 ) );
+        }
+        else
+        {
+          timeOffset = ( ( hours * 60 ) + mins ) * 60000;
+          timeOffsetString = String.format( "+%02d:%02d", ( timeOffset / 1000 / 60 / 60 ), ( timeOffset / 1000 / 60 % 60 ) );
+        }
+        LOGGER.log( Level.FINE, String.format( "new offset für SPX is <%+d min> to UTC...( %s )", timeOffset / 60000, timeOffsetString ) );
+      }
+      else
+      {
+        //
+        LOGGER.log( Level.WARNING, "unknown action <" + cmd + "> from unknown combobox recived!" );
+      }
+    }
+    else
+    {
+      //
+      LOGGER.log( Level.WARNING, "unknown action <" + cmd + "> from unknown source recived!" );
+    }
   }
 }

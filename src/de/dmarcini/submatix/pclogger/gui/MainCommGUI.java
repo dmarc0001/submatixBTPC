@@ -692,7 +692,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       LOGGER.log( Level.FINE, "select port <" + entry + ">..." );
     }
     // /////////////////////////////////////////////////////////////////////////
-    // Letzter Decostop aauf 3 oder 6 Meter
+    // Letzter Decostop auf 3 oder 6 Meter
     else if( cmd.equals( "deco_last_stop" ) )
     {
       entry = ( String )srcBox.getSelectedItem();

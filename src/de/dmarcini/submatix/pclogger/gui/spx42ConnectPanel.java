@@ -19,6 +19,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
@@ -31,22 +32,23 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
   /**
    * 
    */
-  private static final long serialVersionUID = 1L;
-  protected Logger          LOGGER           = null;
-  public JComboBox          deviceToConnectComboBox;
-  public JButton            connectButton;
-  public JButton            connectBtRefreshButton;
-  public JProgressBar       discoverProgressBar;
-  public JButton            pinButton;
-  public JLabel             ackuLabel;
-  public JButton            deviceAliasButton;
-  public JTable             aliasEditTable;
-  private JScrollPane       aliasScrollPane;
-  private String[]          columnNames      = null;
-  private String[][]        aliasData        = null;
-  private ConnectDatabaseUtil      dbUtil           = null;
-  private ResourceBundle    stringsBundle    = null;
-  private BTCommunication   btComm           = null;
+  private static final long   serialVersionUID = 1L;
+  protected Logger            LOGGER           = null;
+  public JComboBox            deviceToConnectComboBox;
+  public JButton              connectButton;
+  public JButton              connectBtRefreshButton;
+  public JProgressBar         discoverProgressBar;
+  public JButton              pinButton;
+  public JLabel               ackuLabel;
+  public JButton              deviceAliasButton;
+  public JTable               aliasEditTable;
+  private JScrollPane         aliasScrollPane;
+  private String[]            columnNames      = null;
+  private String[][]          aliasData        = null;
+  private ConnectDatabaseUtil dbUtil           = null;
+  private ResourceBundle      stringsBundle    = null;
+  private BTCommunication     btComm           = null;
+  private JLabel              discoverBtLabel;
 
   @SuppressWarnings( "unused" )
   private spx42ConnectPanel()
@@ -135,6 +137,11 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     aliasEditTable.setCellSelectionEnabled( true );
     aliasEditTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
     aliasScrollPane.setViewportView( aliasEditTable );
+    discoverBtLabel = new JLabel( "SEARCHING BT" );
+    discoverBtLabel.setLabelFor( discoverProgressBar );
+    discoverBtLabel.setHorizontalAlignment( SwingConstants.CENTER );
+    discoverBtLabel.setBounds( 10, 461, 763, 14 );
+    add( discoverBtLabel );
   }
 
   /**
@@ -177,6 +184,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
       connectButton.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.connectButton.tooltiptext" ) );
       pinButton.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.pinButton.tooltiptext" ) );
       pinButton.setText( stringsBundle.getString( "spx42ConnectPanel.pinButton.text" ) );
+      discoverBtLabel.setText( stringsBundle.getString( "spx42ConnectPanel.discoverBtLabel.text" ) );
       if( connected )
       {
         connectButton.setText( stringsBundle.getString( "spx42ConnectPanel.connectButton.disconnectText" ) );
@@ -353,5 +361,27 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     String[] entrys = btComm.getNameArray( true );
     ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
     deviceToConnectComboBox.setModel( portBoxModel );
+  }
+
+  /**
+   * 
+   * Setze Elemente während des BT Suchvorganges
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 09.05.2012
+   * @param isDiscovering
+   *          TODO
+   */
+  public void setElementsDiscovering( boolean isDiscovering )
+  {
+    connectBtRefreshButton.setEnabled( !isDiscovering );
+    discoverProgressBar.setVisible( isDiscovering );
+    discoverBtLabel.setVisible( isDiscovering );
+    connectButton.setEnabled( !isDiscovering );
+    pinButton.setEnabled( !isDiscovering );
+    deviceToConnectComboBox.setEnabled( !isDiscovering );
   }
 }

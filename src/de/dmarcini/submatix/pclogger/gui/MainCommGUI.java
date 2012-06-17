@@ -253,7 +253,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       LOGGER.log( Level.INFO, "call discover btdevices cached..." );
       btComm.discoverDevices( true );
-      setElementsDiscovering( true );
+      connectionPanel.setElementsDiscovering( true );
     }
     if( setLanguageStrings() < 1 )
     {
@@ -883,7 +883,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       LOGGER.log( Level.INFO, "call discover btdevices..." );
       btComm.discoverDevices( false );
-      setElementsDiscovering( true );
+      connectionPanel.setElementsDiscovering( true );
     }
     // /////////////////////////////////////////////////////////////////////////
     // PIN für Gerät setzen
@@ -986,16 +986,21 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         if( btComm.isConnected() )
         {
-          int[] logListIdx = logListPanel.prepareDownloadLogdata( btComm.getConnectedDevice() );
-          if( logListIdx == null )
+          int logListLen = logListPanel.prepareDownloadLogdata( btComm.getConnectedDevice() );
+          if( logListLen == 0 )
           {
             showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notLogentrySelected.text" ) );
             return;
           }
           wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
           wDial.setVisible( true );
-          // Sag dem SPX er soll alles schicken
-          // TODO
+          int logListEntry = logListPanel.getNextEntryToRead();
+          if( logListEntry > -1 )
+          {
+            // Sag dem SPX er soll alles schicken
+            LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry + ">" );
+            btComm.readLogDetailFromSPX( logListEntry );
+          }
         }
         else
         {
@@ -1324,13 +1329,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // /////////////////////////////////////////////////////////////////////////
       // BT Discovering war erfolgreich
       case ProjectConst.MESSAGE_BTRECOVEROK:
-        setElementsDiscovering( false );
+        connectionPanel.setElementsDiscovering( false );
         refillPortComboBox();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // BT Discovering war fehlerhaft
       case ProjectConst.MESSAGE_BTRECOVERERR:
-        setElementsDiscovering( false );
+        connectionPanel.setElementsDiscovering( false );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht bitte noch warten
@@ -1501,6 +1506,30 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
+      // Nachricht: Start einer Lagdatenübermittling
+      case ProjectConst.MESSAGE_LOGENTRY_START:
+        LOGGER.log( Level.FINE, "start transfer logentry <" + cmd + ">..." );
+        logListPanel.startTransfer( cmd );
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nachricht: Logzeile übertragen
+      case ProjectConst.MESSAGE_LOGENTRY_LINE:
+        LOGGER.log( Level.FINE, "recive one log line from SPX..." );
+        logListPanel.addLogLineFromSPX( cmd );
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nachricht: Logzeile übertragen
+      case ProjectConst.MESSAGE_LOGENTRY_STOP:
+        LOGGER.log( Level.FINE, "loglist transfer done..." );
+        logListPanel.writeCacheToDatabase();
+        // dann kann das fenster ja wech!
+        if( wDial != null )
+        {
+          wDial.dispose();
+          wDial = null;
+        }
+        break;
+      // /////////////////////////////////////////////////////////////////////////
       // Nichts traf zu....
       default:
         LOGGER.log( Level.WARNING, "unknown message recived!" );
@@ -1621,21 +1650,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       return;
     }
     connectionPanel.discoverProgressBar.setValue( connectionPanel.discoverProgressBar.getValue() + 1 );
-  }
-
-  /**
-   * Oberfläche für/nach Discover bereiten Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 10.01.2012
-   * @param isDiscovering
-   */
-  private void setElementsDiscovering( boolean isDiscovering )
-  {
-    connectionPanel.connectBtRefreshButton.setEnabled( !isDiscovering );
-    connectionPanel.discoverProgressBar.setVisible( isDiscovering );
-    connectionPanel.connectButton.setEnabled( !isDiscovering );
-    connectionPanel.pinButton.setEnabled( !isDiscovering );
-    connectionPanel.deviceToConnectComboBox.setEnabled( !isDiscovering );
   }
 
   /**

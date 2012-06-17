@@ -16,4 +16,10 @@ public interface ILogForDeviceDatabaseUtil
   public boolean isOpenDB();
 
   public boolean isLogSaved( String filename );
+
+  public int writeNewDive( String deviceId, String fileOnSPX, String timeZone, long startTime );
+
+  public int appendLogToCache( int diveId, LogLineDataObject logLineObj );
+
+  public int writeLogToDatabase( int diveId );
 }

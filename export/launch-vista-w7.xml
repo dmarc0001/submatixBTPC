@@ -2,14 +2,14 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>C:\DATEN\submatix\submatixBTForPC.jar</jar>
-  <outfile>C:\DATEN\submatix\submatixForPC-vista-w7.exe</outfile>
+  <outfile>C:\DATEN\submatix\20120508-submatixForPC-vista-w7.exe</outfile>
   <errTitle>Kein Java vohanden?</errTitle>
   <cmdLine>--cacheonstart --loglevel DEBUG --logfile spxCommLogFile.log --debug</cmdLine>
   <chdir></chdir>
   <priority>normal</priority>
   <downloadUrl>http://java.com/download</downloadUrl>
   <supportUrl></supportUrl>
-  <customProcName>false</customProcName>
+  <customProcName>true</customProcName>
   <stayAlive>false</stayAlive>
   <manifest></manifest>
   <icon></icon>

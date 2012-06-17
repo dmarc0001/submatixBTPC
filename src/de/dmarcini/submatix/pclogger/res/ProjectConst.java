@@ -73,7 +73,7 @@ public final class ProjectConst
   public static final int SPX_GET_DEVICE_OFF            = 0x44; //! Flag ob Device aus den Syncmode gegangen is
   public static final int SPX_SEND_FILE                 = 0x45; //! Sende ein File
   public static final int SPX_LICENSE_STATE             = 0x45; //! Lizenz Status zurückgeben!
-  public static final int SPX_GET_LOG_INDEX_DETAIL      = 0x46; //! Lizenzstatus senden (Bluetooth)
+  public static final int SPX_GET_LIC_STATUS            = 0x46; //! Lizenzstatus senden (Bluetooth)
   public static final int SPX_GET_LOG_NUMBER_DETAIL     = 0x47; //! Logdatei senden
   public static final int SPX_GET_LOG_NUMBER_DETAIL_OK  = 0x48; //! Logdatei senden OK/ENDE
   //

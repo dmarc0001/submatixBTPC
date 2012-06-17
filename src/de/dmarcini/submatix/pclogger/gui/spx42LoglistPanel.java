@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -25,9 +26,12 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.LogLineDataObject;
 import de.dmarcini.submatix.pclogger.utils.LogdirListModel;
 import de.dmarcini.submatix.pclogger.utils.TimeZoneComboBoxModel;
 
@@ -53,15 +57,20 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
   private File                           dataDir              = null;
   private static final Pattern           fieldPatternSem      = Pattern.compile( ";" );
   private static final Pattern           fieldPatternDp       = Pattern.compile( ":" );
+  private static final Pattern           fieldPatternDot      = Pattern.compile( "\\." );
   private static final Pattern           fieldPatternDtTm     = Pattern.compile( " - " );
   private static final Pattern           fieldPatternSp       = Pattern.compile( " " );
+  private static final Pattern           fieldPattern0x09     = Pattern.compile( ProjectConst.LOGSELECTOR );
   private final LogdirListModel          logListModel         = new LogdirListModel();
   private boolean                        isDirectoryComplete  = false;
   private LogForDeviceDatabaseUtil       logDatabaseUtil      = null;
   private String                         deviceToLog          = null;
   private String                         timeOffsetString     = "+00:00";
+  private int                            currLogEntry         = -1;
   // private DateTimeZone spx42TimeZone = null;
   private int                            timeOffset           = 0;
+  private Vector<Integer>                logList              = null;
+  private int                            fileIndex            = -1;
   private TimeZoneComboBoxModel          tmZoneComboBoxModell = null;
   private JList                          logListField;
   private JButton                        readLogDirectoryButton;
@@ -82,6 +91,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
   private JLabel                         timeZoneShowLabel;
   private JLabel                         timeZoneComboLabel;
   private JComboBox                      timeZoneComboBox;
+  private JLabel                         logfileCommLabel;
 
   /**
    * Create the panel.
@@ -116,6 +126,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     isDirectoryComplete = false;
     logDatabaseUtil = null;
     deviceToLog = null;
+    fileIndex = -1;
+    currLogEntry = -1;
     this.dataDir = new File( dataDir );
     // erfrage die default Zeitzohne für diesen APC
     DateTimeZone spx42TimeZone = DateTimeZone.getDefault();
@@ -255,6 +267,10 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     timeZoneComboLabel.setLabelFor( timeZoneComboBox );
     timeZoneComboLabel.setBounds( 560, 154, 199, 14 );
     add( timeZoneComboLabel );
+    logfileCommLabel = new JLabel( "SAVINGLABEL" );
+    logfileCommLabel.setBounds( 267, 472, 492, 14 );
+    add( logfileCommLabel );
+    logfileCommLabel.setVisible( false );
   }
 
   /**
@@ -557,16 +573,15 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
    * 
    *         Stand: 06.05.2012
    * @param device
-   * @return Erfolgreich?
+   * @return Array von Logdateinummern (Nummer des Logs auf dem SPX42)
    */
-  public int[] prepareDownloadLogdata( String device )
+  public int prepareDownloadLogdata( String device )
   {
-    int[] logList = null;
     int[] logSelected = null;
     deviceToLog = device;
     if( deviceToLog == null )
     {
-      return( null );
+      return( 0 );
     }
     LOGGER.log( Level.FINE, "prepare to download logdata..." );
     // wen da noch was ist, entfernen
@@ -582,7 +597,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, deviceToLog, dataDir.getAbsolutePath() );
     if( logDatabaseUtil.createConnection() == null )
     {
-      return( null );
+      return( 0 );
     }
     //
     // Ok, das sieht so aus, als könne es losgehen
@@ -593,18 +608,18 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     {
       // es ist auch etwas markiert!
       // Array erzeugen
-      logList = new int[logSelected.length];
+      logList = new Vector<Integer>();
       // für jeden markierten index die Lognummer holen
       for( int idx = 0; idx < logSelected.length; idx++ )
       {
-        logList[idx] = logListModel.getLognumberAt( logSelected[idx] );
-        LOGGER.log( Level.FINE, "select dive number <" + logList[idx] + "> for download..." );
+        logList.add( logListModel.getLognumberAt( logSelected[idx] ) );
+        LOGGER.log( Level.FINE, "select dive number <" + logSelected[idx] + "> for download..." );
       }
-      return( logList );
+      return( logList.size() );
     }
     // Es ist nichts markiert
     LOGGER.log( Level.WARNING, "prepare to download logdata...NOTHING selected!" );
-    return( null );
+    return( 0 );
   }
 
   /**
@@ -676,5 +691,222 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
       //
       LOGGER.log( Level.WARNING, "unknown action <" + cmd + "> from unknown source recived!" );
     }
+  }
+
+  /**
+   * 
+   * Gib die nächste Nummer eines zu lesenden Eintrages zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 13.05.2012
+   * @return Nummer oder -1
+   */
+  public int getNextEntryToRead()
+  {
+    // Ist die Liste (Vector) allociert?
+    if( logList == null )
+    {
+      // Nein, nix zu tun!
+      return( -1 );
+    }
+    // Sind Elemente vorhanden?
+    if( logList.isEmpty() )
+    {
+      // Liste ist Leer, nic zu tun
+      logList = null;
+      return( -1 );
+    }
+    // den ersten Eintrag zurückgeben
+    return( logList.remove( 0 ) );
+  }
+
+  /**
+   * 
+   * Vorbereiten: Es kommt ein Logfile mit der Indexnummer aus "fileNumberStr"
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 13.05.2012
+   * @param fileNumberStr
+   */
+  public void startTransfer( String fileNumberStr )
+  {
+    String fileName, diveDate, diveTime, diveTimeZoneStr;
+    String[] fields;
+    DateTimeZone diveTimeZone = null;
+    DateTime dateTime;
+    long diffDiveToUtc;
+    int year, month, day, hour, minute, second;
+    int diveId;
+    //
+    // Datenbank bereit für mich?
+    //
+    if( logDatabaseUtil == null )
+    {
+      LOGGER.log( Level.SEVERE, "logDatabaseUtil not allocated!" );
+      fileIndex = -1;
+      return;
+    }
+    try
+    {
+      fileIndex = Integer.parseInt( fileNumberStr, 16 );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.log( Level.SEVERE, "wrong filenumber in String: <" + ex.getLocalizedMessage() + ">" );
+      fileIndex = -1;
+      return;
+    }
+    // So, ich habe einen Index. Ich brauche für die Datenbank informationen
+    // Dateinamen, Geräteid, Zeitzohne,startzeit/datum
+    // bekomme ich aus dem hash logdirFiles
+    fileName = logdirFiles.get( fileIndex );
+    // Aus der Anzeige Datum und Zeitstring trennen
+    fields = fieldPatternDtTm.split( logdirReadable.get( fileIndex ) );
+    if( fields.length == 2 )
+    {
+      diveDate = fields[0];
+      fields = fieldPatternSp.split( fields[1] );
+      // Zeit und zeitzohne
+      if( fields.length == 2 )
+      {
+        diveTime = fields[0];
+        diveTimeZoneStr = fields[1];
+      }
+      else
+      {
+        // nur Zeit
+        diveTime = fields[0];
+        diveTimeZoneStr = null;
+      }
+    }
+    else
+    {
+      LOGGER.log( Level.SEVERE, "internal format error while decoding dive date and time from filename!" );
+      fileIndex = -1;
+      return;
+    }
+    // Jetzt die Zeitangaben parsen
+    try
+    {
+      // Datum splitten
+      fields = fieldPatternDot.split( diveDate );
+      year = Integer.parseInt( fields[2] );
+      month = Integer.parseInt( fields[1] );
+      day = Integer.parseInt( fields[0] );
+      // zeit splitten
+      fields = fieldPatternDp.split( diveTime );
+      hour = Integer.parseInt( fields[0] );
+      minute = Integer.parseInt( fields[1] );
+      second = Integer.parseInt( fields[2] );
+      // Zeit erzeugen
+      dateTime = new DateTime( year, month, day, hour, minute, second );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.log( Level.SEVERE, "internal format error while decoding dive date and time!" );
+      fileIndex = -1;
+      return;
+    }
+    //
+    // zuerst die Zeitzohne festlegen
+    //
+    if( diveTimeZoneStr == null )
+    {
+      diveTimeZone = DateTimeZone.getDefault();
+    }
+    else
+    {
+      diveTimeZone = DateTimeZone.forID( diveTimeZoneStr );
+    }
+    // Differenz zu UTC
+    // somit kann ich die Daten in UTC ablegen
+    diffDiveToUtc = diveTimeZone.getOffset( 0 );
+    // Ersten eintrag für den Tauchgang machen
+    diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, diveTimeZoneStr, ( dateTime.getMillis() - diffDiveToUtc ) / 1000 );
+    if( diveId < 0 )
+    {
+      fileIndex = -1;
+      currLogEntry = -1;
+      return;
+    }
+    currLogEntry = diveId;
+    // TODO: Zeit erstellenDateTime diveTimeLocal = DateTime();
+  }
+
+  /**
+   * 
+   * Sichert eine weitere Zeile der Logdatei...
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 09.05.2012
+   * @param logFile
+   * @param logLine
+   * @return
+   */
+  public int addLogLineFromSPX( String logLine )
+  {
+    String fields[] = null;
+    LogLineDataObject lineData = null;
+    //
+    if( fileIndex == -1 || currLogEntry < 0 )
+    {
+      LOGGER.log( Level.SEVERE, "not opened a file for reading via startTransfer()! ABORT" );
+      return( -1 );
+    }
+    LOGGER.log( Level.SEVERE, "LINE: <" + logLine + ">..." );
+    // teile die Logline in Felder auf
+    fields = fieldPattern0x09.split( logLine );
+    try
+    {
+      lineData = new LogLineDataObject();
+      // die Felder in Werte für die Datenbank umrechnen...
+      lineData.pressure = Integer.parseInt( fields[0].trim() );
+      lineData.depth = Integer.parseInt( fields[1].trim() );
+      lineData.temperature = Integer.parseInt( fields[2].trim() );
+      lineData.acku = Double.parseDouble( fields[3].trim() );
+      lineData.ppo2 = Double.parseDouble( fields[5].trim() );
+      lineData.ppo2_1 = Double.parseDouble( fields[13].trim() );
+      lineData.ppo2_2 = Double.parseDouble( fields[14].trim() );
+      lineData.ppo2_3 = Double.parseDouble( fields[15].trim() );
+      lineData.setpoint = Integer.parseInt( fields[6].trim() );
+      lineData.n2 = Integer.parseInt( fields[16].trim() );
+      lineData.he = Integer.parseInt( fields[17].trim() );
+      lineData.zeroTime = Integer.parseInt( fields[20].trim() );
+      lineData.nextStep = Integer.parseInt( fields[24].trim() );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.log( Level.SEVERE, "error in converting numbers <" + ex.getLocalizedMessage() + ">" );
+      return( -1 );
+    }
+    logDatabaseUtil.appendLogToCache( currLogEntry, lineData );
+    return( 1 );
+  }
+
+  /**
+   * 
+   * Den Cache (der im Datenbankobjekt vorgehalten wird) nun zur Datenbank schreiben
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 17.06.2012
+   * @return
+   */
+  public int writeCacheToDatabase()
+  {
+    int ret = logDatabaseUtil.writeLogToDatabase( currLogEntry );
+    currLogEntry = -1;
+    return( ret );
   }
 }

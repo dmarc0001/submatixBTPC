@@ -665,7 +665,7 @@ public class BTCommunication implements IBTCommunication
             // Übertragung Logfile gestartet
             if( aListener != null )
             {
-              ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_START, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+              ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_START, new String( fields[2] ), System.currentTimeMillis() / 100, 0 );
               aListener.actionPerformed( ex );
             }
             if( log ) LOGGER.log( Level.FINE, "Logfile transmission started..." );
@@ -677,7 +677,7 @@ public class BTCommunication implements IBTCommunication
               // Übertragung beendet
               if( aListener != null )
               {
-                ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_STOP, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
+                ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_STOP, new String( fields[2] ), System.currentTimeMillis() / 100, 0 );
                 aListener.actionPerformed( ex );
               }
               if( log ) LOGGER.log( Level.FINE, "Logfile transmission finished." );
@@ -1662,5 +1662,19 @@ public class BTCommunication implements IBTCommunication
       return( connectedDevice.getBluetoothAddress() );
     }
     return null;
+  }
+
+  @Override
+  public void readLogDetailFromSPX( int logNumber )
+  {
+    if( isConnected )
+    {
+      String kdoString = String.format( "%s~%x:%x%s", ProjectConst.STX, ProjectConst.SPX_GET_LOG_NUMBER, logNumber, ProjectConst.ETX );
+      if( log )
+      {
+        LOGGER.log( Level.FINE, "readLogDetailFromSPX()...send <" + kdoString + ">" );
+      }
+      this.writeToDevice( kdoString );
+    }
   }
 }

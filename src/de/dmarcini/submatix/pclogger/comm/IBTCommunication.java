@@ -81,6 +81,8 @@ public interface IBTCommunication
 
   public void readLogDirectoryFromSPX();
 
+  public void readLogDetailFromSPX( int logNumber );
+
   // experimentell...
   public String getDeviceInfos();
 

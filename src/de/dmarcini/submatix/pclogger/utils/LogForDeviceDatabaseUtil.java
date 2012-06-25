@@ -1,5 +1,7 @@
 package de.dmarcini.submatix.pclogger.utils;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -28,6 +30,7 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
 public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
 {
   private Logger                    LOGGER      = null;
+  private ActionListener            aListener   = null;
   private File                      dbFile      = null;
   private Connection                conn        = null;
   private Vector<LogLineDataObject> logDataList = null;
@@ -60,9 +63,10 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
    * @param device
    * @param logdataDir
    */
-  public LogForDeviceDatabaseUtil( Logger lg, String device, String logdataDir )
+  public LogForDeviceDatabaseUtil( Logger lg, ActionListener al, String device, String logdataDir )
   {
     LOGGER = lg;
+    this.aListener = al;
     dbFile = new File( String.format( "%s%sdivelog_%s.db", logdataDir, File.separator, device ) );
     conn = null;
     logDataList = null;
@@ -562,11 +566,9 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
-  public int writeLogToDatabase( int diveId )
+  public int writeLogToDatabase( final int diveId )
   {
-    PreparedStatement prep = null;
-    String sql;
-    LogLineDataObject logLineObj;
+    Thread writeDb;
     //
     if( logDataList == null )
     {
@@ -578,86 +580,184 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       LOGGER.log( Level.SEVERE, "diveid for this chache is not correct in this situation! ABORT" );
       return( -1 );
     }
+    // Thread dafür aufbauen
+    writeDb = new Thread( "cache_to_db" ) {
+      @Override
+      public void run()
+      {
+        PreparedStatement prep = null;
+        String sql;
+        LogLineDataObject logLineObj;
+        //@formatter:off
+         sql = String.format( 
+                 "insert into %s\n" +
+                 " (\n" + 
+                 "  %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" + 
+                 " )\n" + 
+                 " values\n" +
+                 " (\n" +
+                 "  ?,?,?,?,?,?,?,?,?,?,?,?\n" + 
+                 " );\n" 
+                 ,                    
+                 ProjectConst.D_TABLE_DIVEDETAIL,
+                 ProjectConst.D_DIVEID,
+                 ProjectConst.D_DEPTH,
+                 ProjectConst.D_TEMPERATURE,
+                 ProjectConst.D_PPO,
+                 ProjectConst.D_PPO_1,
+                 ProjectConst.D_PPO_2,
+                 ProjectConst.D_PPO_3,
+                 ProjectConst.D_SETPOINT,
+                 ProjectConst.D_N2,
+                 ProjectConst.D_HE,
+                 ProjectConst.D_NULLTIME,
+                 ProjectConst.D_DELTATIME );
+         //@formatter:off 
+         try
+         {
+           prep = conn.prepareStatement( sql );
+         }
+         catch( SQLException ex )
+         {
+           LOGGER.log( Level.SEVERE, "fatal error : " + ex.getLocalizedMessage() );
+           ex.printStackTrace();
+           if( aListener != null )
+           {
+             // die "das ging schief" Nachricht
+             ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "prepareStatement" );
+             aListener.actionPerformed( ev );
+           }
+           logDataList.clear();
+           logDataList = null;
+           return;
+         }
+         // 
+         // Alle Zeilen sichern
+         for (Enumeration<LogLineDataObject> enu=logDataList.elements(); enu.hasMoreElements(); ) 
+         {
+           logLineObj = enu.nextElement();
+           try
+           {
+             prep.setInt( 1, diveId );
+             prep.setInt( 2, logLineObj.depth );
+             prep.setInt( 3, logLineObj.temperature );
+             prep.setDouble( 4, logLineObj.ppo2 );
+             prep.setDouble( 5, logLineObj.ppo2_1 );
+             prep.setDouble( 6, logLineObj.ppo2_2 );
+             prep.setDouble( 7, logLineObj.ppo2_3 );
+             prep.setInt( 8, logLineObj.setpoint );
+             prep.setInt( 9, logLineObj.n2 );
+             prep.setInt( 10, logLineObj.he );
+             prep.setInt( 11, logLineObj.zeroTime );
+             prep.setInt( 12, logLineObj.nextStep );
+             prep.addBatch();
+           }
+           catch( SQLException ex )
+           {
+             LOGGER.log( Level.SEVERE, "fatal error in sql prepare: " + ex.getLocalizedMessage() );
+             ex.printStackTrace();
+             if( aListener != null )
+             {
+               // die "das ging schief" Nachricht
+               ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "addBatch" );
+               aListener.actionPerformed( ev );
+             }
+             logDataList.clear();
+             logDataList = null;
+             return;
+           }
+         }
+         try
+         {
+           prep.executeBatch();
+           prep.close();
+           conn.commit();
+         }
+         catch( SQLException ex )
+         {
+            try
+            {
+              conn.rollback();
+            }
+            catch( SQLException ex1 )
+            {
+              //Doppelfehler...LogForDeviceDatabaseUtil Programm hart beenden!
+              LOGGER.log( Level.SEVERE, "fatal double error in batch execute: " + ex1.getLocalizedMessage() );
+              LOGGER.log( Level.SEVERE, "ABORT PROGRAM!!!!!!!!!" );
+              ex1.printStackTrace();
+              System.exit( -1 );
+            }
+           LOGGER.log( Level.SEVERE, "fatal error in batch execute: " + ex.getLocalizedMessage() );
+           ex.printStackTrace();
+           if( aListener != null )
+           {
+             // die "das ging schief" Nachricht
+             ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "executeBatch" );
+             aListener.actionPerformed( ev );
+           }
+           logDataList.clear();
+           logDataList = null;
+           return;
+         }
+         LOGGER.log( Level.FINE, "writed cache dataset to database." );
+         // aufräumen!
+         logDataList.clear();
+         logDataList = null;
+         if( aListener != null )
+         {
+           // die "das ging schief" Nachricht
+           ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_SUCCESS, null );
+           aListener.actionPerformed( ev );
+         }
+         return;
+       };
+    };
+    writeDb.start();
+    return 0;
+  }
+
+  @Override
+  public int deleteLogFromDatabease()
+  {
+    String sql;
+    Statement stat;
+    //
+    if( currentDiveId == -1 )
+    {
+      // das war nix...
+      return( 0 );
+    }
+    //
+    // entferne Headerdaten
+    //
     //@formatter:off
     sql = String.format( 
-            "insert into %s\n" +
-            " (\n" + 
-            "  %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" + 
-            " )\n" + 
-            " values\n" +
-            " (\n" +
-            "  ?,?,?,?,?,?,?,?,?,?,?,?\n" + 
-            " );\n" 
-            ,                    
-            ProjectConst.D_TABLE_DIVEDETAIL,
-            ProjectConst.D_DIVEID,
-            ProjectConst.D_DEPTH,
-            ProjectConst.D_TEMPERATURE,
-            ProjectConst.D_PPO,
-            ProjectConst.D_PPO_1,
-            ProjectConst.D_PPO_2,
-            ProjectConst.D_PPO_3,
-            ProjectConst.D_SETPOINT,
-            ProjectConst.D_N2,
-            ProjectConst.D_HE,
-            ProjectConst.D_NULLTIME,
-            ProjectConst.D_DELTATIME );
-    //@formatter:off 
+            "insert from %s\n" +
+            " where %s=%d"
+            ,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            currentDiveId
+            );
+    //@formatter:on 
+    //
     try
     {
-      prep = conn.prepareStatement( sql );
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "fatal error : " + ex.getLocalizedMessage() );
+      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
       ex.printStackTrace();
-      return( -1 );
     }
-    // 
-    // Alle Zeilen sichern
-    for (Enumeration<LogLineDataObject> enu=logDataList.elements(); enu.hasMoreElements(); ) 
+    currentDiveId = -1;
+    if( logDataList != null )
     {
-      logLineObj = enu.nextElement();
-      try
-      {
-        prep.setInt( 1, diveId );
-        prep.setInt( 2, logLineObj.depth );
-        prep.setInt( 3, logLineObj.temperature );
-        prep.setDouble( 4, logLineObj.ppo2 );
-        prep.setDouble( 5, logLineObj.ppo2_1 );
-        prep.setDouble( 6, logLineObj.ppo2_2 );
-        prep.setDouble( 7, logLineObj.ppo2_3 );
-        prep.setInt( 8, logLineObj.setpoint );
-        prep.setInt( 9, logLineObj.n2 );
-        prep.setInt( 10, logLineObj.he );
-        prep.setInt( 11, logLineObj.zeroTime );
-        prep.setInt( 12, logLineObj.nextStep );
-        prep.addBatch();
-      }
-      catch( SQLException ex )
-      {
-        LOGGER.log( Level.SEVERE, "fatal error in sql prepare: " + ex.getLocalizedMessage() );
-        ex.printStackTrace();
-        return( -1 );
-      }
+      logDataList.clear();
+      logDataList = null;
     }
-    try
-    {
-      prep.executeBatch();
-      prep.close();
-      conn.commit();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "fatal error in batch execute: " + ex.getLocalizedMessage() );
-      ex.printStackTrace();
-      return( -1 );
-    }
-    LOGGER.log( Level.FINE, "writed cache dataset to database." );
-    // aufräumen!
-    diveId = -1;
-    logDataList.clear();
-    logDataList = null;
     return 0;
   }
 }

@@ -52,6 +52,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
    */
   private static final long              serialVersionUID     = 1L;
   protected Logger                       LOGGER               = null;
+  private ActionListener                 aListener            = null;
   private final HashMap<Integer, String> logdirFiles          = new HashMap<Integer, String>();
   private final HashMap<Integer, String> logdirReadable       = new HashMap<Integer, String>();
   private File                           dataDir              = null;
@@ -112,14 +113,16 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
    * 
    *         Stand: 05.05.2012
    * @param LOGGER
+   * @param al
    * @param dataDir
    */
-  public spx42LoglistPanel( Logger LOGGER, String dataDir )
+  public spx42LoglistPanel( Logger LOGGER, ActionListener al, String dataDir )
   {
     int idx;
     String tmStr;
     //
     this.LOGGER = LOGGER;
+    this.aListener = al;
     initPanel();
     logdirFiles.clear();
     logdirReadable.clear();
@@ -371,7 +374,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
    */
   public void clearLogdirCache()
   {
-    // Dateiunamen auf dem SPX
+    // Dateinamen auf dem SPX
     logdirFiles.clear();
     // Nummerierung auf dem SPX
     logdirReadable.clear();
@@ -409,7 +412,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
       logDatabaseUtil = null;
     }
     // das Datenbankutility initialisieren
-    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, deviceToLog, dataDir.getAbsolutePath() );
+    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, aListener, deviceToLog, dataDir.getAbsolutePath() );
     if( logDatabaseUtil.createConnection() == null )
     {
       return( false );
@@ -594,7 +597,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
       logDatabaseUtil = null;
     }
     // das Datenbankutility initialisieren
-    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, deviceToLog, dataDir.getAbsolutePath() );
+    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, aListener, deviceToLog, dataDir.getAbsolutePath() );
     if( logDatabaseUtil.createConnection() == null )
     {
       return( 0 );
@@ -836,7 +839,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
       return;
     }
     currLogEntry = diveId;
-    // TODO: Zeit erstellenDateTime diveTimeLocal = DateTime();
+    // TODO: Zeit erstellen DateTime diveTimeLocal = DateTime();
   }
 
   /**
@@ -848,9 +851,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 09.05.2012
-   * @param logFile
    * @param logLine
-   * @return
+   * @return ok oder nicht
    */
   public int addLogLineFromSPX( String logLine )
   {
@@ -901,12 +903,28 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 17.06.2012
-   * @return
+   * @return ok oder nicht
    */
   public int writeCacheToDatabase()
   {
     int ret = logDatabaseUtil.writeLogToDatabase( currLogEntry );
     currLogEntry = -1;
     return( ret );
+  }
+
+  /**
+   * 
+   * Wenn Datenbankfehler auftraten, Datenreste entfernen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 25.06.2012
+   * @return ging oder Fehler
+   */
+  public int removeFailedDataset()
+  {
+    return( logDatabaseUtil.deleteLogFromDatabease() );
   }
 }

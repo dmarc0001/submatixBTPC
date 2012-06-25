@@ -318,7 +318,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( 1, true );
     // Loglisten Panel
-    logListPanel = new spx42LoglistPanel( LOGGER, logdataDir.getAbsolutePath() );
+    logListPanel = new spx42LoglistPanel( LOGGER, this, logdataDir.getAbsolutePath() );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
     tabbedPane.setEnabledAt( 2, true );
     // MENÜ
@@ -1521,13 +1521,81 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Nachricht: Logzeile übertragen
       case ProjectConst.MESSAGE_LOGENTRY_STOP:
         LOGGER.log( Level.FINE, "loglist transfer done..." );
+        // Ab auf die Platte ind die DB damit!
         logListPanel.writeCacheToDatabase();
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nachricht: Daten gesichert....
+      case ProjectConst.MESSAGE_DB_SUCCESS:
+        LOGGER.log( Level.FINE, "loglist transfer success..." );
         // dann kann das fenster ja wech!
         if( wDial != null )
         {
           wDial.dispose();
           wDial = null;
         }
+        if( btComm != null )
+        {
+          if( btComm.isConnected() )
+          {
+            int logListEntry = logListPanel.getNextEntryToRead();
+            if( logListEntry > -1 )
+            {
+              wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+              wDial.setVisible( true );
+              // Sag dem SPX er soll alles schicken
+              LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry + ">" );
+              btComm.readLogDetailFromSPX( logListEntry );
+            }
+            else
+            {
+              if( btComm != null )
+              {
+                if( btComm.isConnected() )
+                {
+                  if( logListPanel.prepareReadLogdir( btComm.getConnectedDevice() ) )
+                  {
+                    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+                    wDial.setVisible( true );
+                    // beginne mit leerem Cache
+                    logListPanel.clearLogdirCache();
+                    logListPanel.cleanDetails();
+                    // Sag dem SPX er soll alles schicken
+                    btComm.readLogDirectoryFromSPX();
+                  }
+                }
+                else
+                {
+                  showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+                }
+              }
+            }
+          }
+          else
+          {
+            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+          }
+        }
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nachricht: Datenbankfehler....
+      case ProjectConst.MESSAGE_DB_FAIL:
+        LOGGER.log( Level.FINE, "loglist transfer failed..." );
+        // dann kann das fenster ja wech!
+        if( wDial != null )
+        {
+          wDial.dispose();
+          wDial = null;
+        }
+        if( cmd != null )
+        {
+          showErrorDialog( stringsBundle.getString( "spx42LoglistPanel.logListLabel.text" ) + "\n" + cmd );
+        }
+        else
+        {
+          showErrorDialog( stringsBundle.getString( "spx42LoglistPanel.logListLabel.text" ) );
+        }
+        logListPanel.removeFailedDataset();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nichts traf zu....
@@ -1689,9 +1757,54 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * 
+   * Zeige eine Fehlermeldung mit Hinweistext ind Icon
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 25.06.2012
+   * @param header
+   * @param message
+   */
+  private void showErrorDialog( String message )
+  {
+    ImageIcon icon = null;
+    try
+    {
+      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Terminate.png" ) );
+      JOptionPane.showMessageDialog( this, message, stringsBundle.getString( "MainCommGUI.errorDialog.headline" ), JOptionPane.INFORMATION_MESSAGE, icon );
+    }
+    catch( NullPointerException ex )
+    {
+      statusTextField.setText( "ERROR showErrorBox" );
+      LOGGER.log( Level.SEVERE, "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( MissingResourceException ex )
+    {
+      statusTextField.setText( "ERROR showErrorBox" );
+      LOGGER.log( Level.SEVERE, "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( ClassCastException ex )
+    {
+      statusTextField.setText( "ERROR showErrorBox" );
+      LOGGER.log( Level.SEVERE, "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+  }
+
+  /**
+   * 
    * Zeige eine klein Info über das Proggi an Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 05.01.2012
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.01.2012
    */
   private void showInfoDialog()
   {
@@ -1699,7 +1812,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     try
     {
       icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Wiki2.png" ) );
-      // stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages", programLocale );
       JOptionPane.showMessageDialog(
               this,
               stringsBundle.getString( "MainCommGUI.infoDlg.line1" ) + "\n" + stringsBundle.getString( "MainCommGUI.infoDlg.line2" ) + "\n"

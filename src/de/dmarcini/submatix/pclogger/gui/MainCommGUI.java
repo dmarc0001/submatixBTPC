@@ -118,6 +118,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private spx42ConfigPanel        configPanel;
   private spx42GaslistEditPanel   gasConfigPanel;
   private spx42LoglistPanel       logListPanel;
+  private spx42LogGraphPanel      logGraphPanel;
   private JMenuItem               mntmExit;
   private JMenu                   mnLanguages;
   private JMenu                   mnFile;
@@ -224,12 +225,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     try
     {
       programLocale = Locale.getDefault();
-      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages", programLocale );
+      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
     }
     catch( MissingResourceException ex )
     {
       System.out.println( "ERROR get resources <" + ex.getMessage() + "> try standart Strings..." );
-      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages_en" );
+      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages_en" );
     }
     prepareDatabase();
     currentConfig.setLogger( LOGGER );
@@ -321,6 +322,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     logListPanel = new spx42LoglistPanel( LOGGER, this, logdataDir.getAbsolutePath() );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
     tabbedPane.setEnabledAt( 2, true );
+    // Grafik Panel
+    logGraphPanel = new spx42LogGraphPanel( LOGGER, sqliteDbUtil );
+    tabbedPane.addTab( "GRAPH", null, logGraphPanel, null );
+    tabbedPane.setEnabledAt( 3, true );
     // MENÜ
     JMenuBar menuBar = new JMenuBar();
     frmMainwindowtitle.setJMenuBar( menuBar );
@@ -371,7 +376,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     ignoreAction = true;
     try
     {
-      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages", programLocale );
+      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
     }
     catch( MissingResourceException ex )
     {
@@ -418,6 +423,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Tabbed Pane log
       tabbedPane.setTitleAt( 3, stringsBundle.getString( "spx42LoglistPanel.title" ) );
       logListPanel.setLanguageStrings( stringsBundle );
+      // //////////////////////////////////////////////////////////////////////
+      // Tabbed Pane graph
+      tabbedPane.setTitleAt( 4, stringsBundle.getString( "spx42LogGraphPanel.title" ) );
+      logGraphPanel.setLanguageStrings( stringsBundle );
     }
     catch( NullPointerException ex )
     {
@@ -460,7 +469,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       ignoreAction = true;
       // Lies die Resource aus
-      rb = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.languages" );
+      rb = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.languages" );
       // Alle KEYS lesen
       enu = rb.getKeys();
       try
@@ -1300,17 +1309,17 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       case ProjectConst.MESSAGE_CONNECTED:
         LOGGER.log( Level.INFO, "CONNECT" );
         setElementsConnected( true );
-        if( wDial != null )
-        {
-          wDial.dispose();
-          wDial = null;
-        }
         // Gleich mal Fragen, wer da dran ist!
         btComm.askForDeviceName();
         btComm.askForSerialNumber();
         btComm.askForLicenseFromSPX();
         btComm.askForFirmwareVersion();
         connectionPanel.refreshAliasTable();
+        if( wDial != null )
+        {
+          wDial.dispose();
+          wDial = null;
+        }
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Device wurde getrennt
@@ -1733,7 +1742,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     try
     {
       icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Abort.png" ) );
-      // stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.res.messages", programLocale );
       JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
     }
     catch( NullPointerException ex )
@@ -2513,5 +2521,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     configPanel.setGlobalChangeListener( this );
     gasConfigPanel.setGlobalChangeListener( this );
     logListPanel.setGlobalChangeListener( this );
+    logGraphPanel.setGlobalChangeListener( this );
   }
 }

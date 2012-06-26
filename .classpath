@@ -15,5 +15,7 @@
 			<attribute name="javadoc_location" value="jar:file:/C:/DATEN/eclipseWorkspace/extLibs/joda-time-2.1/joda-time-2.1-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/jfreechart/jfreechart-1.0.14/lib/jfreechart-1.0.14.jar"/>
+	<classpathentry kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/jfreechart/jfreechart-1.0.14/lib/jcommon-1.0.17.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

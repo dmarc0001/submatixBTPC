@@ -167,6 +167,7 @@ public final class ProjectConst
   // Tabelle für die relevanten Daten des Tauchganges
   // Tabelle logdata
   public static final String D_TABLE_DIVEDETAIL         = "logdata";
+  public static final String D_DBID                     = "id";
   public static final String D_DIVEID                   = "dive_id";
   public static final String D_DEPTH                    = "depth";
   public static final String D_TEMPERATURE              = "temperature";

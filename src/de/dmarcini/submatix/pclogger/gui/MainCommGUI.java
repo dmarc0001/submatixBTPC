@@ -82,6 +82,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private final static int                   MODERATE            = 2;
   private final static int                   AGGRESSIVE          = 3;
   private final static int                   VERY_AGGRESSIVE     = 4;
+  private final static int                   TAB_CONNECT         = 0; 
+  private final static int                   TAB_CONFIG          = 1; 
+  private final static int                   TAB_GASLIST         = 2; 
+  private final static int                   TAB_LOGREAD         = 3; 
+  private final static int                   TAB_LOGGRAPH        = 4;
   // private final static int CUSTOMIZED = 5;
   private static ResourceBundle              stringsBundle       = null;
   private Locale                             programLocale       = null;
@@ -109,7 +114,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static final Pattern               fieldPatternUnderln = Pattern.compile( "[_.]" );
   private int                                licenseState        = -1;
   private int                                customConfig        = -1;
-  private ConnectDatabaseUtil                       sqliteDbUtil        = null;
+  private ConnectDatabaseUtil                sqliteDbUtil        = null;
   //
   // @formatter:on
   private JFrame                  frmMainwindowtitle;
@@ -310,22 +315,23 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // Connection Panel
     connectionPanel = new spx42ConnectPanel( LOGGER, sqliteDbUtil, btComm );
     tabbedPane.addTab( "CONNECTION", null, connectionPanel, null );
-    tabbedPane.setEnabledAt( 0, true );
+    tabbedPane.setEnabledAt( TAB_CONNECT, true );
     // config Panel
     configPanel = new spx42ConfigPanel( LOGGER );
     tabbedPane.addTab( "CONFIG", null, configPanel, null );
+    tabbedPane.setEnabledAt( TAB_CONFIG, true );
     // GASPANEL
     gasConfigPanel = new spx42GaslistEditPanel( LOGGER );
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
-    tabbedPane.setEnabledAt( 1, true );
+    tabbedPane.setEnabledAt( TAB_GASLIST, true );
     // Loglisten Panel
     logListPanel = new spx42LoglistPanel( LOGGER, this, logdataDir.getAbsolutePath() );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
-    tabbedPane.setEnabledAt( 2, true );
+    tabbedPane.setEnabledAt( TAB_LOGREAD, true );
     // Grafik Panel
     logGraphPanel = new spx42LogGraphPanel( LOGGER, sqliteDbUtil );
     tabbedPane.addTab( "GRAPH", null, logGraphPanel, null );
-    tabbedPane.setEnabledAt( 3, true );
+    tabbedPane.setEnabledAt( TAB_LOGGRAPH, true );
     // MENÜ
     JMenuBar menuBar = new JMenuBar();
     frmMainwindowtitle.setJMenuBar( menuBar );
@@ -409,23 +415,23 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Tabbed Panes
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane connect
-      tabbedPane.setTitleAt( 0, stringsBundle.getString( "spx42ConnectPanel.title" ) );
+      tabbedPane.setTitleAt( TAB_CONNECT, stringsBundle.getString( "spx42ConnectPanel.title" ) );
       connectionPanel.setLanguageStrings( stringsBundle, btComm.isConnected() );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane config
-      tabbedPane.setTitleAt( 1, stringsBundle.getString( "spx42ConfigPanel.title" ) );
+      tabbedPane.setTitleAt( TAB_CONFIG, stringsBundle.getString( "spx42ConfigPanel.title" ) );
       configPanel.setLanguageStrings( stringsBundle );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane gas
-      tabbedPane.setTitleAt( 2, stringsBundle.getString( "spx42GaslistEditPanel.title" ) );
+      tabbedPane.setTitleAt( TAB_GASLIST, stringsBundle.getString( "spx42GaslistEditPanel.title" ) );
       gasConfigPanel.setLanguageStrings( stringsBundle );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane log
-      tabbedPane.setTitleAt( 3, stringsBundle.getString( "spx42LoglistPanel.title" ) );
+      tabbedPane.setTitleAt( TAB_LOGREAD, stringsBundle.getString( "spx42LoglistPanel.title" ) );
       logListPanel.setLanguageStrings( stringsBundle );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane graph
-      tabbedPane.setTitleAt( 4, stringsBundle.getString( "spx42LogGraphPanel.title" ) );
+      tabbedPane.setTitleAt( TAB_LOGGRAPH, stringsBundle.getString( "spx42LogGraphPanel.title" ) );
       logGraphPanel.setLanguageStrings( stringsBundle );
     }
     catch( NullPointerException ex )
@@ -1899,7 +1905,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void setElementsInactive( boolean active )
   {
     connectionPanel.setElementsInactive( active );
-    tabbedPane.setEnabledAt( 1, active );
+    tabbedPane.setEnabledAt( TAB_CONFIG, active );
   }
 
   /**
@@ -1911,9 +1917,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void setElementsConnected( boolean active )
   {
     connectionPanel.setElementsConnected( active );
-    tabbedPane.setEnabledAt( 1, active );
-    tabbedPane.setEnabledAt( 2, active );
-    tabbedPane.setEnabledAt( 3, active );
+    tabbedPane.setEnabledAt( TAB_CONFIG, active );
+    tabbedPane.setEnabledAt( TAB_GASLIST, active );
+    tabbedPane.setEnabledAt( TAB_LOGREAD, active );
     if( !active )
     {
       configPanel.serialNumberText.setText( "-" );
@@ -2008,7 +2014,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     JSpinner currSpinner = null;
     int currValue;
     if( ignoreAction ) return;
-    //
+    // //////////////////////////////////////////////////////////////////////
     // war es ein spinner?
     if( ev.getSource() instanceof JSpinner )
     {
@@ -2057,6 +2063,41 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           }
         }
         LOGGER.log( Level.WARNING, "unknown spinner recived!" );
+      }
+    }
+    // //////////////////////////////////////////////////////////////////////
+    // war es ein tabbedPane
+    else if( ev.getSource() instanceof JTabbedPane )
+    {
+      if( tabbedPane.equals( ev.getSource() ) )
+      {
+        int tabIdx = tabbedPane.getSelectedIndex();
+        LOGGER.log( Level.FINE, String.format( "tabbedPane changed to %02d!", tabIdx ) );
+        if( tabIdx == TAB_LOGGRAPH )
+        {
+          LOGGER.log( Level.FINE, "graph tab select, init grapic..." );
+          String connDev = null;
+          if( btComm != null )
+          {
+            connDev = btComm.getConnectedDevice();
+          }
+          // Grafiksachen initialisieren
+          try
+          {
+            logGraphPanel.initGraph( connDev, logdataDir );
+          }
+          catch( Exception ex )
+          {
+            LOGGER.log( Level.SEVERE, "initGraph Exception: <" + ex.getLocalizedMessage() + ">" );
+            showErrorDialog( stringsBundle.getString( "MainCommGui.errorDialog.openGraphWindow" ) );
+            return;
+          }
+        }
+        else
+        {
+          // grafiksachen freigeben
+          logGraphPanel.releaseGraph();
+        }
       }
     }
     else
@@ -2517,6 +2558,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void setGlobalChangeListener()
   {
+    tabbedPane.addChangeListener( this );
     connectionPanel.setGlobalChangeListener( this );
     configPanel.setGlobalChangeListener( this );
     gasConfigPanel.setGlobalChangeListener( this );

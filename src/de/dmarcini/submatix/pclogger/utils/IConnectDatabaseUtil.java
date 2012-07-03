@@ -28,4 +28,17 @@ public interface IConnectDatabaseUtil
   public boolean isOpenDB();
 
   public void closeDB();
+
+  /**
+   * 
+   * Lese aus der Datenbank alle vorhandenen Geräte heraus
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.07.2012
+   * @return Liste der Geräte
+   */
+  public String[] readDevicesFromDatabase();
 }

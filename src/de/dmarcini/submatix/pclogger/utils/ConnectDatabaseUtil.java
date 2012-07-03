@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -572,5 +573,49 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
       LOGGER.log( Level.SEVERE, String.format( "fail to check database ist opened (%s))", ex.getLocalizedMessage() ) );
     }
     return( false );
+  }
+
+  @Override
+  public String[] readDevicesFromDatabase()
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String[] results;
+    Vector<String> sammel = new Vector<String>();
+    //
+    LOGGER.log( Level.FINE, "read devices from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select distinct %s from %s;",
+            ProjectConst.A_ALIAS,
+            ProjectConst.A_DBALIAS
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      while( rs.next() )
+      {
+        sammel.add( rs.getString( 1 ) );
+        LOGGER.log( Level.FINE, String.format( "database read device <%s>", rs.getString( 1 ) ) );
+      }
+      rs.close();
+      // stelle die Liste der Geräte zusammen!
+      results = new String[sammel.size()];
+      results = sammel.toArray( results );
+      return( results );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
   }
 }

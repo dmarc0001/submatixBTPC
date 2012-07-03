@@ -100,7 +100,7 @@ public class LogdirListModel extends DefaultListModel
   public int getLognumberAt( int number )
   {
     int logNumber = 0;
-    if( super.isEmpty() )
+    if( super.isEmpty() || number < 0 )
     {
       return( -1 );
     }

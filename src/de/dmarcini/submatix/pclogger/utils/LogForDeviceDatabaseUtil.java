@@ -60,6 +60,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
    * 
    *         Stand: 06.05.2012
    * @param lg
+   * @param al
    * @param device
    * @param logdataDir
    */
@@ -281,6 +282,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     sql = String.format( 
             "create table %s\n" +
             " (\n" +
+            "  %s integer primary key asc autoincrement, \n" + 
             "  %s integer not null,\n" +
             "  %s integer,\n" +
             "  %s integer,\n" +
@@ -295,6 +297,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "  %s integer\n" +
             " );",  
             ProjectConst.D_TABLE_DIVEDETAIL,
+            ProjectConst.D_DBID,
             ProjectConst.D_DIVEID,
             ProjectConst.D_DEPTH,
             ProjectConst.D_TEMPERATURE,
@@ -759,5 +762,109 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       logDataList = null;
     }
     return 0;
+  }
+
+  @Override
+  public Vector<String[]> getDiveListForDevice( String device )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    Vector<String[]> results = new Vector<String[]>();
+    //
+    LOGGER.log( Level.FINE, "read divelist for device <" + device + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s from %s;",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_TIMEZONE,
+            ProjectConst.H_TABLE_DIVELOGS
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      while( rs.next() )
+      {
+        // Daten kosolidieren
+        String[] resultSet = new String[3];
+        resultSet[0] = rs.getString( 1 );
+        resultSet[1] = rs.getString( 2 );
+        resultSet[2] = rs.getString( 3 );
+        // ab in den vector
+        results.add( resultSet );
+        LOGGER.log( Level.FINE, String.format( "database read dive nr <%s>", rs.getString( 1 ) ) );
+      }
+      rs.close();
+      return( results );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  @Override
+  public Vector<Integer[]> readDiveDataFromId( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    Vector<Integer[]> diveData = new Vector<Integer[]>();
+    //
+    diveData.clear();
+    LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s,%s,%s,%s from %s where dive_id=%d;",
+            ProjectConst.D_DELTATIME,
+            ProjectConst.D_DEPTH,
+            ProjectConst.D_TEMPERATURE,
+            ProjectConst.D_PPO,
+            ProjectConst.D_SETPOINT,
+            ProjectConst.D_NULLTIME,
+            ProjectConst.D_TABLE_DIVEDETAIL,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      while( rs.next() )
+      {
+        // Daten kosolidieren
+        Integer[] resultSet = new Integer[6];
+        resultSet[0] = rs.getInt( 1 );
+        resultSet[1] = rs.getInt( 2 );
+        resultSet[2] = rs.getInt( 3 );
+        resultSet[3] = rs.getInt( 4 );
+        resultSet[4] = rs.getInt( 5 );
+        resultSet[5] = rs.getInt( 6 );
+        // ab in den vector
+        diveData.add( resultSet );
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB...OK" );
+      return( diveData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
   }
 }

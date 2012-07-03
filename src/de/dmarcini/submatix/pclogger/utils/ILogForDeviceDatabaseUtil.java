@@ -2,6 +2,7 @@ package de.dmarcini.submatix.pclogger.utils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Vector;
 
 public interface ILogForDeviceDatabaseUtil
 {
@@ -14,7 +15,7 @@ public interface ILogForDeviceDatabaseUtil
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 25.06.2012
-   * @return
+   * @return Verbindung
    */
   public Connection createConnection();
 
@@ -27,7 +28,7 @@ public interface ILogForDeviceDatabaseUtil
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 25.06.2012
-   * @return
+   * @return Verbindung
    * @throws SQLException
    * @throws ClassNotFoundException
    */
@@ -43,7 +44,7 @@ public interface ILogForDeviceDatabaseUtil
    * 
    *         Stand: 25.06.2012
    * @param dbFileName
-   * @return
+   * @return Verbindung
    * @throws SQLException
    * @throws ClassNotFoundException
    */
@@ -146,4 +147,32 @@ public interface ILogForDeviceDatabaseUtil
    * @return erfolgreich oder nicht
    */
   public int deleteLogFromDatabease();
+
+  /**
+   * 
+   * Erstelle einen Vector aus String[] mit den gespeicherten Logs eines Gerätes
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.07.2012
+   * @param device
+   * @return Liste von array mit Logeinträgen
+   */
+  public Vector<String[]> getDiveListForDevice( String device );
+
+  /**
+   * 
+   * Lese aus der Datenbank Logdaten eines Tauchganges
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.07.2012
+   * @param dbId
+   * @return Liste von Stringarrays (Daten)
+   */
+  public Vector<Integer[]> readDiveDataFromId( int dbId );
 }

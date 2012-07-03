@@ -831,7 +831,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     // somit kann ich die Daten in UTC ablegen
     diffDiveToUtc = diveTimeZone.getOffset( 0 );
     // Ersten eintrag für den Tauchgang machen
-    diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, diveTimeZoneStr, ( dateTime.getMillis() - diffDiveToUtc ) / 1000 );
+    diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, diveTimeZoneStr, ( dateTime.getMillis() + diffDiveToUtc ) / 1000 );
     if( diveId < 0 )
     {
       fileIndex = -1;

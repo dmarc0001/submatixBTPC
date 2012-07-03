@@ -1115,7 +1115,7 @@ public class BTCommunication implements IBTCommunication
       deviceName = dbUtil.getNameForAlias( deviceAlias );
       if( deviceName != null && connectHash.containsKey( deviceName ) && deviceHash.containsKey( deviceName ) )
       {
-        LOGGER.log( Level.FINE, "ok, it was an alias. device name is " + deviceName + "..." );
+        LOGGER.log( Level.FINE, "ok, it was an alias. device name is <" + deviceName + ">..." );
         // Der Alias stand für einen Gerätenamen, und für den gibt es eine url
         url = connectHash.get( deviceName );
         connectedDevice = deviceHash.get( deviceName );

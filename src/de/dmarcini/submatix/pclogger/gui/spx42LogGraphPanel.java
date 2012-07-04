@@ -490,7 +490,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 26.06.2012 TODO : füllen
+   *         Stand: 26.06.2012
    */
   public void releaseGraph()
   {

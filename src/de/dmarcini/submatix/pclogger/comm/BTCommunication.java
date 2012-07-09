@@ -64,6 +64,7 @@ public class BTCommunication implements IBTCommunication
   private ReaderRunnable                              reader = null;
   private AliveTask                                    alive = null;
   private RemoteDevice                       connectedDevice = null;
+  private String                                  deviceName = null;
   @SuppressWarnings( "unused" )
   private static final Pattern              fieldPattern0x09 = Pattern.compile( ProjectConst.LOGSELECTOR );
   private static final Pattern                fieldPatternDp = Pattern.compile(  ":" );
@@ -876,6 +877,7 @@ public class BTCommunication implements IBTCommunication
           }
           else
           {
+            if( log ) LOGGER.log( Level.FINE, "none read cached, try normal discovering..." );
             RemoteDeviceDiscovery.doDiscover();
           }
         }
@@ -904,7 +906,7 @@ public class BTCommunication implements IBTCommunication
         deviceHash.clear();
         // suche nach Serial devices
         UUID serviceUUID = UUID_SERIAL_DEVICE;
-        // Event Objetk TODO:
+        // Event Objet TODO:
         final Object serviceSearchCompletedEvent = new Object();
         // Inline Klasse
         DiscoveryListener listener = new DiscoveryListener() {
@@ -1091,13 +1093,15 @@ public class BTCommunication implements IBTCommunication
   public void connectDevice( String devName ) throws Exception
   {
     String url = null;
-    String deviceName, deviceAlias = null, devicePin = null;
+    String deviceAlias = null, devicePin = null;
     //
     deviceName = devName;
+    connectedDevice = null;
     // suche die URL für die Verbindung
     // hab ich hier direkt den Devicenamen erwischt?
     if( connectHash.containsKey( deviceName ) && deviceHash.containsKey( deviceName ) )
     {
+      LOGGER.log( Level.FINE, "device name found in list. can try to connect device..." );
       // Ich hab den Gerätenamen gefunden, kann verbinden
       url = connectHash.get( deviceName );
       connectedDevice = deviceHash.get( deviceName );
@@ -1129,6 +1133,8 @@ public class BTCommunication implements IBTCommunication
       {
         // das geht nicht! Kann nicht herausfinden, mit wem ich verbinden soll!
         LOGGER.log( Level.SEVERE, "device" + deviceName + "is not in list and not an alias. give up!" );
+        deviceName = null;
+        connectedDevice = null;
         if( aListener != null )
         {
           ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTNODEVCONN, null );
@@ -1192,6 +1198,7 @@ public class BTCommunication implements IBTCommunication
           }
           // isConnected = false;
           connectedDevice = null;
+          deviceName = null;
           return;
         }
       }
@@ -1388,9 +1395,6 @@ public class BTCommunication implements IBTCommunication
   public String getDeviceInfos()
   {
     // Mach aus den HashMaps einen String zum Wiedereinlesen
-    // private HashMap<String,String> connectHash = new HashMap<String,String>();
-    // private HashMap<String,RemoteDevice> deviceHash = new HashMap<String,RemoteDevice>();
-    // private HashMap<String,String> devicePinHash = new HashMap<String,String>();
     connectHash.toString();
     deviceHash.toString();
     devicePinHash.toString();
@@ -1659,7 +1663,33 @@ public class BTCommunication implements IBTCommunication
   {
     if( isConnected )
     {
-      return( connectedDevice.getBluetoothAddress() );
+      // ich muss mal sehen, ob da ein Eintrag ist oder besorgt werden kann
+      if( connectedDevice == null )
+      {
+        LOGGER.log( Level.WARNING, "connected Device is NULL!" );
+        // Kein Eintrag da...
+        if( deviceName == null )
+        {
+          // Kein Gerätename, mit dem ich verbunden bin
+          LOGGER.log( Level.WARNING, "deviceName is NULL!" );
+          return( null );
+        }
+        if( !deviceHash.containsKey( deviceName ) )
+        {
+          // Kein Eintrag im Hash!
+          LOGGER.log( Level.WARNING, "not deviceName in Hash" );
+          return( null );
+        }
+        // eintrag besorgen
+        LOGGER.log( Level.WARNING, "connected Device read from Hash" );
+        connectedDevice = deviceHash.get( deviceName );
+      }
+      // ich muss mal sehen, ob da ein Eintrag un da ist
+      if( connectedDevice != null )
+      {
+        return( connectedDevice.getBluetoothAddress() );
+      }
+      LOGGER.log( Level.WARNING, "connected Device is again NULL!" );
     }
     return null;
   }

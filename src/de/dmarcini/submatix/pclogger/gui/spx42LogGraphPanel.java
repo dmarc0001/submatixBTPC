@@ -39,7 +39,6 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
@@ -136,7 +135,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     deviceComboBox.addMouseMotionListener( mainCommGUI );
     computeGraphButton.addMouseMotionListener( mainCommGUI );
-    // die Aktionen mach ich im objekt
+    // die Aktionen mach ich im Objekt selber
     deviceComboBox.addActionListener( this );
     computeGraphButton.addActionListener( this );
   }
@@ -276,7 +275,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     LogForDeviceDatabaseUtil logDatabaseUtil;
     String device;
     String[] tmpEntr;
-    DateTimeZone diveTimeZone;
     DateTime dateTime;
     long javaTime;
     //
@@ -309,30 +307,12 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         return;
       }
       //
-      // zuerst die Zeitzohne festlegen
-      // da während des TG die Zeitzohne nicht gewechselt werden kann, reicht einmal.
-      //
-      tmpEntr = entrys.firstElement();
-      LOGGER.log( Level.FINE, "define timeZone for dive..." );
-      if( tmpEntr[0] == null )
-      {
-        diveTimeZone = DateTimeZone.getDefault();
-      }
-      else
-      {
-        LOGGER.log( Level.FINE, "timeZone for dive is <" + tmpEntr[2] + ">..." );
-        diveTimeZone = DateTimeZone.forID( tmpEntr[2] );
-      }
-      // Differenz zu UTC
-      // somit kann ich die Daten die in UTC abgelegt sind zurückrechnen
-      //
       // Objekt für das Modell erstellen
       Vector<String[]> diveEntrys = new Vector<String[]>();
       // die erfragten details zurechtrücken
       // Felder sind:
       // H_DIVEID,
       // H_STARTTIME,
-      // H_TIMEZONE,
       for( Enumeration<String[]> enu = entrys.elements(); enu.hasMoreElements(); )
       {
         String[] origSet = enu.nextElement();
@@ -345,7 +325,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         {
           // LOGGER.log( Level.FINE, "unix Timestamp <" + origSet[1] + ">..." );
           javaTime = Long.parseLong( origSet[1] ) * 1000;
-          dateTime = new DateTime( javaTime, diveTimeZone );
+          dateTime = new DateTime( javaTime );
           elem[1] = dateTime.toString( stringsBundle.getString( "MainCommGUI.timeFormatterString" ) ) + " " + origSet[2];
         }
         catch( NumberFormatException ex )

@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
@@ -17,7 +16,6 @@ import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -27,13 +25,11 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogLineDataObject;
 import de.dmarcini.submatix.pclogger.utils.LogdirListModel;
-import de.dmarcini.submatix.pclogger.utils.TimeZoneComboBoxModel;
 
 /**
  * 
@@ -45,34 +41,30 @@ import de.dmarcini.submatix.pclogger.utils.TimeZoneComboBoxModel;
  * 
  *         Stand: 22.04.2012
  */
-public class spx42LoglistPanel extends JPanel implements ListSelectionListener, ActionListener
+public class spx42LoglistPanel extends JPanel implements ListSelectionListener
 {
   /**
    * 
    */
-  private static final long              serialVersionUID     = 1L;
-  protected Logger                       LOGGER               = null;
-  private ActionListener                 aListener            = null;
-  private final HashMap<Integer, String> logdirFiles          = new HashMap<Integer, String>();
-  private final HashMap<Integer, String> logdirReadable       = new HashMap<Integer, String>();
-  private File                           dataDir              = null;
-  private static final Pattern           fieldPatternSem      = Pattern.compile( ";" );
-  private static final Pattern           fieldPatternDp       = Pattern.compile( ":" );
-  private static final Pattern           fieldPatternDot      = Pattern.compile( "\\." );
-  private static final Pattern           fieldPatternDtTm     = Pattern.compile( " - " );
-  private static final Pattern           fieldPatternSp       = Pattern.compile( " " );
-  private static final Pattern           fieldPattern0x09     = Pattern.compile( ProjectConst.LOGSELECTOR );
-  private final LogdirListModel          logListModel         = new LogdirListModel();
-  private boolean                        isDirectoryComplete  = false;
-  private LogForDeviceDatabaseUtil       logDatabaseUtil      = null;
-  private String                         deviceToLog          = null;
-  private String                         timeOffsetString     = "+00:00";
-  private int                            currLogEntry         = -1;
-  // private DateTimeZone spx42TimeZone = null;
-  private int                            timeOffset           = 0;
-  private Vector<Integer>                logList              = null;
-  private int                            fileIndex            = -1;
-  private TimeZoneComboBoxModel          tmZoneComboBoxModell = null;
+  private static final long              serialVersionUID    = 1L;
+  protected Logger                       LOGGER              = null;
+  private ActionListener                 aListener           = null;
+  private final HashMap<Integer, String> logdirFiles         = new HashMap<Integer, String>();
+  private final HashMap<Integer, String> logdirReadable      = new HashMap<Integer, String>();
+  private File                           dataDir             = null;
+  private static final Pattern           fieldPatternSem     = Pattern.compile( ";" );
+  private static final Pattern           fieldPatternDp      = Pattern.compile( ":" );
+  private static final Pattern           fieldPatternDot     = Pattern.compile( "\\." );
+  private static final Pattern           fieldPatternDtTm    = Pattern.compile( " - " );
+  private static final Pattern           fieldPattern0x09    = Pattern.compile( ProjectConst.LOGSELECTOR );
+  private final LogdirListModel          logListModel        = new LogdirListModel();
+  private boolean                        isDirectoryComplete = false;
+  private LogForDeviceDatabaseUtil       logDatabaseUtil     = null;
+  private String                         deviceToLog         = null;
+  private final String                   timeOffsetString    = "+00:00";
+  private int                            currLogEntry        = -1;
+  private Vector<Integer>                logList             = null;
+  private int                            fileIndex           = -1;
   private JList                          logListField;
   private JButton                        readLogDirectoryButton;
   private JButton                        readLogfilesFromSPXButton;
@@ -88,10 +80,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
   private JLabel                         diveMaxDepthShowLabel;
   private JLabel                         diveLengthLabel;
   private JLabel                         diveLengthShowLabel;
-  private JLabel                         timeZoneLabel;
-  private JLabel                         timeZoneShowLabel;
-  private JLabel                         timeZoneComboLabel;
-  private JComboBox                      timeZoneComboBox;
   private JLabel                         logfileCommLabel;
 
   /**
@@ -118,9 +106,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
    */
   public spx42LoglistPanel( Logger LOGGER, ActionListener al, String dataDir )
   {
-    int idx;
-    String tmStr;
-    //
     this.LOGGER = LOGGER;
     this.aListener = al;
     initPanel();
@@ -132,32 +117,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     fileIndex = -1;
     currLogEntry = -1;
     this.dataDir = new File( dataDir );
-    // erfrage die default Zeitzohne für diesen APC
-    DateTimeZone spx42TimeZone = DateTimeZone.getDefault();
-    // wie ist der offset zur UTC
-    timeOffset = spx42TimeZone.getOffset( 0 );
-    if( timeOffset < 0 )
-    {
-      timeOffsetString = String.format( "-%02d:%02d", ( Math.abs( timeOffset ) / 1000 / 60 / 60 ), ( Math.abs( timeOffset ) / 1000 / 60 % 60 ) );
-    }
-    else
-    {
-      timeOffsetString = String.format( "+%02d:%02d", ( timeOffset / 1000 / 60 / 60 ), ( timeOffset / 1000 / 60 % 60 ) );
-    }
-    tmStr = timeOffsetString.replace( "+", "" );
-    //
-    // Combobox auf default Zeitzohne setzen
-    //
-    for( idx = 0; idx < tmZoneComboBoxModell.getSize(); idx++ )
-    {
-      if( tmZoneComboBoxModell.getTimeValAt( idx ).equals( tmStr ) )
-      {
-        // ich hab die Übereinstimmung gefunden!
-        timeZoneComboBox.setSelectedIndex( idx );
-        break;
-      }
-    }
-    LOGGER.log( Level.FINE, String.format( "default timezone for this workstation : <%s>, offset to utc is <%s h>", spx42TimeZone.getID(), timeOffsetString ) );
   }
 
   /**
@@ -213,7 +172,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     fileNameShowLabel = new JLabel( "-" );
     fileNameShowLabel.setForeground( new Color( 0, 0, 139 ) );
     fileNameLabel.setLabelFor( fileNameShowLabel );
-    fileNameShowLabel.setBounds( 268, 56, 282, 14 );
+    fileNameShowLabel.setBounds( 268, 57, 282, 14 );
     add( fileNameShowLabel );
     diveDateLabel = new JLabel( "DIVEDATE" );
     diveDateLabel.setForeground( Color.DARK_GRAY );
@@ -226,50 +185,30 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     add( diveDateShowLabel );
     diveTimeLabel = new JLabel( "DIVETIME" );
     diveTimeLabel.setForeground( Color.DARK_GRAY );
-    diveTimeLabel.setBounds( 268, 141, 282, 14 );
+    diveTimeLabel.setBounds( 268, 131, 282, 14 );
     add( diveTimeLabel );
     diveTimeShowLabel = new JLabel( "-" );
     diveTimeShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveTimeLabel.setLabelFor( diveTimeShowLabel );
-    diveTimeShowLabel.setBounds( 268, 158, 282, 14 );
+    diveTimeShowLabel.setBounds( 268, 146, 282, 14 );
     add( diveTimeShowLabel );
     diveMaxDepthLabel = new JLabel( "DIVEMAXDEPTH" );
     diveMaxDepthLabel.setForeground( Color.DARK_GRAY );
-    diveMaxDepthLabel.setBounds( 268, 241, 282, 14 );
+    diveMaxDepthLabel.setBounds( 268, 181, 282, 14 );
     add( diveMaxDepthLabel );
     diveMaxDepthShowLabel = new JLabel( "-" );
     diveMaxDepthShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveMaxDepthLabel.setLabelFor( diveMaxDepthShowLabel );
-    diveMaxDepthShowLabel.setBounds( 268, 255, 282, 14 );
+    diveMaxDepthShowLabel.setBounds( 268, 195, 282, 14 );
     add( diveMaxDepthShowLabel );
     diveLengthLabel = new JLabel( "DIVELENGTH" );
     diveLengthLabel.setForeground( Color.DARK_GRAY );
-    diveLengthLabel.setBounds( 268, 290, 282, 14 );
+    diveLengthLabel.setBounds( 268, 220, 282, 14 );
     add( diveLengthLabel );
     diveLengthShowLabel = new JLabel( "-" );
     diveLengthShowLabel.setForeground( new Color( 0, 0, 139 ) );
-    diveLengthShowLabel.setBounds( 268, 306, 282, 14 );
+    diveLengthShowLabel.setBounds( 268, 236, 282, 14 );
     add( diveLengthShowLabel );
-    timeZoneLabel = new JLabel( "TIMEZONE" );
-    timeZoneLabel.setForeground( Color.DARK_GRAY );
-    timeZoneLabel.setBounds( 268, 183, 282, 14 );
-    add( timeZoneLabel );
-    timeZoneShowLabel = new JLabel( "-" );
-    timeZoneLabel.setLabelFor( timeZoneShowLabel );
-    timeZoneShowLabel.setForeground( new Color( 0, 0, 128 ) );
-    timeZoneShowLabel.setBounds( 268, 202, 282, 14 );
-    add( timeZoneShowLabel );
-    timeZoneComboBox = new JComboBox();
-    tmZoneComboBoxModell = new TimeZoneComboBoxModel();
-    timeZoneComboBox.setModel( tmZoneComboBoxModell );
-    timeZoneComboBox.setSelectedIndex( 14 );
-    timeZoneComboBox.setActionCommand( "change_spx_timezone" );
-    timeZoneComboBox.setBounds( 560, 180, 199, 20 );
-    add( timeZoneComboBox );
-    timeZoneComboLabel = new JLabel( "TIMEZONELABEL" );
-    timeZoneComboLabel.setLabelFor( timeZoneComboBox );
-    timeZoneComboLabel.setBounds( 560, 154, 199, 14 );
-    add( timeZoneComboLabel );
     logfileCommLabel = new JLabel( "SAVINGLABEL" );
     logfileCommLabel.setBounds( 267, 472, 492, 14 );
     add( logfileCommLabel );
@@ -295,7 +234,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     readLogfilesFromSPXButton.addMouseMotionListener( mainCommGUI );
     logListField.addMouseMotionListener( mainCommGUI );
     logListField.addListSelectionListener( this );
-    timeZoneComboBox.addActionListener( this );
   }
 
   /**
@@ -325,8 +263,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
       diveTimeLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveTimeLabel.text" ) );
       diveMaxDepthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveMaxDepthLabel.text" ) );
       diveLengthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveLengthLabel.text" ) );
-      timeZoneLabel.setText( stringsBundle.getString( "spx42LoglistPanel.timeZoneLabel.text" ) );
-      timeZoneComboLabel.setText( stringsBundle.getString( "spx42LoglistPanel.timeZoneComboLabel.text" ) );
     }
     catch( NullPointerException ex )
     {
@@ -459,7 +395,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     }
     fileName = fields[1];
     // Ich geb noch die eingestellte Zeitzohne mit dazu
-    readableName = fields[2] + " " + timeOffsetString;
+    readableName = fields[2];
     // Alles ging gut....
     if( number == max )
     {
@@ -511,18 +447,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
         if( fields.length == 2 )
         {
           diveDateShowLabel.setText( fields[0] );
-          fields = fieldPatternSp.split( fields[1] );
-          // Zeit und zeitzohne
-          if( fields.length == 2 )
-          {
-            diveTimeShowLabel.setText( fields[0] );
-            timeZoneShowLabel.setText( fields[1] );
-          }
-          else
-          {
-            // nur Zeit
-            diveTimeShowLabel.setText( fields[0] );
-          }
+          diveTimeShowLabel.setText( fields[1] );
         }
         else
         {
@@ -547,7 +472,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
   {
     diveDateShowLabel.setText( "-" );
     diveTimeShowLabel.setText( "-" );
-    timeZoneShowLabel.setText( "-" );
   }
 
   /**
@@ -627,77 +551,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
 
   /**
    * 
-   * Wenn die Combobox verändert wurde, setze den Offset für die UTC Zeit neu
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 08.05.2012
-   */
-  @Override
-  public void actionPerformed( ActionEvent ev )
-  {
-    String cmd = ev.getActionCommand();
-    JComboBox actionBox;
-    int idx, hours, mins;
-    String timeString;
-    String[] fields;
-    //
-    // War das eine Combobox
-    if( ev.getSource() instanceof JComboBox )
-    {
-      actionBox = ( JComboBox )ev.getSource();
-      // war das die Zeitoffset-Box?
-      if( actionBox.equals( timeZoneComboBox ) )
-      {
-        // OK, hier verzichte ich mal auf die Auswertung des Kommandos
-        idx = actionBox.getSelectedIndex();
-        timeString = tmZoneComboBoxModell.getTimeValAt( idx );
-        LOGGER.log( Level.FINE, String.format( "timezone fpr SPX switched to <%s>", timeString ) );
-        // Umrechnug in Offset in Milisekunden
-        //
-        // Erst mal String parsen
-        // Zerlegen nach Stunden und Minuten
-        fields = fieldPatternDp.split( timeString );
-        try
-        {
-          hours = Integer.parseInt( fields[0] );
-          mins = Integer.parseInt( fields[1] );
-        }
-        catch( NumberFormatException ex )
-        {
-          LOGGER.log( Level.SEVERE, "Offset convert fail: <" + ex.getLocalizedMessage() + ">" );
-          return;
-        }
-        //
-        if( hours < 0 )
-        {
-          timeOffset = 0 - ( ( ( Math.abs( hours ) * 60 ) + mins ) * 60000 );
-          timeOffsetString = String.format( "-%02d:%02d", ( Math.abs( timeOffset ) / 1000 / 60 / 60 ), ( Math.abs( timeOffset ) / 1000 / 60 % 60 ) );
-        }
-        else
-        {
-          timeOffset = ( ( hours * 60 ) + mins ) * 60000;
-          timeOffsetString = String.format( "+%02d:%02d", ( timeOffset / 1000 / 60 / 60 ), ( timeOffset / 1000 / 60 % 60 ) );
-        }
-        LOGGER.log( Level.FINE, String.format( "new offset für SPX is <%+d min> to UTC...( %s )", timeOffset / 60000, timeOffsetString ) );
-      }
-      else
-      {
-        //
-        LOGGER.log( Level.WARNING, "unknown action <" + cmd + "> from unknown combobox recived!" );
-      }
-    }
-    else
-    {
-      //
-      LOGGER.log( Level.WARNING, "unknown action <" + cmd + "> from unknown source recived!" );
-    }
-  }
-
-  /**
-   * 
    * Gib die nächste Nummer eines zu lesenden Eintrages zurück
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
@@ -739,11 +592,9 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
    */
   public void startTransfer( String fileNumberStr )
   {
-    String fileName, diveDate, diveTime, diveTimeZoneStr;
+    String fileName, diveDate, diveTime;
     String[] fields;
-    DateTimeZone diveTimeZone = null;
     DateTime dateTime;
-    long diffDiveToUtc;
     int year, month, day, hour, minute, second;
     int diveId;
     //
@@ -766,7 +617,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
       return;
     }
     // So, ich habe einen Index. Ich brauche für die Datenbank informationen
-    // Dateinamen, Geräteid, Zeitzohne,startzeit/datum
+    // Dateinamen, Geräteid
     // bekomme ich aus dem hash logdirFiles
     fileName = logdirFiles.get( fileIndex );
     // Aus der Anzeige Datum und Zeitstring trennen
@@ -774,19 +625,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     if( fields.length == 2 )
     {
       diveDate = fields[0];
-      fields = fieldPatternSp.split( fields[1] );
-      // Zeit und zeitzohne
-      if( fields.length == 2 )
-      {
-        diveTime = fields[0];
-        diveTimeZoneStr = fields[1];
-      }
-      else
-      {
-        // nur Zeit
-        diveTime = fields[0];
-        diveTimeZoneStr = null;
-      }
+      diveTime = fields[1];
     }
     else
     {
@@ -816,22 +655,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
       fileIndex = -1;
       return;
     }
-    //
-    // zuerst die Zeitzohne festlegen
-    //
-    if( diveTimeZoneStr == null )
-    {
-      diveTimeZone = DateTimeZone.getDefault();
-    }
-    else
-    {
-      diveTimeZone = DateTimeZone.forID( diveTimeZoneStr );
-    }
-    // Differenz zu UTC
-    // somit kann ich die Daten in UTC ablegen
-    diffDiveToUtc = diveTimeZone.getOffset( 0 );
     // Ersten eintrag für den Tauchgang machen
-    diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, diveTimeZoneStr, ( dateTime.getMillis() + diffDiveToUtc ) / 1000 );
+    diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, ( dateTime.getMillis() ) / 1000 );
     if( diveId < 0 )
     {
       fileIndex = -1;
@@ -839,7 +664,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
       return;
     }
     currLogEntry = diveId;
-    // TODO: Zeit erstellen DateTime diveTimeLocal = DateTime();
   }
 
   /**

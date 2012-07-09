@@ -218,7 +218,6 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
     stat.execute( sql );
     stat.close();
     conn.commit();
-    // TODO: weitere Tabellen :-)
     return( conn );
   }
 
@@ -443,13 +442,13 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
       return( false );
     }
     LOGGER.log( Level.FINE, "try to add alias..." );
-    sql = String.format( "insert into %s (%s, %s) values ('%s', '%s');", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, dev, alias );
+    sql = String.format( "insert into %s (%s, %s) values ('%s', '%s')", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, dev, alias );
     try
     {
       stat = conn.createStatement();
-      stat.executeQuery( sql );
-      stat.close();
+      stat.execute( sql );
       conn.commit();
+      stat.close();
     }
     catch( SQLException ex )
     {
@@ -499,6 +498,7 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
   {
     String sql;
     Statement stat;
+    ResultSet rs;
     //
     if( conn == null )
     {
@@ -506,11 +506,12 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
       return( false );
     }
     LOGGER.log( Level.FINE, "try to set pin for device..." );
+    // jetzt kann ich die PIN einbauen, wenn datensatz schon vorhanden
     sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_PIN, pin, ProjectConst.A_DEVNAME, dev );
     try
     {
       stat = conn.createStatement();
-      stat.executeQuery( sql );
+      stat.execute( sql );
       stat.close();
       conn.commit();
     }

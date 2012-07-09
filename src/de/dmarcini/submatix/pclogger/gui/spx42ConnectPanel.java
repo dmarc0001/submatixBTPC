@@ -250,6 +250,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     connectBtRefreshButton.setEnabled( !active );
     connectButton.setEnabled( true );
     pinButton.setEnabled( !active );
+    deviceAliasButton.setEnabled( !active );
     if( active )
     {
       if( stringsBundle != null )

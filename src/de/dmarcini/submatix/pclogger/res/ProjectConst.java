@@ -156,7 +156,6 @@ public final class ProjectConst
   public static final String H_DIVEID                   = "dive_id";
   public static final String H_FILEONSPX                = "filename";
   public static final String H_DEVICEID                 = "device_id";
-  public static final String H_TIMEZONE                 = "timezone";
   public static final String H_STARTTIME                = "starttime";
   public static final String H_HADSEND                  = "had_send";
   public static final String H_FIRSTTEMP                = "airtemp";

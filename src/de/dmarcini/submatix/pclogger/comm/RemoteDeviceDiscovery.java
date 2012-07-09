@@ -21,15 +21,11 @@ import javax.bluetooth.ServiceRecord;
  * 
  * @author Dirk Marciniak (dirk_marciniak@arcor.de)
  * 
- *         Stand: 08.01.2012 TODO
+ *         Stand: 08.01.2012
  */
+//@formatter:off
 public class RemoteDeviceDiscovery
 {
-
-
-
-
-  //@formatter:off
   static Logger                                       LOGGER = null;
   private static boolean                                log = false;
   public static final Vector<RemoteDevice> devicesDiscovered = new Vector<RemoteDevice>();
@@ -109,7 +105,7 @@ public class RemoteDeviceDiscovery
    *         Stand: 22.01.2012
    * @throws IOException
    * @throws InterruptedException
-   *           TODO
+   * 
    */
   public static void doDiscover() throws IOException, InterruptedException
   {
@@ -117,6 +113,7 @@ public class RemoteDeviceDiscovery
     final Object inquiryCompletedEvent = new Object();
     // Vector leeren
     devicesDiscovered.clear();
+    if( log ) LOGGER.log( Level.FINE, "dicovering..." );
     // Horche auf Meldungen,
     // lokale Klasse erzeugen
     DiscoveryListener listener = new DiscoveryListener() {

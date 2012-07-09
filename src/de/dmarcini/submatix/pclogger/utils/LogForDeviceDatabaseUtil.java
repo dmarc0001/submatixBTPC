@@ -240,7 +240,6 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "   %s integer primary key autoincrement,\n" +
             "   %s text not null,\n" +
             "   %s text not null,\n" +
-            "   %s text not null,\n" +
             "   %s integer not null,\n" +
             "   %s integer,\n" +
             "   %s real,\n" +
@@ -252,7 +251,6 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.H_DIVEID,
             ProjectConst.H_FILEONSPX,
             ProjectConst.H_DEVICEID,
-            ProjectConst.H_TIMEZONE,
             ProjectConst.H_STARTTIME,
             ProjectConst.H_HADSEND,
             ProjectConst.H_FIRSTTEMP,
@@ -484,7 +482,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
-  public int writeNewDive( String deviceId, String fileOnSPX, String timeZone, long startTime )
+  public int writeNewDive( String deviceId, String fileOnSPX, long startTime )
   {
     Statement stat;
     String sql;
@@ -510,11 +508,9 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
               ProjectConst.H_TABLE_DIVELOGS,
               ProjectConst.H_DEVICEID,
               ProjectConst.H_FILEONSPX,
-              ProjectConst.H_TIMEZONE,
               ProjectConst.H_STARTTIME,
               deviceId, 
               fileOnSPX,
-              timeZone,
               startTime
              );
       //@formatter:on
@@ -780,10 +776,9 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s from %s;",
+            "select %s,%s from %s;",
             ProjectConst.H_DIVEID,
             ProjectConst.H_STARTTIME,
-            ProjectConst.H_TIMEZONE,
             ProjectConst.H_TABLE_DIVELOGS
            );
     //@formatter:on
@@ -794,10 +789,9 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       while( rs.next() )
       {
         // Daten kosolidieren
-        String[] resultSet = new String[3];
+        String[] resultSet = new String[2];
         resultSet[0] = rs.getString( 1 );
         resultSet[1] = rs.getString( 2 );
-        resultSet[2] = rs.getString( 3 );
         // ab in den vector
         results.add( resultSet );
         LOGGER.log( Level.FINE, String.format( "database read dive nr <%s>", rs.getString( 1 ) ) );

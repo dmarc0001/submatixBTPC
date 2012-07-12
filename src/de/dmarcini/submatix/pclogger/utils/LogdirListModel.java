@@ -38,9 +38,9 @@ public class LogdirListModel extends DefaultListModel
     }
     if( element[2].equals( " " ) )
     {
-      return( element[1] );
+      return( String.format( "Nr %4s - %s", element[0], element[1] ) );
     }
-    return( element[1] + " *" );
+    return( String.format( "Nr %4s - %s *", element[0], element[1] ) );
   }
 
   /**
@@ -63,8 +63,9 @@ public class LogdirListModel extends DefaultListModel
     // String[1] = Lesbarer Name
     // String[2] = Schon in der DB?
     String[] element =
-    { String.format( "%02d", number ), name, inDB };
-    super.addElement( element );
+    { String.format( "%03d", number ), name, inDB };
+    // super.addElement( element );
+    super.add( 0, element );
   }
 
   /**

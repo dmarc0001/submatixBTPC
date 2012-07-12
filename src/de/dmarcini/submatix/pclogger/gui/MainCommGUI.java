@@ -994,7 +994,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     // /////////////////////////////////////////////////////////////////////////
-    // lese Logdir aus Device
+    // lese Logfile aus Device
     else if( cmd.equals( "read_logfile_from_spx" ) )
     {
       if( btComm != null )
@@ -1007,14 +1007,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notLogentrySelected.text" ) );
             return;
           }
-          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
-          wDial.setVisible( true );
-          int logListEntry = logListPanel.getNextEntryToRead();
-          if( logListEntry > -1 )
+          Integer[] logListEntry = logListPanel.getNextEntryToRead();
+          if( logListEntry != null )
           {
-            // Sag dem SPX er soll alles schicken
-            LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry + ">" );
-            btComm.readLogDetailFromSPX( logListEntry );
+            computeLogRequest( logListEntry );
           }
         }
         else
@@ -1553,14 +1549,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           if( btComm.isConnected() )
           {
-            int logListEntry = logListPanel.getNextEntryToRead();
-            if( logListEntry > -1 )
+            Integer[] logListEntry = logListPanel.getNextEntryToRead();
+            if( logListEntry != null )
             {
-              wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
-              wDial.setVisible( true );
+              computeLogRequest( logListEntry );
+              // guck mal, ob der Eintrag in der DB schon vorhanden ist....
+              // if( logListEntry[1] > 0 )
+              // {
+              // // hier liegt ein Updatewunsch vor?
+              // }
+              // wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+              // wDial.setVisible( true );
               // Sag dem SPX er soll alles schicken
-              LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry + ">" );
-              btComm.readLogDetailFromSPX( logListEntry );
+              // LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry[0] + ">" );
+              // btComm.readLogDetailFromSPX( logListEntry );
             }
             else
             {
@@ -1573,6 +1575,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
                     wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
                     wDial.setVisible( true );
                     // beginne mit leerem Cache
+                    // TODO: Aus Chache neu aufbauen!
                     logListPanel.clearLogdirCache();
                     logListPanel.cleanDetails();
                     // Sag dem SPX er soll alles schicken
@@ -1619,6 +1622,61 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         break;
     }
     return;
+  }
+
+  /**
+   * 
+   * Hilfsfunktion zum start speichern/update eines Tauchlogs
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 12.07.2012
+   * @param logListEntry
+   */
+  private int computeLogRequest( Integer[] logListEntry )
+  {
+    // liegt ein updatewunsch vor?
+    if( logListEntry[1] > 0 )
+    {
+      LOGGER.log( Level.WARNING, "dive logentry alredy there. Ask user for continue..." );
+      //@formatter:off
+      // Zeige dem geneigten User eine Dialogbox, in welcher er entscheiden muss: Update oder überspringen
+      Object[] options =
+      { 
+        stringsBundle.getString( "MainCommGui.updateWarnDialog.updateButton" ),
+        stringsBundle.getString( "MainCommGui.updateWarnDialog.cancelButton" )
+      };
+      int retOption =  JOptionPane.showOptionDialog( 
+              null, 
+              stringsBundle.getString( "MainCommGui.updateWarnDialog.messageUpdate" ), 
+              stringsBundle.getString( "MainCommGui.updateWarnDialog.headLine" ), 
+              JOptionPane.DEFAULT_OPTION, 
+              JOptionPane.WARNING_MESSAGE, 
+              null, 
+              options, 
+              options[0] 
+              );
+      //@formatter:on
+      if( retOption == 1 )
+      {
+        LOGGER.log( Level.INFO, "user has cancel to update divelog entry." );
+        return( 0 );
+      }
+      else
+      {
+        // update datensatz!
+        logListPanel.setNextLogIsAnUpdate( true, logListEntry[0] );
+      }
+    }
+    // datensatz anlegen
+    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+    wDial.setVisible( true );
+    // Sag dem SPX er soll alles schicken
+    LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry[0] + ">" );
+    btComm.readLogDetailFromSPX( logListEntry[0] );
+    return( 1 );
   }
 
   /**

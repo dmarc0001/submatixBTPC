@@ -59,11 +59,12 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private static final Pattern           fieldPattern0x09    = Pattern.compile( ProjectConst.LOGSELECTOR );
   private final LogdirListModel          logListModel        = new LogdirListModel();
   private boolean                        isDirectoryComplete = false;
+  private boolean                        isNextLogAnUpdate   = false;
+  private int                            nextDiveIdForUpdate = -1;
   private LogForDeviceDatabaseUtil       logDatabaseUtil     = null;
   private String                         deviceToLog         = null;
-  private final String                   timeOffsetString    = "+00:00";
   private int                            currLogEntry        = -1;
-  private Vector<Integer>                logList             = null;
+  private Vector<Integer[]>              logList             = null;
   private int                            fileIndex           = -1;
   private JList                          logListField;
   private JButton                        readLogDirectoryButton;
@@ -117,6 +118,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     fileIndex = -1;
     currLogEntry = -1;
     this.dataDir = new File( dataDir );
+    isNextLogAnUpdate = false;
+    nextDiveIdForUpdate = -1;
   }
 
   /**
@@ -394,7 +397,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       return;
     }
     fileName = fields[1];
-    // Ich geb noch die eingestellte Zeitzohne mit dazu
+    // Der lesbare Teil
     readableName = fields[2];
     // Alles ging gut....
     if( number == max )
@@ -535,11 +538,14 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     {
       // es ist auch etwas markiert!
       // Array erzeugen
-      logList = new Vector<Integer>();
+      logList = new Vector<Integer[]>();
       // für jeden markierten index die Lognummer holen
       for( int idx = 0; idx < logSelected.length; idx++ )
       {
-        logList.add( logListModel.getLognumberAt( logSelected[idx] ) );
+        Integer[] lEntry = new Integer[2];
+        lEntry[0] = logListModel.getLognumberAt( logSelected[idx] );
+        lEntry[1] = logListModel.istInDb( logSelected[idx] ) ? 1 : 0;
+        logList.add( lEntry );
         LOGGER.log( Level.FINE, "select dive number <" + logSelected[idx] + "> for download..." );
       }
       return( logList.size() );
@@ -560,23 +566,42 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    *         Stand: 13.05.2012
    * @return Nummer oder -1
    */
-  public int getNextEntryToRead()
+  public Integer[] getNextEntryToRead()
   {
     // Ist die Liste (Vector) allociert?
     if( logList == null )
     {
       // Nein, nix zu tun!
-      return( -1 );
+      return( null );
     }
     // Sind Elemente vorhanden?
     if( logList.isEmpty() )
     {
       // Liste ist Leer, nic zu tun
       logList = null;
-      return( -1 );
+      return( null );
     }
     // den ersten Eintrag zurückgeben
     return( logList.remove( 0 ) );
+  }
+
+  /**
+   * 
+   * Ist der nächste Start eines Logs ein Update?
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 12.07.2012
+   * @param isUpdate
+   * @return
+   */
+  boolean setNextLogIsAnUpdate( boolean isUpdate, int diveId )
+  {
+    isNextLogAnUpdate = isUpdate;
+    nextDiveIdForUpdate = diveId;
+    return( isNextLogAnUpdate );
   }
 
   /**
@@ -616,54 +641,70 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       fileIndex = -1;
       return;
     }
-    // So, ich habe einen Index. Ich brauche für die Datenbank informationen
-    // Dateinamen, Geräteid
-    // bekomme ich aus dem hash logdirFiles
-    fileName = logdirFiles.get( fileIndex );
-    // Aus der Anzeige Datum und Zeitstring trennen
-    fields = fieldPatternDtTm.split( logdirReadable.get( fileIndex ) );
-    if( fields.length == 2 )
+    //
+    // soll ein Update gemacht werden?
+    //
+    if( isNextLogAnUpdate )
     {
-      diveDate = fields[0];
-      diveTime = fields[1];
+      currLogEntry = nextDiveIdForUpdate;
+      nextDiveIdForUpdate = -1;
+      isNextLogAnUpdate = false;
+      // Logdaten aus der DB entfernen
+      logDatabaseUtil.removeLogdataForId( currLogEntry );
+      logDatabaseUtil.allocateCache( currLogEntry );
     }
     else
     {
-      LOGGER.log( Level.SEVERE, "internal format error while decoding dive date and time from filename!" );
-      fileIndex = -1;
-      return;
+      // Kein Update....
+      // So, ich habe einen Index. Ich brauche für die Datenbank informationen
+      // Dateinamen, Geräteid
+      // bekomme ich aus dem hash logdirFiles
+      fileName = logdirFiles.get( fileIndex );
+      // Aus der Anzeige Datum und Zeitstring trennen
+      fields = fieldPatternDtTm.split( logdirReadable.get( fileIndex ) );
+      if( fields.length == 2 )
+      {
+        diveDate = fields[0];
+        diveTime = fields[1];
+      }
+      else
+      {
+        LOGGER.log( Level.SEVERE, "internal format error while decoding dive date and time from filename!" );
+        fileIndex = -1;
+        return;
+      }
+      // Jetzt die Zeitangaben parsen
+      try
+      {
+        // Datum splitten
+        fields = fieldPatternDot.split( diveDate );
+        year = Integer.parseInt( fields[2] );
+        month = Integer.parseInt( fields[1] );
+        day = Integer.parseInt( fields[0] );
+        // zeit splitten
+        fields = fieldPatternDp.split( diveTime );
+        hour = Integer.parseInt( fields[0] );
+        minute = Integer.parseInt( fields[1] );
+        second = Integer.parseInt( fields[2] );
+        // Zeit erzeugen
+        dateTime = new DateTime( year, month, day, hour, minute, second );
+      }
+      catch( NumberFormatException ex )
+      {
+        LOGGER.log( Level.SEVERE, "internal format error while decoding dive date and time!" );
+        fileIndex = -1;
+        return;
+      }
+      // Ersten Eintrag für den Tauchgang machen
+      diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, ( dateTime.getMillis() ) / 1000 );
+      if( diveId < 0 )
+      {
+        fileIndex = -1;
+        currLogEntry = -1;
+        return;
+      }
+      currLogEntry = diveId;
     }
-    // Jetzt die Zeitangaben parsen
-    try
-    {
-      // Datum splitten
-      fields = fieldPatternDot.split( diveDate );
-      year = Integer.parseInt( fields[2] );
-      month = Integer.parseInt( fields[1] );
-      day = Integer.parseInt( fields[0] );
-      // zeit splitten
-      fields = fieldPatternDp.split( diveTime );
-      hour = Integer.parseInt( fields[0] );
-      minute = Integer.parseInt( fields[1] );
-      second = Integer.parseInt( fields[2] );
-      // Zeit erzeugen
-      dateTime = new DateTime( year, month, day, hour, minute, second );
-    }
-    catch( NumberFormatException ex )
-    {
-      LOGGER.log( Level.SEVERE, "internal format error while decoding dive date and time!" );
-      fileIndex = -1;
-      return;
-    }
-    // Ersten eintrag für den Tauchgang machen
-    diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, ( dateTime.getMillis() ) / 1000 );
-    if( diveId < 0 )
-    {
-      fileIndex = -1;
-      currLogEntry = -1;
-      return;
-    }
-    currLogEntry = diveId;
   }
 
   /**

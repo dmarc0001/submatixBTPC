@@ -504,7 +504,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       LOGGER.log( Level.FINE, "insert new dataset into database..." );
       //@formatter:off
       sql = String.format( 
-              "insert into %s ( %s,%s,%s,%s ) values ( '%s','%s','%s','%d' );",
+              "insert into %s ( %s,%s,%s ) values ( '%s','%s','%d' );",
               ProjectConst.H_TABLE_DIVELOGS,
               ProjectConst.H_DEVICEID,
               ProjectConst.H_FILEONSPX,
@@ -757,7 +757,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       logDataList.clear();
       logDataList = null;
     }
-    return 0;
+    return 1;
   }
 
   @Override
@@ -860,5 +860,63 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       LOGGER.log( Level.SEVERE, "Can't read dive data from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
+  }
+
+  @Override
+  public int removeLogdataForId( int diveId )
+  {
+    String sql;
+    Statement stat;
+    //
+    if( diveId == -1 )
+    {
+      // das war nix...
+      return( 0 );
+    }
+    LOGGER.log( Level.FINE, "remove logdatedata for dive (update) <" + diveId + ">..." );
+    //
+    // entferne Logdatenfür ID
+    //
+    //@formatter:off
+    sql = String.format( 
+            "delete from %s\n" +
+            " where %s=%d"
+            ,
+            ProjectConst.D_TABLE_DIVEDETAIL,
+            ProjectConst.D_DIVEID,
+            diveId
+            );
+    //@formatter:on 
+    //
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+      LOGGER.log( Level.FINE, "remove logdatedata for dive (update) <" + diveId + ">...OK" );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      ex.printStackTrace();
+      return 0;
+    }
+    return 1;
+  }
+
+  @Override
+  public int allocateCache( int diveId )
+  {
+    // immer eine neue anlegen, löscht durch garbage collector auch eventuell vorhandene alte Liste
+    LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">..." );
+    logDataList = new Vector<LogLineDataObject>();
+    // aktuelle Id setzen
+    currentDiveId = diveId;
+    if( logDataList != null )
+    {
+      return( 1 );
+    }
+    LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">...OK" );
+    return( 0 );
   }
 }

@@ -107,6 +107,21 @@ public interface ILogForDeviceDatabaseUtil
 
   /**
    * 
+   * Für ein Update muß noch ein Cache allociert werden
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 12.07.2012
+   * @param diveId
+   *          welcher Log
+   * @return ok oder nicht
+   */
+  public int allocateCache( int diveId );
+
+  /**
+   * 
    * Schreibe eine Zeile aus dem SPX in den Cache
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
@@ -174,4 +189,18 @@ public interface ILogForDeviceDatabaseUtil
    * @return Liste von Stringarrays (Daten)
    */
   public Vector<Integer[]> readDiveDataFromId( int dbId );
+
+  /**
+   * 
+   * Entferne die Logdaten eines Tauchgangs vor einem Update
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 12.07.2012
+   * @param diveId
+   * @return erfolgtreich?
+   */
+  public int removeLogdataForId( int diveId );
 }

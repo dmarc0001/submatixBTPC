@@ -274,7 +274,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     LogForDeviceDatabaseUtil logDatabaseUtil;
     String device;
-    String[] tmpEntr;
     DateTime dateTime;
     long javaTime;
     //

@@ -595,7 +595,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    * 
    *         Stand: 12.07.2012
    * @param isUpdate
-   * @return
+   * @return ja oder nein
    */
   boolean setNextLogIsAnUpdate( boolean isUpdate, int diveId )
   {

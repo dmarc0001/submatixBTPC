@@ -22,7 +22,7 @@ public class LogdirListModel extends DefaultListModel
   private static final long serialVersionUID = -7898034061953387121L;
 
   /**
-   * Überschreibe original, damit die Liste den Namen darstellen kann
+   * Überschreibe original, damit die Liste den Namen darstellen kann, gibt lesbsaren Namen zurück
    */
   @Override
   public Object getElementAt( int index )
@@ -58,6 +58,10 @@ public class LogdirListModel extends DefaultListModel
    */
   public void addLogentry( int number, String name, String inDB )
   {
+    // Die Einträge in der Form:
+    // String[0] = Nummer
+    // String[1] = Lesbarer Name
+    // String[2] = Schon in der DB?
     String[] element =
     { String.format( "%02d", number ), name, inDB };
     super.addElement( element );
@@ -65,7 +69,7 @@ public class LogdirListModel extends DefaultListModel
 
   /**
    * 
-   * Einen Logeintrag aus der Liste lesen
+   * Einen Logeintrag aus der Liste lesen (Stringarray)
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
@@ -138,6 +142,18 @@ public class LogdirListModel extends DefaultListModel
     return( element[1] );
   }
 
+  /**
+   * 
+   * Gib zurück, ob der Eintrag bereits in der DB ist
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 09.07.2012
+   * @param number
+   * @return ist schon gesichert?
+   */
   public boolean istInDb( int number )
   {
     if( super.isEmpty() )

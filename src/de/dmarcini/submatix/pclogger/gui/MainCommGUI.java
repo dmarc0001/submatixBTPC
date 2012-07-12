@@ -1552,17 +1552,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             Integer[] logListEntry = logListPanel.getNextEntryToRead();
             if( logListEntry != null )
             {
+              // unterscheide Update oder Neu
               computeLogRequest( logListEntry );
-              // guck mal, ob der Eintrag in der DB schon vorhanden ist....
-              // if( logListEntry[1] > 0 )
-              // {
-              // // hier liegt ein Updatewunsch vor?
-              // }
-              // wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
-              // wDial.setVisible( true );
-              // Sag dem SPX er soll alles schicken
-              // LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry[0] + ">" );
-              // btComm.readLogDetailFromSPX( logListEntry );
             }
             else
             {

@@ -498,7 +498,6 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
   {
     String sql;
     Statement stat;
-    ResultSet rs;
     //
     if( conn == null )
     {

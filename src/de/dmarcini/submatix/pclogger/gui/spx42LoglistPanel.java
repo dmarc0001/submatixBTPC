@@ -82,6 +82,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private JLabel                         diveLengthLabel;
   private JLabel                         diveLengthShowLabel;
   private JLabel                         logfileCommLabel;
+  private JLabel                         diveLowTempLabel;
+  private JLabel                         diveLowTempShowLabel;
 
   /**
    * Create the panel.
@@ -175,46 +177,53 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     fileNameShowLabel = new JLabel( "-" );
     fileNameShowLabel.setForeground( new Color( 0, 0, 139 ) );
     fileNameLabel.setLabelFor( fileNameShowLabel );
-    fileNameShowLabel.setBounds( 268, 57, 282, 14 );
+    fileNameShowLabel.setBounds( 268, 46, 282, 14 );
     add( fileNameShowLabel );
     diveDateLabel = new JLabel( "DIVEDATE" );
     diveDateLabel.setForeground( Color.DARK_GRAY );
-    diveDateLabel.setBounds( 268, 90, 282, 14 );
+    diveDateLabel.setBounds( 268, 69, 282, 14 );
     add( diveDateLabel );
     diveDateShowLabel = new JLabel( "-" );
     diveDateShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveDateLabel.setLabelFor( diveDateShowLabel );
-    diveDateShowLabel.setBounds( 268, 106, 282, 14 );
+    diveDateShowLabel.setBounds( 268, 83, 282, 14 );
     add( diveDateShowLabel );
     diveTimeLabel = new JLabel( "DIVETIME" );
     diveTimeLabel.setForeground( Color.DARK_GRAY );
-    diveTimeLabel.setBounds( 268, 131, 282, 14 );
+    diveTimeLabel.setBounds( 268, 106, 282, 14 );
     add( diveTimeLabel );
     diveTimeShowLabel = new JLabel( "-" );
     diveTimeShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveTimeLabel.setLabelFor( diveTimeShowLabel );
-    diveTimeShowLabel.setBounds( 268, 146, 282, 14 );
+    diveTimeShowLabel.setBounds( 268, 119, 282, 14 );
     add( diveTimeShowLabel );
     diveMaxDepthLabel = new JLabel( "DIVEMAXDEPTH" );
     diveMaxDepthLabel.setForeground( Color.DARK_GRAY );
-    diveMaxDepthLabel.setBounds( 268, 181, 282, 14 );
+    diveMaxDepthLabel.setBounds( 268, 144, 282, 14 );
     add( diveMaxDepthLabel );
     diveMaxDepthShowLabel = new JLabel( "-" );
     diveMaxDepthShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveMaxDepthLabel.setLabelFor( diveMaxDepthShowLabel );
-    diveMaxDepthShowLabel.setBounds( 268, 195, 282, 14 );
+    diveMaxDepthShowLabel.setBounds( 268, 158, 282, 14 );
     add( diveMaxDepthShowLabel );
     diveLengthLabel = new JLabel( "DIVELENGTH" );
     diveLengthLabel.setForeground( Color.DARK_GRAY );
-    diveLengthLabel.setBounds( 268, 220, 282, 14 );
+    diveLengthLabel.setBounds( 268, 183, 282, 14 );
     add( diveLengthLabel );
     diveLengthShowLabel = new JLabel( "-" );
     diveLengthShowLabel.setForeground( new Color( 0, 0, 139 ) );
-    diveLengthShowLabel.setBounds( 268, 236, 282, 14 );
+    diveLengthShowLabel.setBounds( 268, 196, 282, 14 );
     add( diveLengthShowLabel );
     logfileCommLabel = new JLabel( "SAVINGLABEL" );
     logfileCommLabel.setBounds( 267, 472, 492, 14 );
     add( logfileCommLabel );
+    diveLowTempLabel = new JLabel( "DIVELOWTEMP" );
+    diveLowTempLabel.setBounds( 268, 220, 282, 14 );
+    add( diveLowTempLabel );
+    diveLowTempShowLabel = new JLabel( "-" );
+    diveLowTempShowLabel.setForeground( new Color( 0, 0, 139 ) );
+    diveLowTempShowLabel.setBounds( 268, 235, 282, 14 );
+    add( diveLowTempShowLabel );
     logfileCommLabel.setVisible( false );
   }
 
@@ -266,6 +275,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       diveTimeLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveTimeLabel.text" ) );
       diveMaxDepthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveMaxDepthLabel.text" ) );
       diveLengthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveLengthLabel.text" ) );
+      diveLowTempLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveLowTempLabel.text" ) );
     }
     catch( NullPointerException ex )
     {
@@ -432,7 +442,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     {
       if( !ev.getValueIsAdjusting() )
       {
-        // Das Ende der Serie, jetzt guck ich mal nach der ersten markierten...//
+        // Das Ende der Serie, jetzt guck ich mal nach der ersten markierten...
         LOGGER.log( Level.FINE, "ist last or once change..." );
         fIndex = logListField.getSelectedIndex();
         LOGGER.log( Level.FINE, String.format( "first selected Index: %d ", fIndex ) );
@@ -456,6 +466,24 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         {
           diveDateShowLabel.setText( "??" );
           diveTimeShowLabel.setText( "??" );
+        }
+        // Jetzt schau ich mal, ob da was in der Datenbank zu finden ist
+        if( logDatabaseUtil.isLogSaved( logdirFiles.get( spxNumber ) ) )
+        {
+          // Ja, der ist in der Datenbank erfasst!
+          String[] headers = logDatabaseUtil.getDiveHeadsForDiveNumAsStrings( spxNumber );
+          // Maximale Tiefe anzeigen
+          diveMaxDepthShowLabel.setText( headers[8] );
+          // Länge des Tauchgangs anzeigen
+          diveLengthShowLabel.setText( headers[10] );
+          // kälteste Temperatur anzeigen
+          diveLowTempShowLabel.setText( headers[7] );
+        }
+        else
+        {
+          diveMaxDepthShowLabel.setText( "-" );
+          diveLengthShowLabel.setText( "-" );
+          diveLowTempShowLabel.setText( "-" );
         }
       }
     }

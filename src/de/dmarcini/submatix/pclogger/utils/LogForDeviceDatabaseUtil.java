@@ -611,7 +611,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
         LogLineDataObject logLineObj;
         double markAirtemp = -999.99; // merke mir die Lufttemperatur (erster Wert der Temp => Luft...)
         double markLowestTemp = 100.0; // Merke mir die tiefste Temperatur
-        double markMaxDepth = 0.0; // merke mir die Maximaltiefe
+        long markMaxDepth = 0; // merke mir die Maximaltiefe
         long markSamples = 0;
         long markDiveLength = 0;
         //
@@ -761,7 +761,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
                  "update %s \n" +
                  " set %s=%-3.1f, \n" + 
                  "     %s=%-3.2f, \n" + 
-                 "     %s=%-3.1f, \n" + 
+                 "     %s=%d, \n" + 
                  "     %s=%d, \n" + 
                  "     %s=%d \n" + 
                  " where %s=%d;",                    

@@ -163,6 +163,7 @@ public final class ProjectConst
   public static final String H_LOWTEMP                  = "lowesttemp";
   public static final String H_MAXDEPTH                 = "maxdepth";
   public static final String H_SAMPLES                  = "samples";
+  public static final String H_DIVELENGTH               = "length";
   //
   // Tabelle für die relevanten Daten des Tauchganges
   // Tabelle logdata

@@ -118,7 +118,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
 
   /**
    * 
-   * Lese dei Version der Datenbank, wenn möglich
+   * Lese die Version der Datenbank, wenn möglich
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
@@ -238,6 +238,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "create table %s \n" + 
             " ( \n" + 
             "   %s integer primary key autoincrement,\n" +
+            "   %s integer not null,\n" +
             "   %s text not null,\n" +
             "   %s text not null,\n" +
             "   %s integer not null,\n" +
@@ -249,6 +250,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             " );",
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVEID,
+            ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_FILEONSPX,
             ProjectConst.H_DEVICEID,
             ProjectConst.H_STARTTIME,
@@ -262,7 +264,21 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
     stat.execute( sql );
     conn.commit();
-    // Index fuer die Tabelle erzeugen
+    // Indize fuer die Tabelle erzeugen
+    // index für Tauchnummer auf SPX
+    //@formatter:off
+    sql = String.format(
+            "create index idx_%s_%s on %s ( %s ASC);",
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVENUMBERONSPX,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVENUMBERONSPX );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
+    stat.execute( sql );
+    conn.commit();
+    //
+    // index für Startzeit
     //@formatter:off
     sql = String.format(
             "create index idx_%s_%s on %s ( %s ASC);",
@@ -324,9 +340,9 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
     stat.execute( sql );
     conn.commit();
-
-
+    //
     // TODO: weitere Tabellen :-)
+    //
     stat.close();
     return( conn );
   }
@@ -482,7 +498,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
-  public int writeNewDive( String deviceId, String fileOnSPX, long startTime )
+  public int writeNewDive( String deviceId, String fileOnSPX, long numberOnSPX, long startTime )
   {
     Statement stat;
     String sql;
@@ -504,13 +520,15 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       LOGGER.log( Level.FINE, "insert new dataset into database..." );
       //@formatter:off
       sql = String.format( 
-              "insert into %s ( %s,%s,%s ) values ( '%s','%s','%d' );",
+              "insert into %s ( %s,%s,%s,%s ) values ( '%s','%s', %d, %d );",
               ProjectConst.H_TABLE_DIVELOGS,
               ProjectConst.H_DEVICEID,
               ProjectConst.H_FILEONSPX,
+              ProjectConst.H_DIVENUMBERONSPX,
               ProjectConst.H_STARTTIME,
               deviceId, 
               fileOnSPX,
+              numberOnSPX,
               startTime
              );
       //@formatter:on
@@ -776,10 +794,12 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s from %s;",
+            "select %s,%s,%s from %s order by %s desc;",
             ProjectConst.H_DIVEID,
+            ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_STARTTIME,
-            ProjectConst.H_TABLE_DIVELOGS
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVENUMBERONSPX
            );
     //@formatter:on
     try
@@ -789,9 +809,10 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       while( rs.next() )
       {
         // Daten kosolidieren
-        String[] resultSet = new String[2];
-        resultSet[0] = rs.getString( 1 );
-        resultSet[1] = rs.getString( 2 );
+        String[] resultSet = new String[3];
+        resultSet[0] = rs.getString( 1 ); // diveID
+        resultSet[1] = rs.getString( 2 ); // Nummer auf dem SPX
+        resultSet[2] = rs.getString( 3 ); // Anfangszeit
         // ab in den vector
         results.add( resultSet );
         LOGGER.log( Level.FINE, String.format( "database read dive nr <%s>", rs.getString( 1 ) ) );

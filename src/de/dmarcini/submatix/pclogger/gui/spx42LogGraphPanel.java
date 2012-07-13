@@ -311,21 +311,23 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       // die erfragten details zurechtrücken
       // Felder sind:
       // H_DIVEID,
+      // H_H_DIVENUMBERONSPX
       // H_STARTTIME,
       for( Enumeration<String[]> enu = entrys.elements(); enu.hasMoreElements(); )
       {
         String[] origSet = enu.nextElement();
         // zusammenbauen fuer Anzeige
-        String[] elem = new String[2];
-        // etwas einrücken, für vierstellige Anzeige
-        elem[0] = String.format( "%4s", origSet[0] );
+        String[] elem = new String[3];
+        // SPX-DiveNumber etwas einrücken, für vierstellige Anzeige
+        elem[1] = String.format( "%4s", origSet[1] );
         // Die UTC-Zeit als ASCII/UNIX wieder zu der originalen Zeit für Java zusammenbauen
         try
         {
           // LOGGER.log( Level.FINE, "unix Timestamp <" + origSet[1] + ">..." );
-          javaTime = Long.parseLong( origSet[1] ) * 1000;
+          javaTime = Long.parseLong( origSet[2] ) * 1000;
           dateTime = new DateTime( javaTime );
-          elem[1] = dateTime.toString( stringsBundle.getString( "MainCommGUI.timeFormatterString" ) ) + " " + origSet[2];
+          elem[0] = origSet[0];
+          elem[2] = dateTime.toString( stringsBundle.getString( "MainCommGUI.timeFormatterString" ) );
         }
         catch( NumberFormatException ex )
         {
@@ -669,6 +671,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     chartPanel = new ChartPanel( logChart );
     add( chartPanel, BorderLayout.CENTER );
     chartPanel.paint( chartPanel.getGraphics() );
+    logChart.fireChartChanged();
     LOGGER.log( Level.FINE, "create graph...OK" );
   }
 }

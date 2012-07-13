@@ -58,7 +58,7 @@ public class LogListComboBoxModel extends DefaultComboBoxModel
       return( new String( "" ) );
     }
     String[] value = ( String[] )super.getElementAt( index );
-    return( value[0] + " - " + value[1] );
+    return( value[1] + " - " + value[2] );
   }
 
   /**
@@ -96,6 +96,10 @@ public class LogListComboBoxModel extends DefaultComboBoxModel
   @Override
   public void addElement( Object elem )
   {
+    // Felder sind:
+    // H_DIVEID,
+    // H_H_DIVENUMBERONSPX
+    // H_STARTTIME,
     if( elem instanceof String[] )
     {
       super.addElement( elem );

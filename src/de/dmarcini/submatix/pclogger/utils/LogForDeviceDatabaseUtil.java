@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -246,6 +247,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "   %s real,\n" +
             "   %s real,\n" +
             "   %s integer,\n" +
+            "   %s integer,\n" +
             "   %s integer" +
             " );",
             ProjectConst.H_TABLE_DIVELOGS,
@@ -258,7 +260,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.H_FIRSTTEMP,
             ProjectConst.H_LOWTEMP,
             ProjectConst.H_MAXDEPTH,
-            ProjectConst.H_SAMPLES
+            ProjectConst.H_SAMPLES,
+            ProjectConst.H_DIVELENGTH
             );
     //@formatter:on
     LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
@@ -603,8 +606,15 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       public void run()
       {
         PreparedStatement prep = null;
+        Statement stat = null;
         String sql;
         LogLineDataObject logLineObj;
+        double markAirtemp = -999.99; // merke mir die Lufttemperatur (erster Wert der Temp => Luft...)
+        double markLowestTemp = 100.0; // Merke mir die tiefste Temperatur
+        double markMaxDepth = 0.0; // merke mir die Maximaltiefe
+        long markSamples = 0;
+        long markDiveLength = 0;
+        //
         //@formatter:off
          sql = String.format( 
                  "insert into %s\n" +
@@ -683,6 +693,28 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
              logDataList = null;
              return;
            }
+           //
+           // Statistiken mitführen
+           //
+           markSamples++; // Anzahl der Einträge mitzählen
+           markDiveLength += logLineObj.nextStep; // Länge des Tauchganges mitrechnen
+           if( markAirtemp == -999.99 )
+           {
+             // Der erste Wert ist mal die Lufttemperatur (geschätzt)
+             markAirtemp = logLineObj.temperature;
+           }
+           // Tiefste Temperatur
+           if( markLowestTemp > logLineObj.temperature )
+           {
+             // ja, die Temperatur war tiefer
+             markLowestTemp = logLineObj.temperature;
+           }
+           // Maximale Tiefe
+           if( markMaxDepth < logLineObj.depth )
+           {
+             // setze die größere Tiefe
+             markMaxDepth = logLineObj.depth;
+           }
          }
          try
          {
@@ -720,6 +752,50 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
          // aufräumen!
          logDataList.clear();
          logDataList = null;
+         // 
+         // Statistische Daten in der DB updaten
+         //
+         //@formatter:off
+         sql = String.format( 
+                 Locale.ENGLISH,
+                 "update %s \n" +
+                 " set %s=%-3.1f, \n" + 
+                 "     %s=%-3.2f, \n" + 
+                 "     %s=%-3.1f, \n" + 
+                 "     %s=%d, \n" + 
+                 "     %s=%d \n" + 
+                 " where %s=%d;",                    
+                 ProjectConst.H_TABLE_DIVELOGS,
+                 ProjectConst.H_FIRSTTEMP,markAirtemp,
+                 ProjectConst.H_LOWTEMP,markLowestTemp,
+                 ProjectConst.H_MAXDEPTH,markMaxDepth,
+                 ProjectConst.H_SAMPLES,markSamples,
+                 ProjectConst.H_DIVELENGTH, markDiveLength,
+                 ProjectConst.H_DIVEID,
+                 diveId
+                  );
+         //@formatter:off 
+         try
+         {
+           stat = conn.createStatement();
+           stat.execute( sql );
+           stat.close();
+         }
+         catch( SQLException ex )
+         {
+           LOGGER.log( Level.SEVERE, "fatal error in data update: " + ex.getLocalizedMessage() );
+           LOGGER.log( Level.FINE, "SQL:" + sql );
+           ex.printStackTrace();
+           if( aListener != null )
+           {
+             // die "das ging schief" Nachricht
+             ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "dataUpdate" );
+             aListener.actionPerformed( ev );
+           }
+           logDataList.clear();
+           logDataList = null;
+           return;
+         }
          if( aListener != null )
          {
            // die "das ging schief" Nachricht
@@ -749,7 +825,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     //
     //@formatter:off
     sql = String.format( 
-            "insert from %s\n" +
+            "delete from %s\n" +
             " where %s=%d"
             ,
             ProjectConst.H_TABLE_DIVELOGS,

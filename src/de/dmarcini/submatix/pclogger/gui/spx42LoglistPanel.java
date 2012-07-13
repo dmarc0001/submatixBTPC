@@ -633,6 +633,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     }
     try
     {
+      // Die Nummer des Logeintrages auf dem SPX
       fileIndex = Integer.parseInt( fileNumberStr, 16 );
     }
     catch( NumberFormatException ex )
@@ -696,7 +697,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         return;
       }
       // Ersten Eintrag für den Tauchgang machen
-      diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, ( dateTime.getMillis() ) / 1000 );
+      diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, fileIndex, ( dateTime.getMillis() ) / 1000 );
       if( diveId < 0 )
       {
         fileIndex = -1;

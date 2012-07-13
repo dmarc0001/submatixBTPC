@@ -154,6 +154,7 @@ public final class ProjectConst
   // speichert "Kopfdaten" der Logs
   public static final String H_TABLE_DIVELOGS           = "dive_logs";
   public static final String H_DIVEID                   = "dive_id";
+  public static final String H_DIVENUMBERONSPX          = "dive_number";
   public static final String H_FILEONSPX                = "filename";
   public static final String H_DEVICEID                 = "device_id";
   public static final String H_STARTTIME                = "starttime";

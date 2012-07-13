@@ -671,6 +671,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     chartPanel = new ChartPanel( logChart );
     add( chartPanel, BorderLayout.CENTER );
     chartPanel.paint( chartPanel.getGraphics() );
+    // sag bescheid, neu Zeichnen!
+    LOGGER.log( Level.FINE, "create graph...fireChartChanged()..." );
     logChart.fireChartChanged();
     LOGGER.log( Level.FINE, "create graph...OK" );
   }

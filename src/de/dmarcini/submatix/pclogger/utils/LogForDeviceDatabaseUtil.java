@@ -920,7 +920,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s from %s where dive_id=%d;",
+            "select %s,%s,%s,%s,%s,%s from %s where %s=%d;",
             ProjectConst.D_DELTATIME,
             ProjectConst.D_DEPTH,
             ProjectConst.D_TEMPERATURE,
@@ -928,6 +928,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.D_SETPOINT,
             ProjectConst.D_NULLTIME,
             ProjectConst.D_TABLE_DIVEDETAIL,
+            ProjectConst.D_DIVEID,
             dbId
            );
     //@formatter:on
@@ -1015,5 +1016,132 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">...OK" );
     return( 0 );
+  }
+
+  @Override
+  public String[] getDiveHeadsForDiveNumAsStrings( int numberOnSpx )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String[] diveHeadData = new String[11];
+    //
+    LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_DIVENUMBERONSPX,
+            ProjectConst.H_FILEONSPX,
+            ProjectConst.H_DEVICEID,
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_HADSEND,
+            ProjectConst.H_FIRSTTEMP,
+            ProjectConst.H_LOWTEMP,
+            ProjectConst.H_MAXDEPTH,
+            ProjectConst.H_SAMPLES,
+            ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVENUMBERONSPX,
+            numberOnSpx
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        diveHeadData[0] = rs.getString( 1 );
+        diveHeadData[1] = rs.getString( 2 );
+        diveHeadData[2] = rs.getString( 3 );
+        diveHeadData[3] = rs.getString( 4 );
+        diveHeadData[4] = rs.getString( 5 );
+        diveHeadData[5] = rs.getString( 6 );
+        diveHeadData[6] = rs.getString( 7 );
+        diveHeadData[7] = rs.getString( 8 );
+        diveHeadData[8] = String.format( "%-3.1f", ( rs.getDouble( 9 ) / 10.0 ) ); // Tiefe
+        diveHeadData[9] = rs.getString( 10 );
+        // Minuten/Sekunden ausrechnen
+        int minutes = rs.getInt( 11 ) / 60;
+        int secounds = rs.getInt( 11 ) % 60;
+        diveHeadData[10] = String.format( "%d:%02d", minutes, secounds );
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
+      return( diveHeadData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  @Override
+  public Double[] getDiveHeadsForDiveNumAsDouble( int numberOnSpx )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    Double[] diveHeadData = new Double[11];
+    //
+    LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_DIVENUMBERONSPX,
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_HADSEND,
+            ProjectConst.H_FIRSTTEMP,
+            ProjectConst.H_LOWTEMP,
+            ProjectConst.H_MAXDEPTH,
+            ProjectConst.H_SAMPLES,
+            ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVENUMBERONSPX,
+            numberOnSpx
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        diveHeadData[0] = rs.getDouble( 1 );
+        diveHeadData[1] = rs.getDouble( 2 );
+        diveHeadData[2] = 0.0;
+        diveHeadData[3] = 0.0;
+        diveHeadData[4] = rs.getDouble( 3 );
+        diveHeadData[5] = rs.getDouble( 4 );
+        diveHeadData[6] = rs.getDouble( 5 );
+        diveHeadData[7] = rs.getDouble( 6 );
+        diveHeadData[8] = rs.getDouble( 7 );
+        diveHeadData[9] = rs.getDouble( 8 );
+        diveHeadData[10] = rs.getDouble( 9 );
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
+      return( diveHeadData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
   }
 }

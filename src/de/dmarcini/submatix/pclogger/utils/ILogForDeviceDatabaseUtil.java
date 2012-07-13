@@ -204,4 +204,36 @@ public interface ILogForDeviceDatabaseUtil
    * @return erfolgtreich?
    */
   public int removeLogdataForId( int diveId );
+
+  /**
+   * 
+   * Gibt die Headerdaten eines Dives aus der DB zurück (
+   * H_DIVEID,H_DIVENUMBERONSPX,H_FILEONSPX,H_DEVICEID,H_STARTTIME,H_HADSEND,H_FIRSTTEMP,H_LOWTEMP,H_MAXDEPTH,H_SAMPLES,H_DIVELENGTH )
+   * 
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 13.07.2012
+   * @param numberOnSpx
+   * @return Werte als Vector<Strings>
+   */
+  public String[] getDiveHeadsForDiveNumAsStrings( int numberOnSpx );
+
+  /**
+   * 
+   * Gibt die Headerdaten eines Dives aus der DB zurück (
+   * H_DIVEID,H_DIVENUMBERONSPX,H_FILEONSPX,H_DEVICEID,H_STARTTIME,H_HADSEND,H_FIRSTTEMP,H_LOWTEMP,H_MAXDEPTH,H_SAMPLES,H_DIVELENGTH )
+   * 
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 13.07.2012
+   * @param numberOnSpx
+   * @return Werte als Vector<Double>
+   */
+  public Double[] getDiveHeadsForDiveNumAsDouble( int numberOnSpx );
 }

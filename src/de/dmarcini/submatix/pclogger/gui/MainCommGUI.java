@@ -115,6 +115,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private int                                licenseState        = -1;
   private int                                customConfig        = -1;
   private ConnectDatabaseUtil                sqliteDbUtil        = null;
+  private int waitForMessage = 0;
   //
   // @formatter:on
   private JFrame                  frmMainwindowtitle;
@@ -265,6 +266,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       System.exit( -1 );
     }
+    waitForMessage = 0;
   }
 
   /**
@@ -847,6 +849,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
         wDial.setVisible( true );
+        waitForMessage = 0; // auf erst mal nix warten...
         connectSPX();
       }
     }
@@ -1131,6 +1134,23 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     String cmd = ev.getActionCommand();
     int actionId = ev.getID();
+    //
+    // wenn ich auf eine Nachricht warten soll, um das "WARTE"-Fenster zu schliessen
+    //
+    if( waitForMessage != 0 )
+    {
+      if( waitForMessage == actionId )
+      {
+        // es ist die Nachricht, auf die ich waren soll
+        if( wDial != null )
+        {
+          wDial.dispose();
+          wDial = null;
+        }
+        // den Merker auf null setzen!
+        waitForMessage = 0;
+      }
+    }
     switch ( actionId )
     {
     // /////////////////////////////////////////////////////////////////////////
@@ -1317,11 +1337,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         btComm.askForLicenseFromSPX();
         btComm.askForFirmwareVersion();
         connectionPanel.refreshAliasTable();
-        if( wDial != null )
-        {
-          wDial.dispose();
-          wDial = null;
-        }
+        // ware, bis die Nachricht FWVERSION_READ kommt, um das wartefenster zu schliessen
+        waitForMessage = ProjectConst.MESSAGE_FWVERSION_READ;
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Device wurde getrennt
@@ -1386,11 +1403,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           configPanel.unitsTemperatureComboBox.setBackground( new Color( 0xffafaf ) );
         }
-        if( wDial != null )
-        {
-          wDial.dispose();
-          wDial = null;
-        }
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht, daß da etwas passiert, also Hinweisbox weiterzählen lassen
@@ -1408,7 +1420,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
-      // Nachricht, daß die hinweisbox geschlossen werden kann
+      // Nachricht, daß die Hinweisbox geschlossen werden kann
       case ProjectConst.MESSAGE_PROCESS_END:
         if( wDial != null )
         {
@@ -2000,6 +2012,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     if( btComm.isConnected() )
     {
       // ist verbunden, was nun?
+      return;
     }
     else
     {

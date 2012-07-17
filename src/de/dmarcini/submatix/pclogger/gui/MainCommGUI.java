@@ -847,7 +847,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       if( btComm != null )
       {
-        wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+        wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
         wDial.setVisible( true );
         waitForMessage = 0; // auf erst mal nix warten...
         connectSPX();
@@ -870,10 +870,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         if( btComm.isConnected() )
         {
-          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readSpxConfig" ) );
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
           wDial.setVisible( true );
           btComm.readConfigFromSPX42();
+          // warte auf diese Nachricht....
+          waitForMessage = ProjectConst.MESSAGE_SPXALIVE;
         }
         else
         {
@@ -933,7 +935,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         if( btComm.isConnected() )
         {
-          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readGaslist" ) );
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
           wDial.setVisible( true );
           btComm.readGaslistFromSPX42();
@@ -953,7 +955,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         if( btComm.isConnected() && currGasList.isInitialized() )
         {
-          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.writeGasList" ) );
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
           wDial.setVisible( true );
           btComm.writeGaslistToSPX42( currGasList, currentConfig.getFirmwareVersion() );
@@ -981,7 +983,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           if( logListPanel.prepareReadLogdir( btComm.getConnectedDevice() ) )
           {
-            wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+            wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
             wDial.setVisible( true );
             // beginne mit leerem Cache
             logListPanel.clearLogdirCache();
@@ -1041,7 +1043,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void writeConfigToSPX( SPX42Config cnf )
   {
     //
-    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.writeSpxConfig" ) );
     wDial.setMax( BTCommunication.CONFIG_WRITE_KDO_COUNT );
     wDial.resetProgress();
     wDial.setVisible( true );
@@ -1389,10 +1391,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       case ProjectConst.MESSAGE_SPXALIVE:
         LOGGER.log( Level.INFO, "acku value from spx42 recived..." );
         setAckuValue( cmd );
-        // wenn noch keine Konfiguration fertig ist,
-        // dann sollte das hier zeigen, daß ich alles gelesen habe
-        // und eine gesicherte Config erstellt werden kann
-        // ALIVE wird bei readSPXConfig als letztes Kommando gesendet.
         if( savedConfig == null )
         {
           currentConfig.setWasInit( true );
@@ -1575,7 +1573,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
                 {
                   if( logListPanel.prepareReadLogdir( btComm.getConnectedDevice() ) )
                   {
-                    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+                    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
                     wDial.setVisible( true );
                     // beginne mit leerem Cache
                     // TODO: Aus Chache neu aufbauen!
@@ -1674,7 +1672,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     // datensatz anlegen
-    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitforCom" ) );
+    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.waitForReadDive" ) );
+    wDial.setDetailMessage( String.format( stringsBundle.getString( "PleaseWaitDialog.readDiveNumber" ), logListEntry[0] ) );
     wDial.setVisible( true );
     // Sag dem SPX er soll alles schicken
     LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry[0] + ">" );

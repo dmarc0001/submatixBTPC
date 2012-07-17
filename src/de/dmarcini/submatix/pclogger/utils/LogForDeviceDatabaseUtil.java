@@ -30,6 +30,12 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
  */
 public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
 {
+  public final static int           DELTATIME   = 0;
+  public final static int           DEPTH       = 1;
+  public final static int           TEMPERATURE = 2;
+  public final static int           PPO2        = 3;
+  public final static int           SETPOINT    = 4;
+  public final static int           NULLTIME    = 5;
   private Logger                    LOGGER      = null;
   private ActionListener            aListener   = null;
   private File                      dbFile      = null;
@@ -940,12 +946,12 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       {
         // Daten kosolidieren
         Integer[] resultSet = new Integer[6];
-        resultSet[0] = rs.getInt( 1 );
-        resultSet[1] = rs.getInt( 2 );
-        resultSet[2] = rs.getInt( 3 );
-        resultSet[3] = rs.getInt( 4 );
-        resultSet[4] = rs.getInt( 5 );
-        resultSet[5] = rs.getInt( 6 );
+        resultSet[DELTATIME] = rs.getInt( 1 );
+        resultSet[DEPTH] = rs.getInt( 2 );
+        resultSet[TEMPERATURE] = rs.getInt( 3 );
+        resultSet[PPO2] = ( int )( rs.getDouble( 4 ) * 1000.0 );
+        resultSet[SETPOINT] = rs.getInt( 5 );
+        resultSet[NULLTIME] = rs.getInt( 6 );
         // ab in den vector
         diveData.add( resultSet );
       }

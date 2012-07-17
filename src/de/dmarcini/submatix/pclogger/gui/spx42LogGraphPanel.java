@@ -669,6 +669,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // ein Diagramm-Panel erzeugen
     //
     chartPanel = new ChartPanel( logChart );
+    chartPanel.setMouseZoomable( true );
+    chartPanel.setMouseWheelEnabled( true );
+    chartPanel.setRangeZoomable( false );
     add( chartPanel, BorderLayout.CENTER );
     chartPanel.paint( chartPanel.getGraphics() );
     // sag bescheid, neu Zeichnen!

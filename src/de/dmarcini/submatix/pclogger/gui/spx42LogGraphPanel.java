@@ -534,7 +534,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    *          Y-Achse
    * @return Datenset
    */
-  private XYDataset createXYDataset( String scalaTitle, Vector<Integer[]> diveList, int x, int y, boolean isDepth )
+  private XYDataset createXYDataset( String scalaTitle, Vector<Integer[]> diveList, int x, int y )
   {
     final TimeSeries series = new TimeSeries( scalaTitle );
     long milis = 0;
@@ -546,11 +546,16 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     for( Enumeration<Integer[]> enu = diveList.elements(); enu.hasMoreElements(); )
     {
       dataSet = enu.nextElement();
-      if( isDepth )
+      if( y == LogForDeviceDatabaseUtil.DEPTH )
       {
         double fDepth = new Double( dataSet[y] );
         fDepth = 0.00 - ( fDepth / 10.00 );
         series.add( new Second( cDate ), fDepth );
+      }
+      else if( y == LogForDeviceDatabaseUtil.PPO2 )
+      {
+        double fPpo2 = new Double( dataSet[y] / 1000.00 );
+        series.add( new Second( cDate ), fPpo2 );
       }
       else
       {
@@ -621,7 +626,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Temperatur einfügen
     //
     LOGGER.log( Level.FINE, "create temp dataset" );
-    tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, 0, 2, false );
+    tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, 0, LogForDeviceDatabaseUtil.TEMPERATURE );
     final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) );
     tempAxis.setNumberFormatOverride( new DecimalFormat( "###.##" ) );
     final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
@@ -629,18 +634,20 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     lineTemperatureRenderer.setSeriesShapesVisible( 0, false );
     lineTemperatureRenderer.setDrawSeriesLineAsPath( true );
     tempAxis.setAutoRangeIncludesZero( true );
-    thePlot.setRangeAxis( 0, tempAxis );
-    thePlot.mapDatasetToRangeAxis( 0, 0 );
+    thePlot.setRangeAxis( 2, tempAxis );
+    thePlot.mapDatasetToRangeAxis( 2, 0 );
     thePlot.setDataset( 0, tempDataSet );
     thePlot.setRenderer( 0, lineTemperatureRenderer );
     //
     // Partialdruck einfügen
     //
     LOGGER.log( Level.FINE, "create ppo2 dataset" );
-    ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, 0, 3, true );
+    ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, 0, LogForDeviceDatabaseUtil.PPO2 );
     final NumberAxis ppo2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2AxisTitle" ) );
     final XYLineAndShapeRenderer ppo2Renderer = new XYLineAndShapeRenderer( true, true );
-    ppo2Axis.setAutoRangeIncludesZero( true );
+    ppo2Axis.setAutoRangeIncludesZero( false );
+    ppo2Axis.setAutoRange( false );
+    ppo2Axis.setRange( 0.0, 3.5 );
     thePlot.setRangeAxis( 1, ppo2Axis );
     thePlot.setDataset( 1, ppo2DataSet );
     thePlot.mapDatasetToRangeAxis( 1, 1 );
@@ -649,18 +656,18 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     ppo2Renderer.setDrawSeriesLineAsPath( true );
     thePlot.setRenderer( 1, ppo2Renderer );
     //
-    // die tiefe einfügen
+    // die Tiefe einfügen
     //
     LOGGER.log( Level.FINE, "create depth dataset" );
-    depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ), diveList, 0, 1, true );
+    depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ), diveList, 0, LogForDeviceDatabaseUtil.DEPTH );
     final NumberAxis depthAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) );
     final XYAreaRenderer areaDepthRenderer = new XYAreaRenderer( XYAreaRenderer.AREA );
     depthAxis.setAutoRangeIncludesZero( true );
-    thePlot.setRangeAxis( 2, depthAxis );
+    thePlot.setRangeAxis( 0, depthAxis );
     thePlot.setDataset( 2, depthDataSet );
-    thePlot.mapDatasetToRangeAxis( 2, 2 );
+    thePlot.mapDatasetToRangeAxis( 0, 2 );
     areaDepthRenderer.setSeriesPaint( 0, new Color( 0xa0a0ff ) );
-    thePlot.setRenderer( 2, areaDepthRenderer );
+    thePlot.setRenderer( 2, areaDepthRenderer, true );
     //
     // ein Chart zur Anzeige in einem Panel erzeugen
     //

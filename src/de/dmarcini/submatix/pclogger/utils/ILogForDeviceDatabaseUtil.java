@@ -201,7 +201,7 @@ public interface ILogForDeviceDatabaseUtil
    * 
    *         Stand: 17.07.2012
    * @param dbId
-   * @return
+   * @return Array mit den Kopfdaten
    */
   public int[] readHeadDiveDataFromId( int dbId );
 

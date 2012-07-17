@@ -193,6 +193,20 @@ public interface ILogForDeviceDatabaseUtil
 
   /**
    * 
+   * Kopfaten des TG von der DiveId lesen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 17.07.2012
+   * @param dbId
+   * @return
+   */
+  public int[] readHeadDiveDataFromId( int dbId );
+
+  /**
+   * 
    * Entferne die Logdaten eines Tauchgangs vor einem Update
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils

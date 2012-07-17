@@ -1150,4 +1150,57 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       return( null );
     }
   }
+
+  @Override
+  public int[] readHeadDiveDataFromId( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    int[] diveHeadData = new int[6];
+    //
+    LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_FIRSTTEMP,
+            ProjectConst.H_LOWTEMP,
+            ProjectConst.H_MAXDEPTH,
+            ProjectConst.H_SAMPLES,
+            ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        diveHeadData[0] = rs.getInt( 1 );
+        diveHeadData[1] = ( int )( rs.getDouble( 2 ) * 10.0 );
+        diveHeadData[2] = ( int )( rs.getDouble( 3 ) * 10.0 );
+        diveHeadData[3] = rs.getInt( 4 );
+        diveHeadData[4] = rs.getInt( 5 );
+        diveHeadData[5] = rs.getInt( 6 );
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB...OK" );
+      return( diveHeadData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
 }

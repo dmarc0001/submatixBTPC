@@ -26,6 +26,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -60,7 +61,12 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private JComboBox           deviceComboBox;
   private JComboBox           diveSelectComboBox;
   private JButton             computeGraphButton;
-  private JLabel              lblLabel;
+  private JLabel              maxDepthLabel;
+  private JLabel              coldestLabel;
+  private JLabel              diveLenLabel;
+  private JLabel              maxDepthValueLabel;
+  private JLabel              coldestTempValueLabel;
+  private JLabel              diveLenValueLabel;
 
   @SuppressWarnings( "unused" )
   private spx42LogGraphPanel()
@@ -119,8 +125,27 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     topPanel.setLayout( gl_topPanel );
     bottomPanel = new JPanel();
     add( bottomPanel, BorderLayout.SOUTH );
-    lblLabel = new JLabel( "LABEL" );
-    bottomPanel.add( lblLabel );
+    maxDepthLabel = new JLabel( "MAXDEPTH" );
+    maxDepthValueLabel = new JLabel( "00m" );
+    coldestLabel = new JLabel( "COLDEST" );
+    coldestTempValueLabel = new JLabel( "00Grd" );
+    diveLenLabel = new JLabel( "LENGTH" );
+    diveLenValueLabel = new JLabel( "00:00min" );
+    GroupLayout gl_bottomPanel = new GroupLayout( bottomPanel );
+    gl_bottomPanel.setHorizontalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_bottomPanel.createSequentialGroup().addContainerGap().addComponent( maxDepthLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( coldestLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 ).addComponent( coldestTempValueLabel ).addGap( 21 )
+                    .addComponent( diveLenLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addPreferredGap( ComponentPlacement.UNRELATED )
+                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 71, GroupLayout.PREFERRED_SIZE ).addContainerGap( 253, Short.MAX_VALUE ) ) );
+    gl_bottomPanel.setVerticalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_bottomPanel
+                    .createSequentialGroup()
+                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                    .addGroup(
+                            gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( maxDepthLabel ).addComponent( maxDepthValueLabel ).addComponent( coldestLabel )
+                                    .addComponent( coldestTempValueLabel ).addComponent( diveLenLabel ).addComponent( diveLenValueLabel ) ) ) );
+    bottomPanel.setLayout( gl_bottomPanel );
     chartPanel = null;
   }
 
@@ -157,6 +182,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       diveSelectComboBox.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.diveSelectComboBox.tooltiptext" ) );
       computeGraphButton.setText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.text" ) );
       computeGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
+      maxDepthLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.maxDepthLabel.text" ) );
+      coldestLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.coldestLabel.text" ) );
+      diveLenLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.diveLenLabel.text" ) );
     }
     catch( NullPointerException ex )
     {
@@ -483,6 +511,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       chartPanel.setVisible( false );
       remove( chartPanel );
       chartPanel = null;
+      maxDepthValueLabel.setText( "-" );
+      coldestTempValueLabel.setText( "-" );
+      diveLenValueLabel.setText( "-" );
     }
   }
 
@@ -587,6 +618,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     LogForDeviceDatabaseUtil logDatabaseUtil;
     Vector<Integer[]> diveList;
+    int[] headData;
     XYPlot thePlot;
     XYDataset depthDataSet, tempDataSet, ppo2DataSet;
     JFreeChart logChart;
@@ -611,6 +643,13 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     {
       return;
     }
+    //
+    // Labels für Tachgangseckdaten füllen
+    //
+    headData = logDatabaseUtil.readHeadDiveDataFromId( dbId );
+    maxDepthValueLabel.setText( String.format( "%1.2f", ( headData[3] / 10.0 ) ) );
+    coldestTempValueLabel.setText( String.format( "%1.2f°", ( headData[2] / 10.0 ) ) );
+    diveLenValueLabel.setText( String.format( "%d sec", headData[5] ) );
     //
     // einen Plot machen (Grundlage des Diagramms)
     //

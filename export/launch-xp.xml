@@ -2,7 +2,7 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>C:\DATEN\submatix\submatixBTForPC.jar</jar>
-  <outfile>C:\DATEN\submatix\20120714-submatixForPC-XP.exe</outfile>
+  <outfile>C:\DATEN\submatix\20120717-submatixForPC-XP.exe</outfile>
   <errTitle>Kein Java vohanden?</errTitle>
   <cmdLine>--loglevel DEBUG --logfile spxCommLogFile.log</cmdLine>
   <chdir></chdir>

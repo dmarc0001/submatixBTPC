@@ -29,7 +29,9 @@ public final class ProjectConst
   public static final String BUGGY_FIRMWARE_01          = "V2.6.7.7_V";
   
   // Verzeichnis für Datenbanken
-  public static final String LOGDATADIR                 = "database";
+  public static final String DEFAULTDATADIR             = "database";
+  public static final String CONFIGFILENAME             = "spxLogProgram.conf";
+  public static final String DEFAULTLOGFILE             = "spxLogProgram.log";
   
   // Messages für SPX 42
   public static final String STX                        = new String( new byte[] { 0x02 } );

@@ -139,6 +139,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private JMenuItem                mntmHelp;
   private JMenuItem                mntmInfo;
   private JTextField               statusTextField;
+  private JMenuItem                mntmOptions;
 
   /**
    * Launch the application.
@@ -378,9 +379,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     mnOptions = new JMenu( "OPTIONS" );
     mnOptions.addMouseMotionListener( this );
     menuBar.add( mnOptions );
-    JMenuItem mntmEmpty = new JMenuItem( "DATEFORMAT" );
-    mntmEmpty.addMouseMotionListener( this );
-    mnOptions.add( mntmEmpty );
+    mntmOptions = new JMenuItem( "PROPERTYS" );
+    mntmOptions.addMouseMotionListener( this );
+    mntmOptions.addActionListener( this );
+    mntmOptions.setActionCommand( "set_propertys" );
+    mnOptions.add( mntmOptions );
     mnHelp = new JMenu( "HELP" );
     mnHelp.addMouseMotionListener( this );
     menuBar.add( mnHelp );
@@ -432,6 +435,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       mnLanguages.setToolTipText( stringsBundle.getString( "MainCommGUI.mnLanguages.tooltiptext" ) );
       mnOptions.setText( stringsBundle.getString( "MainCommGUI.mnOptions.text" ) );
       mnOptions.setToolTipText( stringsBundle.getString( "MainCommGUI.mnOptions.tooltiptext" ) );
+      mntmOptions.setText( stringsBundle.getString( "MainCommGUI.mntmOptions.text" ) );
+      mntmOptions.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmOptions.tooltiptext" ) );
       mnHelp.setText( stringsBundle.getString( "MainCommGUI.mnHelp.text" ) );
       mnHelp.setToolTipText( stringsBundle.getString( "MainCommGUI.mnHelp.tooltiptext" ) );
       mntmHelp.setText( stringsBundle.getString( "MainCommGUI.mntmHelp.text" ) );
@@ -1153,6 +1158,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       LOGGER.log( Level.FINE, "Call HELP-Dialog..." );
       showHelpForm();
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Box für diverse Einstellungen anzeigen
+    else if( cmd.equals( "set_propertys" ) )
+    {
+      showPropertysDialog();
     }
     // /////////////////////////////////////////////////////////////////////////
     // Sprachenmenü wurde ausgewählt
@@ -2711,5 +2722,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     gasConfigPanel.setGlobalChangeListener( this );
     logListPanel.setGlobalChangeListener( this );
     logGraphPanel.setGlobalChangeListener( this );
+  }
+
+  /**
+   * 
+   * Zeige einen Optionendialog zur Einstellung von Programmgeschichten
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.07.2012
+   */
+  private void showPropertysDialog()
+  {
+    showWarnBox( "propertys: not implemented yet!" );
   }
 }

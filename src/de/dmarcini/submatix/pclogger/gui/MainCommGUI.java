@@ -216,6 +216,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         catch( Exception e )
         {
+          System.err.println( "Exception: " + e.getLocalizedMessage() + "\n" );
           e.printStackTrace();
         }
       }
@@ -238,8 +239,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       // wenn auf der Kommandozeile was anderes vorgegeben ist...
       progConfig.setLogFile( logFile );
-      makeLogger( logFile, optionLogLevel );
     }
+    makeLogger( progConfig.getLogFile(), optionLogLevel );
     if( databaseDir != null )
     {
       // wenn auf der Kommandozeile ein neues Verzeichnis angegeben wurde
@@ -2750,10 +2751,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     if( pDial.showModal() )
     {
       LOGGER.log( Level.FINE, "dialog whith OK closed...." );
-      progConfig = pDial.getProcConfig();
-      showWarnBox( "RESTART PROGRAMM!" );
-      pDial.dispose();
-      exitProgram();
+      // progConfig = pDial.getProcConfig();
+      if( progConfig.isWasChanged() )
+      {
+        showWarnBox( "RESTART PROGRAMM!" );
+        pDial.dispose();
+        exitProgram();
+      }
+      LOGGER.log( Level.FINE, "dialog whith OK closed NO Changes...." );
     }
     else
     {

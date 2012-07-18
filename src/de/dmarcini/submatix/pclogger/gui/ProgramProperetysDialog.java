@@ -59,6 +59,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 18.07.2012
+   * @param stringsBundle
    * @param progConfig
    */
   public ProgramProperetysDialog( ResourceBundle stringsBundle, SpxPcloggerProgramConfig progConfig )
@@ -222,7 +223,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 18.07.2012
-   * @return
+   * @return config
    */
   public SpxPcloggerProgramConfig getProcConfig()
   {

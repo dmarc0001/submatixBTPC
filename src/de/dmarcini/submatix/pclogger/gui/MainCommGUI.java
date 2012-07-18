@@ -64,10 +64,14 @@ import org.joda.time.format.DateTimeFormatter;
 
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
+import de.dmarcini.submatix.pclogger.utils.ConfigReadWriteException;
 import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
+import de.dmarcini.submatix.pclogger.utils.ReadConfig;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
+import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
+import de.dmarcini.submatix.pclogger.utils.WriteConfig;
 
 //@formatter:off
 /**
@@ -91,8 +95,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static ResourceBundle              stringsBundle       = null;
   private Locale                             programLocale       = null;
   private String                             timeFormatterString = "yyyy-MM-dd - hh:mm:ss";
+  @SuppressWarnings( "unused" )
   private final File                         programDir          = new File( System.getProperty("user.dir") );
-  private File                               logdataDir          = null;
   static Logger                              LOGGER              = null;
   static Handler                             fHandler            = null;
   static Handler                             cHandler            = null;
@@ -101,11 +105,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private final SPX42Config                  currentConfig       = new SPX42Config();
   private SPX42Config                        savedConfig         = null;
   private SPX42GasList                       currGasList         = null;
+  private SpxPcloggerProgramConfig           progConfig          = null;
   private PleaseWaitDialog                   wDial               = null;
   private boolean                            ignoreAction        = false;
   private static Level                       optionLogLevel      = Level.FINE;
   private static boolean                     readBtCacheOnStart  = false;
-  private static File                        logFile             = new File( "logfile.log" );
+  private static File                        logFile             = null;
+  private static File                        databaseDir         = null;
   private static boolean                     DEBUG               = false;
   private static Color                       gasNameNormalColor  = new Color( 0x000088 );
   private static Color                       gasDangerousColor   = Color.red;
@@ -118,21 +124,21 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private int waitForMessage = 0;
   //
   // @formatter:on
-  private JFrame                  frmMainwindowtitle;
-  private JTabbedPane             tabbedPane;
-  private spx42ConnectPanel       connectionPanel;
-  private spx42ConfigPanel        configPanel;
-  private spx42GaslistEditPanel   gasConfigPanel;
-  private spx42LoglistPanel       logListPanel;
-  private spx42LogGraphPanel      logGraphPanel;
-  private JMenuItem               mntmExit;
-  private JMenu                   mnLanguages;
-  private JMenu                   mnFile;
-  private JMenu                   mnOptions;
-  private JMenu                   mnHelp;
-  private JMenuItem               mntmHelp;
-  private JMenuItem               mntmInfo;
-  private JTextField              statusTextField;
+  private JFrame                   frmMainwindowtitle;
+  private JTabbedPane              tabbedPane;
+  private spx42ConnectPanel        connectionPanel;
+  private spx42ConfigPanel         configPanel;
+  private spx42GaslistEditPanel    gasConfigPanel;
+  private spx42LoglistPanel        logListPanel;
+  private spx42LogGraphPanel       logGraphPanel;
+  private JMenuItem                mntmExit;
+  private JMenu                    mnLanguages;
+  private JMenu                    mnFile;
+  private JMenu                    mnOptions;
+  private JMenu                    mnHelp;
+  private JMenuItem                mntmHelp;
+  private JMenuItem                mntmInfo;
+  private JTextField               statusTextField;
 
   /**
    * Launch the application.
@@ -165,6 +171,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     if( cmd.hasOption( "debug" ) )
     {
       DEBUG = true;
+    }
+    if( cmd.hasOption( "databasedir" ) )
+    {
+      databaseDir = parseNewDatabaseDir( cmd.getOptionValue( "databasedir" ) );
     }
     //
     // Style bestimmen, wenn möglich
@@ -213,20 +223,36 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
 
   /**
    * Create the application.
+   * 
+   * @throws ConfigReadWriteException
+   * @throws IOException
    */
-  public MainCommGUI()
+  public MainCommGUI() throws IOException, ConfigReadWriteException
   {
     setDefaultLookAndFeelDecorated( isDefaultLookAndFeelDecorated() );
-    makeLogger( logFile, optionLogLevel );
-    logdataDir = new File( programDir.getAbsolutePath() + File.separator + ProjectConst.LOGDATADIR );
-    if( !logdataDir.isDirectory() )
+    // Konfiguration aus der Datei einlesen
+    ReadConfig rcf = new ReadConfig();
+    progConfig = rcf.getConfigClass();
+    if( logFile != null )
     {
-      if( false == logdataDir.mkdirs() )
+      // wenn auf der Kommandozeile was anderes vorgegeben ist...
+      progConfig.setLogFile( logFile );
+      makeLogger( logFile, optionLogLevel );
+    }
+    if( databaseDir != null )
+    {
+      // wenn auf der Kommandozeile ein neues Verzeichnis angegeben wurde
+      progConfig.setDatabaseDir( databaseDir );
+    }
+    // logdataDir = new File( programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTDATADIR );
+    if( !progConfig.getDatabaseDir().isDirectory() )
+    {
+      if( false == progConfig.getDatabaseDir().mkdirs() )
       {
-        LOGGER.log( Level.SEVERE, "can't create data directory <" + logdataDir.getAbsolutePath() + ">" );
+        LOGGER.log( Level.SEVERE, "can't create data directory <" + progConfig.getDatabaseDir().getAbsolutePath() + ">" );
         System.exit( -1 );
       }
-      LOGGER.log( Level.FINE, "created data directory <" + logdataDir.getAbsolutePath() + ">" );
+      LOGGER.log( Level.FINE, "created data directory <" + progConfig.getDatabaseDir().getAbsolutePath() + ">" );
     }
     try
     {
@@ -277,7 +303,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void prepareDatabase()
   {
     // Verbindung zum Datenbanktreiber
-    sqliteDbUtil = new ConnectDatabaseUtil( LOGGER, logdataDir.getAbsolutePath() + File.separator + ProjectConst.DB_FILENAME );
+    sqliteDbUtil = new ConnectDatabaseUtil( LOGGER, progConfig.getDatabaseDir().getAbsolutePath() + File.separator + ProjectConst.DB_FILENAME );
     if( sqliteDbUtil == null )
     {
       LOGGER.log( Level.SEVERE, "can connect to database drivers!" );
@@ -327,7 +353,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( TAB_GASLIST, true );
     // Loglisten Panel
-    logListPanel = new spx42LoglistPanel( LOGGER, this, logdataDir.getAbsolutePath() );
+    logListPanel = new spx42LoglistPanel( LOGGER, this, progConfig.getDatabaseDir().getAbsolutePath() );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
     tabbedPane.setEnabledAt( TAB_LOGREAD, true );
     // Grafik Panel
@@ -581,6 +607,26 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         catch( InterruptedException ex )
         {}
+      }
+    }
+    // testen, ob da noch was zurückgeschrieben werden muss
+    if( progConfig != null )
+    {
+      if( progConfig.isWasChanged() )
+      {
+        try
+        {
+          LOGGER.log( Level.INFO, "write config to file..." );
+          new WriteConfig( progConfig );
+        }
+        catch( IOException ex )
+        {
+          ex.printStackTrace();
+        }
+        catch( ConfigReadWriteException ex )
+        {
+          ex.printStackTrace();
+        }
       }
     }
     System.exit( 0 );
@@ -2145,7 +2191,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           // Grafiksachen initialisieren
           try
           {
-            logGraphPanel.initGraph( connDev, logdataDir );
+            logGraphPanel.initGraph( connDev, progConfig.getDatabaseDir() );
           }
           catch( Exception ex )
           {
@@ -2477,6 +2523,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // Debugging aktivieren
     Option optDebug = new Option( "d", "debug", false, "set debugging for a lot of GUI effects" );
     options.addOption( optDebug );
+    // Daternverzeichnis?
+    Option optDatabaseDir = new Option( "s", "databasedir", true, "set database directory" );
+    options.addOption( optDatabaseDir );
     // Parser anlegen
     CommandLineParser cliParser = new BasicParser();
     // Argumente parsen!
@@ -2585,6 +2634,43 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     return( logFile );
   }
 
+  /**
+   * 
+   * Neues Datenverzeichnis
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.07.2012
+   */
+  private static File parseNewDatabaseDir( String optionValue )
+  {
+    File tempLogFile;
+    try
+    {
+      tempLogFile = new File( optionValue );
+      return( tempLogFile );
+    }
+    catch( NullPointerException ex )
+    {
+      System.err.println( "parseNewDatabaseDir: Dirname was <null>" );
+      return( null );
+    }
+  }
+
+  /**
+   * 
+   * Setze alle Kon´figurationspanels auf "Enabled" wenn möglich
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.07.2012
+   * @param en
+   *          TODO
+   */
   private void setAllConfigPanlelsEnabled( boolean en )
   {
     configPanel.setDecoPanelEnabled( en );

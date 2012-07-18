@@ -622,6 +622,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     XYPlot thePlot;
     XYDataset depthDataSet, tempDataSet, ppo2DataSet;
     JFreeChart logChart;
+    int min, sec;
     // das alte Zeug entsorgen
     releaseGraph();
     //
@@ -649,12 +650,26 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     headData = logDatabaseUtil.readHeadDiveDataFromId( dbId );
     maxDepthValueLabel.setText( String.format( "%1.2f", ( headData[3] / 10.0 ) ) );
     coldestTempValueLabel.setText( String.format( "%1.2f°", ( headData[2] / 10.0 ) ) );
-    diveLenValueLabel.setText( String.format( "%d sec", headData[5] ) );
+    min = headData[5] / 60;
+    sec = headData[5] % 60;
+    diveLenValueLabel.setText( String.format( "%d:%02d min", min, sec ) );
     //
     // einen Plot machen (Grundlage des Diagramms)
     //
     LOGGER.log( Level.FINE, "create graph..." );
     thePlot = new XYPlot();
+    //
+    // ein Chart zur Anzeige in einem Panel erzeugen
+    //
+    logChart = new JFreeChart( stringsBundle.getString( "spx42LogGraphPanel.graph.chartTitle" ), thePlot );
+    //
+    // ein Diagramm-Panel erzeugen
+    //
+    chartPanel = new ChartPanel( logChart );
+    chartPanel.setMouseZoomable( true );
+    chartPanel.setMouseWheelEnabled( true );
+    chartPanel.setRangeZoomable( false );
+    add( chartPanel, BorderLayout.CENTER );
     //
     // Datumsachse umformatieren
     //
@@ -707,22 +722,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     thePlot.mapDatasetToRangeAxis( 0, 2 );
     areaDepthRenderer.setSeriesPaint( 0, new Color( 0xa0a0ff ) );
     thePlot.setRenderer( 2, areaDepthRenderer, true );
-    //
-    // ein Chart zur Anzeige in einem Panel erzeugen
-    //
-    logChart = new JFreeChart( stringsBundle.getString( "spx42LogGraphPanel.graph.chartTitle" ), thePlot );
-    //
-    // ein Diagramm-Panel erzeugen
-    //
-    chartPanel = new ChartPanel( logChart );
-    chartPanel.setMouseZoomable( true );
-    chartPanel.setMouseWheelEnabled( true );
-    chartPanel.setRangeZoomable( false );
-    add( chartPanel, BorderLayout.CENTER );
-    chartPanel.paint( chartPanel.getGraphics() );
-    // sag bescheid, neu Zeichnen!
-    LOGGER.log( Level.FINE, "create graph...fireChartChanged()..." );
-    logChart.fireChartChanged();
+    // brauch ich doch nicht
+    // chartPanel.paint( chartPanel.getGraphics() );
     LOGGER.log( Level.FINE, "create graph...OK" );
   }
 }

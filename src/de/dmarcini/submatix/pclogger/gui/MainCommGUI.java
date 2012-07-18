@@ -2736,6 +2736,30 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void showPropertysDialog()
   {
-    showWarnBox( "propertys: not implemented yet!" );
+    if( btComm != null )
+    {
+      if( btComm.isConnected() )
+      {
+        showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.onlyNotConnected" ) );
+        return;
+      }
+    }
+    LOGGER.log( Level.FINE, "create an show propertys dialog..." );
+    ProgramProperetysDialog pDial = new ProgramProperetysDialog( stringsBundle, progConfig );
+    // pDial.setVisible( true );
+    if( pDial.showModal() )
+    {
+      LOGGER.log( Level.FINE, "dialog whith OK closed...." );
+      progConfig = pDial.getProcConfig();
+      showWarnBox( "RESTART PROGRAMM!" );
+      pDial.dispose();
+      exitProgram();
+    }
+    else
+    {
+      LOGGER.log( Level.FINE, "dialog canceled...." );
+    }
+    pDial.dispose();
+    LOGGER.log( Level.FINE, "dialog disposed..." );
   }
 }

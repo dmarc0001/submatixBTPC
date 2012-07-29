@@ -81,6 +81,11 @@ public final class ProjectConst
   //
   public static final String IS_END_LOGLISTENTRY        = ":41";
   
+  // Einheiten default(wie gespeichert)/metrisch umrechnen/imperial umrechnen
+  public static final int  UNITS_DEFAULT                = 0;
+  public static final int  UNITS_METRIC                 = 1;
+  public static final int  UNITS_IMPERIAL               = 2;
+
   // Zeitformat Voreinstelling
   public static final int TIMEFORMAT_ISO                = 1;  // ISO Date = 'YYYY-MM-DD hh:mm:ss'
   public static final int TIMEFORMAT_DE                 = 2;

@@ -590,4 +590,6 @@ public interface ISPX42Config
   public boolean isBuggyFirmware();
 
   public void clear();
+
+  public int getUnitSystem();
 }

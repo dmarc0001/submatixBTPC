@@ -1015,4 +1015,10 @@ public class SPX42Config implements ISPX42Config
     }
     return false;
   }
+
+  @Override
+  public int getUnitSystem()
+  {
+    return( unitsSystem );
+  }
 }

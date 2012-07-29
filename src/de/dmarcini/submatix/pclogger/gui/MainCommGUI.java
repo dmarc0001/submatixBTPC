@@ -359,7 +359,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "LOG", null, logListPanel, null );
     tabbedPane.setEnabledAt( TAB_LOGREAD, true );
     // Grafik Panel
-    logGraphPanel = new spx42LogGraphPanel( LOGGER, sqliteDbUtil );
+    logGraphPanel = new spx42LogGraphPanel( LOGGER, sqliteDbUtil, progConfig );
     tabbedPane.addTab( "GRAPH", null, logGraphPanel, null );
     tabbedPane.setEnabledAt( TAB_LOGGRAPH, true );
     // MENÜ

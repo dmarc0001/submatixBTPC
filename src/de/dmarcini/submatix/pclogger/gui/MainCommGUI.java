@@ -1035,8 +1035,23 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           if( logListPanel.prepareReadLogdir( btComm.getConnectedDevice() ) )
           {
-            wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
-            wDial.setVisible( true );
+            //
+            // an dieser Stelle muss ich sicherstellen, daß ich die Masseinheiten des SPX42 kenne
+            // ich gehe mal von den Längeneinheiten aus!
+            // also Meter/Fuss
+            if( !currentConfig.isInitialized() )
+            {
+              // jetzt wird es schwierig. erfragfe erst mal die Config!
+              wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
+              wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
+              wDial.setVisible( true );
+              btComm.readConfigFromSPX42();
+            }
+            else
+            {
+              wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
+              wDial.setVisible( true );
+            }
             // beginne mit leerem Cache
             logListPanel.clearLogdirCache();
             logListPanel.cleanDetails();

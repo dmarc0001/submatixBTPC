@@ -456,8 +456,9 @@ public interface ISPX42Config
    *          Helligkeit (10%, 50%, 100%)
    * @param orient
    *          Quer/108 Grad
+   * @throws Exception
    */
-  public void setDisplay( int bright, int orient );
+  public void setDisplay( int bright, int orient ) throws Exception;
 
   /**
    * 

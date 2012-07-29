@@ -26,6 +26,8 @@ import java.util.regex.Pattern;
 //@formatter:off
 public class SPX42Config implements ISPX42Config
 {
+  public static final int                       UNITS_METRIC = 0;
+  public static final int                     UNITS_IMPERIAL = 1;
   //
   protected Logger                                    LOGGER = null;
   private boolean                      wasCorrectInitialized = false;
@@ -54,6 +56,7 @@ public class SPX42Config implements ISPX42Config
   protected int                                  logInterval = 0;
   protected int                                 licenseState = 0;
   protected boolean                            customEnabled = false;
+  protected int                                  unitsSystem = UNITS_METRIC;
   
   //
   //@formatter:on
@@ -118,8 +121,8 @@ public class SPX42Config implements ISPX42Config
     soundOn = cf.soundOn;
     logInterval = cf.logInterval;
     licenseState = cf.licenseState;
-    ;
     customEnabled = cf.customEnabled;
+    unitsSystem = cf.unitsSystem;
   }
 
   @Override
@@ -160,6 +163,7 @@ public class SPX42Config implements ISPX42Config
     if( logInterval != cf.logInterval ) return( false );
     if( licenseState != cf.licenseState ) return( false );
     if( customEnabled != cf.customEnabled ) return( false );
+    if( unitsSystem != cf.unitsSystem ) return( false );
     return( true );
   }
 
@@ -455,9 +459,9 @@ public class SPX42Config implements ISPX42Config
   }
 
   @Override
-  public void setDisplay( int bright, int orient )
+  public void setDisplay( int bright, int orient ) throws Exception
   {
-    // TODO Auto-generated method stub
+    throw new Exception( "function SPX42Config.setDisplay( int,int ) NOT implemented" );
   }
 
   @Override
@@ -522,7 +526,7 @@ public class SPX42Config implements ISPX42Config
   {
     // Kommando SPX_GET_SETUP_UNITS
     // ~37:UD:UL:UW
-    // UD= Fahrenheit/Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
+    // UD= 0=Fahrenheit/1=Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
     // UL= 0=metrisch 1=imperial
     // UW= 0->Salzwasser 1->Süßwasser
     if( LOGGER != null ) LOGGER.log( Level.FINE, "setUnits() <" + fromSpx + ">" );
@@ -539,8 +543,37 @@ public class SPX42Config implements ISPX42Config
       if( LOGGER != null ) LOGGER.log( Level.SEVERE, "setUnits() <" + fromSpx + "> - not expected String!" );
       return false;
     }
-    unitsTemperature = vals[0];
-    unitsDepth = vals[1];
+    // Generell so!
+    if( unitsDepth == 1 )
+    {
+      unitsSystem = UNITS_IMPERIAL;
+    }
+    else
+    {
+      unitsSystem = UNITS_METRIC;
+    }
+    // BUGGY_FIRMWARE_01
+    if( isBuggyFirmware() )
+    {
+      if( unitsDepth == 1 )
+      {
+        // Metrische Angaben!
+        unitsTemperature = 0;
+        unitsDepth = 1;
+      }
+      else
+      {
+        // Imperiale Angaben!
+        unitsTemperature = 1;
+        unitsDepth = 0;
+      }
+    }
+    else
+    {
+      // Sonstige Firmware (erst mal)
+      unitsTemperature = vals[0];
+      unitsDepth = vals[1];
+    }
     unitsSalnyty = vals[2];
     return true;
   }
@@ -548,6 +581,18 @@ public class SPX42Config implements ISPX42Config
   @Override
   public void setUnits( int tmp, int dpt, int sal )
   {
+    // BUGGY_FIRMWARE_01
+    if( isBuggyFirmware() )
+    {
+      if( dpt == 1 )
+      {
+        tmp = 0;
+      }
+      else
+      {
+        tmp = 1;
+      }
+    }
     setUnitTemperature( tmp );
     setUnitDepth( dpt );
     setUnitSalnyty( sal );

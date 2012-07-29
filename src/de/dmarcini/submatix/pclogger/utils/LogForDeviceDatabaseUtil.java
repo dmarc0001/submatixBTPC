@@ -254,6 +254,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "   %s real,\n" +
             "   %s integer,\n" +
             "   %s integer,\n" +
+            "   %s integer, }n" +
             "   %s integer" +
             " );",
             ProjectConst.H_TABLE_DIVELOGS,
@@ -267,7 +268,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.H_LOWTEMP,
             ProjectConst.H_MAXDEPTH,
             ProjectConst.H_SAMPLES,
-            ProjectConst.H_DIVELENGTH
+            ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_UNITS
             );
     //@formatter:on
     LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.H_TABLE_DIVELOGS ) );

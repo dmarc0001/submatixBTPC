@@ -138,7 +138,7 @@ public final class ProjectConst
   // DATENBANK
   // Dateiname für SQLite3
   public static final String DB_FILENAME                = "spx42Base.db";
-  public static int          DB_VERSION                 = 1;
+  public static int          DB_VERSION                 = 2;
   // Datenbanktabellen
   //
   // Tabelle für die Versionsnummer der Datenbank (bei Updates evtl gebraucht)
@@ -166,6 +166,7 @@ public final class ProjectConst
   public static final String H_MAXDEPTH                 = "maxdepth";
   public static final String H_SAMPLES                  = "samples";
   public static final String H_DIVELENGTH               = "length";
+  public static final String H_UNITS                    = "units";
   //
   // Tabelle für die relevanten Daten des Tauchganges
   // Tabelle logdata

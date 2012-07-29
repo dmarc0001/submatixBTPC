@@ -26,9 +26,13 @@ public class SpxPcloggerProgramConfig
   // statische Variablen, sind IMMER fürs ganze Programm gleich
   public static final File configFile        = new File( System.getProperty( "user.dir" ) + File.separator + ProjectConst.CONFIGFILENAME );
   public static final File programDir        = new File( System.getProperty( "user.dir" ) );
+  public static final int  UNITS_DEFAULT     = 0;
+  public static final int  UNITS_METRIC      = 1;
+  public static final int  UNITS_IMPERIAL    = 2;
   private File             databaseDir       = null;
   private File             logFile           = null;
   private boolean          wasChanged        = false;
+  private int              unitsProperty     = UNITS_DEFAULT;
   public int               geheimerParameter = 0;
 
   /**
@@ -99,5 +103,22 @@ public class SpxPcloggerProgramConfig
   public void setWasChanged( boolean wasChanged )
   {
     this.wasChanged = wasChanged;
+  }
+
+  /**
+   * @return the unitsProperty
+   */
+  public int getUnitsProperty()
+  {
+    return unitsProperty;
+  }
+
+  /**
+   * @param unitsProperty
+   *          the unitsProperty to set
+   */
+  public void setUnitsProperty( int unitsProperty )
+  {
+    this.unitsProperty = unitsProperty;
   }
 }

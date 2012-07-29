@@ -97,6 +97,20 @@ public class WriteConfig
       out.append( String.format( "%s=%s%s", "databaseDir", conf.getDatabaseDir().getAbsolutePath(), LINE_SEPARATOR ) );
       out.append( String.format( "%s=%s%s", "logFile", conf.getLogFile().getAbsoluteFile(), LINE_SEPARATOR ) );
       out.append( String.format( "%s=%d%s", "geheimerParameter", conf.geheimerParameter, LINE_SEPARATOR ) );
+      switch ( conf.getUnitsProperty() )
+      {
+        case SpxPcloggerProgramConfig.UNITS_DEFAULT:
+          out.append( String.format( "%s=%s%s", "showUnits", "default", LINE_SEPARATOR ) );
+          break;
+        case SpxPcloggerProgramConfig.UNITS_METRIC:
+          out.append( String.format( "%s=%s%s", "showUnits", "metric", LINE_SEPARATOR ) );
+          break;
+        case SpxPcloggerProgramConfig.UNITS_IMPERIAL:
+          out.append( String.format( "%s=%s%s", "showUnits", "imperial", LINE_SEPARATOR ) );
+          break;
+        default:
+          out.append( String.format( "%s=%s%s", "showUnits", "default", LINE_SEPARATOR ) );
+      }
       out.flush();
     }
     catch( IOException ex )

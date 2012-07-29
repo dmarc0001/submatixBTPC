@@ -135,7 +135,26 @@ public class ReadConfig
         {
           prgConfig.setLogFile( new File( fields[1] ) );
         }
-        else if( 0 == fields[0].indexOf( "geheimerParameter" ) )
+        if( 0 == fields[0].indexOf( "showUnits" ) )
+        {
+          if( 0 == fields[1].indexOf( "default" ) )
+          {
+            prgConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_DEFAULT );
+          }
+          else if( 0 == fields[1].indexOf( "metric" ) )
+          {
+            prgConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_METRIC );
+          }
+          else if( 0 == fields[1].indexOf( "imperial" ) )
+          {
+            prgConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_IMPERIAL );
+          }
+          else
+          {
+            prgConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_DEFAULT );
+          }
+        }
+        if( 0 == fields[0].indexOf( "geheimerParameter" ) )
         {
           prgConfig.geheimerParameter = Integer.parseInt( fields[1] );
         }

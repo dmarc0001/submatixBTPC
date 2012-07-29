@@ -80,7 +80,7 @@ import de.dmarcini.submatix.pclogger.utils.WriteConfig;
  */
 public class MainCommGUI extends JFrame implements ActionListener, MouseMotionListener, ChangeListener, ItemListener
 {  //
-  private static final long                  serialVersionUID    = 2L;
+  private static final long                  serialVersionUID    = 3L;
   private final static int                   VERY_CONSERVATIVE   = 0;
   private final static int                   CONSERVATIVE        = 1;
   private final static int                   MODERATE            = 2;
@@ -825,6 +825,17 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       entry = ( String )srcBox.getSelectedItem();
       LOGGER.log( Level.FINE, "depth unit <" + entry + ">..." );
       currentConfig.setUnitDepth( srcBox.getSelectedIndex() );
+      if( currentConfig.isBuggyFirmware() )
+      {
+        if( srcBox.getSelectedIndex() == 0 )
+        {
+          configPanel.unitsTemperatureComboBox.setSelectedIndex( 1 );
+        }
+        else
+        {
+          configPanel.unitsTemperatureComboBox.setSelectedIndex( 0 );
+        }
+      }
     }
     // /////////////////////////////////////////////////////////////////////////
     // Süßwasser oder Salzwasser
@@ -1473,6 +1484,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.isBuggyFirmware() )
         {
           configPanel.unitsTemperatureComboBox.setBackground( new Color( 0xffafaf ) );
+          configPanel.unitsTemperatureComboBox.setEnabled( false );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////

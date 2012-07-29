@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import de.dmarcini.submatix.pclogger.res.ProjectConst;
+
 /**
  * Schreibe Konfig im Muster BEZEICHNUNG=WERT
  * 
@@ -99,13 +101,13 @@ public class WriteConfig
       out.append( String.format( "%s=%d%s", "geheimerParameter", conf.geheimerParameter, LINE_SEPARATOR ) );
       switch ( conf.getUnitsProperty() )
       {
-        case SpxPcloggerProgramConfig.UNITS_DEFAULT:
+        case ProjectConst.UNITS_DEFAULT:
           out.append( String.format( "%s=%s%s", "showUnits", "default", LINE_SEPARATOR ) );
           break;
-        case SpxPcloggerProgramConfig.UNITS_METRIC:
+        case ProjectConst.UNITS_METRIC:
           out.append( String.format( "%s=%s%s", "showUnits", "metric", LINE_SEPARATOR ) );
           break;
-        case SpxPcloggerProgramConfig.UNITS_IMPERIAL:
+        case ProjectConst.UNITS_IMPERIAL:
           out.append( String.format( "%s=%s%s", "showUnits", "imperial", LINE_SEPARATOR ) );
           break;
         default:

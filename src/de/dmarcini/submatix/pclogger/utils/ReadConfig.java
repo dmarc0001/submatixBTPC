@@ -14,6 +14,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import de.dmarcini.submatix.pclogger.res.ProjectConst;
+
 /**
  * Lese Config ein. Konfig im Muster BEZEICHNUNG=WERT
  * 
@@ -139,19 +141,19 @@ public class ReadConfig
         {
           if( 0 == fields[1].indexOf( "default" ) )
           {
-            prgConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_DEFAULT );
+            prgConfig.setUnitsProperty( ProjectConst.UNITS_DEFAULT );
           }
           else if( 0 == fields[1].indexOf( "metric" ) )
           {
-            prgConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_METRIC );
+            prgConfig.setUnitsProperty( ProjectConst.UNITS_METRIC );
           }
           else if( 0 == fields[1].indexOf( "imperial" ) )
           {
-            prgConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_IMPERIAL );
+            prgConfig.setUnitsProperty( ProjectConst.UNITS_IMPERIAL );
           }
           else
           {
-            prgConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_DEFAULT );
+            prgConfig.setUnitsProperty( ProjectConst.UNITS_DEFAULT );
           }
         }
         if( 0 == fields[0].indexOf( "geheimerParameter" ) )

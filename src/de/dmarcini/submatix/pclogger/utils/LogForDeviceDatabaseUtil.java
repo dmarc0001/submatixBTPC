@@ -36,6 +36,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   public final static int           PPO2        = 3;
   public final static int           SETPOINT    = 4;
   public final static int           NULLTIME    = 5;
+  public final static int           UNITSYSTEM  = 6;
   private Logger                    LOGGER      = null;
   private ActionListener            aListener   = null;
   private File                      dbFile      = null;
@@ -1110,7 +1111,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
             ProjectConst.H_DIVEID,
             ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_STARTTIME,
@@ -1122,6 +1123,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.H_DIVELENGTH,
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVENUMBERONSPX,
+            ProjectConst.H_UNITS,
             numberOnSpx
            );
     //@formatter:on
@@ -1143,6 +1145,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
         diveHeadData[8] = rs.getDouble( 7 );
         diveHeadData[9] = rs.getDouble( 8 );
         diveHeadData[10] = rs.getDouble( 9 );
+        diveHeadData[11] = rs.getDouble( 12 );
       }
       rs.close();
       LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
@@ -1161,7 +1164,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     String sql;
     Statement stat;
     ResultSet rs;
-    int[] diveHeadData = new int[6];
+    int[] diveHeadData = new int[7];
     //
     LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB..." );
     if( conn == null )
@@ -1180,6 +1183,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.H_DIVELENGTH,
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVEID,
+            ProjectConst.H_UNITS,
             dbId
            );
     //@formatter:on
@@ -1196,6 +1200,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
         diveHeadData[3] = rs.getInt( 4 );
         diveHeadData[4] = rs.getInt( 5 );
         diveHeadData[5] = rs.getInt( 6 );
+        diveHeadData[6] = rs.getInt( 9 );
       }
       rs.close();
       LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB...OK" );

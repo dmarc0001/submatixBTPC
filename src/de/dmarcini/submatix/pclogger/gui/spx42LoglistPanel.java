@@ -642,8 +642,11 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    * 
    *         Stand: 13.05.2012
    * @param fileNumberStr
+   *          Indexnummer aus der Liste im Panel
+   * @param unitSystem
+   *          metrisch oder imperial
    */
-  public void startTransfer( String fileNumberStr )
+  public void startTransfer( String fileNumberStr, int unitSystem )
   {
     String fileName, diveDate, diveTime;
     String[] fields;
@@ -725,7 +728,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         return;
       }
       // Ersten Eintrag für den Tauchgang machen
-      diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, fileIndex, ( dateTime.getMillis() ) / 1000 );
+      diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, unitSystem, fileIndex, ( dateTime.getMillis() ) / 1000 );
       if( diveId < 0 )
       {
         fileIndex = -1;

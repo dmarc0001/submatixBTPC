@@ -1615,7 +1615,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Nachricht: Start einer Lagdatenübermittling
       case ProjectConst.MESSAGE_LOGENTRY_START:
         LOGGER.log( Level.FINE, "start transfer logentry <" + cmd + ">..." );
-        logListPanel.startTransfer( cmd );
+        logListPanel.startTransfer( cmd, currentConfig.getUnitSystem() );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht: Logzeile übertragen

@@ -41,32 +41,36 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 import org.joda.time.DateTime;
 
+import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogListComboBoxModel;
+import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 public class spx42LogGraphPanel extends JPanel implements ActionListener
 {
   /**
    * 
    */
-  private static final long   serialVersionUID = 1L;
-  protected Logger            LOGGER           = null;
-  private ConnectDatabaseUtil dbUtil           = null;
-  private ResourceBundle      stringsBundle    = null;
-  private File                dataDir          = null;
-  private ChartPanel          chartPanel       = null;
-  private JPanel              topPanel;
-  private JPanel              bottomPanel;
-  private JComboBox           deviceComboBox;
-  private JComboBox           diveSelectComboBox;
-  private JButton             computeGraphButton;
-  private JLabel              maxDepthLabel;
-  private JLabel              coldestLabel;
-  private JLabel              diveLenLabel;
-  private JLabel              maxDepthValueLabel;
-  private JLabel              coldestTempValueLabel;
-  private JLabel              diveLenValueLabel;
+  private static final long        serialVersionUID = 1L;
+  protected Logger                 LOGGER           = null;
+  private ConnectDatabaseUtil      dbUtil           = null;
+  private ResourceBundle           stringsBundle    = null;
+  private File                     dataDir          = null;
+  private ChartPanel               chartPanel       = null;
+  @SuppressWarnings( "unused" )
+  private SpxPcloggerProgramConfig progConfig       = null;
+  private JPanel                   topPanel;
+  private JPanel                   bottomPanel;
+  private JComboBox                deviceComboBox;
+  private JComboBox                diveSelectComboBox;
+  private JButton                  computeGraphButton;
+  private JLabel                   maxDepthLabel;
+  private JLabel                   coldestLabel;
+  private JLabel                   diveLenLabel;
+  private JLabel                   maxDepthValueLabel;
+  private JLabel                   coldestTempValueLabel;
+  private JLabel                   diveLenValueLabel;
 
   @SuppressWarnings( "unused" )
   private spx42LogGraphPanel()
@@ -79,19 +83,21 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    * 
    * @param LOGGER
    * @param _dbUtil
+   * @param progConfig
    */
-  public spx42LogGraphPanel( Logger LOGGER, final ConnectDatabaseUtil _dbUtil )
+  public spx42LogGraphPanel( Logger LOGGER, final ConnectDatabaseUtil _dbUtil, SpxPcloggerProgramConfig progConfig )
   {
     this.LOGGER = LOGGER;
     LOGGER.log( Level.FINE, "constructor..." );
     this.dbUtil = _dbUtil;
+    this.progConfig = progConfig;
     initPanel();
   }
 
   /**
    * Initialisiere das Panel für die Verbindungen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012 TODO
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
    */
   private void initPanel()
   {
@@ -134,10 +140,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     GroupLayout gl_bottomPanel = new GroupLayout( bottomPanel );
     gl_bottomPanel.setHorizontalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_bottomPanel.createSequentialGroup().addContainerGap().addComponent( maxDepthLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( coldestLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 ).addComponent( coldestTempValueLabel ).addGap( 21 )
+                    .addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( coldestLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( coldestTempValueLabel, GroupLayout.PREFERRED_SIZE, 89, GroupLayout.PREFERRED_SIZE ).addGap( 37 )
                     .addComponent( diveLenLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addPreferredGap( ComponentPlacement.UNRELATED )
-                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 71, GroupLayout.PREFERRED_SIZE ).addContainerGap( 253, Short.MAX_VALUE ) ) );
+                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE ).addContainerGap( 81, Short.MAX_VALUE ) ) );
     gl_bottomPanel.setVerticalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_bottomPanel
                     .createSequentialGroup()
@@ -622,7 +629,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     XYPlot thePlot;
     XYDataset depthDataSet, tempDataSet, ppo2DataSet;
     JFreeChart logChart;
-    int min, sec;
+    int min, sec, unitSystem;
+    String depthUnitName, tempUnitName;
     // das alte Zeug entsorgen
     releaseGraph();
     //
@@ -648,8 +656,20 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Labels für Tachgangseckdaten füllen
     //
     headData = logDatabaseUtil.readHeadDiveDataFromId( dbId );
-    maxDepthValueLabel.setText( String.format( "%1.2f", ( headData[3] / 10.0 ) ) );
-    coldestTempValueLabel.setText( String.format( "%1.2f°", ( headData[2] / 10.0 ) ) );
+    unitSystem = headData[6];
+    // jetzt die Strings für Masseinheiten holen
+    if( unitSystem == ProjectConst.UNITS_METRIC )
+    {
+      depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
+      tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
+    }
+    else
+    {
+      depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
+      tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
+    }
+    maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ), depthUnitName ) );
+    coldestTempValueLabel.setText( String.format( "%1.2f %s", ( headData[2] / 10.0 ), tempUnitName ) );
     min = headData[5] / 60;
     sec = headData[5] % 60;
     diveLenValueLabel.setText( String.format( "%d:%02d min", min, sec ) );
@@ -680,8 +700,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Temperatur einfügen
     //
     LOGGER.log( Level.FINE, "create temp dataset" );
-    tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, 0, LogForDeviceDatabaseUtil.TEMPERATURE );
-    final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) );
+    tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, 0, LogForDeviceDatabaseUtil.TEMPERATURE );
+    final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + tempUnitName );
     tempAxis.setNumberFormatOverride( new DecimalFormat( "###.##" ) );
     final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
     lineTemperatureRenderer.setSeriesPaint( 0, Color.RED );
@@ -713,8 +733,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // die Tiefe einfügen
     //
     LOGGER.log( Level.FINE, "create depth dataset" );
-    depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ), diveList, 0, LogForDeviceDatabaseUtil.DEPTH );
-    final NumberAxis depthAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) );
+    depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, 0, LogForDeviceDatabaseUtil.DEPTH );
+    final NumberAxis depthAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) + " " + depthUnitName );
     final XYAreaRenderer areaDepthRenderer = new XYAreaRenderer( XYAreaRenderer.AREA );
     depthAxis.setAutoRangeIncludesZero( true );
     thePlot.setRangeAxis( 0, depthAxis );

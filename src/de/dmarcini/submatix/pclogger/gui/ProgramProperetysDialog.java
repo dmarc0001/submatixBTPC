@@ -29,6 +29,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
+import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 public class ProgramProperetysDialog extends JDialog implements ActionListener, MouseMotionListener
@@ -85,13 +86,13 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     // Buttons entsprechend setzen
     switch ( progConfig.getUnitsProperty() )
     {
-      case SpxPcloggerProgramConfig.UNITS_DEFAULT:
+      case ProjectConst.UNITS_DEFAULT:
         defaultUnitsRadioButton.setSelected( true );
         break;
-      case SpxPcloggerProgramConfig.UNITS_METRIC:
+      case ProjectConst.UNITS_METRIC:
         metricUnitsRadioButton.setSelected( true );
         break;
-      case SpxPcloggerProgramConfig.UNITS_IMPERIAL:
+      case ProjectConst.UNITS_IMPERIAL:
         imperialUnitsRadioButton.setSelected( true );
         break;
       default:
@@ -333,19 +334,19 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
         // Einstellung für Maßeinheiten...
         if( defaultUnitsRadioButton.isSelected() )
         {
-          progConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_DEFAULT );
+          progConfig.setUnitsProperty( ProjectConst.UNITS_DEFAULT );
         }
         else if( metricUnitsRadioButton.isSelected() )
         {
-          progConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_METRIC );
+          progConfig.setUnitsProperty( ProjectConst.UNITS_METRIC );
         }
         else if( imperialUnitsRadioButton.isSelected() )
         {
-          progConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_IMPERIAL );
+          progConfig.setUnitsProperty( ProjectConst.UNITS_IMPERIAL );
         }
         else
         {
-          progConfig.setUnitsProperty( SpxPcloggerProgramConfig.UNITS_DEFAULT );
+          progConfig.setUnitsProperty( ProjectConst.UNITS_DEFAULT );
         }
         setVisible( false );
         closeWithOk = true;

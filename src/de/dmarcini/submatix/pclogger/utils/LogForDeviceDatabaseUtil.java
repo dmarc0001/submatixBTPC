@@ -1121,9 +1121,9 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.H_MAXDEPTH,
             ProjectConst.H_SAMPLES,
             ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_UNITS,
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVENUMBERONSPX,
-            ProjectConst.H_UNITS,
             numberOnSpx
            );
     //@formatter:on
@@ -1145,7 +1145,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
         diveHeadData[8] = rs.getDouble( 7 );
         diveHeadData[9] = rs.getDouble( 8 );
         diveHeadData[10] = rs.getDouble( 9 );
-        diveHeadData[11] = rs.getDouble( 12 );
+        diveHeadData[11] = rs.getDouble( 10 );
       }
       rs.close();
       LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
@@ -1174,16 +1174,16 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            "select %s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
             ProjectConst.H_STARTTIME,
             ProjectConst.H_FIRSTTEMP,
             ProjectConst.H_LOWTEMP,
             ProjectConst.H_MAXDEPTH,
             ProjectConst.H_SAMPLES,
             ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_UNITS,
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVEID,
-            ProjectConst.H_UNITS,
             dbId
            );
     //@formatter:on
@@ -1200,7 +1200,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
         diveHeadData[3] = rs.getInt( 4 );
         diveHeadData[4] = rs.getInt( 5 );
         diveHeadData[5] = rs.getInt( 6 );
-        diveHeadData[6] = rs.getInt( 9 );
+        diveHeadData[6] = rs.getInt( 7 );
       }
       rs.close();
       LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB...OK" );

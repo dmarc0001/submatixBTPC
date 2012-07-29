@@ -572,7 +572,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    *          Y-Achse
    * @return Datenset
    */
-  private XYDataset createXYDataset( String scalaTitle, Vector<Integer[]> diveList, int x, int y )
+  private XYDataset createXYDataset( String scalaTitle, Vector<Integer[]> diveList, int unitToConvert, int x, int y )
   {
     final TimeSeries series = new TimeSeries( scalaTitle );
     long milis = 0;
@@ -588,12 +588,43 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       {
         double fDepth = new Double( dataSet[y] );
         fDepth = 0.00 - ( fDepth / 10.00 );
+        // muss konvertiert werden?
+        if( unitToConvert == ProjectConst.UNITS_IMPERIAL )
+        {
+          // metrisch-> imperial konvertieren
+          // 1 foot == 30,48 cm == 0.3048 Meter
+          fDepth = fDepth / 0.3048;
+        }
+        else if( unitToConvert == ProjectConst.UNITS_METRIC )
+        {
+          // imperial -> metrisch
+          // 1 foot == 30,48 cm == 0.3048 Meter
+          fDepth = fDepth * 0.3048;
+        }
         series.add( new Second( cDate ), fDepth );
       }
       else if( y == LogForDeviceDatabaseUtil.PPO2 )
       {
         double fPpo2 = new Double( dataSet[y] / 1000.00 );
         series.add( new Second( cDate ), fPpo2 );
+      }
+      else if( y == LogForDeviceDatabaseUtil.TEMPERATURE )
+      {
+        double fTemp = new Double( dataSet[y] );
+        // muss konvertiert werden?
+        if( unitToConvert == ProjectConst.UNITS_IMPERIAL )
+        {
+          // metrisch-> imperial konvertieren
+          // t °F = 5⁄9 (t − 32) °C
+          fTemp = ( 5.0 / 9.0 ) * ( fTemp - 32.0 );
+        }
+        else if( unitToConvert == ProjectConst.UNITS_METRIC )
+        {
+          // imperial -> metrisch
+          // t °C = (9⁄5 t + 32) °F
+          fTemp = ( ( 5.0 / 9.0 ) * fTemp ) + 32.0;
+        }
+        series.add( new Second( cDate ), fTemp );
       }
       else
       {
@@ -629,7 +660,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     XYPlot thePlot;
     XYDataset depthDataSet, tempDataSet, ppo2DataSet;
     JFreeChart logChart;
-    int min, sec, unitSystem;
+    int min, sec, progUnitSystem, diveUnitSystem;
     String depthUnitName, tempUnitName;
     // das alte Zeug entsorgen
     releaseGraph();
@@ -656,9 +687,10 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Labels für Tachgangseckdaten füllen
     //
     headData = logDatabaseUtil.readHeadDiveDataFromId( dbId );
-    unitSystem = headData[6];
+    progUnitSystem = progConfig.getUnitsProperty();
+    diveUnitSystem = headData[6];
     // jetzt die Strings für Masseinheiten holen
-    if( unitSystem == ProjectConst.UNITS_METRIC )
+    if( progUnitSystem == ProjectConst.UNITS_METRIC )
     {
       depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
       tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
@@ -668,8 +700,28 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
       tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
     }
-    maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ), depthUnitName ) );
-    coldestTempValueLabel.setText( String.format( "%1.2f %s", ( headData[2] / 10.0 ), tempUnitName ) );
+    if( progUnitSystem == diveUnitSystem )
+    {
+      maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ), depthUnitName ) );
+      coldestTempValueLabel.setText( String.format( "%1.2f %s", ( headData[2] / 10.0 ), tempUnitName ) );
+    }
+    else
+    {
+      if( progUnitSystem == ProjectConst.UNITS_IMPERIAL )
+      {
+        // metrisch-> imperial konvertieren
+        // 1 foot == 30,48 cm == 0.3048 Meter
+        maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ) / 0.3048, depthUnitName ) );
+        // t °F = 5⁄9 (t − 32) °C
+        coldestTempValueLabel.setText( String.format( "%1.2f %s", ( 5.0 / 9.0 ) * ( ( headData[2] / 10.0 ) - 32 ), tempUnitName ) );
+      }
+      else
+      {
+        maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ) * 0.3048, depthUnitName ) );
+        // t °C = (9⁄5 t + 32) °F
+        coldestTempValueLabel.setText( String.format( "%1.2f %s", ( ( 9.0 / 5.0 ) * ( headData[2] / 10.0 ) ) + 32, tempUnitName ) );
+      }
+    }
     min = headData[5] / 60;
     sec = headData[5] % 60;
     diveLenValueLabel.setText( String.format( "%d:%02d min", min, sec ) );
@@ -700,7 +752,18 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Temperatur einfügen
     //
     LOGGER.log( Level.FINE, "create temp dataset" );
-    tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, 0, LogForDeviceDatabaseUtil.TEMPERATURE );
+    if( progUnitSystem == diveUnitSystem )
+    {
+      // Keine Änderung norwendig!
+      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
+              LogForDeviceDatabaseUtil.TEMPERATURE );
+    }
+    else
+    {
+      // bitte konvertiere die Einheiten ins gewünschte Format!
+      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, progUnitSystem, 0,
+              LogForDeviceDatabaseUtil.TEMPERATURE );
+    }
     final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + tempUnitName );
     tempAxis.setNumberFormatOverride( new DecimalFormat( "###.##" ) );
     final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
@@ -716,7 +779,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Partialdruck einfügen
     //
     LOGGER.log( Level.FINE, "create ppo2 dataset" );
-    ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, 0, LogForDeviceDatabaseUtil.PPO2 );
+    if( progUnitSystem == diveUnitSystem )
+    {
+      ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0, LogForDeviceDatabaseUtil.PPO2 );
+    }
+    else
+    {
+      ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.PPO2 );
+    }
     final NumberAxis ppo2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2AxisTitle" ) );
     final XYLineAndShapeRenderer ppo2Renderer = new XYLineAndShapeRenderer( true, true );
     ppo2Axis.setAutoRangeIncludesZero( false );
@@ -733,7 +803,16 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // die Tiefe einfügen
     //
     LOGGER.log( Level.FINE, "create depth dataset" );
-    depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, 0, LogForDeviceDatabaseUtil.DEPTH );
+    if( progUnitSystem == diveUnitSystem )
+    {
+      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
+              LogForDeviceDatabaseUtil.DEPTH );
+    }
+    else
+    {
+      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, progUnitSystem, 0,
+              LogForDeviceDatabaseUtil.DEPTH );
+    }
     final NumberAxis depthAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) + " " + depthUnitName );
     final XYAreaRenderer areaDepthRenderer = new XYAreaRenderer( XYAreaRenderer.AREA );
     depthAxis.setAutoRangeIncludesZero( true );

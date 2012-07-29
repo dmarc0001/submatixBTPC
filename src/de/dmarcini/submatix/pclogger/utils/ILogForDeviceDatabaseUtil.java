@@ -100,11 +100,13 @@ public interface ILogForDeviceDatabaseUtil
    *         Stand: 25.06.2012
    * @param deviceId
    * @param fileOnSPX
+   * @param units
+   *          Einheiten (metrisch/imperial)
    * @param numberOnSPX
    * @param startTime
    * @return Erfolgrecih/nicht erfolgreich
    */
-  public int writeNewDive( String deviceId, String fileOnSPX, long numberOnSPX, long startTime );
+  public int writeNewDive( String deviceId, String fileOnSPX, int units, long numberOnSPX, long startTime );
 
   /**
    * 

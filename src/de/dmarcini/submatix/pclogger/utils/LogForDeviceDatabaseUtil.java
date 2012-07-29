@@ -509,7 +509,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
-  public int writeNewDive( String deviceId, String fileOnSPX, long numberOnSPX, long startTime )
+  public int writeNewDive( String deviceId, String fileOnSPX, int units, long numberOnSPX, long startTime )
   {
     Statement stat;
     String sql;
@@ -531,14 +531,16 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       LOGGER.log( Level.FINE, "insert new dataset into database..." );
       //@formatter:off
       sql = String.format( 
-              "insert into %s ( %s,%s,%s,%s ) values ( '%s','%s', %d, %d );",
+              "insert into %s ( %s,%s,%s,%s,%s ) values ( '%s','%s', %d, %d, %d );",
               ProjectConst.H_TABLE_DIVELOGS,
               ProjectConst.H_DEVICEID,
               ProjectConst.H_FILEONSPX,
+              ProjectConst.H_UNITS,
               ProjectConst.H_DIVENUMBERONSPX,
               ProjectConst.H_STARTTIME,
               deviceId, 
               fileOnSPX,
+              units,
               numberOnSPX,
               startTime
              );

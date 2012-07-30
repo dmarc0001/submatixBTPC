@@ -7,8 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -30,15 +29,13 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.time.Second;
-import org.jfree.data.time.TimeSeries;
-import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.joda.time.DateTime;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
@@ -574,10 +571,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    */
   private XYDataset createXYDataset( String scalaTitle, Vector<Integer[]> diveList, int unitToConvert, int x, int y )
   {
-    final TimeSeries series = new TimeSeries( scalaTitle );
-    long milis = 0;
+    final XYSeries series = new XYSeries( scalaTitle );
+    double secounds = 0;
     Integer[] dataSet;
-    Date cDate = new Date( milis );
     //
     // alle Datensätze abklappern
     //
@@ -601,12 +597,12 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
           // 1 foot == 30,48 cm == 0.3048 Meter
           fDepth = fDepth * 0.3048;
         }
-        series.add( new Second( cDate ), fDepth );
+        series.add( secounds, fDepth );
       }
       else if( y == LogForDeviceDatabaseUtil.PPO2 )
       {
         double fPpo2 = new Double( dataSet[y] / 1000.00 );
-        series.add( new Second( cDate ), fPpo2 );
+        series.add( secounds, fPpo2 );
       }
       else if( y == LogForDeviceDatabaseUtil.TEMPERATURE )
       {
@@ -624,17 +620,16 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
           // t °C = (9⁄5 t + 32) °F
           fTemp = ( ( 5.0 / 9.0 ) * fTemp ) + 32.0;
         }
-        series.add( new Second( cDate ), fTemp );
+        series.add( secounds, fTemp );
       }
       else
       {
-        series.add( new Second( cDate ), new Double( dataSet[y] ) );
+        series.add( secounds, new Double( dataSet[y] ) );
       }
-      // das offset/schrittweite ist in Sekunden gespeichert
-      milis += dataSet[x] * 1000;
-      cDate.setTime( milis );
+      // das offset/schrittweite ist in Minuten gespeichert
+      secounds += ( dataSet[x] / 60.0 );
     }
-    final TimeSeriesCollection dataset = new TimeSeriesCollection();
+    final XYSeriesCollection dataset = new XYSeriesCollection();
     dataset.addSeries( series );
     return dataset;
   }
@@ -744,9 +739,10 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     add( chartPanel, BorderLayout.CENTER );
     //
     // Datumsachse umformatieren
-    //
-    final DateAxis axis = new DateAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.dateAxisTitle" ) );
-    axis.setDateFormatOverride( new SimpleDateFormat( "mm:ss" ) );
+    // TODO: Anzeige der Sekunden (nicht als Dezimalbruch...)
+    final NumberAxis axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.dateAxisTitle" ) );
+    NumberFormat formatter = new DecimalFormat( "#0.0 min" );
+    axis.setNumberFormatOverride( formatter );
     thePlot.setDomainAxis( axis );
     //
     // Temperatur einfügen

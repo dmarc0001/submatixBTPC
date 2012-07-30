@@ -685,23 +685,46 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     progUnitSystem = progConfig.getUnitsProperty();
     diveUnitSystem = headData[6];
     // jetzt die Strings für Masseinheiten holen
-    if( progUnitSystem == ProjectConst.UNITS_METRIC )
+    // Bei UNITS_DEFAULT gehts nach diveUnitSystem
+    if( progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
+      if( diveUnitSystem == ProjectConst.UNITS_IMPERIAL )
+      {
+        // also, ist der Tauchgang imperial geloggt
+        depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
+        tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
+      }
+      else
+      {
+        // der tauhcgang ist metrisch geloggt.
+        depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
+        tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
+      }
+    }
+    else if( progUnitSystem == ProjectConst.UNITS_METRIC )
+    {
+      // der User wünscht Metrische Anzeige
       depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
       tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
     }
     else
     {
+      // der User wünscht imperiale anzeige
       depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
       tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
     }
+    //
+    // entscheide ob etwas umgerechnet werden sollte
+    //
     if( progUnitSystem == diveUnitSystem )
     {
+      // nein, alles schick
       maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ), depthUnitName ) );
       coldestTempValueLabel.setText( String.format( "%1.2f %s", ( headData[2] / 10.0 ), tempUnitName ) );
     }
     else
     {
+      // umrechnen!
       if( progUnitSystem == ProjectConst.UNITS_IMPERIAL )
       {
         // metrisch-> imperial konvertieren

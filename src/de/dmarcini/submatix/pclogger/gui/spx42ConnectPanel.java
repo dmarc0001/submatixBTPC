@@ -39,7 +39,6 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
   public JButton              connectBtRefreshButton;
   public JProgressBar         discoverProgressBar;
   public JButton              pinButton;
-  public JLabel               ackuLabel;
   public JButton              deviceAliasButton;
   public JTable               aliasEditTable;
   private JScrollPane         aliasScrollPane;
@@ -116,14 +115,11 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     pinButton.setBounds( 521, 22, 125, 41 );
     pinButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) ) );
     pinButton.setActionCommand( "set_pin_for_dev" );
-    ackuLabel = new JLabel( " " );
-    ackuLabel.setBounds( 45, 59, 220, 14 );
     deviceAliasButton = new JButton( "ALIAS" );
     deviceAliasButton.setBounds( 335, 131, 311, 39 );
     deviceAliasButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/45.png" ) ) );
     deviceAliasButton.setActionCommand( "alias_bt_devices_on" );
     setLayout( null );
-    add( ackuLabel );
     add( deviceToConnectComboBox );
     add( connectBtRefreshButton );
     add( connectButton );

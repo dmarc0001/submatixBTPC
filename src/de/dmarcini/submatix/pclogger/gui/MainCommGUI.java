@@ -44,6 +44,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.NumberEditor;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -1438,6 +1439,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         setAllConfigPanlelsEnabled( false );
         gasConfigPanel.setElementsGasMatrixPanelEnabled( false );
         connectionPanel.refreshAliasTable();
+        if( tabbedPane.getSelectedIndex() != TAB_LOGGRAPH )
+        {
+          // wen nicht grad loggrafik angezeigt wird, auf den Connecttab wechseln
+          tabbedPane.setSelectedIndex( TAB_CONNECT );
+        }
+        showWarnBox( stringsBundle.getString( "MainCommGui.warnDialog.connectionClosed" ) );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // BT Discovering war erfolgreich
@@ -1541,6 +1548,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
               ( gasConfigPanel.heSpinnerMap.get( i ) ).setValue( currGasList.getHEFromGas( i ) );
               ( gasConfigPanel.o2SpinnerMap.get( i ) ).setValue( currGasList.getO2FromGas( i ) );
               ( gasConfigPanel.gasLblMap.get( i ) ).setText( getNameForGas( i ) );
+              setGasColor( i, currGasList.getO2FromGas( i ) );
               // ist dieses Gas Diluent 1?
               if( currGasList.getDiulent1() == i )
               {
@@ -1847,7 +1855,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       int val = Integer.parseInt( fields[1], 16 );
       ackuValue = ( float )( val / 100.0 );
-      connectionPanel.ackuLabel.setText( String.format( stringsBundle.getString( "MainCommGUI.ackuLabel.text" ), ackuValue ) );
+      // Hauptfenster
+      frmMainwindowtitle.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) + " "
+              + String.format( stringsBundle.getString( "MainCommGUI.ackuLabel.text" ), ackuValue ) );
       LOGGER.log( Level.FINE, String.format( "Acku value: %02.02f", ackuValue ) );
     }
   }
@@ -2298,18 +2308,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     currGasList.setGas( gasNr, o2, he );
     ( gasConfigPanel.gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
-    if( o2 < 14 )
-    {
-      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasDangerousColor );
-    }
-    else if( o2 < 21 )
-    {
-      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNoNormOxicColor );
-    }
-    else
-    {
-      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNameNormalColor );
-    }
+    setGasColor( gasNr, o2 );
     ignoreAction = false;
   }
 
@@ -2356,20 +2355,41 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     currGasList.setGas( gasNr, o2, he );
     // erzeuge und setze noch den Gasnamen
+    // färbe dabei gleich die Zahlen ein
     ( gasConfigPanel.gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
+    setGasColor( gasNr, o2 );
+    ignoreAction = false;
+  }
+
+  /**
+   * 
+   * Färbe die Texte für die Gasse noch ordentlich ein
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 30.07.2012
+   * @param gasNr
+   * @param o2
+   */
+  private void setGasColor( int gasNr, int o2 )
+  {
     if( o2 < 14 )
     {
       ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasDangerousColor );
+      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasDangerousColor );
     }
     else if( o2 < 21 )
     {
       ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNoNormOxicColor );
+      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNoNormOxicColor );
     }
     else
     {
       ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNameNormalColor );
+      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNameNormalColor );
     }
-    ignoreAction = false;
   }
 
   /**
@@ -2711,7 +2731,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * 
    *         Stand: 18.07.2012
    * @param en
-   *          TODO
+   * 
    */
   private void setAllConfigPanlelsEnabled( boolean en )
   {

@@ -23,7 +23,7 @@ import javax.swing.border.TitledBorder;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                              /**
+{                                  /**
    * 
    */
   private static final long serialVersionUID = 1L;
@@ -484,7 +484,7 @@ public class spx42ConfigPanel extends JPanel
       ( ( TitledBorder )( individualPanel.getBorder() ) ).setTitle( stringsBundle.getString( "spx42ConfigPanel.individualPanel.text" ) );
       lblSenormode.setText( stringsBundle.getString( "spx42ConfigPanel.lblSenormode.text" ) );
       individualsSensorsOnCheckbox.setText( stringsBundle.getString( "spx42ConfigPanel.chIndividualsSensorsOnCheckbox.text" ) );
-      individualsSensorsOnCheckbox.setToolTipText( "spx42ConfigPanel.chIndividualsSensorsOnCheckbox.tooltiptext" );
+      individualsSensorsOnCheckbox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.chIndividualsSensorsOnCheckbox.tooltiptext" ) );
       lblIndividualsPscrMode.setText( stringsBundle.getString( "spx42ConfigPanel.lblIndividualsPscrMode.text" ) );
       individualsPscrModeOnCheckbox.setText( stringsBundle.getString( "spx42ConfigPanel.IndividualsPscrModoOnCheckbox.text" ) );
       individualsPscrModeOnCheckbox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.IndividualsPscrModoOnCheckbox.tooltiptext" ) );

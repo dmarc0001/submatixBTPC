@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -42,6 +41,7 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogListComboBoxModel;
+import de.dmarcini.submatix.pclogger.utils.MinuteFormatter;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 public class spx42LogGraphPanel extends JPanel implements ActionListener
@@ -55,7 +55,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private ResourceBundle           stringsBundle    = null;
   private File                     dataDir          = null;
   private ChartPanel               chartPanel       = null;
-  @SuppressWarnings( "unused" )
   private SpxPcloggerProgramConfig progConfig       = null;
   private JPanel                   topPanel;
   private JPanel                   bottomPanel;
@@ -626,8 +625,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       {
         series.add( secounds, new Double( dataSet[y] ) );
       }
-      // das offset/schrittweite ist in Minuten gespeichert
-      secounds += ( dataSet[x] / 60.0 );
+      // das offset/schrittweite ist in Sekunden gespeichert
+      secounds += ( dataSet[x] );
     }
     final XYSeriesCollection dataset = new XYSeriesCollection();
     dataset.addSeries( series );
@@ -762,9 +761,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     add( chartPanel, BorderLayout.CENTER );
     //
     // Datumsachse umformatieren
-    // TODO: Anzeige der Sekunden (nicht als Dezimalbruch...)
     final NumberAxis axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.dateAxisTitle" ) );
-    NumberFormat formatter = new DecimalFormat( "#0.0 min" );
+    MinuteFormatter formatter = new MinuteFormatter( stringsBundle.getString( "spx42LogGraphPanel.graph.dateAxisUnit" ) );
     axis.setNumberFormatOverride( formatter );
     thePlot.setDomainAxis( axis );
     //

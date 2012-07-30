@@ -1050,18 +1050,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             // an dieser Stelle muss ich sicherstellen, daß ich die Masseinheiten des SPX42 kenne
             // ich gehe mal von den Längeneinheiten aus!
             // also Meter/Fuss
+            wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
+            wDial.setVisible( true );
             if( !currentConfig.isInitialized() )
             {
-              // jetzt wird es schwierig. erfragfe erst mal die Config!
-              wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
-              wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
-              wDial.setVisible( true );
+              // jetzt wird es schwierig. erfrage erst mal die Config!
               btComm.readConfigFromSPX42();
-            }
-            else
-            {
-              wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
-              wDial.setVisible( true );
             }
             // beginne mit leerem Cache
             logListPanel.clearLogdirCache();
@@ -1088,6 +1082,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           if( logListLen == 0 )
           {
             showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notLogentrySelected.text" ) );
+            return;
+          }
+          if( !currentConfig.isInitialized() )
+          {
+            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConfig.text" ) );
             return;
           }
           Integer[] logListEntry = logListPanel.getNextEntryToRead();

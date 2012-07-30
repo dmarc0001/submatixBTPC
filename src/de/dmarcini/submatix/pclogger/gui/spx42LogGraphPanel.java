@@ -716,7 +716,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // entscheide ob etwas umgerechnet werden sollte
     //
-    if( progUnitSystem == diveUnitSystem )
+    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       // nein, alles schick
       maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ), depthUnitName ) );
@@ -771,7 +771,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Temperatur einfügen
     //
     LOGGER.log( Level.FINE, "create temp dataset" );
-    if( progUnitSystem == diveUnitSystem )
+    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       // Keine Änderung norwendig!
       tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
@@ -798,7 +798,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Partialdruck einfügen
     //
     LOGGER.log( Level.FINE, "create ppo2 dataset" );
-    if( progUnitSystem == diveUnitSystem )
+    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0, LogForDeviceDatabaseUtil.PPO2 );
     }
@@ -822,7 +822,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // die Tiefe einfügen
     //
     LOGGER.log( Level.FINE, "create depth dataset" );
-    if( progUnitSystem == diveUnitSystem )
+    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
               LogForDeviceDatabaseUtil.DEPTH );

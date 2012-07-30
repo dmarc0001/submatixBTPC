@@ -26,8 +26,8 @@ import java.util.regex.Pattern;
 //@formatter:off
 public class SPX42Config implements ISPX42Config
 {
-  public static final int                       UNITS_METRIC = 0;
-  public static final int                     UNITS_IMPERIAL = 1;
+  public static final int                       UNITS_METRIC = 1;
+  public static final int                     UNITS_IMPERIAL = 2;
   //
   protected Logger                                    LOGGER = null;
   private boolean                      wasCorrectInitialized = false;
@@ -543,15 +543,6 @@ public class SPX42Config implements ISPX42Config
       if( LOGGER != null ) LOGGER.log( Level.SEVERE, "setUnits() <" + fromSpx + "> - not expected String!" );
       return false;
     }
-    // Generell so!
-    if( unitsDepth == 1 )
-    {
-      unitsSystem = UNITS_IMPERIAL;
-    }
-    else
-    {
-      unitsSystem = UNITS_METRIC;
-    }
     // BUGGY_FIRMWARE_01
     if( isBuggyFirmware() )
     {
@@ -573,6 +564,15 @@ public class SPX42Config implements ISPX42Config
       // Sonstige Firmware (erst mal)
       unitsTemperature = vals[0];
       unitsDepth = vals[1];
+    }
+    // Generell so!
+    if( unitsDepth == 1 )
+    {
+      unitsSystem = UNITS_IMPERIAL;
+    }
+    else
+    {
+      unitsSystem = UNITS_METRIC;
     }
     unitsSalnyty = vals[2];
     return true;

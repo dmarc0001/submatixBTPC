@@ -2033,6 +2033,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       setStatus( ( ( JSpinner )ev.getSource() ).getToolTipText() );
     }
+    else if( ev.getSource() instanceof JCheckBox )
+    {
+      setStatus( ( ( JCheckBox )ev.getSource() ).getToolTipText() );
+    }
     else
     {
       setStatus( "" );

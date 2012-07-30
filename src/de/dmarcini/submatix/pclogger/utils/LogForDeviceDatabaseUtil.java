@@ -255,7 +255,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "   %s real,\n" +
             "   %s integer,\n" +
             "   %s integer,\n" +
-            "   %s integer, }n" +
+            "   %s integer, \n" +
             "   %s integer" +
             " );",
             ProjectConst.H_TABLE_DIVELOGS,

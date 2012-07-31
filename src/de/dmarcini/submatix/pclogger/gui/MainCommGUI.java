@@ -1976,15 +1976,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void showInfoDialog()
   {
-    ImageIcon icon = null;
     try
     {
-      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Wiki2.png" ) );
-      JOptionPane.showMessageDialog(
-              this,
-              stringsBundle.getString( "MainCommGUI.infoDlg.line1" ) + "\n" + stringsBundle.getString( "MainCommGUI.infoDlg.line2" ) + "\n"
-                      + stringsBundle.getString( "MainCommGUI.infoDlg.line3" ) + "\n" + stringsBundle.getString( "MainCommGUI.infoDlg.line4" ) + "\n"
-                      + stringsBundle.getString( "MainCommGUI.infoDlg.line5" ), stringsBundle.getString( "MainCommGUI.infoDlg.headline" ), JOptionPane.INFORMATION_MESSAGE, icon );
+      ProgramInfoDialog pDial = new ProgramInfoDialog( stringsBundle );
+      pDial.showDialog();
     }
     catch( NullPointerException ex )
     {

@@ -7,6 +7,7 @@
  */
 package de.dmarcini.submatix.pclogger.utils;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
@@ -16,8 +17,8 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
  */
 public class BuildVersion
 {
-  private final long buildNumber = 386L;
-  private final long buildDate = 1343756640712L;
+  private final long buildNumber = 388L;
+  private final long buildDate = 1343757586483L;
 
   /**
    * Gib die Buildnummer zurück
@@ -40,6 +41,25 @@ public class BuildVersion
   {
     Date date = new Date( buildDate );
     return( date.toString() );
+  }
+
+  /**
+   * 
+   * Das Builddatum als lokalisiertes Format
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 31.07.2012
+   * @param fmt
+   * @return Datum als String
+   */
+  public String getLocaleDate( String fmt )
+  {
+    Date date = new Date( buildDate );
+    SimpleDateFormat sdf = new SimpleDateFormat( fmt );
+    return( sdf.format( date ) );
   }
 
   /**

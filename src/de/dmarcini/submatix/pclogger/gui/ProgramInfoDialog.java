@@ -79,7 +79,8 @@ public class ProgramInfoDialog extends JDialog
       JLabel buildNumLabel = new JLabel( String.format( stringsBundle.getString( "ProgramInfoDialog.infoDlg.build" ), versObj.getBuild() ) );
       buildNumLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
       buildNumLabel.setForeground( Color.GRAY );
-      JLabel buildDateLabel = new JLabel( String.format( stringsBundle.getString( "ProgramInfoDialog.infoDlg.buildDate" ), versObj.getBuildDate() ) );
+      JLabel buildDateLabel = new JLabel( String.format( stringsBundle.getString( "ProgramInfoDialog.infoDlg.buildDate" ),
+              versObj.getLocaleDate( stringsBundle.getString( "MainCommGUI.timeFormatterString" ) ) ) );
       buildDateLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
       buildDateLabel.setForeground( Color.GRAY );
       GroupLayout gl_contentPanel = new GroupLayout( contentPanel );

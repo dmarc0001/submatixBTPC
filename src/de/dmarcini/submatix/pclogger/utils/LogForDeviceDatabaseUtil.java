@@ -1035,7 +1035,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     String sql;
     Statement stat;
     ResultSet rs;
-    String[] diveHeadData = new String[11];
+    String[] diveHeadData = new String[12];
     //
     LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
     if( conn == null )
@@ -1045,7 +1045,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
             ProjectConst.H_DIVEID,
             ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_FILEONSPX,
@@ -1057,6 +1057,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.H_MAXDEPTH,
             ProjectConst.H_SAMPLES,
             ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_UNITS,
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVENUMBERONSPX,
             numberOnSpx
@@ -1083,6 +1084,14 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
         int minutes = rs.getInt( 11 ) / 60;
         int secounds = rs.getInt( 11 ) % 60;
         diveHeadData[10] = String.format( "%d:%02d", minutes, secounds );
+        if( rs.getInt( 12 ) == ProjectConst.UNITS_IMPERIAL )
+        {
+          diveHeadData[11] = "IMPERIAL"; // Einheiten
+        }
+        else
+        {
+          diveHeadData[11] = "METRIC"; // Einheiten
+        }
       }
       rs.close();
       LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
@@ -1101,7 +1110,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     String sql;
     Statement stat;
     ResultSet rs;
-    Double[] diveHeadData = new Double[11];
+    Double[] diveHeadData = new Double[12];
     //
     LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
     if( conn == null )

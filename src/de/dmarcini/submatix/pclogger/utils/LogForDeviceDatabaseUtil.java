@@ -34,9 +34,14 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   public final static int           DEPTH       = 1;
   public final static int           TEMPERATURE = 2;
   public final static int           PPO2        = 3;
-  public final static int           SETPOINT    = 4;
-  public final static int           NULLTIME    = 5;
-  public final static int           UNITSYSTEM  = 6;
+  public final static int           PPO2_01     = 4;
+  public final static int           PPO2_02     = 5;
+  public final static int           PPO2_03     = 6;
+  public final static int           SETPOINT    = 7;
+  public final static int           N2PERCENT   = 8;
+  public final static int           HEPERCENT   = 9;
+  public final static int           NULLTIME    = 10;
+  public final static int           UNITSYSTEM  = 11;
   private Logger                    LOGGER      = null;
   private ActionListener            aListener   = null;
   private File                      dbFile      = null;
@@ -931,12 +936,17 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
             ProjectConst.D_DELTATIME,
             ProjectConst.D_DEPTH,
             ProjectConst.D_TEMPERATURE,
             ProjectConst.D_PPO,
+            ProjectConst.D_PPO_1,
+            ProjectConst.D_PPO_2,
+            ProjectConst.D_PPO_3,
             ProjectConst.D_SETPOINT,
+            ProjectConst.D_HE,
+            ProjectConst.D_N2,
             ProjectConst.D_NULLTIME,
             ProjectConst.D_TABLE_DIVEDETAIL,
             ProjectConst.D_DIVEID,
@@ -950,13 +960,18 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       while( rs.next() )
       {
         // Daten kosolidieren
-        Integer[] resultSet = new Integer[6];
+        Integer[] resultSet = new Integer[12];
         resultSet[DELTATIME] = rs.getInt( 1 );
         resultSet[DEPTH] = rs.getInt( 2 );
         resultSet[TEMPERATURE] = rs.getInt( 3 );
         resultSet[PPO2] = ( int )( rs.getDouble( 4 ) * 1000.0 );
-        resultSet[SETPOINT] = rs.getInt( 5 );
-        resultSet[NULLTIME] = rs.getInt( 6 );
+        resultSet[PPO2_01] = ( int )( rs.getDouble( 5 ) * 1000.0 );
+        resultSet[PPO2_02] = ( int )( rs.getDouble( 6 ) * 1000.0 );
+        resultSet[PPO2_03] = ( int )( rs.getDouble( 7 ) * 1000.0 );
+        resultSet[SETPOINT] = rs.getInt( 8 );
+        resultSet[HEPERCENT] = rs.getInt( 9 );
+        resultSet[N2PERCENT] = rs.getInt( 10 );
+        resultSet[NULLTIME] = rs.getInt( 11 );
         // ab in den vector
         diveData.add( resultSet );
       }

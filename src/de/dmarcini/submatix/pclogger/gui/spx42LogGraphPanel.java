@@ -272,6 +272,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         if( sgd.showModal() )
         {
           LOGGER.log( Level.FINE, "dialog returned 'true' => change propertys..." );
+          computeGraphButton.doClick();
         }
       }
       else
@@ -791,54 +792,60 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Temperatur einfügen
     //
-    LOGGER.log( Level.FINE, "create temp dataset" );
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    if( progConfig.isShowTemperature() )
     {
-      // Keine Änderung norwendig!
-      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
-              LogForDeviceDatabaseUtil.TEMPERATURE );
+      LOGGER.log( Level.FINE, "create temp dataset" );
+      if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+      {
+        // Keine Änderung norwendig!
+        tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
+                LogForDeviceDatabaseUtil.TEMPERATURE );
+      }
+      else
+      {
+        // bitte konvertiere die Einheiten ins gewünschte Format!
+        tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, progUnitSystem, 0,
+                LogForDeviceDatabaseUtil.TEMPERATURE );
+      }
+      final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + tempUnitName );
+      tempAxis.setNumberFormatOverride( new DecimalFormat( "###.##" ) );
+      final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
+      lineTemperatureRenderer.setSeriesPaint( 0, Color.RED );
+      lineTemperatureRenderer.setSeriesShapesVisible( 0, false );
+      lineTemperatureRenderer.setDrawSeriesLineAsPath( true );
+      tempAxis.setAutoRangeIncludesZero( true );
+      thePlot.setRangeAxis( 2, tempAxis );
+      thePlot.mapDatasetToRangeAxis( 2, 0 );
+      thePlot.setDataset( 0, tempDataSet );
+      thePlot.setRenderer( 0, lineTemperatureRenderer );
     }
-    else
-    {
-      // bitte konvertiere die Einheiten ins gewünschte Format!
-      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, progUnitSystem, 0,
-              LogForDeviceDatabaseUtil.TEMPERATURE );
-    }
-    final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + tempUnitName );
-    tempAxis.setNumberFormatOverride( new DecimalFormat( "###.##" ) );
-    final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
-    lineTemperatureRenderer.setSeriesPaint( 0, Color.RED );
-    lineTemperatureRenderer.setSeriesShapesVisible( 0, false );
-    lineTemperatureRenderer.setDrawSeriesLineAsPath( true );
-    tempAxis.setAutoRangeIncludesZero( true );
-    thePlot.setRangeAxis( 2, tempAxis );
-    thePlot.mapDatasetToRangeAxis( 2, 0 );
-    thePlot.setDataset( 0, tempDataSet );
-    thePlot.setRenderer( 0, lineTemperatureRenderer );
     //
     // Partialdruck einfügen
     //
-    LOGGER.log( Level.FINE, "create ppo2 dataset" );
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    if( progConfig.isShowPpoResult() )
     {
-      ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0, LogForDeviceDatabaseUtil.PPO2 );
+      LOGGER.log( Level.FINE, "create ppo2 dataset" );
+      if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+      {
+        ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0, LogForDeviceDatabaseUtil.PPO2 );
+      }
+      else
+      {
+        ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.PPO2 );
+      }
+      final NumberAxis ppo2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2AxisTitle" ) );
+      final XYLineAndShapeRenderer ppo2Renderer = new XYLineAndShapeRenderer( true, true );
+      ppo2Axis.setAutoRangeIncludesZero( false );
+      ppo2Axis.setAutoRange( false );
+      ppo2Axis.setRange( 0.0, 3.5 );
+      thePlot.setRangeAxis( 1, ppo2Axis );
+      thePlot.setDataset( 1, ppo2DataSet );
+      thePlot.mapDatasetToRangeAxis( 1, 1 );
+      ppo2Renderer.setSeriesPaint( 0, Color.CYAN );
+      ppo2Renderer.setSeriesShapesVisible( 0, false );
+      ppo2Renderer.setDrawSeriesLineAsPath( true );
+      thePlot.setRenderer( 1, ppo2Renderer );
     }
-    else
-    {
-      ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.PPO2 );
-    }
-    final NumberAxis ppo2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2AxisTitle" ) );
-    final XYLineAndShapeRenderer ppo2Renderer = new XYLineAndShapeRenderer( true, true );
-    ppo2Axis.setAutoRangeIncludesZero( false );
-    ppo2Axis.setAutoRange( false );
-    ppo2Axis.setRange( 0.0, 3.5 );
-    thePlot.setRangeAxis( 1, ppo2Axis );
-    thePlot.setDataset( 1, ppo2DataSet );
-    thePlot.mapDatasetToRangeAxis( 1, 1 );
-    ppo2Renderer.setSeriesPaint( 0, Color.CYAN );
-    ppo2Renderer.setSeriesShapesVisible( 0, false );
-    ppo2Renderer.setDrawSeriesLineAsPath( true );
-    thePlot.setRenderer( 1, ppo2Renderer );
     //
     // die Tiefe einfügen
     //

@@ -2,6 +2,7 @@ package de.dmarcini.submatix.pclogger.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -67,6 +68,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private JLabel                   maxDepthValueLabel;
   private JLabel                   coldestTempValueLabel;
   private JLabel                   diveLenValueLabel;
+  private JButton                  detailGraphButton;
 
   @SuppressWarnings( "unused" )
   private spx42LogGraphPanel()
@@ -107,14 +109,22 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     diveSelectComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     diveSelectComboBox.setActionCommand( "change_dive_to_display" );
     computeGraphButton = new JButton( "GRAPHBUTTON" );
+    computeGraphButton.setMinimumSize( new Dimension( 80, 23 ) );
+    computeGraphButton.setPreferredSize( new Dimension( 80, 23 ) );
+    computeGraphButton.setSize( new Dimension( 80, 23 ) );
+    computeGraphButton.setMaximumSize( new Dimension( 80, 23 ) );
     computeGraphButton.setActionCommand( "show_log_graph" );
+    detailGraphButton = new JButton( "DETAIL" );
+    detailGraphButton.setMinimumSize( new Dimension( 80, 23 ) );
+    detailGraphButton.setSize( new Dimension( 80, 23 ) );
+    detailGraphButton.setPreferredSize( new Dimension( 80, 23 ) );
+    detailGraphButton.setMaximumSize( new Dimension( 80, 23 ) );
+    detailGraphButton.setActionCommand( "set_detail_for_show_graph" );
     GroupLayout gl_topPanel = new GroupLayout( topPanel );
-    gl_topPanel
-            .setHorizontalGroup( gl_topPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-                    Alignment.TRAILING,
-                    gl_topPanel.createSequentialGroup().addContainerGap().addComponent( deviceComboBox, 0, 235, Short.MAX_VALUE ).addGap( 18 )
-                            .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, 282, GroupLayout.PREFERRED_SIZE ).addGap( 18 ).addComponent( computeGraphButton )
-                            .addGap( 122 ) ) );
+    gl_topPanel.setHorizontalGroup( gl_topPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
+            gl_topPanel.createSequentialGroup().addContainerGap().addComponent( deviceComboBox, 0, 235, Short.MAX_VALUE ).addGap( 18 )
+                    .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, 282, GroupLayout.PREFERRED_SIZE ).addGap( 18 ).addComponent( computeGraphButton )
+                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( detailGraphButton ).addGap( 27 ) ) );
     gl_topPanel.setVerticalGroup( gl_topPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_topPanel
                     .createSequentialGroup()
@@ -123,7 +133,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
                             gl_topPanel.createParallelGroup( Alignment.BASELINE )
                                     .addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
                                     .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( computeGraphButton ) ) ) );
+                                    .addComponent( computeGraphButton ).addComponent( detailGraphButton ) ) ) );
     topPanel.setLayout( gl_topPanel );
     bottomPanel = new JPanel();
     add( bottomPanel, BorderLayout.SOUTH );
@@ -163,9 +173,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     deviceComboBox.addMouseMotionListener( mainCommGUI );
     computeGraphButton.addMouseMotionListener( mainCommGUI );
+    detailGraphButton.addMouseMotionListener( mainCommGUI );
     // die Aktionen mach ich im Objekt selber
     deviceComboBox.addActionListener( this );
     computeGraphButton.addActionListener( this );
+    detailGraphButton.addActionListener( this );
   }
 
   /**
@@ -185,6 +197,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       diveSelectComboBox.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.diveSelectComboBox.tooltiptext" ) );
       computeGraphButton.setText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.text" ) );
       computeGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
+      detailGraphButton.setText( stringsBundle.getString( "spx42LogGraphPanel.detailGraphButton.text" ) );
+      detailGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.detailGraphButton.tooltiptext" ) );
       maxDepthLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.maxDepthLabel.text" ) );
       coldestLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.coldestLabel.text" ) );
       diveLenLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.diveLenLabel.text" ) );
@@ -250,6 +264,15 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         }
         makeGraphForLog( dbId, device );
         return;
+      }
+      if( cmd.equals( "set_detail_for_show_graph" ) )
+      {
+        LOGGER.log( Level.FINE, "select details for log selected." );
+        SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog( stringsBundle );
+        if( sgd.showModal() )
+        {
+          LOGGER.log( Level.FINE, "dialog returned 'true' => change propertys..." );
+        }
       }
       else
       {

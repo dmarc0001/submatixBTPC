@@ -2,7 +2,7 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>C:\DATEN\submatix\submatixBTForPC.jar</jar>
-  <outfile>C:\DATEN\submatix\20120730-submatixForPC-xp.exe</outfile>
+  <outfile>C:\DATEN\submatix\20120731-submatixForPC-xp.exe</outfile>
   <errTitle>Kein Java vohanden?</errTitle>
   <cmdLine>--cacheonstart --loglevel DEBUG</cmdLine>
   <chdir></chdir>

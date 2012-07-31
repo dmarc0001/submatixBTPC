@@ -55,6 +55,16 @@ public class ProgramInfoDialog extends JDialog
     initGui();
   }
 
+  /**
+   * 
+   * Initiiere die Anzeige
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 31.07.2012
+   */
   private void initGui()
   {
     try
@@ -150,13 +160,38 @@ public class ProgramInfoDialog extends JDialog
     }
   }
 
+  /**
+   * 
+   * Zeig das Teil an!
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 31.07.2012
+   */
   public void showDialog()
   {
     setVisible( true );
   }
 
+  /**
+   * 
+   * Wenn der Button gedrückt wurde...
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 31.07.2012
+   */
   private class SwingAction extends AbstractAction
   {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 4460557581978763994L;
+
     public SwingAction()
     {
       putValue( NAME, "OK" );

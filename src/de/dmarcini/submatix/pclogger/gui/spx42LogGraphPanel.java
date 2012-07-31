@@ -268,7 +268,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       if( cmd.equals( "set_detail_for_show_graph" ) )
       {
         LOGGER.log( Level.FINE, "select details for log selected." );
-        SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog( stringsBundle );
+        SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog( stringsBundle, progConfig );
         if( sgd.showModal() )
         {
           LOGGER.log( Level.FINE, "dialog returned 'true' => change propertys..." );

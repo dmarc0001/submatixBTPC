@@ -84,6 +84,11 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private JLabel                         logfileCommLabel;
   private JLabel                         diveLowTempLabel;
   private JLabel                         diveLowTempShowLabel;
+  private String                         metricLength;
+  private String                         metricTemperature;
+  private String                         imperialLength;
+  private String                         imperialTemperature;
+  private String                         timeMinutes;
 
   /**
    * Create the panel.
@@ -264,6 +269,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   {
     try
     {
+      clearLogdirCache();
+      cleanDetails();
       logListLabel.setText( stringsBundle.getString( "spx42LoglistPanel.logListLabel.text" ) );
       readLogDirectoryButton.setText( stringsBundle.getString( "spx42LoglistPanel.readLogDirectoryButton.text" ) );
       readLogDirectoryButton.setToolTipText( stringsBundle.getString( "spx42LoglistPanel.readLogDirectoryButton.tooltiptext" ) );
@@ -276,6 +283,11 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       diveMaxDepthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveMaxDepthLabel.text" ) );
       diveLengthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveLengthLabel.text" ) );
       diveLowTempLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveLowTempLabel.text" ) );
+      metricLength = stringsBundle.getString( "spx42LoglistPanel.unit.metric.length" );
+      metricTemperature = stringsBundle.getString( "spx42LoglistPanel.unit.metric.temperature" );
+      imperialLength = stringsBundle.getString( "spx42LoglistPanel.unit.imperial.length" );
+      imperialTemperature = stringsBundle.getString( "spx42LoglistPanel.unit.imperial.temperature" );
+      timeMinutes = stringsBundle.getString( "spx42LoglistPanel.unit.minutes" );
     }
     catch( NullPointerException ex )
     {
@@ -472,12 +484,22 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         {
           // Ja, der ist in der Datenbank erfasst!
           String[] headers = logDatabaseUtil.getDiveHeadsForDiveNumAsStrings( spxNumber );
-          // Maximale Tiefe anzeigen
-          diveMaxDepthShowLabel.setText( headers[8] );
+          if( headers[11].equals( "METRIC" ) )
+          {
+            // Maximale Tiefe anzeigen
+            diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], metricLength ) );
+            // kälteste Temperatur anzeigen
+            diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], metricTemperature ) );
+          }
+          else
+          {
+            // Maximale Tiefe anzeigen
+            diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], imperialLength ) );
+            // kälteste Temperatur anzeigen
+            diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], imperialTemperature ) );
+          }
           // Länge des Tauchgangs anzeigen
-          diveLengthShowLabel.setText( headers[10] );
-          // kälteste Temperatur anzeigen
-          diveLowTempShowLabel.setText( headers[7] );
+          diveLengthShowLabel.setText( String.format( "%s %s", headers[10], timeMinutes ) );
         }
         else
         {

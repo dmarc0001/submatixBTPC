@@ -1170,6 +1170,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // Menü EXIT Programm
     if( cmd.equals( "exit" ) )
     {
+      // Ordentlich verlassen ;-)
+      tabbedPane.setSelectedIndex( TAB_CONNECT );
       exitProgram();
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1422,6 +1424,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         btComm.askForSerialNumber();
         btComm.askForLicenseFromSPX();
         btComm.askForFirmwareVersion();
+        connectionPanel.setAliasesEditable( false );
         connectionPanel.refreshAliasTable();
         // ware, bis die Nachricht FWVERSION_READ kommt, um das wartefenster zu schliessen
         waitForMessage = ProjectConst.MESSAGE_FWVERSION_READ;
@@ -1439,12 +1442,15 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         setAllConfigPanlelsEnabled( false );
         gasConfigPanel.setElementsGasMatrixPanelEnabled( false );
         connectionPanel.refreshAliasTable();
+        if( tabbedPane.getSelectedIndex() != TAB_CONNECT )
+        {
+          showWarnBox( stringsBundle.getString( "MainCommGui.warnDialog.connectionClosed" ) );
+        }
         if( tabbedPane.getSelectedIndex() != TAB_LOGGRAPH )
         {
           // wen nicht grad loggrafik angezeigt wird, auf den Connecttab wechseln
           tabbedPane.setSelectedIndex( TAB_CONNECT );
         }
-        showWarnBox( stringsBundle.getString( "MainCommGui.warnDialog.connectionClosed" ) );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // BT Discovering war erfolgreich

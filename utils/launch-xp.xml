@@ -2,7 +2,7 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>C:\DATEN\submatix\submatixBTForPC.jar</jar>
-  <outfile>C:\DATEN\submatix\20120729-submatixForPC-vista-w7.exe</outfile>
+  <outfile>C:\DATEN\submatix\20120731-submatixForPC-xp.exe</outfile>
   <errTitle>Kein Java vohanden?</errTitle>
   <cmdLine>--cacheonstart --loglevel DEBUG</cmdLine>
   <chdir></chdir>
@@ -14,7 +14,7 @@
   <manifest></manifest>
   <icon></icon>
   <jre>
-    <path>C:\Program Files (x86)\Java\jre6</path>
+    <path>C:\Programme\Java\jre6</path>
     <minVersion>1.6.0</minVersion>
     <maxVersion>1.7.9</maxVersion>
     <jdkPreference>preferJre</jdkPreference>

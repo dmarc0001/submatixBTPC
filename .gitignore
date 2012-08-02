@@ -7,4 +7,6 @@ database/
 *.log.lck
 *.db
 spxLogProgram.conf
+BuildZaehler.jar
+
 

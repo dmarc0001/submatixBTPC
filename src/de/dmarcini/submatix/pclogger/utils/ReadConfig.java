@@ -156,9 +156,41 @@ public class ReadConfig
             prgConfig.setUnitsProperty( ProjectConst.UNITS_DEFAULT );
           }
         }
-        if( 0 == fields[0].indexOf( "geheimerParameter" ) )
+        if( 0 == fields[0].indexOf( "showTemperature" ) )
         {
-          prgConfig.geheimerParameter = Integer.parseInt( fields[1] );
+          prgConfig.setShowTemperature( Boolean.parseBoolean( fields[1] ) );
+        }
+        if( 0 == fields[0].indexOf( "showPpoResult" ) )
+        {
+          prgConfig.setShowPpoResult( Boolean.parseBoolean( fields[1] ) );
+        }
+        if( 0 == fields[0].indexOf( "showPpo01" ) )
+        {
+          prgConfig.setShowPpo01( Boolean.parseBoolean( fields[1] ) );
+        }
+        if( 0 == fields[0].indexOf( "showPpo02" ) )
+        {
+          prgConfig.setShowPpo02( Boolean.parseBoolean( fields[1] ) );
+        }
+        if( 0 == fields[0].indexOf( "showPpo03" ) )
+        {
+          prgConfig.setShowPpo03( Boolean.parseBoolean( fields[1] ) );
+        }
+        if( 0 == fields[0].indexOf( "showSetpoint" ) )
+        {
+          prgConfig.setShowSetpoint( Boolean.parseBoolean( fields[1] ) );
+        }
+        if( 0 == fields[0].indexOf( "showHe" ) )
+        {
+          prgConfig.setShowHe( Boolean.parseBoolean( fields[1] ) );
+        }
+        if( 0 == fields[0].indexOf( "showN2" ) )
+        {
+          prgConfig.setShowN2( Boolean.parseBoolean( fields[1] ) );
+        }
+        if( 0 == fields[0].indexOf( "showNulltime" ) )
+        {
+          prgConfig.setShowNulltime( Boolean.parseBoolean( fields[1] ) );
         }
       }
       catch( NumberFormatException ex )

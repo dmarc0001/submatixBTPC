@@ -98,7 +98,6 @@ public class WriteConfig
       out.append( "# generated file, do not edit." + LINE_SEPARATOR );
       out.append( String.format( "%s=%s%s", "databaseDir", conf.getDatabaseDir().getAbsolutePath(), LINE_SEPARATOR ) );
       out.append( String.format( "%s=%s%s", "logFile", conf.getLogFile().getAbsoluteFile(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%d%s", "geheimerParameter", conf.geheimerParameter, LINE_SEPARATOR ) );
       switch ( conf.getUnitsProperty() )
       {
         case ProjectConst.UNITS_DEFAULT:
@@ -113,6 +112,15 @@ public class WriteConfig
         default:
           out.append( String.format( "%s=%s%s", "showUnits", "default", LINE_SEPARATOR ) );
       }
+      out.append( String.format( "%s=%b%s", "showTemperature", conf.isShowTemperature(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%b%s", "showPpoResult", conf.isShowPpoResult(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%b%s", "showPpo01", conf.isShowPpo01(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%b%s", "showPpo02", conf.isShowPpo02(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%b%s", "showPpo03", conf.isShowPpo03(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%b%s", "showSetpoint", conf.isShowSetpoint(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%b%s", "showHe", conf.isShowHe(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%b%s", "showN2", conf.isShowN2(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%b%s", "showNulltime", conf.isShowNulltime(), LINE_SEPARATOR ) );
       out.flush();
     }
     catch( IOException ex )

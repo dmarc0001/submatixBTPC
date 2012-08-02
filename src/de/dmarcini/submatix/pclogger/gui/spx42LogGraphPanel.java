@@ -2,6 +2,7 @@ package de.dmarcini.submatix.pclogger.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -28,6 +29,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
@@ -49,13 +51,25 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   /**
    * 
    */
-  private static final long        serialVersionUID = 1L;
-  protected Logger                 LOGGER           = null;
-  private ConnectDatabaseUtil      dbUtil           = null;
-  private ResourceBundle           stringsBundle    = null;
-  private File                     dataDir          = null;
-  private ChartPanel               chartPanel       = null;
-  private SpxPcloggerProgramConfig progConfig       = null;
+  private static final long        serialVersionUID  = 1L;
+  private static int               GRAPH_TEMPERATURE = 0;
+  private static int               GRAPH_PPO2ALL     = 1;
+  private static int               GRAPH_PPO2_01     = 2;
+  private static int               GRAPH_PPO2_02     = 3;
+  private static int               GRAPH_PPO2_03     = 4;
+  private static int               GRAPH_SETPOINT    = 5;
+  private static int               GRAPH_HE          = 6;
+  private static int               GRAPH_N2          = 7;
+  private static int               GRAPH_NULLTIME    = 8;
+  private static int               GRAPH_DEPTH       = 9;
+  protected Logger                 LOGGER            = null;
+  private ConnectDatabaseUtil      dbUtil            = null;
+  private ResourceBundle           stringsBundle     = null;
+  private File                     dataDir           = null;
+  private ChartPanel               chartPanel        = null;
+  private SpxPcloggerProgramConfig progConfig        = null;
+  private int                      progUnitSystem    = ProjectConst.UNITS_DEFAULT;
+  private int                      diveUnitSystem    = ProjectConst.UNITS_DEFAULT;
   private JPanel                   topPanel;
   private JPanel                   bottomPanel;
   private JComboBox                deviceComboBox;
@@ -67,6 +81,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private JLabel                   maxDepthValueLabel;
   private JLabel                   coldestTempValueLabel;
   private JLabel                   diveLenValueLabel;
+  private JButton                  detailGraphButton;
 
   @SuppressWarnings( "unused" )
   private spx42LogGraphPanel()
@@ -88,124 +103,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     this.dbUtil = _dbUtil;
     this.progConfig = progConfig;
     initPanel();
-  }
-
-  /**
-   * Initialisiere das Panel für die Verbindungen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
-   */
-  private void initPanel()
-  {
-    setLayout( new BorderLayout( 0, 0 ) );
-    topPanel = new JPanel();
-    add( topPanel, BorderLayout.NORTH );
-    deviceComboBox = new JComboBox();
-    deviceComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
-    deviceComboBox.setActionCommand( "change_device_to_display" );
-    diveSelectComboBox = new JComboBox();
-    diveSelectComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
-    diveSelectComboBox.setActionCommand( "change_dive_to_display" );
-    computeGraphButton = new JButton( "GRAPHBUTTON" );
-    computeGraphButton.setActionCommand( "show_log_graph" );
-    GroupLayout gl_topPanel = new GroupLayout( topPanel );
-    gl_topPanel
-            .setHorizontalGroup( gl_topPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-                    Alignment.TRAILING,
-                    gl_topPanel.createSequentialGroup().addContainerGap().addComponent( deviceComboBox, 0, 235, Short.MAX_VALUE ).addGap( 18 )
-                            .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, 282, GroupLayout.PREFERRED_SIZE ).addGap( 18 ).addComponent( computeGraphButton )
-                            .addGap( 122 ) ) );
-    gl_topPanel.setVerticalGroup( gl_topPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_topPanel
-                    .createSequentialGroup()
-                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                    .addGroup(
-                            gl_topPanel.createParallelGroup( Alignment.BASELINE )
-                                    .addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( computeGraphButton ) ) ) );
-    topPanel.setLayout( gl_topPanel );
-    bottomPanel = new JPanel();
-    add( bottomPanel, BorderLayout.SOUTH );
-    maxDepthLabel = new JLabel( "MAXDEPTH" );
-    maxDepthValueLabel = new JLabel( "00m" );
-    coldestLabel = new JLabel( "COLDEST" );
-    coldestTempValueLabel = new JLabel( "00Grd" );
-    diveLenLabel = new JLabel( "LENGTH" );
-    diveLenValueLabel = new JLabel( "00:00min" );
-    GroupLayout gl_bottomPanel = new GroupLayout( bottomPanel );
-    gl_bottomPanel.setHorizontalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_bottomPanel.createSequentialGroup().addContainerGap().addComponent( maxDepthLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( coldestLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( coldestTempValueLabel, GroupLayout.PREFERRED_SIZE, 89, GroupLayout.PREFERRED_SIZE ).addGap( 37 )
-                    .addComponent( diveLenLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addPreferredGap( ComponentPlacement.UNRELATED )
-                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE ).addContainerGap( 81, Short.MAX_VALUE ) ) );
-    gl_bottomPanel.setVerticalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_bottomPanel
-                    .createSequentialGroup()
-                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                    .addGroup(
-                            gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( maxDepthLabel ).addComponent( maxDepthValueLabel ).addComponent( coldestLabel )
-                                    .addComponent( coldestTempValueLabel ).addComponent( diveLenLabel ).addComponent( diveLenValueLabel ) ) ) );
-    bottomPanel.setLayout( gl_bottomPanel );
-    chartPanel = null;
-  }
-
-  /**
-   * Setze die Listener auf das Hauptobjekt Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
-   * @param mainCommGUI
-   *          das Hauptobjekt
-   */
-  public void setGlobalChangeListener( MainCommGUI mainCommGUI )
-  {
-    deviceComboBox.addMouseMotionListener( mainCommGUI );
-    computeGraphButton.addMouseMotionListener( mainCommGUI );
-    // die Aktionen mach ich im Objekt selber
-    deviceComboBox.addActionListener( this );
-    computeGraphButton.addActionListener( this );
-  }
-
-  /**
-   * Setze alle Strings in die entsprechende Landessprache! Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
-   * @param stringsBundle
-   *          Resource für die Strings
-   * @return in Ordnung oder nicht
-   */
-  public int setLanguageStrings( ResourceBundle stringsBundle )
-  {
-    this.stringsBundle = stringsBundle;
-    try
-    {
-      deviceComboBox.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.deviceComboBox.tooltiptext" ) );
-      diveSelectComboBox.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.diveSelectComboBox.tooltiptext" ) );
-      computeGraphButton.setText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.text" ) );
-      computeGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
-      maxDepthLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.maxDepthLabel.text" ) );
-      coldestLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.coldestLabel.text" ) );
-      diveLenLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.diveLenLabel.text" ) );
-    }
-    catch( NullPointerException ex )
-    {
-      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
-      return( -1 );
-    }
-    catch( MissingResourceException ex )
-    {
-      System.out.println( "ERROR set language strings - the given key can be found <" + ex.getMessage() + "> ABORT!" );
-      return( 0 );
-    }
-    catch( ClassCastException ex )
-    {
-      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
-      return( 0 );
-    }
-    clearDiveComboBox();
-    return( 1 );
   }
 
   @Override
@@ -251,6 +148,16 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         makeGraphForLog( dbId, device );
         return;
       }
+      if( cmd.equals( "set_detail_for_show_graph" ) )
+      {
+        LOGGER.log( Level.FINE, "select details for log selected." );
+        SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog( stringsBundle, progConfig );
+        if( sgd.showModal() )
+        {
+          LOGGER.log( Level.FINE, "dialog returned 'true' => change propertys..." );
+          computeGraphButton.doClick();
+        }
+      }
       else
       {
         LOGGER.log( Level.WARNING, "unknown button command <" + cmd + "> recived." );
@@ -288,6 +195,109 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     {
       LOGGER.log( Level.WARNING, "unknown action command <" + cmd + "> recived." );
     }
+  }
+
+  /**
+   * 
+   * Die Combobox mit einem leeren Modell ausstatten...
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.07.2012
+   */
+  public void clearDiveComboBox()
+  {
+    Vector<String[]> diveEntrys = new Vector<String[]>();
+    LogListComboBoxModel listBoxModel = new LogListComboBoxModel( diveEntrys );
+    diveSelectComboBox.setModel( listBoxModel );
+  }
+
+  /**
+   * 
+   * Erzeuge ein XY-Dataset aus einem Vector
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.07.2012
+   * @param diveList
+   * @param x
+   *          X-Achse (Sekundenoffset)
+   * @param y
+   *          Y-Achse
+   * @return Datenset
+   */
+  private XYDataset createXYDataset( String scalaTitle, Vector<Integer[]> diveList, int unitToConvert, int x, int y )
+  {
+    final XYSeries series = new XYSeries( scalaTitle );
+    double secounds = 0;
+    Integer[] dataSet;
+    //
+    // alle Datensätze abklappern
+    //
+    for( Enumeration<Integer[]> enu = diveList.elements(); enu.hasMoreElements(); )
+    {
+      dataSet = enu.nextElement();
+      if( y == LogForDeviceDatabaseUtil.DEPTH )
+      {
+        double fDepth = new Double( dataSet[y] );
+        fDepth = 0.00 - ( fDepth / 10.00 );
+        // muss konvertiert werden?
+        if( unitToConvert == ProjectConst.UNITS_IMPERIAL )
+        {
+          // metrisch-> imperial konvertieren
+          // 1 foot == 30,48 cm == 0.3048 Meter
+          fDepth = fDepth / 0.3048;
+        }
+        else if( unitToConvert == ProjectConst.UNITS_METRIC )
+        {
+          // imperial -> metrisch
+          // 1 foot == 30,48 cm == 0.3048 Meter
+          fDepth = fDepth * 0.3048;
+        }
+        series.add( secounds, fDepth );
+      }
+      else if( y == LogForDeviceDatabaseUtil.PPO2 || y == LogForDeviceDatabaseUtil.PPO2_01 || y == LogForDeviceDatabaseUtil.PPO2_02 || y == LogForDeviceDatabaseUtil.PPO2_03 )
+      {
+        double fPpo2 = new Double( dataSet[y] / 1000.00 );
+        series.add( secounds, fPpo2 );
+      }
+      else if( y == LogForDeviceDatabaseUtil.SETPOINT )
+      {
+        double fSetPoint = new Double( dataSet[y] / 10.00 );
+        series.add( secounds, fSetPoint );
+      }
+      else if( y == LogForDeviceDatabaseUtil.TEMPERATURE )
+      {
+        double fTemp = new Double( dataSet[y] );
+        // muss konvertiert werden?
+        if( unitToConvert == ProjectConst.UNITS_IMPERIAL )
+        {
+          // metrisch-> imperial konvertieren
+          // t °F = 5⁄9 (t − 32) °C
+          fTemp = ( 5.0 / 9.0 ) * ( fTemp - 32.0 );
+        }
+        else if( unitToConvert == ProjectConst.UNITS_METRIC )
+        {
+          // imperial -> metrisch
+          // t °C = (9⁄5 t + 32) °F
+          fTemp = ( ( 5.0 / 9.0 ) * fTemp ) + 32.0;
+        }
+        series.add( secounds, fTemp );
+      }
+      else
+      {
+        series.add( secounds, new Double( dataSet[y] ) );
+      }
+      // das offset/schrittweite ist in Sekunden gespeichert
+      secounds += ( dataSet[x] );
+    }
+    final XYSeriesCollection dataset = new XYSeriesCollection();
+    dataset.addSeries( series );
+    return dataset;
   }
 
   /**
@@ -388,19 +398,50 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
 
   /**
    * 
-   * Die Combobox mit einem leeren Modell ausstatten...
+   * Masseinheiten für Labels herausfinden
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 03.07.2012
+   *         Stand: 02.08.2012
+   * @param progUnitSystem
+   * @param diveUnitSystem
+   * @return Strings für tiefe und temperatur
    */
-  public void clearDiveComboBox()
+  private String[] getUnitsLabel( int progUnitSystem, int diveUnitSystem )
   {
-    Vector<String[]> diveEntrys = new Vector<String[]>();
-    LogListComboBoxModel listBoxModel = new LogListComboBoxModel( diveEntrys );
-    diveSelectComboBox.setModel( listBoxModel );
+    String[] labels = new String[2];
+    //
+    // Bei UNITS_DEFAULT gehts nach diveUnitSystem
+    if( progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    {
+      if( diveUnitSystem == ProjectConst.UNITS_IMPERIAL )
+      {
+        // also, ist der Tauchgang imperial geloggt
+        labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
+        labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
+      }
+      else
+      {
+        // der tauhcgang ist metrisch geloggt.
+        labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
+        labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
+      }
+    }
+    else if( progUnitSystem == ProjectConst.UNITS_METRIC )
+    {
+      // der User wünscht Metrische Anzeige
+      labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
+      labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
+    }
+    else
+    {
+      // der User wünscht imperiale anzeige
+      labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
+      labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
+    }
+    return( labels );
   }
 
   /**
@@ -495,142 +536,73 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   }
 
   /**
+   * Initialisiere das Panel für die Verbindungen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Gib alle Felder,Objekte frei, die zur grafischen Darstellung gebraucht wurden, falls vorhanden
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 26.06.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
    */
-  public void releaseGraph()
+  private void initPanel()
   {
-    LOGGER.log( Level.FINE, "release graphic objects..." );
-    if( chartPanel != null )
-    {
-      chartPanel.removeAll();
-      chartPanel.setEnabled( false );
-      chartPanel.setVisible( false );
-      remove( chartPanel );
-      chartPanel = null;
-      maxDepthValueLabel.setText( "-" );
-      coldestTempValueLabel.setText( "-" );
-      diveLenValueLabel.setText( "-" );
-    }
-  }
-
-  /**
-   * Zeigt eine Warnung an Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
-   * @param msg
-   *          Warnmessage
-   */
-  private void showWarnBox( String msg )
-  {
-    ImageIcon icon = null;
-    try
-    {
-      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Abort.png" ) );
-      JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
-    }
-    catch( NullPointerException ex )
-    {
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
-      return;
-    }
-    catch( MissingResourceException ex )
-    {
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
-      return;
-    }
-    catch( ClassCastException ex )
-    {
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
-      return;
-    }
-  }
-
-  /**
-   * 
-   * Erzeuge ein XY-Dataset aus einem Vector
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 03.07.2012
-   * @param diveList
-   * @param x
-   *          X-Achse (Sekundenoffset)
-   * @param y
-   *          Y-Achse
-   * @return Datenset
-   */
-  private XYDataset createXYDataset( String scalaTitle, Vector<Integer[]> diveList, int unitToConvert, int x, int y )
-  {
-    final XYSeries series = new XYSeries( scalaTitle );
-    double secounds = 0;
-    Integer[] dataSet;
-    //
-    // alle Datensätze abklappern
-    //
-    for( Enumeration<Integer[]> enu = diveList.elements(); enu.hasMoreElements(); )
-    {
-      dataSet = enu.nextElement();
-      if( y == LogForDeviceDatabaseUtil.DEPTH )
-      {
-        double fDepth = new Double( dataSet[y] );
-        fDepth = 0.00 - ( fDepth / 10.00 );
-        // muss konvertiert werden?
-        if( unitToConvert == ProjectConst.UNITS_IMPERIAL )
-        {
-          // metrisch-> imperial konvertieren
-          // 1 foot == 30,48 cm == 0.3048 Meter
-          fDepth = fDepth / 0.3048;
-        }
-        else if( unitToConvert == ProjectConst.UNITS_METRIC )
-        {
-          // imperial -> metrisch
-          // 1 foot == 30,48 cm == 0.3048 Meter
-          fDepth = fDepth * 0.3048;
-        }
-        series.add( secounds, fDepth );
-      }
-      else if( y == LogForDeviceDatabaseUtil.PPO2 )
-      {
-        double fPpo2 = new Double( dataSet[y] / 1000.00 );
-        series.add( secounds, fPpo2 );
-      }
-      else if( y == LogForDeviceDatabaseUtil.TEMPERATURE )
-      {
-        double fTemp = new Double( dataSet[y] );
-        // muss konvertiert werden?
-        if( unitToConvert == ProjectConst.UNITS_IMPERIAL )
-        {
-          // metrisch-> imperial konvertieren
-          // t °F = 5⁄9 (t − 32) °C
-          fTemp = ( 5.0 / 9.0 ) * ( fTemp - 32.0 );
-        }
-        else if( unitToConvert == ProjectConst.UNITS_METRIC )
-        {
-          // imperial -> metrisch
-          // t °C = (9⁄5 t + 32) °F
-          fTemp = ( ( 5.0 / 9.0 ) * fTemp ) + 32.0;
-        }
-        series.add( secounds, fTemp );
-      }
-      else
-      {
-        series.add( secounds, new Double( dataSet[y] ) );
-      }
-      // das offset/schrittweite ist in Sekunden gespeichert
-      secounds += ( dataSet[x] );
-    }
-    final XYSeriesCollection dataset = new XYSeriesCollection();
-    dataset.addSeries( series );
-    return dataset;
+    setLayout( new BorderLayout( 0, 0 ) );
+    topPanel = new JPanel();
+    add( topPanel, BorderLayout.NORTH );
+    deviceComboBox = new JComboBox();
+    deviceComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
+    deviceComboBox.setActionCommand( "change_device_to_display" );
+    diveSelectComboBox = new JComboBox();
+    diveSelectComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
+    diveSelectComboBox.setActionCommand( "change_dive_to_display" );
+    computeGraphButton = new JButton( "GRAPHBUTTON" );
+    computeGraphButton.setMinimumSize( new Dimension( 80, 23 ) );
+    computeGraphButton.setPreferredSize( new Dimension( 80, 23 ) );
+    computeGraphButton.setSize( new Dimension( 80, 23 ) );
+    computeGraphButton.setMaximumSize( new Dimension( 80, 23 ) );
+    computeGraphButton.setActionCommand( "show_log_graph" );
+    detailGraphButton = new JButton( "DETAIL" );
+    detailGraphButton.setMinimumSize( new Dimension( 80, 23 ) );
+    detailGraphButton.setSize( new Dimension( 80, 23 ) );
+    detailGraphButton.setPreferredSize( new Dimension( 80, 23 ) );
+    detailGraphButton.setMaximumSize( new Dimension( 80, 23 ) );
+    detailGraphButton.setActionCommand( "set_detail_for_show_graph" );
+    GroupLayout gl_topPanel = new GroupLayout( topPanel );
+    gl_topPanel.setHorizontalGroup( gl_topPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
+            gl_topPanel.createSequentialGroup().addContainerGap().addComponent( deviceComboBox, 0, 235, Short.MAX_VALUE ).addGap( 18 )
+                    .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, 282, GroupLayout.PREFERRED_SIZE ).addGap( 18 ).addComponent( computeGraphButton )
+                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( detailGraphButton ).addGap( 27 ) ) );
+    gl_topPanel.setVerticalGroup( gl_topPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_topPanel
+                    .createSequentialGroup()
+                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                    .addGroup(
+                            gl_topPanel.createParallelGroup( Alignment.BASELINE )
+                                    .addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( computeGraphButton ).addComponent( detailGraphButton ) ) ) );
+    topPanel.setLayout( gl_topPanel );
+    bottomPanel = new JPanel();
+    add( bottomPanel, BorderLayout.SOUTH );
+    maxDepthLabel = new JLabel( "MAXDEPTH" );
+    maxDepthValueLabel = new JLabel( "00m" );
+    coldestLabel = new JLabel( "COLDEST" );
+    coldestTempValueLabel = new JLabel( "00Grd" );
+    diveLenLabel = new JLabel( "LENGTH" );
+    diveLenValueLabel = new JLabel( "00:00min" );
+    GroupLayout gl_bottomPanel = new GroupLayout( bottomPanel );
+    gl_bottomPanel.setHorizontalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_bottomPanel.createSequentialGroup().addContainerGap().addComponent( maxDepthLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( coldestLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( coldestTempValueLabel, GroupLayout.PREFERRED_SIZE, 89, GroupLayout.PREFERRED_SIZE ).addGap( 37 )
+                    .addComponent( diveLenLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addPreferredGap( ComponentPlacement.UNRELATED )
+                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE ).addContainerGap( 81, Short.MAX_VALUE ) ) );
+    gl_bottomPanel.setVerticalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_bottomPanel
+                    .createSequentialGroup()
+                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                    .addGroup(
+                            gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( maxDepthLabel ).addComponent( maxDepthValueLabel ).addComponent( coldestLabel )
+                                    .addComponent( coldestTempValueLabel ).addComponent( diveLenLabel ).addComponent( diveLenValueLabel ) ) ) );
+    bottomPanel.setLayout( gl_bottomPanel );
+    chartPanel = null;
   }
 
   /**
@@ -652,9 +624,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     Vector<Integer[]> diveList;
     int[] headData;
     XYPlot thePlot;
-    XYDataset depthDataSet, tempDataSet, ppo2DataSet;
+    XYDataset depthDataSet;
     JFreeChart logChart;
-    int min, sec, progUnitSystem, diveUnitSystem;
+    int min, sec;
     String depthUnitName, tempUnitName;
     // das alte Zeug entsorgen
     releaseGraph();
@@ -684,34 +656,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     progUnitSystem = progConfig.getUnitsProperty();
     diveUnitSystem = headData[6];
     // jetzt die Strings für Masseinheiten holen
-    // Bei UNITS_DEFAULT gehts nach diveUnitSystem
-    if( progUnitSystem == ProjectConst.UNITS_DEFAULT )
-    {
-      if( diveUnitSystem == ProjectConst.UNITS_IMPERIAL )
-      {
-        // also, ist der Tauchgang imperial geloggt
-        depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
-        tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
-      }
-      else
-      {
-        // der tauhcgang ist metrisch geloggt.
-        depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
-        tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
-      }
-    }
-    else if( progUnitSystem == ProjectConst.UNITS_METRIC )
-    {
-      // der User wünscht Metrische Anzeige
-      depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
-      tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
-    }
-    else
-    {
-      // der User wünscht imperiale anzeige
-      depthUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
-      tempUnitName = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
-    }
+    String[] labels = getUnitsLabel( progUnitSystem, diveUnitSystem );
+    depthUnitName = labels[0];
+    tempUnitName = labels[1];
     //
     // entscheide ob etwas umgerechnet werden sollte
     //
@@ -761,6 +708,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     add( chartPanel, BorderLayout.CENTER );
     //
     // Datumsachse umformatieren
+    //
     final NumberAxis axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.dateAxisTitle" ) );
     MinuteFormatter formatter = new MinuteFormatter( stringsBundle.getString( "spx42LogGraphPanel.graph.dateAxisUnit" ) );
     axis.setNumberFormatOverride( formatter );
@@ -768,54 +716,78 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Temperatur einfügen
     //
-    LOGGER.log( Level.FINE, "create temp dataset" );
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    if( progConfig.isShowTemperature() )
     {
-      // Keine Änderung norwendig!
-      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
-              LogForDeviceDatabaseUtil.TEMPERATURE );
+      makeTemperatureGraph( diveList, thePlot, labels );
     }
-    else
-    {
-      // bitte konvertiere die Einheiten ins gewünschte Format!
-      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ) + " " + tempUnitName, diveList, progUnitSystem, 0,
-              LogForDeviceDatabaseUtil.TEMPERATURE );
-    }
-    final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + tempUnitName );
-    tempAxis.setNumberFormatOverride( new DecimalFormat( "###.##" ) );
-    final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
-    lineTemperatureRenderer.setSeriesPaint( 0, Color.RED );
-    lineTemperatureRenderer.setSeriesShapesVisible( 0, false );
-    lineTemperatureRenderer.setDrawSeriesLineAsPath( true );
-    tempAxis.setAutoRangeIncludesZero( true );
-    thePlot.setRangeAxis( 2, tempAxis );
-    thePlot.mapDatasetToRangeAxis( 2, 0 );
-    thePlot.setDataset( 0, tempDataSet );
-    thePlot.setRenderer( 0, lineTemperatureRenderer );
     //
     // Partialdruck einfügen
-    //
-    LOGGER.log( Level.FINE, "create ppo2 dataset" );
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
-    {
-      ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0, LogForDeviceDatabaseUtil.PPO2 );
-    }
-    else
-    {
-      ppo2DataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" ), diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.PPO2 );
-    }
+    // die Achse erst mal machen
     final NumberAxis ppo2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2AxisTitle" ) );
-    final XYLineAndShapeRenderer ppo2Renderer = new XYLineAndShapeRenderer( true, true );
-    ppo2Axis.setAutoRangeIncludesZero( false );
-    ppo2Axis.setAutoRange( false );
-    ppo2Axis.setRange( 0.0, 3.5 );
-    thePlot.setRangeAxis( 1, ppo2Axis );
-    thePlot.setDataset( 1, ppo2DataSet );
-    thePlot.mapDatasetToRangeAxis( 1, 1 );
-    ppo2Renderer.setSeriesPaint( 0, Color.CYAN );
-    ppo2Renderer.setSeriesShapesVisible( 0, false );
-    ppo2Renderer.setDrawSeriesLineAsPath( true );
-    thePlot.setRenderer( 1, ppo2Renderer );
+    final NumberAxis percentAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.inertgas" ) );
+    //
+    // wenn eine der Achsen dargesstellt werden muss, dann sollte die Achse auch in der Grafil da sein
+    //
+    if( progConfig.isShowPpo01() || progConfig.isShowPpo02() || progConfig.isShowPpo03() || progConfig.isShowPpoResult() || progConfig.isShowSetpoint() )
+    {
+      ppo2Axis.setAutoRangeIncludesZero( false );
+      ppo2Axis.setAutoRange( false );
+      ppo2Axis.setRange( 0.0, 3.5 );
+      thePlot.setRangeAxis( GRAPH_PPO2ALL, ppo2Axis );
+    }
+    if( progConfig.isShowHe() || progConfig.isShowN2() )
+    {
+      percentAxis.setAutoRangeIncludesZero( false );
+      percentAxis.setAutoRange( false );
+      percentAxis.setRange( 0.0, 100.0 );
+      thePlot.setRangeAxis( GRAPH_HE, percentAxis );
+    }
+    //
+    // Partialdrücke der einzelnen Sensoren einfügen
+    //
+    // Sensor 01 anzeigen
+    if( progConfig.isShowPpo01() )
+    {
+      makePpoGraph( diveList, thePlot, 1 );
+    }
+    // Sensor 02 anzeigen
+    if( progConfig.isShowPpo02() )
+    {
+      makePpoGraph( diveList, thePlot, 2 );
+    }
+    // Sensor 03 anzeigen
+    if( progConfig.isShowPpo03() )
+    {
+      makePpoGraph( diveList, thePlot, 3 );
+    }
+    // Resultierenden PPO anzeigen
+    if( progConfig.isShowPpoResult() )
+    {
+      makePpoGraph( diveList, thePlot, 0 );
+      // makePpoResultGraph( diveList, thePlot );
+    }
+    if( progConfig.isShowSetpoint() )
+    {
+      makeSetpointGraph( diveList, thePlot );
+    }
+    //
+    // Helium und Stickstoffanteil im Gas?
+    //
+    if( progConfig.isShowHe() )
+    {
+      makeInnertGasGraph( diveList, thePlot, "he" );
+    }
+    if( progConfig.isShowN2() )
+    {
+      makeInnertGasGraph( diveList, thePlot, "n2" );
+    }
+    //
+    // die Nullzeit auf Wunsch
+    //
+    if( progConfig.isShowNulltime() )
+    {
+      makeNulltimeGraph( diveList, thePlot );
+    }
     //
     // die Tiefe einfügen
     //
@@ -834,12 +806,355 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     final XYAreaRenderer areaDepthRenderer = new XYAreaRenderer( XYAreaRenderer.AREA );
     depthAxis.setAutoRangeIncludesZero( true );
     thePlot.setRangeAxis( 0, depthAxis );
-    thePlot.setDataset( 2, depthDataSet );
-    thePlot.mapDatasetToRangeAxis( 0, 2 );
-    areaDepthRenderer.setSeriesPaint( 0, new Color( 0xa0a0ff ) );
-    thePlot.setRenderer( 2, areaDepthRenderer, true );
+    thePlot.setDataset( GRAPH_DEPTH, depthDataSet );
+    thePlot.mapDatasetToRangeAxis( 0, GRAPH_DEPTH );
+    areaDepthRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_DEPTH_COLOR ) );
+    thePlot.setRenderer( GRAPH_DEPTH, areaDepthRenderer, true );
     // brauch ich doch nicht
     // chartPanel.paint( chartPanel.getGraphics() );
     LOGGER.log( Level.FINE, "create graph...OK" );
+  }
+
+  /**
+   * 
+   * Graph für Anteil Inertgas machen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.08.2012
+   * @param diveList
+   * @param thePlot
+   * @param string
+   */
+  private void makeInnertGasGraph( Vector<Integer[]> diveList, XYPlot thePlot, String gasName )
+  {
+    XYDataset percentDataSet;
+    int graphPos;
+    int graphColor;
+    //
+    LOGGER.log( Level.FINE, "create percent dataset (" + gasName + ")" );
+    final XYLineAndShapeRenderer setpointRenderer = new XYLineAndShapeRenderer( true, true );
+    if( 0 == gasName.indexOf( "he" ) )
+    {
+      percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.HEPERCENT );
+      graphPos = GRAPH_HE;
+      graphColor = ProjectConst.GRAPH_HE_COLOR;
+    }
+    else
+    {
+      percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.N2PERCENT );
+      graphPos = GRAPH_N2;
+      graphColor = ProjectConst.GRAPH_N2_COLOR;
+    }
+    // die Achse sollte schon erstellt sein
+    thePlot.setDataset( graphPos, percentDataSet );
+    thePlot.mapDatasetToRangeAxis( graphPos, GRAPH_HE );
+    setpointRenderer.setSeriesPaint( 0, new Color( graphColor ) );
+    setpointRenderer.setSeriesShapesVisible( 0, false );
+    setpointRenderer.setDrawSeriesLineAsPath( true );
+    thePlot.setRenderer( graphPos, setpointRenderer );
+  }
+
+  /**
+   * 
+   * Erzeuge eine Grafik für die Nullzeitanzeige
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.08.2012
+   * @param diveList
+   * @param thePlot
+   */
+  private void makeNulltimeGraph( Vector<Integer[]> diveList, XYPlot thePlot )
+  {
+    XYDataset nullTimeDataSet;
+    //
+    LOGGER.log( Level.FINE, "create nulltime dataset" );
+    nullTimeDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.nulltimeScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
+            LogForDeviceDatabaseUtil.NULLTIME );
+    final XYLineAndShapeRenderer lineNullTimeRenderer = new XYLineAndShapeRenderer( true, true );
+    final LogarithmicAxis nullTimeAxis = new LogarithmicAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.nulltimeAxisTitle" ) );
+    nullTimeAxis.setNumberFormatOverride( new DecimalFormat( "#.###" ) );
+    lineNullTimeRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_NULLTIME_COLOR ) );
+    lineNullTimeRenderer.setSeriesShapesVisible( 0, false );
+    lineNullTimeRenderer.setDrawSeriesLineAsPath( true );
+    nullTimeAxis.setAutoRangeIncludesZero( true );
+    thePlot.setRangeAxis( GRAPH_NULLTIME, nullTimeAxis );
+    thePlot.mapDatasetToRangeAxis( GRAPH_NULLTIME, GRAPH_NULLTIME );
+    thePlot.setDataset( GRAPH_NULLTIME, nullTimeDataSet );
+    thePlot.setRenderer( GRAPH_NULLTIME, lineNullTimeRenderer );
+  }
+
+  /**
+   * 
+   * Erzeuge je einen Graphen für die Sensoren
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.08.2012
+   * @param diveList
+   * @param thePlot
+   * @param sensor
+   */
+  private void makePpoGraph( Vector<Integer[]> diveList, XYPlot thePlot, int sensor )
+  {
+    XYDataset ppo2DataSet;
+    int indexForCreate;
+    int posForGraph;
+    int posColor;
+    String title;
+    //
+    LOGGER.log( Level.FINE, "create Sensor <" + sensor + "> dataset" );
+    // Titel schon mal...
+    title = String.format( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2SensorScalaTitle" ), sensor );
+    //
+    // Dataset Index einstellen
+    switch ( sensor )
+    {
+      case 0:
+        indexForCreate = LogForDeviceDatabaseUtil.PPO2;
+        posForGraph = GRAPH_PPO2ALL;
+        posColor = ProjectConst.GRAPH_PPO2ALL_COLOR;
+        title = stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" );
+        break;
+      case 1:
+        indexForCreate = LogForDeviceDatabaseUtil.PPO2_01;
+        posForGraph = GRAPH_PPO2_01;
+        posColor = ProjectConst.GRAPH_PPO2_01_COLOR;
+        break;
+      case 2:
+        indexForCreate = LogForDeviceDatabaseUtil.PPO2_02;
+        posForGraph = GRAPH_PPO2_02;
+        posColor = ProjectConst.GRAPH_PPO2_02_COLOR;
+        break;
+      case 3:
+        indexForCreate = LogForDeviceDatabaseUtil.PPO2_03;
+        posForGraph = GRAPH_PPO2_03;
+        posColor = ProjectConst.GRAPH_PPO2_02_COLOR;
+        break;
+      default:
+        indexForCreate = LogForDeviceDatabaseUtil.PPO2_01;
+        posForGraph = GRAPH_PPO2_01;
+        posColor = ProjectConst.GRAPH_PPO2_01_COLOR;
+    }
+    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    {
+      ppo2DataSet = createXYDataset( title, diveList, ProjectConst.UNITS_DEFAULT, 0, indexForCreate );
+    }
+    else
+    {
+      ppo2DataSet = createXYDataset( title, diveList, progUnitSystem, 0, indexForCreate );
+    }
+    final XYLineAndShapeRenderer ppo2Renderer = new XYLineAndShapeRenderer( true, true );
+    // die Achse sollte schon erstellt sein
+    thePlot.setDataset( posForGraph, ppo2DataSet );
+    thePlot.mapDatasetToRangeAxis( posForGraph, GRAPH_PPO2ALL );
+    ppo2Renderer.setSeriesPaint( 0, new Color( posColor ) );
+    ppo2Renderer.setSeriesShapesVisible( 0, false );
+    ppo2Renderer.setDrawSeriesLineAsPath( true );
+    thePlot.setRenderer( posForGraph, ppo2Renderer );
+  }
+
+  /**
+   * 
+   * Mach mir den Graphen für den Setpoint
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.08.2012
+   * @param diveList
+   * @param thePlot
+   */
+  private void makeSetpointGraph( Vector<Integer[]> diveList, XYPlot thePlot )
+  {
+    XYDataset setPointDataSet;
+    //
+    LOGGER.log( Level.FINE, "create setpoint dataset" );
+    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    {
+      setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
+              LogForDeviceDatabaseUtil.SETPOINT );
+    }
+    else
+    {
+      setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.SETPOINT );
+    }
+    // final NumberAxis setpoint2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointAxisTitle" ) );
+    final XYLineAndShapeRenderer setpointRenderer = new XYLineAndShapeRenderer( true, true );
+    // die Achse sollte schon erstellt sein
+    thePlot.setDataset( GRAPH_SETPOINT, setPointDataSet );
+    thePlot.mapDatasetToRangeAxis( GRAPH_SETPOINT, GRAPH_PPO2ALL );
+    setpointRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_SETPOINT_COLOR ) );
+    setpointRenderer.setSeriesShapesVisible( 0, false );
+    setpointRenderer.setDrawSeriesLineAsPath( true );
+    thePlot.setRenderer( GRAPH_SETPOINT, setpointRenderer );
+  }
+
+  /**
+   * 
+   * Temperaturgraph machen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.08.2012
+   * @param labels
+   * @param thePlot
+   * @param diveList
+   */
+  private void makeTemperatureGraph( Vector<Integer[]> diveList, XYPlot thePlot, String[] labels )
+  {
+    XYDataset tempDataSet;
+    //
+    LOGGER.log( Level.FINE, "create temp dataset" );
+    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    {
+      // Keine Änderung norwendig!
+      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
+              LogForDeviceDatabaseUtil.TEMPERATURE );
+    }
+    else
+    {
+      // bitte konvertiere die Einheiten ins gewünschte Format!
+      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.TEMPERATURE );
+    }
+    final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
+    final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + labels[1] );
+    tempAxis.setNumberFormatOverride( new DecimalFormat( "###.##" ) );
+    lineTemperatureRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_TEMPERATURE_COLOR ) );
+    lineTemperatureRenderer.setSeriesShapesVisible( 0, false );
+    lineTemperatureRenderer.setDrawSeriesLineAsPath( true );
+    tempAxis.setAutoRangeIncludesZero( true );
+    thePlot.setRangeAxis( GRAPH_DEPTH, tempAxis );
+    thePlot.mapDatasetToRangeAxis( GRAPH_DEPTH, 0 );
+    thePlot.setDataset( GRAPH_TEMPERATURE, tempDataSet );
+    thePlot.setRenderer( GRAPH_TEMPERATURE, lineTemperatureRenderer );
+  }
+
+  /**
+   * 
+   * Gib alle Felder,Objekte frei, die zur grafischen Darstellung gebraucht wurden, falls vorhanden
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 26.06.2012
+   */
+  public void releaseGraph()
+  {
+    LOGGER.log( Level.FINE, "release graphic objects..." );
+    if( chartPanel != null )
+    {
+      chartPanel.removeAll();
+      chartPanel.setEnabled( false );
+      chartPanel.setVisible( false );
+      remove( chartPanel );
+      chartPanel = null;
+      maxDepthValueLabel.setText( "-" );
+      coldestTempValueLabel.setText( "-" );
+      diveLenValueLabel.setText( "-" );
+    }
+  }
+
+  /**
+   * Setze die Listener auf das Hauptobjekt Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
+   * @param mainCommGUI
+   *          das Hauptobjekt
+   */
+  public void setGlobalChangeListener( MainCommGUI mainCommGUI )
+  {
+    deviceComboBox.addMouseMotionListener( mainCommGUI );
+    computeGraphButton.addMouseMotionListener( mainCommGUI );
+    detailGraphButton.addMouseMotionListener( mainCommGUI );
+    // die Aktionen mach ich im Objekt selber
+    deviceComboBox.addActionListener( this );
+    computeGraphButton.addActionListener( this );
+    detailGraphButton.addActionListener( this );
+  }
+
+  /**
+   * Setze alle Strings in die entsprechende Landessprache! Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
+   * @param stringsBundle
+   *          Resource für die Strings
+   * @return in Ordnung oder nicht
+   */
+  public int setLanguageStrings( ResourceBundle stringsBundle )
+  {
+    this.stringsBundle = stringsBundle;
+    try
+    {
+      deviceComboBox.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.deviceComboBox.tooltiptext" ) );
+      diveSelectComboBox.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.diveSelectComboBox.tooltiptext" ) );
+      computeGraphButton.setText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.text" ) );
+      computeGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
+      detailGraphButton.setText( stringsBundle.getString( "spx42LogGraphPanel.detailGraphButton.text" ) );
+      detailGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.detailGraphButton.tooltiptext" ) );
+      maxDepthLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.maxDepthLabel.text" ) );
+      coldestLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.coldestLabel.text" ) );
+      diveLenLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.diveLenLabel.text" ) );
+    }
+    catch( NullPointerException ex )
+    {
+      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
+      return( -1 );
+    }
+    catch( MissingResourceException ex )
+    {
+      System.out.println( "ERROR set language strings - the given key can be found <" + ex.getMessage() + "> ABORT!" );
+      return( 0 );
+    }
+    catch( ClassCastException ex )
+    {
+      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
+      return( 0 );
+    }
+    clearDiveComboBox();
+    return( 1 );
+  }
+
+  /**
+   * Zeigt eine Warnung an Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param msg
+   *          Warnmessage
+   */
+  private void showWarnBox( String msg )
+  {
+    ImageIcon icon = null;
+    try
+    {
+      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Abort.png" ) );
+      JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
+    }
+    catch( NullPointerException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( MissingResourceException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( ClassCastException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
   }
 }

@@ -190,6 +190,19 @@ public final class ProjectConst
   public static final String D_NULLTIME                 = "nulltime";
   public static final String D_DELTATIME                = "deltatime";
   
+  //
+  // Default Farben für die Graphen in der Loganzeige
+  //
+  public static int          GRAPH_TEMPERATURE_COLOR    = 0xFF0000;
+  public static int          GRAPH_PPO2ALL_COLOR        = 0xB300FF;
+  public static int          GRAPH_PPO2_01_COLOR        = 0x0000FF;
+  public static int          GRAPH_PPO2_02_COLOR        = 0x0080FF;
+  public static int          GRAPH_PPO2_03_COLOR        = 0x7ABDFF;
+  public static int          GRAPH_SETPOINT_COLOR       = 0x000033;
+  public static int          GRAPH_HE_COLOR             = 0x1A9900;
+  public static int          GRAPH_N2_COLOR             = 0xFF3DD8;
+  public static int          GRAPH_NULLTIME_COLOR       = 0x006600;
+  public static int          GRAPH_DEPTH_COLOR          = 0x4775FF;
   
   
 

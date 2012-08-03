@@ -70,22 +70,27 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private SpxPcloggerProgramConfig progConfig        = null;
   private int                      progUnitSystem    = ProjectConst.UNITS_DEFAULT;
   private int                      diveUnitSystem    = ProjectConst.UNITS_DEFAULT;
+  private String                   device;
+  private int                      showingDbIdForDiveWasShowing;
+  private String                   maxDepthLabelString;
+  private String                   coldestLabelString;
+  private String                   diveLenLabelString;
   private JPanel                   topPanel;
   private JPanel                   bottomPanel;
   private JComboBox                deviceComboBox;
   private JComboBox                diveSelectComboBox;
   private JButton                  computeGraphButton;
-  private JLabel                   maxDepthLabel;
-  private JLabel                   coldestLabel;
-  private JLabel                   diveLenLabel;
   private JLabel                   maxDepthValueLabel;
   private JLabel                   coldestTempValueLabel;
   private JLabel                   diveLenValueLabel;
   private JButton                  detailGraphButton;
+  private JLabel                   notesLabel;
+  private JButton                  notesEditButton;
 
   @SuppressWarnings( "unused" )
   private spx42LogGraphPanel()
   {
+    setPreferredSize( new Dimension( 796, 504 ) );
     initPanel();
   }
 
@@ -103,6 +108,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     this.dbUtil = _dbUtil;
     this.progConfig = progConfig;
     initPanel();
+    showingDbIdForDiveWasShowing = -1;
   }
 
   @Override
@@ -158,6 +164,16 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
           computeGraphButton.doClick();
         }
       }
+      if( cmd.equals( "edit_notes_for_dive" ) )
+      {
+        if( chartPanel == null || showingDbIdForDiveWasShowing == -1 )
+        {
+          LOGGER.log( Level.WARNING, "it was not showing a dive! do nothing!" );
+          return;
+        }
+        LOGGER.log( Level.FINE, "edit a note for this dive..." );
+        showNotesEditForm( showingDbIdForDiveWasShowing );
+      }
       else
       {
         LOGGER.log( Level.WARNING, "unknown button command <" + cmd + "> recived." );
@@ -194,6 +210,59 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     else
     {
       LOGGER.log( Level.WARNING, "unknown action command <" + cmd + "> recived." );
+    }
+  }
+
+  /**
+   * 
+   * Zeige ein einfaches Formular zum Eineben einer kleinen Notitz
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.08.2012
+   * @param dbId
+   */
+  private void showNotesEditForm( int dbId )
+  {
+    LogForDeviceDatabaseUtil logDatabaseUtil;
+    DiveNotesEditDialog edDial = new DiveNotesEditDialog( stringsBundle );
+    edDial.setNotes( notesLabel.getText() );
+    if( edDial.showModal() )
+    {
+      if( notesLabel.getText().equals( edDial.getNotes() ) )
+      {
+        // hier hat sich nix geändert, ENTE
+        LOGGER.log( Level.FINE, "not a change in note, ignoring..." );
+        return;
+      }
+      LOGGER.log( Level.INFO, "save new Notes in database..." );
+      notesLabel.setText( edDial.getNotes() );
+      edDial.dispose();
+      // jetzt ab in die Datenbank damit!
+      // das Datenbankutility initialisieren
+      logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
+      if( logDatabaseUtil.createConnection() == null )
+      {
+        // Tja, das ging schief
+        logDatabaseUtil = null;
+        showWarnBox( stringsBundle.getString( "spx42LogGraphPanel.warnBox.noDiveDataFound" ) );
+        return;
+      }
+      if( logDatabaseUtil != null && logDatabaseUtil.isOpenDB() )
+      {
+        if( -1 == logDatabaseUtil.saveNoteForId( dbId, notesLabel.getText() ) )
+        {
+          LOGGER.log( Level.SEVERE, "can't update notes for dive!" );
+        }
+        logDatabaseUtil.closeDB();
+        logDatabaseUtil = null;
+      }
+    }
+    else
+    {
+      edDial.dispose();
     }
   }
 
@@ -580,27 +649,38 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     topPanel.setLayout( gl_topPanel );
     bottomPanel = new JPanel();
     add( bottomPanel, BorderLayout.SOUTH );
-    maxDepthLabel = new JLabel( "MAXDEPTH" );
-    maxDepthValueLabel = new JLabel( "00m" );
-    coldestLabel = new JLabel( "COLDEST" );
-    coldestTempValueLabel = new JLabel( "00Grd" );
-    diveLenLabel = new JLabel( "LENGTH" );
-    diveLenValueLabel = new JLabel( "00:00min" );
+    maxDepthValueLabel = new JLabel( "0" );
+    coldestTempValueLabel = new JLabel( "0" );
+    diveLenValueLabel = new JLabel( "0" );
+    notesLabel = new JLabel( "NOTES" );
+    notesLabel.setForeground( new Color( 0, 100, 0 ) );
+    notesLabel.setFont( new Font( "Tahoma", Font.ITALIC, 12 ) );
+    notesEditButton = new JButton( "..." );
+    notesEditButton.setActionCommand( "edit_notes_for_dive" );
+    notesEditButton.setIcon( new ImageIcon( spx42LogGraphPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/142.png" ) ) );
+    notesEditButton.setForeground( new Color( 0, 100, 0 ) );
     GroupLayout gl_bottomPanel = new GroupLayout( bottomPanel );
     gl_bottomPanel.setHorizontalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_bottomPanel.createSequentialGroup().addContainerGap().addComponent( maxDepthLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( coldestLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( coldestTempValueLabel, GroupLayout.PREFERRED_SIZE, 89, GroupLayout.PREFERRED_SIZE ).addGap( 37 )
-                    .addComponent( diveLenLabel, GroupLayout.PREFERRED_SIZE, 104, GroupLayout.PREFERRED_SIZE ).addPreferredGap( ComponentPlacement.UNRELATED )
-                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 115, GroupLayout.PREFERRED_SIZE ).addContainerGap( 81, Short.MAX_VALUE ) ) );
-    gl_bottomPanel.setVerticalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_bottomPanel
                     .createSequentialGroup()
-                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
                     .addGroup(
-                            gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( maxDepthLabel ).addComponent( maxDepthValueLabel ).addComponent( coldestLabel )
-                                    .addComponent( coldestTempValueLabel ).addComponent( diveLenLabel ).addComponent( diveLenValueLabel ) ) ) );
+                            gl_bottomPanel
+                                    .createParallelGroup( Alignment.LEADING, false )
+                                    .addComponent( notesLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                    .addGroup(
+                                            gl_bottomPanel.createSequentialGroup().addContainerGap()
+                                                    .addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 206, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                                                    .addComponent( coldestTempValueLabel, GroupLayout.PREFERRED_SIZE, 211, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                                                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE ) ) ).addGap( 18 )
+                    .addComponent( notesEditButton, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE ).addContainerGap( 40, Short.MAX_VALUE ) ) );
+    gl_bottomPanel.setVerticalGroup( gl_bottomPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
+            gl_bottomPanel
+                    .createSequentialGroup()
+                    .addGroup( gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( notesLabel ).addComponent( notesEditButton ) )
+                    .addPreferredGap( ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                    .addGroup(
+                            gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( maxDepthValueLabel ).addComponent( coldestTempValueLabel )
+                                    .addComponent( diveLenValueLabel ) ) ) );
     bottomPanel.setLayout( gl_bottomPanel );
     chartPanel = null;
   }
@@ -634,6 +714,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // richtige Datenbank öffnen
     //
     // das Datenbankutility initialisieren
+    this.device = device;
     logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
     if( logDatabaseUtil.createConnection() == null )
     {
@@ -653,6 +734,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Labels für Tachgangseckdaten füllen
     //
     headData = logDatabaseUtil.readHeadDiveDataFromId( dbId );
+    notesLabel.setText( logDatabaseUtil.getNotesForId( dbId ) );
     progUnitSystem = progConfig.getUnitsProperty();
     diveUnitSystem = headData[6];
     // jetzt die Strings für Masseinheiten holen
@@ -665,8 +747,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       // nein, alles schick
-      maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ), depthUnitName ) );
-      coldestTempValueLabel.setText( String.format( "%1.2f %s", ( headData[2] / 10.0 ), tempUnitName ) );
+      maxDepthValueLabel.setText( String.format( maxDepthLabelString, ( headData[3] / 10.0 ), depthUnitName ) );
+      coldestTempValueLabel.setText( String.format( coldestLabelString, ( headData[2] / 10.0 ), tempUnitName ) );
     }
     else
     {
@@ -675,20 +757,20 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       {
         // metrisch-> imperial konvertieren
         // 1 foot == 30,48 cm == 0.3048 Meter
-        maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ) / 0.3048, depthUnitName ) );
+        maxDepthValueLabel.setText( String.format( maxDepthLabelString, ( headData[3] / 10.0 ) / 0.3048, depthUnitName ) );
         // t °F = 5⁄9 (t − 32) °C
-        coldestTempValueLabel.setText( String.format( "%1.2f %s", ( 5.0 / 9.0 ) * ( ( headData[2] / 10.0 ) - 32 ), tempUnitName ) );
+        coldestTempValueLabel.setText( String.format( coldestLabelString, ( 5.0 / 9.0 ) * ( ( headData[2] / 10.0 ) - 32 ), tempUnitName ) );
       }
       else
       {
-        maxDepthValueLabel.setText( String.format( "%1.2f %s", ( headData[3] / 10.0 ) * 0.3048, depthUnitName ) );
+        maxDepthValueLabel.setText( String.format( maxDepthLabelString, ( headData[3] / 10.0 ) * 0.3048, depthUnitName ) );
         // t °C = (9⁄5 t + 32) °F
-        coldestTempValueLabel.setText( String.format( "%1.2f %s", ( ( 9.0 / 5.0 ) * ( headData[2] / 10.0 ) ) + 32, tempUnitName ) );
+        coldestTempValueLabel.setText( String.format( coldestLabelString, ( ( 9.0 / 5.0 ) * ( headData[2] / 10.0 ) ) + 32, tempUnitName ) );
       }
     }
     min = headData[5] / 60;
     sec = headData[5] % 60;
-    diveLenValueLabel.setText( String.format( "%d:%02d min", min, sec ) );
+    diveLenValueLabel.setText( String.format( diveLenLabelString, min, sec, "min" ) );
     //
     // einen Plot machen (Grundlage des Diagramms)
     //
@@ -811,7 +893,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     areaDepthRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_DEPTH_COLOR ) );
     thePlot.setRenderer( GRAPH_DEPTH, areaDepthRenderer, true );
     // brauch ich doch nicht
-    // chartPanel.paint( chartPanel.getGraphics() );
+    showingDbIdForDiveWasShowing = dbId;
     LOGGER.log( Level.FINE, "create graph...OK" );
   }
 
@@ -1053,6 +1135,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   public void releaseGraph()
   {
     LOGGER.log( Level.FINE, "release graphic objects..." );
+    showingDbIdForDiveWasShowing = -1;
     if( chartPanel != null )
     {
       chartPanel.removeAll();
@@ -1078,10 +1161,12 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     deviceComboBox.addMouseMotionListener( mainCommGUI );
     computeGraphButton.addMouseMotionListener( mainCommGUI );
     detailGraphButton.addMouseMotionListener( mainCommGUI );
+    notesEditButton.addMouseMotionListener( mainCommGUI );
     // die Aktionen mach ich im Objekt selber
     deviceComboBox.addActionListener( this );
     computeGraphButton.addActionListener( this );
     detailGraphButton.addActionListener( this );
+    notesEditButton.addActionListener( this );
   }
 
   /**
@@ -1103,9 +1188,10 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       computeGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
       detailGraphButton.setText( stringsBundle.getString( "spx42LogGraphPanel.detailGraphButton.text" ) );
       detailGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.detailGraphButton.tooltiptext" ) );
-      maxDepthLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.maxDepthLabel.text" ) );
-      coldestLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.coldestLabel.text" ) );
-      diveLenLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.diveLenLabel.text" ) );
+      maxDepthLabelString = stringsBundle.getString( "spx42LogGraphPanel.maxDepthLabel.text" );
+      coldestLabelString = stringsBundle.getString( "spx42LogGraphPanel.coldestLabel.text" );
+      diveLenLabelString = stringsBundle.getString( "spx42LogGraphPanel.diveLenLabel.text" );
+      notesEditButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
     }
     catch( NullPointerException ex )
     {

@@ -122,6 +122,7 @@ public class spx42GaslistEditPanel extends JPanel
   @SuppressWarnings( "unused" )
   private spx42GaslistEditPanel()
   {
+    setPreferredSize( new Dimension( 796, 504 ) );
     initPanel();
     initGasObjectMaps();
   }

@@ -23,7 +23,7 @@ import javax.swing.border.TitledBorder;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                                  /**
+{                                    /**
    * 
    */
   private static final long serialVersionUID = 1L;
@@ -84,6 +84,7 @@ public class spx42ConfigPanel extends JPanel
   @SuppressWarnings( "unused" )
   private spx42ConfigPanel()
   {
+    setPreferredSize( new Dimension( 796, 504 ) );
     initPanel();
   }
 

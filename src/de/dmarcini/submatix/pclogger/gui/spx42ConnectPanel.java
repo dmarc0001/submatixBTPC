@@ -52,6 +52,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
   @SuppressWarnings( "unused" )
   private spx42ConnectPanel()
   {
+    setPreferredSize( new Dimension( 796, 504 ) );
     initPanel();
   }
 
@@ -95,15 +96,15 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     deviceToConnectComboBox.setMinimumSize( new Dimension( 180, 20 ) );
     deviceToConnectComboBox.setMaximumSize( new Dimension( 500, 40 ) );
     connectButton = new JButton( "CONNECT" );
-    connectButton.setLocation( 335, 22 );
+    connectButton.setLocation( 347, 24 );
     connectButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/112-mono.png" ) ) );
     connectButton.setActionCommand( "connect" );
     connectButton.setPreferredSize( new Dimension( 180, 40 ) );
     connectButton.setMaximumSize( new Dimension( 160, 40 ) );
-    connectButton.setSize( new Dimension( 180, 41 ) );
+    connectButton.setSize( new Dimension( 295, 41 ) );
     connectButton.setMargin( new Insets( 2, 30, 2, 30 ) );
     connectBtRefreshButton = new JButton( "REFRESH" );
-    connectBtRefreshButton.setBounds( 335, 81, 311, 39 );
+    connectBtRefreshButton.setBounds( 347, 83, 426, 39 );
     connectBtRefreshButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Refresh.png" ) ) );
     connectBtRefreshButton.setActionCommand( "refresh_bt_devices" );
     discoverProgressBar = new JProgressBar();
@@ -112,11 +113,11 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     discoverProgressBar.setBackground( new Color( 240, 248, 255 ) );
     discoverProgressBar.setForeground( new Color( 176, 224, 230 ) );
     pinButton = new JButton( "PINBUTTON" );
-    pinButton.setBounds( 521, 22, 125, 41 );
+    pinButton.setBounds( 648, 24, 125, 41 );
     pinButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) ) );
     pinButton.setActionCommand( "set_pin_for_dev" );
     deviceAliasButton = new JButton( "ALIAS" );
-    deviceAliasButton.setBounds( 335, 131, 311, 39 );
+    deviceAliasButton.setBounds( 347, 133, 426, 39 );
     deviceAliasButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/45.png" ) ) );
     deviceAliasButton.setActionCommand( "alias_bt_devices_on" );
     setLayout( null );
@@ -127,7 +128,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     add( deviceAliasButton );
     add( discoverProgressBar );
     aliasScrollPane = new JScrollPane();
-    aliasScrollPane.setBounds( 124, 181, 522, 247 );
+    aliasScrollPane.setBounds( 347, 183, 426, 247 );
     add( aliasScrollPane );
     aliasEditTable = new JTable();
     aliasEditTable.setCellSelectionEnabled( true );

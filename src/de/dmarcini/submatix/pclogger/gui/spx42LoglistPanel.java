@@ -96,6 +96,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   @SuppressWarnings( "unused" )
   private spx42LoglistPanel()
   {
+    setPreferredSize( new Dimension( 796, 504 ) );
     initPanel();
   }
 

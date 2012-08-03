@@ -17,7 +17,7 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://localhost";
-  public static final String MANUFACTVERS               = "0.3beta";
+  public static final String MANUFACTVERS               = "0.4beta";
   public static final String GENYEAR                    = "2012";
   public static final String GENMONTH                   = "07";
   public static final String GENDAY                     = "30";
@@ -143,7 +143,7 @@ public final class ProjectConst
   // DATENBANK
   // Dateiname für SQLite3
   public static final String DB_FILENAME                = "spx42Base.db";
-  public static int          DB_VERSION                 = 2;
+  public static int          DB_VERSION                 = 3;
   // Datenbanktabellen
   //
   // Tabelle für die Versionsnummer der Datenbank (bei Updates evtl gebraucht)
@@ -172,6 +172,7 @@ public final class ProjectConst
   public static final String H_SAMPLES                  = "samples";
   public static final String H_DIVELENGTH               = "length";
   public static final String H_UNITS                    = "units";
+  public static final String H_NOTES                    = "notes";
   //
   // Tabelle für die relevanten Daten des Tauchganges
   // Tabelle logdata

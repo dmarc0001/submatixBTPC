@@ -81,48 +81,21 @@ import de.dmarcini.submatix.pclogger.utils.WriteConfig;
  */
 public class MainCommGUI extends JFrame implements ActionListener, MouseMotionListener, ChangeListener, ItemListener
 {  //
-  private static final long                  serialVersionUID    = 3L;
-  private final static int                   VERY_CONSERVATIVE   = 0;
-  private final static int                   CONSERVATIVE        = 1;
-  private final static int                   MODERATE            = 2;
-  private final static int                   AGGRESSIVE          = 3;
-  private final static int                   VERY_AGGRESSIVE     = 4;
-  private final static int                   TAB_CONNECT         = 0; 
-  private final static int                   TAB_CONFIG          = 1; 
-  private final static int                   TAB_GASLIST         = 2; 
-  private final static int                   TAB_LOGREAD         = 3; 
-  private final static int                   TAB_LOGGRAPH        = 4;
-  // private final static int CUSTOMIZED = 5;
-  private static ResourceBundle              stringsBundle       = null;
-  private Locale                             programLocale       = null;
-  private String                             timeFormatterString = "yyyy-MM-dd - hh:mm:ss";
-  @SuppressWarnings( "unused" )
-  private final File                         programDir          = new File( System.getProperty("user.dir") );
-  static Logger                              LOGGER              = null;
-  static Handler                             fHandler            = null;
-  static Handler                             cHandler            = null;
-  private BTCommunication                    btComm              = null;
-  private final ArrayList<String>            messagesList        = new ArrayList<String>();
-  private final SPX42Config                  currentConfig       = new SPX42Config();
-  private SPX42Config                        savedConfig         = null;
-  private SPX42GasList                       currGasList         = null;
-  private SpxPcloggerProgramConfig           progConfig          = null;
-  private PleaseWaitDialog                   wDial               = null;
-  private boolean                            ignoreAction        = false;
-  private static Level                       optionLogLevel      = Level.FINE;
-  private static boolean                     readBtCacheOnStart  = false;
-  private static File                        logFile             = null;
-  private static File                        databaseDir         = null;
-  private static boolean                     DEBUG               = false;
-  private static Color                       gasNameNormalColor  = new Color( 0x000088 );
-  private static Color                       gasDangerousColor   = Color.red;
-  private static Color                       gasNoNormOxicColor  = Color.MAGENTA;
-  private static final Pattern               fieldPatternDp      = Pattern.compile( ":" );
-  private static final Pattern               fieldPatternUnderln = Pattern.compile( "[_.]" );
-  private int                                licenseState        = -1;
-  private int                                customConfig        = -1;
-  private ConnectDatabaseUtil                sqliteDbUtil        = null;
-  private int waitForMessage = 0;
+  private static final long        serialVersionUID    = 3L;
+  private final static int         VERY_CONSERVATIVE   = 0;
+  private final static int         CONSERVATIVE        = 1;
+  private final static int         MODERATE            = 2;
+  private final static int         AGGRESSIVE          = 3;
+  private final static int         VERY_AGGRESSIVE     = 4;
+  private final static int         TAB_CONNECT         = 0;
+  private final static int         TAB_CONFIG          = 1;
+  private final static int         TAB_GASLIST         = 2;
+  private final static int         TAB_LOGREAD         = 3;
+  private final static int         TAB_LOGGRAPH        = 4;
+  private int                      licenseState        = -1;
+  private int                      customConfig        = -1;
+  private ConnectDatabaseUtil      sqliteDbUtil        = null;
+  private int                      waitForMessage      = 0;
   //
   // @formatter:on
   private JFrame                   frmMainwindowtitle;
@@ -141,6 +114,33 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private JMenuItem                mntmInfo;
   private JTextField               statusTextField;
   private JMenuItem                mntmOptions;
+  // private final static int CUSTOMIZED = 5;
+  private static ResourceBundle    stringsBundle       = null;
+  private Locale                   programLocale       = null;
+  private String                   timeFormatterString = "yyyy-MM-dd - hh:mm:ss";
+  @SuppressWarnings( "unused" )
+  private final File               programDir          = new File( System.getProperty( "user.dir" ) );
+  static Logger                    LOGGER              = null;
+  static Handler                   fHandler            = null;
+  static Handler                   cHandler            = null;
+  private BTCommunication          btComm              = null;
+  private final ArrayList<String>  messagesList        = new ArrayList<String>();
+  private final SPX42Config        currentConfig       = new SPX42Config();
+  private SPX42Config              savedConfig         = null;
+  private SPX42GasList             currGasList         = null;
+  private SpxPcloggerProgramConfig progConfig          = null;
+  private PleaseWaitDialog         wDial               = null;
+  private boolean                  ignoreAction        = false;
+  private static Level             optionLogLevel      = Level.FINE;
+  private static boolean           readBtCacheOnStart  = false;
+  private static File              logFile             = null;
+  private static File              databaseDir         = null;
+  private static boolean           DEBUG               = false;
+  private static Color             gasNameNormalColor  = new Color( 0x000088 );
+  private static Color             gasDangerousColor   = Color.red;
+  private static Color             gasNoNormOxicColor  = Color.MAGENTA;
+  private static final Pattern     fieldPatternDp      = Pattern.compile( ":" );
+  private static final Pattern     fieldPatternUnderln = Pattern.compile( "[_.]" );
 
   /**
    * Launch the application.
@@ -225,6 +225,168 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * CLI-Optionen einlesen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
+   * @param args
+   * @return
+   */
+  private static CommandLine parseCliOptions( String[] args )
+  {
+    // Optionenobjet anlegen
+    Options options = new Options();
+    //
+    // Optionen für das Parsing anlegen und zu den Optionen zufügen
+    //
+    // Logleven festlegen
+    Option optLogLevel = new Option( "l", "loglevel", true, "set loglevel for program" );
+    options.addOption( optLogLevel );
+    // Bluethooth Caching Abfrage
+    Option optBtCaching = new Option( "c", "cacheonstart", false, "read cached bt devices on start" );
+    options.addOption( optBtCaching );
+    // Logfile abgefragt?
+    Option optLogFile = new Option( "f", "logfile", true, "set logfile, \"OFF\" set NO logfile" );
+    options.addOption( optLogFile );
+    // Debugging aktivieren
+    Option optDebug = new Option( "d", "debug", false, "set debugging for a lot of GUI effects" );
+    options.addOption( optDebug );
+    // Daternverzeichnis?
+    Option optDatabaseDir = new Option( "s", "databasedir", true, "set database directory" );
+    options.addOption( optDatabaseDir );
+    // Parser anlegen
+    CommandLineParser cliParser = new BasicParser();
+    // Argumente parsen!
+    try
+    {
+      return( cliParser.parse( options, args ) );
+    }
+    catch( ParseException ex )
+    {
+      System.err.println( "Parser error: " + ex.getLocalizedMessage() );
+      return( null );
+    }
+  }
+
+  /**
+   * Aus dem String von Loglevel den Logging-Wert machen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
+   * @param optionValue
+   * @return
+   */
+  private static Level parseLogLevel( String level )
+  {
+    String levelString = level.toUpperCase();
+    // SEVERE (highest value) ERROR
+    // WARNING WARNUNG
+    // INFO INFO
+    // CONFIG CONFIG
+    // FINE DEBUG
+    // FINER
+    // FINEST (lowest value)
+    if( levelString.equals( "FINEST" ) )
+    {
+      return( Level.FINE );
+    }
+    if( levelString.equals( "FINER" ) )
+    {
+      return( Level.FINE );
+    }
+    if( levelString.equals( "FINE" ) )
+    {
+      return( Level.FINE );
+    }
+    if( levelString.equals( "DEBUG" ) )
+    {
+      return( Level.FINE );
+    }
+    if( levelString.equals( "CONFIG" ) )
+    {
+      return( Level.CONFIG );
+    }
+    if( levelString.equals( "INFO" ) )
+    {
+      return( Level.INFO );
+    }
+    if( levelString.equals( "WARNING" ) )
+    {
+      return( Level.WARNING );
+    }
+    if( levelString.equals( "SERVE" ) )
+    {
+      return( Level.SEVERE );
+    }
+    return( Level.OFF );
+  }
+
+  /**
+   * 
+   * Neues Datenverzeichnis
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.07.2012
+   */
+  private static File parseNewDatabaseDir( String optionValue )
+  {
+    File tempLogFile;
+    try
+    {
+      tempLogFile = new File( optionValue );
+      return( tempLogFile );
+    }
+    catch( NullPointerException ex )
+    {
+      System.err.println( "parseNewDatabaseDir: Dirname was <null>" );
+      return( null );
+    }
+  }
+
+  /**
+   * Setze das neue Logfile, wenn gewünscht Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
+   * @param optionValue
+   * @return File
+   */
+  private static File parseNewLogFile( String optionValue )
+  {
+    File tempLogFile = null;
+    File parentDir = null;
+    if( optionValue.equals( "NONE" ) )
+    {
+      // abschalten des Logfiles
+      return( null );
+    }
+    try
+    {
+      tempLogFile = new File( optionValue );
+    }
+    catch( NullPointerException ex )
+    {
+      System.err.println( "parseNewLogFile: Logfilename was <null>" );
+      return( logFile );
+    }
+    try
+    {
+      parentDir = new File( tempLogFile.getParent() );
+    }
+    catch( NullPointerException ex )
+    {
+      // nix Parent, ist nur eine Datei....
+      return( tempLogFile );
+    }
+    if( parentDir.exists() && parentDir.isDirectory() )
+    {
+      return( tempLogFile );
+    }
+    System.err.println( "parseNewLogFile: Logfile Directory not exists! (" + parentDir.getAbsolutePath() + ")" );
+    return( logFile );
+  }
+
+  /**
    * Create the application.
    * 
    * @throws ConfigReadWriteException
@@ -299,26 +461,428 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Datenbankfür das Programm vorbereiten oder erzeugen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.04.2012
+   * Wenn ein element meint, was zu melden...
    */
-  private void prepareDatabase()
+  @Override
+  public void actionPerformed( ActionEvent ev )
   {
-    // Verbindung zum Datenbanktreiber
-    sqliteDbUtil = new ConnectDatabaseUtil( LOGGER, progConfig.getDatabaseDir().getAbsolutePath() + File.separator + ProjectConst.DB_FILENAME );
-    if( sqliteDbUtil == null )
+    if( ignoreAction ) return;
+    // /////////////////////////////////////////////////////////////////////////
+    // Meine Actions
+    if( ev.getID() > ActionEvent.ACTION_FIRST )
     {
-      LOGGER.log( Level.SEVERE, "can connect to database drivers!" );
-      System.exit( -1 );
+      processMessageActions( ev );
+      return;
     }
-    // öffne die Datenbank
-    // ging das?
-    if( sqliteDbUtil.createConnection() == null )
+    // /////////////////////////////////////////////////////////////////////////
+    // MENÜ
+    else if( ev.getSource() instanceof JMenuItem )
     {
-      System.exit( -1 );
+      processMenuActions( ev );
+      return;
     }
-    // hier ist alles gut...
+    // /////////////////////////////////////////////////////////////////////////
+    // Button
+    else if( ev.getSource() instanceof JButton )
+    {
+      processButtonActions( ev );
+      return;
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Combobox
+    else if( ev.getSource() instanceof JComboBox )
+    {
+      processComboBoxActions( ev );
+      return;
+    }
+  }
+
+  /**
+   * Ändere Heliumanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
+   * @param gasNr
+   *          welches Gas denn
+   * @param he
+   *          Heliumanteil
+   */
+  private void changeHEFromGas( int gasNr, int he )
+  {
+    int o2;
+    o2 = currGasList.getO2FromGas( gasNr );
+    ignoreAction = true;
+    if( he < 0 )
+    {
+      he = 0;
+      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( 0 );
+    }
+    else if( he > 100 )
+    {
+      // Mehr als 100% geht nicht!
+      // ungesundes Zeug!
+      o2 = 0;
+      he = 100;
+      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( he );
+      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      LOGGER.log( Level.WARNING, String.format( "change helium (max) in Gas %d Value: <%d/0x%02x>...", gasNr, he, he ) );
+    }
+    else if( ( o2 + he ) > 100 )
+    {
+      // Auch hier geht nicht mehr als 100%
+      // Sauerstoff verringern!
+      o2 = 100 - he;
+      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
+    }
+    else
+    {
+      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
+    }
+    currGasList.setGas( gasNr, o2, he );
+    ( gasConfigPanel.gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
+    setGasColor( gasNr, o2 );
+    ignoreAction = false;
+  }
+
+  /**
+   * Ändere Sauerstoffanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
+   * @param gasNr
+   *          welches Gas
+   * @param o2
+   *          Sauerstoffanteil
+   */
+  private void changeO2FromGas( int gasNr, int o2 )
+  {
+    int he;
+    he = currGasList.getHEFromGas( gasNr );
+    ignoreAction = true;
+    if( o2 < 0 )
+    {
+      // das Zeut ist dann auch ungesund!
+      o2 = 0;
+      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( 0 );
+    }
+    else if( o2 > 100 )
+    {
+      // Mehr als 100% geht nicht!
+      o2 = 100;
+      he = 0;
+      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( he );
+      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      LOGGER.log( Level.WARNING, String.format( "change oxygen (max) in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
+    }
+    else if( ( o2 + he ) > 100 )
+    {
+      // Auch hier geht nicht mehr als 100%
+      // Helium verringern!
+      he = 100 - o2;
+      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( he );
+      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
+    }
+    else
+    {
+      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
+    }
+    currGasList.setGas( gasNr, o2, he );
+    // erzeuge und setze noch den Gasnamen
+    // färbe dabei gleich die Zahlen ein
+    ( gasConfigPanel.gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
+    setGasColor( gasNr, o2 );
+    ignoreAction = false;
+  }
+
+  /**
+   * Programmsprache wechseln Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 19.12.2011
+   * @param cmd
+   *          Sprachenkürzel
+   */
+  private void changeProgramLanguage( String cmd )
+  {
+    String[] langs = null;
+    langs = cmd.split( "_" );
+    if( langs.length > 1 && langs[1] != null )
+    {
+      programLocale = new Locale( langs[0], langs[1] );
+    }
+    else
+    {
+      programLocale = new Locale( langs[0] );
+    }
+    Locale.setDefault( programLocale );
+    if( currentConfig != null )
+    {
+      // da verändern sich die Einstellungen, daher ungültig setzen
+      currentConfig.setWasInit( false );
+    }
+    setLanguageStrings();
+  }
+
+  /**
+   * 
+   * Hilfsfunktion zum start speichern/update eines Tauchlogs
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 12.07.2012
+   * @param logListEntry
+   */
+  private int computeLogRequest( Integer[] logListEntry )
+  {
+    // liegt ein updatewunsch vor?
+    if( logListEntry[1] > 0 )
+    {
+      LOGGER.log( Level.WARNING, "dive logentry alredy there. Ask user for continue..." );
+      //@formatter:off
+      // Zeige dem geneigten User eine Dialogbox, in welcher er entscheiden muss: Update oder überspringen
+      Object[] options =
+      { 
+        stringsBundle.getString( "MainCommGui.updateWarnDialog.updateButton" ),
+        stringsBundle.getString( "MainCommGui.updateWarnDialog.cancelButton" )
+      };
+      int retOption =  JOptionPane.showOptionDialog( 
+              null, 
+              stringsBundle.getString( "MainCommGui.updateWarnDialog.messageUpdate" ), 
+              stringsBundle.getString( "MainCommGui.updateWarnDialog.headLine" ), 
+              JOptionPane.DEFAULT_OPTION, 
+              JOptionPane.WARNING_MESSAGE, 
+              null, 
+              options, 
+              options[0] 
+              );
+      //@formatter:on
+      if( retOption == 1 )
+      {
+        LOGGER.log( Level.INFO, "user has cancel to update divelog entry." );
+        return( 0 );
+      }
+      else
+      {
+        // update datensatz!
+        logListPanel.setNextLogIsAnUpdate( true, logListEntry[0] );
+      }
+    }
+    // datensatz anlegen
+    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.waitForReadDive" ) );
+    wDial.setDetailMessage( String.format( stringsBundle.getString( "PleaseWaitDialog.readDiveNumber" ), logListEntry[0] ) );
+    wDial.setVisible( true );
+    // Sag dem SPX er soll alles schicken
+    LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry[0] + ">" );
+    btComm.readLogDetailFromSPX( logListEntry[0] );
+    return( 1 );
+  }
+
+  /**
+   * Verbine mit SPX42 Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 20.12.2011
+   */
+  private void connectSPX()
+  {
+    // Welche Schnittstelle?
+    if( connectionPanel.deviceToConnectComboBox.getSelectedIndex() == -1 )
+    {
+      LOGGER.log( Level.WARNING, "no connection device selected!" );
+      showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
+      return;
+    }
+    String deviceName = ( String )connectionPanel.deviceToConnectComboBox.getItemAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
+    LOGGER.log( Level.FINE, "connect via device <" + deviceName + ">..." );
+    if( btComm.isConnected() )
+    {
+      // ist verbunden, was nun?
+      return;
+    }
+    else
+    {
+      try
+      {
+        btComm.connectDevice( deviceName );
+      }
+      catch( Exception ex )
+      {
+        // TODO sinnvoll anzeigen
+        LOGGER.log( Level.SEVERE, "Exception: <" + ex.getMessage() + ">" );
+      }
+    }
+  }
+
+  /**
+   * 
+   * Decodiere die Nachricht über einen Logverzeichniseintrag
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.05.2012
+   * @param entryMsg
+   * @return
+   */
+  private String decodeLogDirEntry( String entryMsg )
+  {
+    // Message etwa so <~41:21:9_4_10_20_44_55.txt:22>
+    String[] fields;
+    String fileName;
+    int number, max;
+    int day, month, year, hour, minute, second;
+    //
+    // Felder aufteilen
+    fields = fieldPatternDp.split( entryMsg );
+    if( fields.length < 4 )
+    {
+      LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
+      return( null );
+    }
+    // Wandel die Nummerierung in Integer um
+    try
+    {
+      number = Integer.parseInt( fields[1], 16 );
+      max = Integer.parseInt( fields[3], 16 );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
+      return( null );
+    }
+    fileName = fields[2];
+    // verwandle die Dateiangabe in eine lesbare Datumsangabe
+    // Format des Strings ist ja
+    // TAG_MONAT_JAHR_STUNDE_MINUTE_SEKUNDE
+    // des Beginns der Aufzeichnung
+    fields = fieldPatternUnderln.split( fields[2] );
+    try
+    {
+      day = Integer.parseInt( fields[0] );
+      month = Integer.parseInt( fields[1] );
+      year = Integer.parseInt( fields[2] ) + 2000;
+      hour = Integer.parseInt( fields[3] );
+      minute = Integer.parseInt( fields[4] );
+      second = Integer.parseInt( fields[5] );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
+      return( null );
+    }
+    // So, die Angaben des SPX sind immer im Localtime-Format
+    // daher werde ich die auch so interpretieren
+    // Die Funktion macht das in der default-Lokalzone, sollte also
+    // da sein, wio der SPX auch ist... (schwieriges Thema)
+    DateTime tm = new DateTime( year, month, day, hour, minute, second );
+    DateTimeFormatter fmt = DateTimeFormat.forPattern( timeFormatterString );
+    return( String.format( "%d;%s;%s;%d", number, fileName, tm.toString( fmt ), max ) );
+  }
+
+  /**
+   * Verbindung trennen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 20.12.2011
+   */
+  private void disconnectSPX()
+  {
+    if( btComm.isConnected() )
+    {
+      LOGGER.log( Level.FINE, "disconnect SPX42..." );
+      btComm.disconnectDevice();
+    }
+  }
+
+  /**
+   * Eventuell geordnetes Aufräumen hier Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
+   */
+  private void exitProgram()
+  {
+    if( sqliteDbUtil != null )
+    {
+      if( sqliteDbUtil.isOpenDB() )
+      {
+        sqliteDbUtil.closeDB();
+      }
+      sqliteDbUtil = null;
+    }
+    if( btComm != null )
+    {
+      if( btComm.isConnected() )
+      {
+        btComm.disconnectDevice();
+        try
+        {
+          Thread.sleep( 350 );
+        }
+        catch( InterruptedException ex )
+        {}
+      }
+    }
+    // testen, ob da noch was zurückgeschrieben werden muss
+    if( progConfig != null )
+    {
+      if( progConfig.isWasChanged() )
+      {
+        try
+        {
+          LOGGER.log( Level.INFO, "write config to file..." );
+          new WriteConfig( progConfig );
+        }
+        catch( IOException ex )
+        {
+          ex.printStackTrace();
+        }
+        catch( ConfigReadWriteException ex )
+        {
+          ex.printStackTrace();
+        }
+      }
+    }
+    System.exit( 0 );
+  }
+
+  /**
+   * Gib einen Kurznamen für das Gasgemisch Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
+   * @param gasNr
+   *          Gasnummer
+   */
+  private String getNameForGas( int gasNr )
+  {
+    int o2, he, n2;
+    // Hexenküche: Was haben wir denn da....
+    o2 = currGasList.getO2FromGas( gasNr );
+    he = currGasList.getHEFromGas( gasNr );
+    n2 = currGasList.getN2FromGas( gasNr );
+    // Mal sondieren
+    if( n2 == 0 )
+    {
+      // heliox oder O2
+      if( o2 == 100 )
+      {
+        return( "O2" );
+      }
+      // Es gibt Helium und O2....
+      return( String.format( "HX%d/%d", o2, he ) );
+    }
+    if( he == 0 )
+    {
+      // eindeutig Nitrox
+      if( o2 == 21 )
+      {
+        return( "AIR" );
+      }
+      return( String.format( "NX%02d", o2 ) );
+    }
+    else
+    {
+      // das ist dan wohl Trimix
+      return( String.format( "TX%d/%d", o2, he ) );
+    }
   }
 
   /**
@@ -405,96 +969,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Setze alle Strings im Form Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
-   */
-  private int setLanguageStrings()
-  {
-    // so, ignoriere mal alles....
-    ignoreAction = true;
-    try
-    {
-      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
-    }
-    catch( MissingResourceException ex )
-    {
-      System.out.println( "ERROR get resources <" + ex.getMessage() + "> ABORT!" );
-      return( -1 );
-    }
-    try
-    {
-      setStatus( "" );
-      timeFormatterString = stringsBundle.getString( "MainCommGUI.timeFormatterString" );
-      // Hauptfenster
-      frmMainwindowtitle.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) );
-      // Menü
-      mnFile.setText( stringsBundle.getString( "MainCommGUI.mnFile.text" ) );
-      mnFile.setToolTipText( stringsBundle.getString( "MainCommGUI.mnFile.tooltiptext" ) );
-      mntmExit.setText( stringsBundle.getString( "MainCommGUI.mntmExit.text" ) );
-      mntmExit.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmExit.tooltiptext" ) );
-      mnLanguages.setText( stringsBundle.getString( "MainCommGUI.mnLanguages.text" ) );
-      mnLanguages.setToolTipText( stringsBundle.getString( "MainCommGUI.mnLanguages.tooltiptext" ) );
-      mnOptions.setText( stringsBundle.getString( "MainCommGUI.mnOptions.text" ) );
-      mnOptions.setToolTipText( stringsBundle.getString( "MainCommGUI.mnOptions.tooltiptext" ) );
-      mntmOptions.setText( stringsBundle.getString( "MainCommGUI.mntmOptions.text" ) );
-      mntmOptions.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmOptions.tooltiptext" ) );
-      mnHelp.setText( stringsBundle.getString( "MainCommGUI.mnHelp.text" ) );
-      mnHelp.setToolTipText( stringsBundle.getString( "MainCommGUI.mnHelp.tooltiptext" ) );
-      mntmHelp.setText( stringsBundle.getString( "MainCommGUI.mntmHelp.text" ) );
-      mntmHelp.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmHelp.tooltiptext" ) );
-      mntmInfo.setText( stringsBundle.getString( "MainCommGUI.mntmInfo.text" ) );
-      mntmInfo.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmInfo.tooltiptext" ) );
-      // //////////////////////////////////////////////////////////////////////
-      // //////////////////////////////////////////////////////////////////////
-      // Tabbed Panes
-      // //////////////////////////////////////////////////////////////////////
-      // Tabbed Pane connect
-      tabbedPane.setTitleAt( TAB_CONNECT, stringsBundle.getString( "spx42ConnectPanel.title" ) );
-      connectionPanel.setLanguageStrings( stringsBundle, btComm.isConnected() );
-      // //////////////////////////////////////////////////////////////////////
-      // Tabbed Pane config
-      tabbedPane.setTitleAt( TAB_CONFIG, stringsBundle.getString( "spx42ConfigPanel.title" ) );
-      configPanel.setLanguageStrings( stringsBundle );
-      // //////////////////////////////////////////////////////////////////////
-      // Tabbed Pane gas
-      tabbedPane.setTitleAt( TAB_GASLIST, stringsBundle.getString( "spx42GaslistEditPanel.title" ) );
-      gasConfigPanel.setLanguageStrings( stringsBundle );
-      // //////////////////////////////////////////////////////////////////////
-      // Tabbed Pane log
-      tabbedPane.setTitleAt( TAB_LOGREAD, stringsBundle.getString( "spx42LoglistPanel.title" ) );
-      logListPanel.setLanguageStrings( stringsBundle );
-      // //////////////////////////////////////////////////////////////////////
-      // Tabbed Pane graph
-      tabbedPane.setTitleAt( TAB_LOGGRAPH, stringsBundle.getString( "spx42LogGraphPanel.title" ) );
-      logGraphPanel.setLanguageStrings( stringsBundle );
-    }
-    catch( NullPointerException ex )
-    {
-      statusTextField.setText( "ERROR set language strings" );
-      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
-      return( -1 );
-    }
-    catch( MissingResourceException ex )
-    {
-      statusTextField.setText( "ERROR set language strings - the given key can be found" );
-      System.out.println( "ERROR set language strings - the given key can be found <" + ex.getMessage() + "> ABORT!" );
-      return( 0 );
-    }
-    catch( ClassCastException ex )
-    {
-      statusTextField.setText( "ERROR set language strings" );
-      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
-      return( 0 );
-    }
-    finally
-    {
-      ignoreAction = false;
-    }
-    return( 1 );
-  }
-
-  /**
    * verfügbare Sprachen in Menü eintragen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
@@ -575,68 +1049,112 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Statustext in der Statuszeile setzen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.12.2011
-   * @param msg
+   * Checkbox hat sich verändert
    */
-  private void setStatus( String msg )
+  @Override
+  public void itemStateChanged( ItemEvent ev )
   {
-    if( statusTextField != null )
+    if( ignoreAction ) return;
+    // ////////////////////////////////////////////////////////////////////////
+    // Checkbox Event?
+    if( ev.getSource() instanceof JCheckBox )
     {
-      statusTextField.setText( msg );
-    }
-  }
-
-  /**
-   * Eventuell geordnetes Aufräumen hier Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
-   */
-  private void exitProgram()
-  {
-    if( sqliteDbUtil != null )
-    {
-      if( sqliteDbUtil.isOpenDB() )
+      JCheckBox cb = ( JCheckBox )ev.getItemSelectable();
+      String cmd = cb.getActionCommand();
+      // //////////////////////////////////////////////////////////////////////
+      // Dynamische Gradienten?
+      if( cmd.equals( "dyn_gradients_on" ) )
       {
-        sqliteDbUtil.closeDB();
+        LOGGER.log( Level.FINE, "dynamic gradients <" + cb.isSelected() + ">" );
+        currentConfig.setDynGradientsEnable( cb.isSelected() );
       }
-      sqliteDbUtil = null;
-    }
-    if( btComm != null )
-    {
-      if( btComm.isConnected() )
+      // //////////////////////////////////////////////////////////////////////
+      // Deepstops
+      else if( cmd.equals( "deepstops_on" ) )
       {
-        btComm.disconnectDevice();
+        LOGGER.log( Level.FINE, "depstops <" + cb.isSelected() + ">" );
+        currentConfig.setDeepStopEnable( cb.isSelected() );
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Passive Semiclose Rebreather Mode?
+      else if( cmd.equals( "individuals_pscr_on" ) )
+      {
+        LOGGER.log( Level.FINE, "pscr mode  <" + cb.isSelected() + ">" );
+        currentConfig.setPscrModeEnabled( cb.isSelected() );
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Sensor warning on/off
+      else if( cmd.equals( "individual_sensors_on" ) )
+      {
+        LOGGER.log( Level.FINE, "sensors on  <" + cb.isSelected() + ">" );
+        currentConfig.setSensorsEnabled( cb.isSelected() );
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Warnungen an/aus
+      else if( cmd.equals( "individuals_warnings_on" ) )
+      {
+        LOGGER.log( Level.FINE, "warnings on  <" + cb.isSelected() + ">" );
+        currentConfig.setSountEnabled( cb.isSelected() );
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Bailout checkbox für ein Gas?
+      else if( cmd.startsWith( "bailout:" ) )
+      {
+        String[] fields = fieldPatternDp.split( cmd );
         try
         {
-          Thread.sleep( 350 );
+          int idx = Integer.parseInt( fields[1] );
+          LOGGER.log( Level.FINE, String.format( "Bailout %s changed.", cmd ) );
+          currGasList.setBailout( idx, cb.isSelected() );
         }
-        catch( InterruptedException ex )
-        {}
+        catch( NumberFormatException ex )
+        {
+          LOGGER.log( Level.SEVERE, "Exception while recive bailout checkbox event: " + ex.getLocalizedMessage() );
+        }
       }
-    }
-    // testen, ob da noch was zurückgeschrieben werden muss
-    if( progConfig != null )
-    {
-      if( progConfig.isWasChanged() )
+      // //////////////////////////////////////////////////////////////////////
+      // Diluent 1 für ein Gsas setzen?
+      else if( cmd.startsWith( "diluent1:" ) )
       {
+        String[] fields = fieldPatternDp.split( cmd );
         try
         {
-          LOGGER.log( Level.INFO, "write config to file..." );
-          new WriteConfig( progConfig );
+          int idx = Integer.parseInt( fields[1] );
+          LOGGER.log( Level.FINE, String.format( "Diluent 1  to %d changed.", idx ) );
+          if( cb.isSelected() )
+          {
+            currGasList.setDiluent1( idx );
+          }
         }
-        catch( IOException ex )
+        catch( NumberFormatException ex )
         {
-          ex.printStackTrace();
-        }
-        catch( ConfigReadWriteException ex )
-        {
-          ex.printStackTrace();
+          LOGGER.log( Level.SEVERE, "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
         }
       }
+      // //////////////////////////////////////////////////////////////////////
+      // Diluent 2 für ein Gsas setzen?
+      else if( cmd.startsWith( "diluent2:" ) )
+      {
+        String[] fields = fieldPatternDp.split( cmd );
+        try
+        {
+          int idx = Integer.parseInt( fields[1] );
+          LOGGER.log( Level.FINE, String.format( "Diluent 2  to %d changed.", idx ) );
+          if( cb.isSelected() )
+          {
+            currGasList.setDiluent2( idx );
+          }
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.log( Level.SEVERE, "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
+        }
+      }
+      else
+      {
+        LOGGER.log( Level.WARNING, "unknown item changed: <" + cb.getActionCommand() + "> <" + cb.isSelected() + ">" );
+      }
     }
-    System.exit( 0 );
   }
 
   /**
@@ -700,199 +1218,79 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     LOGGER.setUseParentHandlers( false );
   }
 
-  /**
-   * Wenn ein element meint, was zu melden...
-   */
   @Override
-  public void actionPerformed( ActionEvent ev )
-  {
-    if( ignoreAction ) return;
-    // /////////////////////////////////////////////////////////////////////////
-    // Meine Actions
-    if( ev.getID() > ActionEvent.ACTION_FIRST )
-    {
-      processMessageActions( ev );
-      return;
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // MENÜ
-    else if( ev.getSource() instanceof JMenuItem )
-    {
-      processMenuActions( ev );
-      return;
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Button
-    else if( ev.getSource() instanceof JButton )
-    {
-      processButtonActions( ev );
-      return;
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Combobox
-    else if( ev.getSource() instanceof JComboBox )
-    {
-      processComboBoxActions( ev );
-      return;
-    }
-  }
+  public void mouseDragged( MouseEvent ev )
+  {}
 
   /**
-   * Bearbeitet Combobox actions Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
-   * @param ev
-   *          Avtion event
+   * Wenn sich die Maus über was bewegt...
    */
-  private void processComboBoxActions( ActionEvent ev )
+  @Override
+  public void mouseMoved( MouseEvent ev )
   {
-    String cmd = ev.getActionCommand();
-    String entry = null;
-    JComboBox srcBox = ( JComboBox )ev.getSource();
-    // /////////////////////////////////////////////////////////////////////////
-    // Auswahl welches Gerät soll verbunden werden
-    if( connectionPanel.deviceToConnectComboBox.equals( srcBox ) )
+    // Ist die Maus da irgendwo hingefahren?
+    if( ev.getSource() instanceof JButton )
     {
-      if( srcBox.getSelectedIndex() == -1 )
-      {
-        // nix selektiert
-        return;
-      }
-      entry = ( String )srcBox.getItemAt( srcBox.getSelectedIndex() );
-      LOGGER.log( Level.FINE, "select port <" + entry + ">..." );
+      setStatus( ( ( JButton )ev.getSource() ).getToolTipText() );
     }
-    // /////////////////////////////////////////////////////////////////////////
-    // Letzter Decostop auf 3 oder 6 Meter
-    else if( cmd.equals( "deco_last_stop" ) )
+    else if( ev.getSource() instanceof JComboBox )
     {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "deco last stop <" + entry + ">..." );
-      currentConfig.setLastStop( srcBox.getSelectedIndex() );
+      setStatus( ( ( JComboBox )ev.getSource() ).getToolTipText() );
     }
-    // /////////////////////////////////////////////////////////////////////////
-    // Preset für Deco-Gradienten ausgewählt
-    else if( cmd.equals( "deco_gradient_preset" ) )
+    else if( ev.getSource() instanceof JMenuItem )
     {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "gradient preset <" + entry + ">, Index: <" + srcBox.getSelectedIndex() + ">..." );
-      currentConfig.setDecoGfPreset( srcBox.getSelectedIndex() );
-      // Spinner setzen
-      setGradientSpinnersAfterPreset( srcBox.getSelectedIndex() );
+      setStatus( ( ( JMenuItem )ev.getSource() ).getToolTipText() );
     }
-    // /////////////////////////////////////////////////////////////////////////
-    // Autosetpoint Voreinstellung
-    else if( cmd.equals( "set_autosetpoint" ) )
+    else if( ev.getSource() instanceof JSpinner )
     {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "autosetpoint preset <" + entry + ">..." );
-      currentConfig.setAutoSetpoint( srcBox.getSelectedIndex() );
+      setStatus( ( ( JSpinner )ev.getSource() ).getToolTipText() );
     }
-    // /////////////////////////////////////////////////////////////////////////
-    // Setpoint für höchsten PPO2 Wert einstellen
-    else if( cmd.equals( "set_highsetpoint" ) )
+    else if( ev.getSource() instanceof JCheckBox )
     {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "hightsetpoint <" + entry + ">..." );
-      currentConfig.setMaxSetpoint( srcBox.getSelectedIndex() );
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Helligkeit des Displays
-    else if( cmd.equals( "set_disp_brightness" ) )
-    {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "brightness <" + entry + ">..." );
-      currentConfig.setDisplayBrithtness( srcBox.getSelectedIndex() );
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Ausrichtung des Displays
-    else if( cmd.equals( "set_display_orientation" ) )
-    {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "orientation <" + entry + ">..." );
-      currentConfig.setDisplayOrientation( srcBox.getSelectedIndex() );
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Grad Celsius oder Fahrenheit einstellen
-    else if( cmd.equals( "set_temperature_unit" ) )
-    {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "temperature unit <" + entry + ">..." );
-      currentConfig.setUnitTemperature( srcBox.getSelectedIndex() );
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Maßeinheit für Tiefe festlegen
-    else if( cmd.equals( "set_depth_unit" ) )
-    {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "depth unit <" + entry + ">..." );
-      currentConfig.setUnitDepth( srcBox.getSelectedIndex() );
-      if( currentConfig.isBuggyFirmware() )
-      {
-        if( srcBox.getSelectedIndex() == 0 )
-        {
-          configPanel.unitsTemperatureComboBox.setSelectedIndex( 1 );
-        }
-        else
-        {
-          configPanel.unitsTemperatureComboBox.setSelectedIndex( 0 );
-        }
-      }
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Süßwasser oder Salzwasser
-    else if( cmd.equals( "set_salnity" ) )
-    {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "salnity <" + entry + ">..." );
-      currentConfig.setUnitSalnyty( srcBox.getSelectedIndex() );
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Loginterval einstellen
-    else if( cmd.equals( "set_loginterval" ) )
-    {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "loginterval <" + entry + ">..." );
-      currentConfig.setLogInterval( srcBox.getSelectedIndex() );
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Anzahl der sensoren für Messung/Warung einstellen
-    else if( cmd.equals( "set_sensorwarnings" ) )
-    {
-      entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "sensorwarnings <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
-      currentConfig.setSensorsCount( srcBox.getSelectedIndex() );
+      setStatus( ( ( JCheckBox )ev.getSource() ).getToolTipText() );
     }
     else
     {
-      LOGGER.log( Level.WARNING, "unknown combobox command <" + cmd + "> recived." );
+      setStatus( "" );
     }
   }
 
   /**
-   * Wurde das Preset verändert, Spinner entsprechend ausfüllen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * Die Statusbar soll sich bewegen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
-   * @param selectedIndex
-   *          Der Index der Combobox
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 10.01.2012
    */
-  private void setGradientSpinnersAfterPreset( int selectedIndex )
+  private void moveStatusBar()
   {
-    // nach Preset einstellen?
-    switch ( selectedIndex )
+    if( connectionPanel.discoverProgressBar.getMaximum() == connectionPanel.discoverProgressBar.getValue() )
     {
-      case VERY_CONSERVATIVE:
-      case CONSERVATIVE:
-      case MODERATE:
-      case AGGRESSIVE:
-      case VERY_AGGRESSIVE:
-        // in den oben genannten Fällen die Spinner auf den Preset einstellen
-        ignoreAction = true;
-        configPanel.decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
-        configPanel.decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
-        ignoreAction = false;
-        LOGGER.log( Level.FINE, "spinner korrected for preset." );
-        break;
+      connectionPanel.discoverProgressBar.setValue( 0 );
+      return;
     }
+    connectionPanel.discoverProgressBar.setValue( connectionPanel.discoverProgressBar.getValue() + 1 );
+  }
+
+  /**
+   * Datenbankfür das Programm vorbereiten oder erzeugen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.04.2012
+   */
+  private void prepareDatabase()
+  {
+    // Verbindung zum Datenbanktreiber
+    sqliteDbUtil = new ConnectDatabaseUtil( LOGGER, progConfig.getDatabaseDir().getAbsolutePath() + File.separator + ProjectConst.DB_FILENAME );
+    if( sqliteDbUtil == null )
+    {
+      LOGGER.log( Level.SEVERE, "can connect to database drivers!" );
+      System.exit( -1 );
+    }
+    // öffne die Datenbank
+    // ging das?
+    if( sqliteDbUtil.createConnection() == null )
+    {
+      System.exit( -1 );
+    }
+    // hier ist alles gut...
   }
 
   /**
@@ -1112,47 +1510,133 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Schreibe die aktuelle Konfiguration in den SPX42 Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * Bearbeitet Combobox actions Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.04.2012
-   * @param cnf
-   *          Config objekt
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param ev
+   *          Avtion event
    */
-  private void writeConfigToSPX( SPX42Config cnf )
+  private void processComboBoxActions( ActionEvent ev )
   {
-    //
-    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.writeSpxConfig" ) );
-    wDial.setMax( BTCommunication.CONFIG_WRITE_KDO_COUNT );
-    wDial.resetProgress();
-    wDial.setVisible( true );
-    LOGGER.log( Level.INFO, "write config to SPX42..." );
-    btComm.writeConfigToSPX( currentConfig );
-  }
-
-  /**
-   * Setze PIN für Gerät in der Auswahl Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.01.2012
-   */
-  private void setPinForDevice()
-  {
-    String deviceName = null;
-    ImageIcon icon = null;
-    String pinString = null;
-    // Welche Schnittstelle?
-    if( connectionPanel.deviceToConnectComboBox.getSelectedIndex() == -1 )
+    String cmd = ev.getActionCommand();
+    String entry = null;
+    JComboBox srcBox = ( JComboBox )ev.getSource();
+    // /////////////////////////////////////////////////////////////////////////
+    // Auswahl welches Gerät soll verbunden werden
+    if( connectionPanel.deviceToConnectComboBox.equals( srcBox ) )
     {
-      LOGGER.log( Level.WARNING, "no connection device selected!" );
-      showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
-      return;
+      if( srcBox.getSelectedIndex() == -1 )
+      {
+        // nix selektiert
+        return;
+      }
+      entry = ( String )srcBox.getItemAt( srcBox.getSelectedIndex() );
+      LOGGER.log( Level.FINE, "select port <" + entry + ">..." );
     }
-    deviceName = ( String )connectionPanel.deviceToConnectComboBox.getItemAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
-    icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) );
-    pinString = ( String )JOptionPane.showInputDialog( this, stringsBundle.getString( "MainCommGUI.setPinDialog.text" ) + " <" + deviceName + ">",
-            stringsBundle.getString( "MainCommGUI.setPinDialog.headline" ), JOptionPane.PLAIN_MESSAGE, icon, null, btComm.getPinForDevice( deviceName ) );
-    if( pinString != null )
+    // /////////////////////////////////////////////////////////////////////////
+    // Letzter Decostop auf 3 oder 6 Meter
+    else if( cmd.equals( "deco_last_stop" ) )
     {
-      btComm.setPinForDevice( deviceName, pinString );
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "deco last stop <" + entry + ">..." );
+      currentConfig.setLastStop( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Preset für Deco-Gradienten ausgewählt
+    else if( cmd.equals( "deco_gradient_preset" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "gradient preset <" + entry + ">, Index: <" + srcBox.getSelectedIndex() + ">..." );
+      currentConfig.setDecoGfPreset( srcBox.getSelectedIndex() );
+      // Spinner setzen
+      setGradientSpinnersAfterPreset( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Autosetpoint Voreinstellung
+    else if( cmd.equals( "set_autosetpoint" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "autosetpoint preset <" + entry + ">..." );
+      currentConfig.setAutoSetpoint( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Setpoint für höchsten PPO2 Wert einstellen
+    else if( cmd.equals( "set_highsetpoint" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "hightsetpoint <" + entry + ">..." );
+      currentConfig.setMaxSetpoint( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Helligkeit des Displays
+    else if( cmd.equals( "set_disp_brightness" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "brightness <" + entry + ">..." );
+      currentConfig.setDisplayBrithtness( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Ausrichtung des Displays
+    else if( cmd.equals( "set_display_orientation" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "orientation <" + entry + ">..." );
+      currentConfig.setDisplayOrientation( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Grad Celsius oder Fahrenheit einstellen
+    else if( cmd.equals( "set_temperature_unit" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "temperature unit <" + entry + ">..." );
+      currentConfig.setUnitTemperature( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Maßeinheit für Tiefe festlegen
+    else if( cmd.equals( "set_depth_unit" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "depth unit <" + entry + ">..." );
+      currentConfig.setUnitDepth( srcBox.getSelectedIndex() );
+      if( currentConfig.isBuggyFirmware() )
+      {
+        if( srcBox.getSelectedIndex() == 0 )
+        {
+          configPanel.unitsTemperatureComboBox.setSelectedIndex( 1 );
+        }
+        else
+        {
+          configPanel.unitsTemperatureComboBox.setSelectedIndex( 0 );
+        }
+      }
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Süßwasser oder Salzwasser
+    else if( cmd.equals( "set_salnity" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "salnity <" + entry + ">..." );
+      currentConfig.setUnitSalnyty( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Loginterval einstellen
+    else if( cmd.equals( "set_loginterval" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "loginterval <" + entry + ">..." );
+      currentConfig.setLogInterval( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Anzahl der sensoren für Messung/Warung einstellen
+    else if( cmd.equals( "set_sensorwarnings" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      LOGGER.log( Level.FINE, "sensorwarnings <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
+      currentConfig.setSensorsCount( srcBox.getSelectedIndex() );
+    }
+    else
+    {
+      LOGGER.log( Level.WARNING, "unknown combobox command <" + cmd + "> recived." );
     }
   }
 
@@ -1724,126 +2208,15 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Die devicebox neu befüllen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Hilfsfunktion zum start speichern/update eines Tauchlogs
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 12.07.2012
-   * @param logListEntry
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.01.2012
    */
-  private int computeLogRequest( Integer[] logListEntry )
+  private void refillPortComboBox()
   {
-    // liegt ein updatewunsch vor?
-    if( logListEntry[1] > 0 )
-    {
-      LOGGER.log( Level.WARNING, "dive logentry alredy there. Ask user for continue..." );
-      //@formatter:off
-      // Zeige dem geneigten User eine Dialogbox, in welcher er entscheiden muss: Update oder überspringen
-      Object[] options =
-      { 
-        stringsBundle.getString( "MainCommGui.updateWarnDialog.updateButton" ),
-        stringsBundle.getString( "MainCommGui.updateWarnDialog.cancelButton" )
-      };
-      int retOption =  JOptionPane.showOptionDialog( 
-              null, 
-              stringsBundle.getString( "MainCommGui.updateWarnDialog.messageUpdate" ), 
-              stringsBundle.getString( "MainCommGui.updateWarnDialog.headLine" ), 
-              JOptionPane.DEFAULT_OPTION, 
-              JOptionPane.WARNING_MESSAGE, 
-              null, 
-              options, 
-              options[0] 
-              );
-      //@formatter:on
-      if( retOption == 1 )
-      {
-        LOGGER.log( Level.INFO, "user has cancel to update divelog entry." );
-        return( 0 );
-      }
-      else
-      {
-        // update datensatz!
-        logListPanel.setNextLogIsAnUpdate( true, logListEntry[0] );
-      }
-    }
-    // datensatz anlegen
-    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.waitForReadDive" ) );
-    wDial.setDetailMessage( String.format( stringsBundle.getString( "PleaseWaitDialog.readDiveNumber" ), logListEntry[0] ) );
-    wDial.setVisible( true );
-    // Sag dem SPX er soll alles schicken
-    LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry[0] + ">" );
-    btComm.readLogDetailFromSPX( logListEntry[0] );
-    return( 1 );
-  }
-
-  /**
-   * 
-   * Decodiere die Nachricht über einen Logverzeichniseintrag
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.05.2012
-   * @param entryMsg
-   * @return
-   */
-  private String decodeLogDirEntry( String entryMsg )
-  {
-    // Message etwa so <~41:21:9_4_10_20_44_55.txt:22>
-    String[] fields;
-    String fileName;
-    int number, max;
-    int day, month, year, hour, minute, second;
-    //
-    // Felder aufteilen
-    fields = fieldPatternDp.split( entryMsg );
-    if( fields.length < 4 )
-    {
-      LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
-      return( null );
-    }
-    // Wandel die Nummerierung in Integer um
-    try
-    {
-      number = Integer.parseInt( fields[1], 16 );
-      max = Integer.parseInt( fields[3], 16 );
-    }
-    catch( NumberFormatException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
-      return( null );
-    }
-    fileName = fields[2];
-    // verwandle die Dateiangabe in eine lesbare Datumsangabe
-    // Format des Strings ist ja
-    // TAG_MONAT_JAHR_STUNDE_MINUTE_SEKUNDE
-    // des Beginns der Aufzeichnung
-    fields = fieldPatternUnderln.split( fields[2] );
-    try
-    {
-      day = Integer.parseInt( fields[0] );
-      month = Integer.parseInt( fields[1] );
-      year = Integer.parseInt( fields[2] ) + 2000;
-      hour = Integer.parseInt( fields[3] );
-      minute = Integer.parseInt( fields[4] );
-      second = Integer.parseInt( fields[5] );
-    }
-    catch( NumberFormatException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
-      return( null );
-    }
-    // So, die Angaben des SPX sind immer im Localtime-Format
-    // daher werde ich die auch so interpretieren
-    // Die Funktion macht das in der default-Lokalzone, sollte also
-    // da sein, wio der SPX auch ist... (schwieriges Thema)
-    DateTime tm = new DateTime( year, month, day, hour, minute, second );
-    DateTimeFormatter fmt = DateTimeFormat.forPattern( timeFormatterString );
-    return( String.format( "%d;%s;%s;%d", number, fileName, tm.toString( fmt ), max ) );
+    String[] entrys = btComm.getNameArray( false );
+    ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
+    connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
   }
 
   /**
@@ -1869,64 +2242,299 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Die devicebox neu befüllen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.01.2012
-   */
-  private void refillPortComboBox()
-  {
-    String[] entrys = btComm.getNameArray( false );
-    ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
-    connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
-  }
-
-  /**
-   * Die Statusbar soll sich bewegen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * Setze alle Kon´figurationspanels auf "Enabled" wenn möglich
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 10.01.2012
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.07.2012
+   * @param en
+   * 
    */
-  private void moveStatusBar()
+  private void setAllConfigPanlelsEnabled( boolean en )
   {
-    if( connectionPanel.discoverProgressBar.getMaximum() == connectionPanel.discoverProgressBar.getValue() )
+    configPanel.setDecoPanelEnabled( en );
+    configPanel.setDisplayPanelEnabled( en );
+    configPanel.setUnitsPanelEnabled( en );
+    configPanel.setSetpointPanel( en );
+    // nur, wenn eine gültige Konfiguration gelesen wurde
+    if( savedConfig != null )
     {
-      connectionPanel.discoverProgressBar.setValue( 0 );
-      return;
+      // Gibt es eine Lizenz für Custom Config?
+      if( currentConfig.getCustomEnabled() == 1 )
+      {
+        configPanel.setIndividualsPanelEnabled( true );
+      }
+      else
+      {
+        configPanel.setIndividualsPanelEnabled( false );
+      }
     }
-    connectionPanel.discoverProgressBar.setValue( connectionPanel.discoverProgressBar.getValue() + 1 );
+    else
+    {
+      // Keine Config gelesen!
+      configPanel.setIndividualsPanelEnabled( false );
+    }
+    logListPanel.setAllLogPanelsEnabled( en );
   }
 
   /**
-   * Zeigt eine Warnung an Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * Setze combobox für Deco Gradienten Preset entsprechend der Angaben in den Spinnern Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
-   * @param msg
-   *          Warnmessage
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
+   * @param decoValue
    */
-  private void showWarnBox( String msg )
+  private void setDecoComboAfterSpinnerChange()
   {
-    ImageIcon icon = null;
+    int currentPreset = currentConfig.getDecoGfPreset();
+    if( configPanel.decoGradientenPresetComboBox.getSelectedIndex() != currentPreset )
+    {
+      ignoreAction = true;
+      configPanel.decoGradientenPresetComboBox.setSelectedIndex( currentPreset );
+      ignoreAction = false;
+    }
+  }
+
+  /**
+   * Elemente abhängig vom Connectstatus erlauben/sperren Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.12.2011
+   * @param active
+   */
+  private void setElementsConnected( boolean active )
+  {
+    connectionPanel.setElementsConnected( active );
+    tabbedPane.setEnabledAt( TAB_CONFIG, active );
+    tabbedPane.setEnabledAt( TAB_GASLIST, active );
+    tabbedPane.setEnabledAt( TAB_LOGREAD, active );
+    if( !active )
+    {
+      configPanel.serialNumberText.setText( "-" );
+      configPanel.firmwareVersionValueLabel.setText( "-" );
+      if( savedConfig != null )
+      {
+        savedConfig = null;
+      }
+      currentConfig.clear();
+    }
+  }
+
+  /**
+   * Beim Verbindungsaufbau inaktiv zeigen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
+   * @param active
+   *          Aktiv oder nicht
+   */
+  private void setElementsInactive( boolean active )
+  {
+    connectionPanel.setElementsInactive( active );
+    tabbedPane.setEnabledAt( TAB_CONFIG, active );
+  }
+
+  /**
+   * 
+   * Färbe die Texte für die Gasse noch ordentlich ein
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 30.07.2012
+   * @param gasNr
+   * @param o2
+   */
+  private void setGasColor( int gasNr, int o2 )
+  {
+    if( o2 < 14 )
+    {
+      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasDangerousColor );
+      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasDangerousColor );
+    }
+    else if( o2 < 21 )
+    {
+      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNoNormOxicColor );
+      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNoNormOxicColor );
+    }
+    else
+    {
+      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNameNormalColor );
+      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNameNormalColor );
+    }
+  }
+
+  /**
+   * Die Callbacks setzen, wenn sich in den Panels was ändert! Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
+   */
+  private void setGlobalChangeListener()
+  {
+    tabbedPane.addChangeListener( this );
+    connectionPanel.setGlobalChangeListener( this );
+    configPanel.setGlobalChangeListener( this );
+    gasConfigPanel.setGlobalChangeListener( this );
+    logListPanel.setGlobalChangeListener( this );
+    logGraphPanel.setGlobalChangeListener( this );
+  }
+
+  /**
+   * Wurde das Preset verändert, Spinner entsprechend ausfüllen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
+   * @param selectedIndex
+   *          Der Index der Combobox
+   */
+  private void setGradientSpinnersAfterPreset( int selectedIndex )
+  {
+    // nach Preset einstellen?
+    switch ( selectedIndex )
+    {
+      case VERY_CONSERVATIVE:
+      case CONSERVATIVE:
+      case MODERATE:
+      case AGGRESSIVE:
+      case VERY_AGGRESSIVE:
+        // in den oben genannten Fällen die Spinner auf den Preset einstellen
+        ignoreAction = true;
+        configPanel.decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
+        configPanel.decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
+        ignoreAction = false;
+        LOGGER.log( Level.FINE, "spinner korrected for preset." );
+        break;
+    }
+  }
+
+  /**
+   * Setze alle Strings im Form Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
+   */
+  private int setLanguageStrings()
+  {
+    // so, ignoriere mal alles....
+    ignoreAction = true;
     try
     {
-      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Abort.png" ) );
-      JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
-    }
-    catch( NullPointerException ex )
-    {
-      statusTextField.setText( "ERROR showWarnDialog" );
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
-      return;
+      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
     }
     catch( MissingResourceException ex )
     {
-      statusTextField.setText( "ERROR showWarnDialog" );
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
-      return;
+      System.out.println( "ERROR get resources <" + ex.getMessage() + "> ABORT!" );
+      return( -1 );
+    }
+    try
+    {
+      setStatus( "" );
+      timeFormatterString = stringsBundle.getString( "MainCommGUI.timeFormatterString" );
+      // Hauptfenster
+      frmMainwindowtitle.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) );
+      // Menü
+      mnFile.setText( stringsBundle.getString( "MainCommGUI.mnFile.text" ) );
+      mnFile.setToolTipText( stringsBundle.getString( "MainCommGUI.mnFile.tooltiptext" ) );
+      mntmExit.setText( stringsBundle.getString( "MainCommGUI.mntmExit.text" ) );
+      mntmExit.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmExit.tooltiptext" ) );
+      mnLanguages.setText( stringsBundle.getString( "MainCommGUI.mnLanguages.text" ) );
+      mnLanguages.setToolTipText( stringsBundle.getString( "MainCommGUI.mnLanguages.tooltiptext" ) );
+      mnOptions.setText( stringsBundle.getString( "MainCommGUI.mnOptions.text" ) );
+      mnOptions.setToolTipText( stringsBundle.getString( "MainCommGUI.mnOptions.tooltiptext" ) );
+      mntmOptions.setText( stringsBundle.getString( "MainCommGUI.mntmOptions.text" ) );
+      mntmOptions.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmOptions.tooltiptext" ) );
+      mnHelp.setText( stringsBundle.getString( "MainCommGUI.mnHelp.text" ) );
+      mnHelp.setToolTipText( stringsBundle.getString( "MainCommGUI.mnHelp.tooltiptext" ) );
+      mntmHelp.setText( stringsBundle.getString( "MainCommGUI.mntmHelp.text" ) );
+      mntmHelp.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmHelp.tooltiptext" ) );
+      mntmInfo.setText( stringsBundle.getString( "MainCommGUI.mntmInfo.text" ) );
+      mntmInfo.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmInfo.tooltiptext" ) );
+      // //////////////////////////////////////////////////////////////////////
+      // //////////////////////////////////////////////////////////////////////
+      // Tabbed Panes
+      // //////////////////////////////////////////////////////////////////////
+      // Tabbed Pane connect
+      tabbedPane.setTitleAt( TAB_CONNECT, stringsBundle.getString( "spx42ConnectPanel.title" ) );
+      connectionPanel.setLanguageStrings( stringsBundle, btComm.isConnected() );
+      // //////////////////////////////////////////////////////////////////////
+      // Tabbed Pane config
+      tabbedPane.setTitleAt( TAB_CONFIG, stringsBundle.getString( "spx42ConfigPanel.title" ) );
+      configPanel.setLanguageStrings( stringsBundle );
+      // //////////////////////////////////////////////////////////////////////
+      // Tabbed Pane gas
+      tabbedPane.setTitleAt( TAB_GASLIST, stringsBundle.getString( "spx42GaslistEditPanel.title" ) );
+      gasConfigPanel.setLanguageStrings( stringsBundle );
+      // //////////////////////////////////////////////////////////////////////
+      // Tabbed Pane log
+      tabbedPane.setTitleAt( TAB_LOGREAD, stringsBundle.getString( "spx42LoglistPanel.title" ) );
+      logListPanel.setLanguageStrings( stringsBundle );
+      // //////////////////////////////////////////////////////////////////////
+      // Tabbed Pane graph
+      tabbedPane.setTitleAt( TAB_LOGGRAPH, stringsBundle.getString( "spx42LogGraphPanel.title" ) );
+      logGraphPanel.setLanguageStrings( stringsBundle );
+    }
+    catch( NullPointerException ex )
+    {
+      statusTextField.setText( "ERROR set language strings" );
+      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
+      return( -1 );
+    }
+    catch( MissingResourceException ex )
+    {
+      statusTextField.setText( "ERROR set language strings - the given key can be found" );
+      System.out.println( "ERROR set language strings - the given key can be found <" + ex.getMessage() + "> ABORT!" );
+      return( 0 );
     }
     catch( ClassCastException ex )
     {
-      statusTextField.setText( "ERROR showWarnDialog" );
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      statusTextField.setText( "ERROR set language strings" );
+      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
+      return( 0 );
+    }
+    finally
+    {
+      ignoreAction = false;
+    }
+    return( 1 );
+  }
+
+  /**
+   * Setze PIN für Gerät in der Auswahl Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.01.2012
+   */
+  private void setPinForDevice()
+  {
+    String deviceName = null;
+    ImageIcon icon = null;
+    String pinString = null;
+    // Welche Schnittstelle?
+    if( connectionPanel.deviceToConnectComboBox.getSelectedIndex() == -1 )
+    {
+      LOGGER.log( Level.WARNING, "no connection device selected!" );
+      showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
       return;
+    }
+    deviceName = ( String )connectionPanel.deviceToConnectComboBox.getItemAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
+    icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) );
+    pinString = ( String )JOptionPane.showInputDialog( this, stringsBundle.getString( "MainCommGUI.setPinDialog.text" ) + " <" + deviceName + ">",
+            stringsBundle.getString( "MainCommGUI.setPinDialog.headline" ), JOptionPane.PLAIN_MESSAGE, icon, null, btComm.getPinForDevice( deviceName ) );
+    if( pinString != null )
+    {
+      btComm.setPinForDevice( deviceName, pinString );
+    }
+  }
+
+  /**
+   * Statustext in der Statuszeile setzen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.12.2011
+   * @param msg
+   */
+  private void setStatus( String msg )
+  {
+    if( statusTextField != null )
+    {
+      statusTextField.setText( msg );
     }
   }
 
@@ -1971,6 +2579,16 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Zeige ein Hilfe-Fenster Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
+   */
+  private void showHelpForm()
+  {
+    new HelpFrameClass( programLocale, LOGGER );
+  }
+
+  /**
    * 
    * Zeige eine klein Info über das Proggi an Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
@@ -2008,164 +2626,92 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Zeige ein Hilfe-Fenster Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
+   * Zeige einen Optionendialog zur Einstellung von Programmgeschichten
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.07.2012
    */
-  private void showHelpForm()
+  private void showPropertysDialog()
   {
-    new HelpFrameClass( programLocale, LOGGER );
-  }
-
-  @Override
-  public void mouseDragged( MouseEvent ev )
-  {}
-
-  /**
-   * Wenn sich die Maus über was bewegt...
-   */
-  @Override
-  public void mouseMoved( MouseEvent ev )
-  {
-    // Ist die Maus da irgendwo hingefahren?
-    if( ev.getSource() instanceof JButton )
+    if( btComm != null )
     {
-      setStatus( ( ( JButton )ev.getSource() ).getToolTipText() );
+      if( btComm.isConnected() )
+      {
+        showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.onlyNotConnected" ) );
+        return;
+      }
     }
-    else if( ev.getSource() instanceof JComboBox )
+    LOGGER.log( Level.FINE, "create an show propertys dialog..." );
+    // Wenn da was passieren sollte, muss die DB geschlossen sein.
+    if( sqliteDbUtil != null )
     {
-      setStatus( ( ( JComboBox )ev.getSource() ).getToolTipText() );
+      sqliteDbUtil.closeDB();
     }
-    else if( ev.getSource() instanceof JMenuItem )
+    ProgramProperetysDialog pDial = new ProgramProperetysDialog( stringsBundle, progConfig, LOGGER );
+    // pDial.setVisible( true );
+    if( pDial.showModal() )
     {
-      setStatus( ( ( JMenuItem )ev.getSource() ).getToolTipText() );
-    }
-    else if( ev.getSource() instanceof JSpinner )
-    {
-      setStatus( ( ( JSpinner )ev.getSource() ).getToolTipText() );
-    }
-    else if( ev.getSource() instanceof JCheckBox )
-    {
-      setStatus( ( ( JCheckBox )ev.getSource() ).getToolTipText() );
+      LOGGER.log( Level.FINE, "dialog whith OK closed...." );
+      // progConfig = pDial.getProcConfig();
+      if( progConfig.isWasChanged() )
+      {
+        showWarnBox( "RESTART PROGRAMM!" );
+        pDial.dispose();
+        exitProgram();
+      }
+      LOGGER.log( Level.FINE, "dialog whith OK closed NO Changes...." );
+      // reconnect mit DB
+      if( sqliteDbUtil.createConnection() == null )
+      {
+        LOGGER.severe( "can't reconnect to database! ABORT!" );
+        System.exit( -1 );
+      }
     }
     else
     {
-      setStatus( "" );
+      LOGGER.log( Level.FINE, "dialog canceled...." );
     }
+    pDial.dispose();
+    LOGGER.log( Level.FINE, "dialog disposed..." );
   }
 
   /**
-   * Beim Verbindungsaufbau inaktiv zeigen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
+   * Zeigt eine Warnung an Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
-   * @param active
-   *          Aktiv oder nicht
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param msg
+   *          Warnmessage
    */
-  private void setElementsInactive( boolean active )
+  private void showWarnBox( String msg )
   {
-    connectionPanel.setElementsInactive( active );
-    tabbedPane.setEnabledAt( TAB_CONFIG, active );
-  }
-
-  /**
-   * Elemente abhängig vom Connectstatus erlauben/sperren Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.12.2011
-   * @param active
-   */
-  private void setElementsConnected( boolean active )
-  {
-    connectionPanel.setElementsConnected( active );
-    tabbedPane.setEnabledAt( TAB_CONFIG, active );
-    tabbedPane.setEnabledAt( TAB_GASLIST, active );
-    tabbedPane.setEnabledAt( TAB_LOGREAD, active );
-    if( !active )
+    ImageIcon icon = null;
+    try
     {
-      configPanel.serialNumberText.setText( "-" );
-      configPanel.firmwareVersionValueLabel.setText( "-" );
-      if( savedConfig != null )
-      {
-        savedConfig = null;
-      }
-      currentConfig.clear();
+      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Abort.png" ) );
+      JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
     }
-  }
-
-  /**
-   * Verbine mit SPX42 Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 20.12.2011
-   */
-  private void connectSPX()
-  {
-    // Welche Schnittstelle?
-    if( connectionPanel.deviceToConnectComboBox.getSelectedIndex() == -1 )
+    catch( NullPointerException ex )
     {
-      LOGGER.log( Level.WARNING, "no connection device selected!" );
-      showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
+      statusTextField.setText( "ERROR showWarnDialog" );
+      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
-    String deviceName = ( String )connectionPanel.deviceToConnectComboBox.getItemAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
-    LOGGER.log( Level.FINE, "connect via device <" + deviceName + ">..." );
-    if( btComm.isConnected() )
+    catch( MissingResourceException ex )
     {
-      // ist verbunden, was nun?
+      statusTextField.setText( "ERROR showWarnDialog" );
+      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
-    else
+    catch( ClassCastException ex )
     {
-      try
-      {
-        btComm.connectDevice( deviceName );
-      }
-      catch( Exception ex )
-      {
-        // TODO sinnvoll anzeigen
-        LOGGER.log( Level.SEVERE, "Exception: <" + ex.getMessage() + ">" );
-      }
+      statusTextField.setText( "ERROR showWarnDialog" );
+      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
     }
-  }
-
-  /**
-   * Verbindung trennen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 20.12.2011
-   */
-  private void disconnectSPX()
-  {
-    if( btComm.isConnected() )
-    {
-      LOGGER.log( Level.FINE, "disconnect SPX42..." );
-      btComm.disconnectDevice();
-    }
-  }
-
-  /**
-   * Programmsprache wechseln Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 19.12.2011
-   * @param cmd
-   *          Sprachenkürzel
-   */
-  private void changeProgramLanguage( String cmd )
-  {
-    String[] langs = null;
-    langs = cmd.split( "_" );
-    if( langs.length > 1 && langs[1] != null )
-    {
-      programLocale = new Locale( langs[0], langs[1] );
-    }
-    else
-    {
-      programLocale = new Locale( langs[0] );
-    }
-    Locale.setDefault( programLocale );
-    if( currentConfig != null )
-    {
-      // da verändern sich die Einstellungen, daher ungültig setzen
-      currentConfig.setWasInit( false );
-    }
-    setLanguageStrings();
   }
 
   @Override
@@ -2267,555 +2813,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Ändere Heliumanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * Schreibe die aktuelle Konfiguration in den SPX42 Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
-   * @param gasNr
-   *          welches Gas denn
-   * @param he
-   *          Heliumanteil
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.04.2012
+   * @param cnf
+   *          Config objekt
    */
-  private void changeHEFromGas( int gasNr, int he )
+  private void writeConfigToSPX( SPX42Config cnf )
   {
-    int o2;
-    o2 = currGasList.getO2FromGas( gasNr );
-    ignoreAction = true;
-    if( he < 0 )
-    {
-      he = 0;
-      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( 0 );
-    }
-    else if( he > 100 )
-    {
-      // Mehr als 100% geht nicht!
-      // ungesundes Zeug!
-      o2 = 0;
-      he = 100;
-      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( he );
-      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( o2 );
-      LOGGER.log( Level.WARNING, String.format( "change helium (max) in Gas %d Value: <%d/0x%02x>...", gasNr, he, he ) );
-    }
-    else if( ( o2 + he ) > 100 )
-    {
-      // Auch hier geht nicht mehr als 100%
-      // Sauerstoff verringern!
-      o2 = 100 - he;
-      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( o2 );
-      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
-    }
-    else
-    {
-      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
-    }
-    currGasList.setGas( gasNr, o2, he );
-    ( gasConfigPanel.gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
-    setGasColor( gasNr, o2 );
-    ignoreAction = false;
-  }
-
-  /**
-   * Ändere Sauerstoffanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
-   * @param gasNr
-   *          welches Gas
-   * @param o2
-   *          Sauerstoffanteil
-   */
-  private void changeO2FromGas( int gasNr, int o2 )
-  {
-    int he;
-    he = currGasList.getHEFromGas( gasNr );
-    ignoreAction = true;
-    if( o2 < 0 )
-    {
-      // das Zeut ist dann auch ungesund!
-      o2 = 0;
-      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( 0 );
-    }
-    else if( o2 > 100 )
-    {
-      // Mehr als 100% geht nicht!
-      o2 = 100;
-      he = 0;
-      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( he );
-      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( o2 );
-      LOGGER.log( Level.WARNING, String.format( "change oxygen (max) in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
-    }
-    else if( ( o2 + he ) > 100 )
-    {
-      // Auch hier geht nicht mehr als 100%
-      // Helium verringern!
-      he = 100 - o2;
-      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( he );
-      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
-    }
-    else
-    {
-      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
-    }
-    currGasList.setGas( gasNr, o2, he );
-    // erzeuge und setze noch den Gasnamen
-    // färbe dabei gleich die Zahlen ein
-    ( gasConfigPanel.gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
-    setGasColor( gasNr, o2 );
-    ignoreAction = false;
-  }
-
-  /**
-   * 
-   * Färbe die Texte für die Gasse noch ordentlich ein
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 30.07.2012
-   * @param gasNr
-   * @param o2
-   */
-  private void setGasColor( int gasNr, int o2 )
-  {
-    if( o2 < 14 )
-    {
-      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasDangerousColor );
-      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasDangerousColor );
-    }
-    else if( o2 < 21 )
-    {
-      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNoNormOxicColor );
-      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNoNormOxicColor );
-    }
-    else
-    {
-      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNameNormalColor );
-      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNameNormalColor );
-    }
-  }
-
-  /**
-   * Gib einen Kurznamen für das Gasgemisch Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
-   * @param gasNr
-   *          Gasnummer
-   */
-  private String getNameForGas( int gasNr )
-  {
-    int o2, he, n2;
-    // Hexenküche: Was haben wir denn da....
-    o2 = currGasList.getO2FromGas( gasNr );
-    he = currGasList.getHEFromGas( gasNr );
-    n2 = currGasList.getN2FromGas( gasNr );
-    // Mal sondieren
-    if( n2 == 0 )
-    {
-      // heliox oder O2
-      if( o2 == 100 )
-      {
-        return( "O2" );
-      }
-      // Es gibt Helium und O2....
-      return( String.format( "HX%d/%d", o2, he ) );
-    }
-    if( he == 0 )
-    {
-      // eindeutig Nitrox
-      if( o2 == 21 )
-      {
-        return( "AIR" );
-      }
-      return( String.format( "NX%02d", o2 ) );
-    }
-    else
-    {
-      // das ist dan wohl Trimix
-      return( String.format( "TX%d/%d", o2, he ) );
-    }
-  }
-
-  /**
-   * Setze combobox für Deco Gradienten Preset entsprechend der Angaben in den Spinnern Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
-   * @param decoValue
-   */
-  private void setDecoComboAfterSpinnerChange()
-  {
-    int currentPreset = currentConfig.getDecoGfPreset();
-    if( configPanel.decoGradientenPresetComboBox.getSelectedIndex() != currentPreset )
-    {
-      ignoreAction = true;
-      configPanel.decoGradientenPresetComboBox.setSelectedIndex( currentPreset );
-      ignoreAction = false;
-    }
-  }
-
-  /**
-   * Checkbox hat sich verändert
-   */
-  @Override
-  public void itemStateChanged( ItemEvent ev )
-  {
-    if( ignoreAction ) return;
-    // ////////////////////////////////////////////////////////////////////////
-    // Checkbox Event?
-    if( ev.getSource() instanceof JCheckBox )
-    {
-      JCheckBox cb = ( JCheckBox )ev.getItemSelectable();
-      String cmd = cb.getActionCommand();
-      // //////////////////////////////////////////////////////////////////////
-      // Dynamische Gradienten?
-      if( cmd.equals( "dyn_gradients_on" ) )
-      {
-        LOGGER.log( Level.FINE, "dynamic gradients <" + cb.isSelected() + ">" );
-        currentConfig.setDynGradientsEnable( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Deepstops
-      else if( cmd.equals( "deepstops_on" ) )
-      {
-        LOGGER.log( Level.FINE, "depstops <" + cb.isSelected() + ">" );
-        currentConfig.setDeepStopEnable( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Passive Semiclose Rebreather Mode?
-      else if( cmd.equals( "individuals_pscr_on" ) )
-      {
-        LOGGER.log( Level.FINE, "pscr mode  <" + cb.isSelected() + ">" );
-        currentConfig.setPscrModeEnabled( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Sensor warning on/off
-      else if( cmd.equals( "individual_sensors_on" ) )
-      {
-        LOGGER.log( Level.FINE, "sensors on  <" + cb.isSelected() + ">" );
-        currentConfig.setSensorsEnabled( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Warnungen an/aus
-      else if( cmd.equals( "individuals_warnings_on" ) )
-      {
-        LOGGER.log( Level.FINE, "warnings on  <" + cb.isSelected() + ">" );
-        currentConfig.setSountEnabled( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Bailout checkbox für ein Gas?
-      else if( cmd.startsWith( "bailout:" ) )
-      {
-        String[] fields = fieldPatternDp.split( cmd );
-        try
-        {
-          int idx = Integer.parseInt( fields[1] );
-          LOGGER.log( Level.FINE, String.format( "Bailout %s changed.", cmd ) );
-          currGasList.setBailout( idx, cb.isSelected() );
-        }
-        catch( NumberFormatException ex )
-        {
-          LOGGER.log( Level.SEVERE, "Exception while recive bailout checkbox event: " + ex.getLocalizedMessage() );
-        }
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Diluent 1 für ein Gsas setzen?
-      else if( cmd.startsWith( "diluent1:" ) )
-      {
-        String[] fields = fieldPatternDp.split( cmd );
-        try
-        {
-          int idx = Integer.parseInt( fields[1] );
-          LOGGER.log( Level.FINE, String.format( "Diluent 1  to %d changed.", idx ) );
-          if( cb.isSelected() )
-          {
-            currGasList.setDiluent1( idx );
-          }
-        }
-        catch( NumberFormatException ex )
-        {
-          LOGGER.log( Level.SEVERE, "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
-        }
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Diluent 2 für ein Gsas setzen?
-      else if( cmd.startsWith( "diluent2:" ) )
-      {
-        String[] fields = fieldPatternDp.split( cmd );
-        try
-        {
-          int idx = Integer.parseInt( fields[1] );
-          LOGGER.log( Level.FINE, String.format( "Diluent 2  to %d changed.", idx ) );
-          if( cb.isSelected() )
-          {
-            currGasList.setDiluent2( idx );
-          }
-        }
-        catch( NumberFormatException ex )
-        {
-          LOGGER.log( Level.SEVERE, "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
-        }
-      }
-      else
-      {
-        LOGGER.log( Level.WARNING, "unknown item changed: <" + cb.getActionCommand() + "> <" + cb.isSelected() + ">" );
-      }
-    }
-  }
-
-  /**
-   * CLI-Optionen einlesen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
-   * @param args
-   * @return
-   */
-  private static CommandLine parseCliOptions( String[] args )
-  {
-    // Optionenobjet anlegen
-    Options options = new Options();
     //
-    // Optionen für das Parsing anlegen und zu den Optionen zufügen
-    //
-    // Logleven festlegen
-    Option optLogLevel = new Option( "l", "loglevel", true, "set loglevel for program" );
-    options.addOption( optLogLevel );
-    // Bluethooth Caching Abfrage
-    Option optBtCaching = new Option( "c", "cacheonstart", false, "read cached bt devices on start" );
-    options.addOption( optBtCaching );
-    // Logfile abgefragt?
-    Option optLogFile = new Option( "f", "logfile", true, "set logfile, \"OFF\" set NO logfile" );
-    options.addOption( optLogFile );
-    // Debugging aktivieren
-    Option optDebug = new Option( "d", "debug", false, "set debugging for a lot of GUI effects" );
-    options.addOption( optDebug );
-    // Daternverzeichnis?
-    Option optDatabaseDir = new Option( "s", "databasedir", true, "set database directory" );
-    options.addOption( optDatabaseDir );
-    // Parser anlegen
-    CommandLineParser cliParser = new BasicParser();
-    // Argumente parsen!
-    try
-    {
-      return( cliParser.parse( options, args ) );
-    }
-    catch( ParseException ex )
-    {
-      System.err.println( "Parser error: " + ex.getLocalizedMessage() );
-      return( null );
-    }
-  }
-
-  /**
-   * Aus dem String von Loglevel den Logging-Wert machen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
-   * @param optionValue
-   * @return
-   */
-  private static Level parseLogLevel( String level )
-  {
-    String levelString = level.toUpperCase();
-    // SEVERE (highest value) ERROR
-    // WARNING WARNUNG
-    // INFO INFO
-    // CONFIG CONFIG
-    // FINE DEBUG
-    // FINER
-    // FINEST (lowest value)
-    if( levelString.equals( "FINEST" ) )
-    {
-      return( Level.FINE );
-    }
-    if( levelString.equals( "FINER" ) )
-    {
-      return( Level.FINE );
-    }
-    if( levelString.equals( "FINE" ) )
-    {
-      return( Level.FINE );
-    }
-    if( levelString.equals( "DEBUG" ) )
-    {
-      return( Level.FINE );
-    }
-    if( levelString.equals( "CONFIG" ) )
-    {
-      return( Level.CONFIG );
-    }
-    if( levelString.equals( "INFO" ) )
-    {
-      return( Level.INFO );
-    }
-    if( levelString.equals( "WARNING" ) )
-    {
-      return( Level.WARNING );
-    }
-    if( levelString.equals( "SERVE" ) )
-    {
-      return( Level.SEVERE );
-    }
-    return( Level.OFF );
-  }
-
-  /**
-   * Setze das neue Logfile, wenn gewünscht Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
-   * @param optionValue
-   * @return File
-   */
-  private static File parseNewLogFile( String optionValue )
-  {
-    File tempLogFile = null;
-    File parentDir = null;
-    if( optionValue.equals( "NONE" ) )
-    {
-      // abschalten des Logfiles
-      return( null );
-    }
-    try
-    {
-      tempLogFile = new File( optionValue );
-    }
-    catch( NullPointerException ex )
-    {
-      System.err.println( "parseNewLogFile: Logfilename was <null>" );
-      return( logFile );
-    }
-    try
-    {
-      parentDir = new File( tempLogFile.getParent() );
-    }
-    catch( NullPointerException ex )
-    {
-      // nix Parent, ist nur eine Datei....
-      return( tempLogFile );
-    }
-    if( parentDir.exists() && parentDir.isDirectory() )
-    {
-      return( tempLogFile );
-    }
-    System.err.println( "parseNewLogFile: Logfile Directory not exists! (" + parentDir.getAbsolutePath() + ")" );
-    return( logFile );
-  }
-
-  /**
-   * 
-   * Neues Datenverzeichnis
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.07.2012
-   */
-  private static File parseNewDatabaseDir( String optionValue )
-  {
-    File tempLogFile;
-    try
-    {
-      tempLogFile = new File( optionValue );
-      return( tempLogFile );
-    }
-    catch( NullPointerException ex )
-    {
-      System.err.println( "parseNewDatabaseDir: Dirname was <null>" );
-      return( null );
-    }
-  }
-
-  /**
-   * 
-   * Setze alle Kon´figurationspanels auf "Enabled" wenn möglich
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.07.2012
-   * @param en
-   * 
-   */
-  private void setAllConfigPanlelsEnabled( boolean en )
-  {
-    configPanel.setDecoPanelEnabled( en );
-    configPanel.setDisplayPanelEnabled( en );
-    configPanel.setUnitsPanelEnabled( en );
-    configPanel.setSetpointPanel( en );
-    // nur, wenn eine gültige Konfiguration gelesen wurde
-    if( savedConfig != null )
-    {
-      // Gibt es eine Lizenz für Custom Config?
-      if( currentConfig.getCustomEnabled() == 1 )
-      {
-        configPanel.setIndividualsPanelEnabled( true );
-      }
-      else
-      {
-        configPanel.setIndividualsPanelEnabled( false );
-      }
-    }
-    else
-    {
-      // Keine Config gelesen!
-      configPanel.setIndividualsPanelEnabled( false );
-    }
-    logListPanel.setAllLogPanelsEnabled( en );
-  }
-
-  /**
-   * Die Callbacks setzen, wenn sich in den Panels was ändert! Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
-   */
-  private void setGlobalChangeListener()
-  {
-    tabbedPane.addChangeListener( this );
-    connectionPanel.setGlobalChangeListener( this );
-    configPanel.setGlobalChangeListener( this );
-    gasConfigPanel.setGlobalChangeListener( this );
-    logListPanel.setGlobalChangeListener( this );
-    logGraphPanel.setGlobalChangeListener( this );
-  }
-
-  /**
-   * 
-   * Zeige einen Optionendialog zur Einstellung von Programmgeschichten
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.07.2012
-   */
-  private void showPropertysDialog()
-  {
-    if( btComm != null )
-    {
-      if( btComm.isConnected() )
-      {
-        showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.onlyNotConnected" ) );
-        return;
-      }
-    }
-    LOGGER.log( Level.FINE, "create an show propertys dialog..." );
-    ProgramProperetysDialog pDial = new ProgramProperetysDialog( stringsBundle, progConfig );
-    // pDial.setVisible( true );
-    if( pDial.showModal() )
-    {
-      LOGGER.log( Level.FINE, "dialog whith OK closed...." );
-      // progConfig = pDial.getProcConfig();
-      if( progConfig.isWasChanged() )
-      {
-        showWarnBox( "RESTART PROGRAMM!" );
-        pDial.dispose();
-        exitProgram();
-      }
-      LOGGER.log( Level.FINE, "dialog whith OK closed NO Changes...." );
-    }
-    else
-    {
-      LOGGER.log( Level.FINE, "dialog canceled...." );
-    }
-    pDial.dispose();
-    LOGGER.log( Level.FINE, "dialog disposed..." );
+    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.writeSpxConfig" ) );
+    wDial.setMax( BTCommunication.CONFIG_WRITE_KDO_COUNT );
+    wDial.resetProgress();
+    wDial.setVisible( true );
+    LOGGER.log( Level.INFO, "write config to SPX42..." );
+    btComm.writeConfigToSPX( currentConfig );
   }
 }

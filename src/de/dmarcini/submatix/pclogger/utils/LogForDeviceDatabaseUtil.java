@@ -261,7 +261,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "   %s integer,\n" +
             "   %s integer,\n" +
             "   %s integer, \n" +
-            "   %s integer" +
+            "   %s integer, \n" +
+            "   %s text \n" + 
             " );",
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVEID,
@@ -275,7 +276,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.H_MAXDEPTH,
             ProjectConst.H_SAMPLES,
             ProjectConst.H_DIVELENGTH,
-            ProjectConst.H_UNITS
+            ProjectConst.H_UNITS,
+            ProjectConst.H_NOTES
             );
     //@formatter:on
     LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
@@ -420,10 +422,25 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
    */
   private void _updateDatabaseVersion( int oldVersion ) throws SQLException, ClassNotFoundException
   {
-    // erst mal vor dem Release: stumpf Tabellen löschen und neu anlegen
-    LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
-    _dropTablesFromDatabase();
-    _createNewDatabase( dbFile );
+    // so, mal sehen ob sich was machen läßt
+    if( oldVersion > ProjectConst.DB_VERSION )
+    {
+      // das kann eigentlich nicht passieren
+      LOGGER.log( Level.SEVERE, String.format( "found db-version is GREATER than this Version? found: %d, this version: %d", oldVersion, ProjectConst.DB_VERSION ) );
+      return;
+    }
+    switch ( oldVersion )
+    {
+      case 1:
+      case 2:
+        _updateTableToVer3();
+        break;
+      default:
+        // Tja, das gibt ja wohl nicht
+        LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
+        _dropTablesFromDatabase();
+        _createNewDatabase( dbFile );
+    }
   }
 
   @Override
@@ -1235,5 +1252,69 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
+  }
+
+  /**
+   * 
+   * Passe die Datenbank an von Version kleiner 3 auf 3
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.08.2012
+   */
+  private void _updateTableToVer3()
+  {
+    String sql;
+    Statement stat;
+    boolean rs;
+    //
+    LOGGER.log( Level.FINE, "update database version..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return;
+    }
+    try
+    {
+      //@formatter:off
+      sql = String.format( 
+              "insert into %s (%s) values ( '%d' );",
+              ProjectConst.V_DBVERSION,
+              ProjectConst.V_VERSION,
+              3
+             );
+      //@formatter:on
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Version updated." );
+      }
+      conn.commit();
+      stat.close();
+      //@formatter:off
+      sql = String.format( 
+              "alter table %s add column %s text;",
+              ProjectConst.H_TABLE_DIVELOGS,
+              ProjectConst.H_NOTES
+             );
+      //@formatter:on
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Database (table) updated." );
+      }
+      conn.commit();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return;
+    }
+    return;
   }
 }

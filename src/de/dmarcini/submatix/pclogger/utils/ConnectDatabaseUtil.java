@@ -43,106 +43,6 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
     conn = null;
   }
 
-  @Override
-  public Connection createConnection()
-  {
-    int version = 0;
-    //
-    try
-    {
-      if( conn != null )
-      {
-        if( !conn.isClosed() )
-        {
-          return( conn );
-        }
-      }
-      // erzeuge eine Verbindung zur DB-Engine
-      conn = null;
-      Class.forName( "org.sqlite.JDBC" );
-      conn = DriverManager.getConnection( "jdbc:sqlite:" + dbFile.getAbsoluteFile() );
-      conn.setAutoCommit( false );
-      // Datenbank öffnen, wenn File vorhanden
-      LOGGER.log( Level.FINE, "database <" + dbFile.getAbsoluteFile() + "> opened..." );
-      version = readDatabaseVersion();
-      if( version != ProjectConst.DB_VERSION )
-      {
-        // ACHTUNG, da hat sich was geändert! Oder die DB war nicht vorhanden
-        // ich muß mir was einfallen lassen
-        _updateDatabaseVersion( version );
-      }
-    }
-    catch( ClassNotFoundException ex )
-    {
-      LOGGER.log( Level.SEVERE, "ClassNotFoundException <" + ex.getLocalizedMessage() + ">" );
-      return( null );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't open/recreate Database <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-    return( conn );
-  }
-
-  /**
-   * Version der Datenbank lesen
-   * 
-   * @author Dirk Marciniak 02.05.2012 void
-   */
-  private int readDatabaseVersion()
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    int version = 0;
-    //
-    LOGGER.log( Level.FINE, "read database version..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( 0 );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select max( %s ) from %s;",
-            ProjectConst.V_VERSION,
-            ProjectConst.V_DBVERSION
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        version = rs.getInt( 1 );
-        LOGGER.log( Level.FINE, String.format( "database read version:%d", version ) );
-        rs.close();
-        return( version );
-      }
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return( 0 );
-    }
-    return( 0 );
-  }
-
-  @Override
-  public Connection createNewDatabase() throws SQLException, ClassNotFoundException
-  {
-    return( _createNewDatabase( dbFile ) );
-  }
-
-  @Override
-  public Connection createNewDatabase( String dbFileName ) throws SQLException, ClassNotFoundException
-  {
-    dbFile = new File( dbFileName );
-    return( _createNewDatabase( dbFile ) );
-  }
-
   /**
    * Interne Funktion zum erzeugen einer nagelneuen Datenbank Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
@@ -267,10 +167,53 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
    */
   private void _updateDatabaseVersion( int oldVersion ) throws SQLException, ClassNotFoundException
   {
-    // erst mal vor dem Release: stumpf Tabellen löschen und neu anlegen
-    LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
-    _dropTablesFromDatabase();
-    _createNewDatabase( dbFile );
+    // so, mal sehen ob sich was machen läßt
+    if( oldVersion > ProjectConst.DB_VERSION )
+    {
+      // das kann eigentlich nicht passieren
+      LOGGER.log( Level.SEVERE, String.format( "found db-version is GREATER than this Version? found: %d, this version: %d", oldVersion, ProjectConst.DB_VERSION ) );
+      return;
+    }
+    switch ( oldVersion )
+    {
+      case 1:
+      case 2:
+        _updateTableToVer3();
+        break;
+      default:
+        // Tja, das gibt ja wohl nicht
+        LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
+        _dropTablesFromDatabase();
+        _createNewDatabase( dbFile );
+    }
+  }
+
+  @Override
+  public boolean addAliasForName( final String dev, final String alias )
+  {
+    String sql;
+    Statement stat;
+    //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( false );
+    }
+    LOGGER.log( Level.FINE, "try to add alias..." );
+    sql = String.format( "insert into %s (%s, %s) values ('%s', '%s')", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, dev, alias );
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      conn.commit();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to insert device alias for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
+      return( false );
+    }
+    return( true );
   }
 
   @Override
@@ -299,38 +242,58 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
   }
 
   @Override
-  public boolean updateDeviceAlias( final String devName, final String devAlias )
+  public Connection createConnection()
   {
-    String sql;
-    Statement stat;
+    int version = 0;
     //
-    LOGGER.log( Level.FINE, "try to update alias..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "try to update alias even if database is not created! ABORT!" );
-      return( false );
-    }
     try
     {
-      if( conn.isClosed() )
+      if( conn != null )
       {
-        LOGGER.log( Level.WARNING, "try to update alias even if database is closed! ABORT!" );
-        return( false );
+        if( !conn.isClosed() )
+        {
+          return( conn );
+        }
       }
-      // Ok, Datenbank da und geöffnet!
-      stat = conn.createStatement();
-      sql = String.format( "update %s set %s='%s' where %s like '%s';", ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, devAlias, ProjectConst.A_DEVNAME, devName );
-      LOGGER.log( Level.FINE, String.format( "update device alias <%s> to <%s>", devName, devAlias ) );
-      stat.execute( sql );
-      stat.close();
-      conn.commit();
+      // erzeuge eine Verbindung zur DB-Engine
+      conn = null;
+      Class.forName( "org.sqlite.JDBC" );
+      conn = DriverManager.getConnection( "jdbc:sqlite:" + dbFile.getAbsoluteFile() );
+      conn.setAutoCommit( false );
+      // Datenbank öffnen, wenn File vorhanden
+      LOGGER.log( Level.FINE, "database <" + dbFile.getAbsoluteFile() + "> opened..." );
+      version = readDatabaseVersion();
+      if( version != ProjectConst.DB_VERSION )
+      {
+        // ACHTUNG, da hat sich was geändert! Oder die DB war nicht vorhanden
+        // ich muß mir was einfallen lassen
+        _updateDatabaseVersion( version );
+      }
+    }
+    catch( ClassNotFoundException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ClassNotFoundException <" + ex.getLocalizedMessage() + ">" );
+      return( null );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, String.format( "fail to update device alias for device <%s> (%s)", devName, ex.getLocalizedMessage() ) );
-      return( false );
+      LOGGER.log( Level.SEVERE, "Can't open/recreate Database <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return( null );
     }
-    return( true );
+    return( conn );
+  }
+
+  @Override
+  public Connection createNewDatabase() throws SQLException, ClassNotFoundException
+  {
+    return( _createNewDatabase( dbFile ) );
+  }
+
+  @Override
+  public Connection createNewDatabase( String dbFileName ) throws SQLException, ClassNotFoundException
+  {
+    dbFile = new File( dbFileName );
+    return( _createNewDatabase( dbFile ) );
   }
 
   @Override
@@ -431,34 +394,6 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
   }
 
   @Override
-  public boolean addAliasForName( final String dev, final String alias )
-  {
-    String sql;
-    Statement stat;
-    //
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( false );
-    }
-    LOGGER.log( Level.FINE, "try to add alias..." );
-    sql = String.format( "insert into %s (%s, %s) values ('%s', '%s')", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, dev, alias );
-    try
-    {
-      stat = conn.createStatement();
-      stat.execute( sql );
-      conn.commit();
-      stat.close();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, String.format( "fail to insert device alias for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
-      return( false );
-    }
-    return( true );
-  }
-
-  @Override
   public String getNameForAlias( final String aliasName )
   {
     String sql;
@@ -491,35 +426,6 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
       LOGGER.log( Level.SEVERE, String.format( "fail to read device name for alias %s (%s)", aliasName, ex.getLocalizedMessage() ) );
     }
     return( deviceName );
-  }
-
-  @Override
-  public boolean setPinForDevice( final String dev, final String pin )
-  {
-    String sql;
-    Statement stat;
-    //
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( false );
-    }
-    LOGGER.log( Level.FINE, "try to set pin for device..." );
-    // jetzt kann ich die PIN einbauen, wenn datensatz schon vorhanden
-    sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_PIN, pin, ProjectConst.A_DEVNAME, dev );
-    try
-    {
-      stat = conn.createStatement();
-      stat.execute( sql );
-      stat.close();
-      conn.commit();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, String.format( "fail to update pin for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
-      return( false );
-    }
-    return( true );
   }
 
   @Override
@@ -575,6 +481,51 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
     return( false );
   }
 
+  /**
+   * Version der Datenbank lesen
+   * 
+   * @author Dirk Marciniak 02.05.2012 void
+   */
+  private int readDatabaseVersion()
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    int version = 0;
+    //
+    LOGGER.log( Level.FINE, "read database version..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( 0 );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select max( %s ) from %s;",
+            ProjectConst.V_VERSION,
+            ProjectConst.V_DBVERSION
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        version = rs.getInt( 1 );
+        LOGGER.log( Level.FINE, String.format( "database read version:%d", version ) );
+        rs.close();
+        return( version );
+      }
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return( 0 );
+    }
+    return( 0 );
+  }
+
   @Override
   public String[] readDevicesFromDatabase()
   {
@@ -617,5 +568,118 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
       LOGGER.log( Level.SEVERE, "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
+  }
+
+  @Override
+  public boolean setPinForDevice( final String dev, final String pin )
+  {
+    String sql;
+    Statement stat;
+    //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( false );
+    }
+    LOGGER.log( Level.FINE, "try to set pin for device..." );
+    // jetzt kann ich die PIN einbauen, wenn datensatz schon vorhanden
+    sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_PIN, pin, ProjectConst.A_DEVNAME, dev );
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to update pin for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
+      return( false );
+    }
+    return( true );
+  }
+
+  @Override
+  public boolean updateDeviceAlias( final String devName, final String devAlias )
+  {
+    String sql;
+    Statement stat;
+    //
+    LOGGER.log( Level.FINE, "try to update alias..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "try to update alias even if database is not created! ABORT!" );
+      return( false );
+    }
+    try
+    {
+      if( conn.isClosed() )
+      {
+        LOGGER.log( Level.WARNING, "try to update alias even if database is closed! ABORT!" );
+        return( false );
+      }
+      // Ok, Datenbank da und geöffnet!
+      stat = conn.createStatement();
+      sql = String.format( "update %s set %s='%s' where %s like '%s';", ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, devAlias, ProjectConst.A_DEVNAME, devName );
+      LOGGER.log( Level.FINE, String.format( "update device alias <%s> to <%s>", devName, devAlias ) );
+      stat.execute( sql );
+      stat.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to update device alias for device <%s> (%s)", devName, ex.getLocalizedMessage() ) );
+      return( false );
+    }
+    return( true );
+  }
+
+  /**
+   * 
+   * Passe die Datenbank an von Version kleiner 3 auf 3
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.08.2012
+   */
+  private void _updateTableToVer3()
+  {
+    String sql;
+    Statement stat;
+    boolean rs;
+    //
+    LOGGER.log( Level.FINE, "update database version..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return;
+    }
+    //@formatter:off
+    sql = String.format( 
+            "insert into %s (%s) values ( '%d' );",
+            ProjectConst.V_DBVERSION,
+            ProjectConst.V_VERSION,
+            3
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Database updated." );
+      }
+      conn.commit();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return;
+    }
+    return;
   }
 }

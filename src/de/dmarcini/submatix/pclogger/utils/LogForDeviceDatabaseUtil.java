@@ -1317,4 +1317,88 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     return;
   }
+
+  @Override
+  public int saveNoteForId( int dbId, String notes )
+  {
+    String sql;
+    Statement stat;
+    boolean rs;
+    //
+    LOGGER.log( Level.FINE, "update notes for dive dbid: " + dbId + "..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( -1 );
+    }
+    try
+    {
+      //@formatter:off
+      sql = String.format( 
+              "update %s set %s='%s' where %s=%d;",
+              ProjectConst.H_TABLE_DIVELOGS,
+              ProjectConst.H_NOTES,
+              notes,
+              ProjectConst.H_DIVEID,
+              dbId
+             );
+      //@formatter:on
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Notes updated." );
+      }
+      conn.commit();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return( -1 );
+    }
+    return( dbId );
+  }
+
+  @Override
+  public String getNotesForId( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String notesForDive = null;
+    //
+    LOGGER.log( Level.FINE, "read notes for dive <" + dbId + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s from %s where %s=%d;",
+            ProjectConst.H_NOTES,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        notesForDive = rs.getString( 1 ); // die Bemerkungen
+      }
+      rs.close();
+      return( notesForDive );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read notes from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
 }

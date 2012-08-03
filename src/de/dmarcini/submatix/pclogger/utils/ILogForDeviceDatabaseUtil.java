@@ -252,4 +252,33 @@ public interface ILogForDeviceDatabaseUtil
    * @return Werte als Vector<Double>
    */
   public Double[] getDiveHeadsForDiveNumAsDouble( int numberOnSpx );
+
+  /**
+   * 
+   * Schreibt in die Datenbank eine Bemerkung zum Tauchgang ein
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.08.2012
+   * @param dbId
+   * @param notes
+   * @return ok oder nicht
+   */
+  public int saveNoteForId( int dbId, String notes );
+
+  /**
+   * 
+   * Erfrage mal den Kommentar zum Tauchgang
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.08.2012
+   * @param dbId
+   * @return der Kommentar...
+   */
+  public String getNotesForId( int dbId );
 }

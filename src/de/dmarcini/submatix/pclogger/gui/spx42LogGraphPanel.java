@@ -231,11 +231,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     edDial.setNotes( notesLabel.getText() );
     if( edDial.showModal() )
     {
-      if( notesLabel.getText().equals( edDial.getNotes() ) )
+      if( ( notesLabel.getText() != null ) && ( !notesLabel.getText().isEmpty() ) )
       {
-        // hier hat sich nix geändert, ENTE
-        LOGGER.log( Level.FINE, "not a change in note, ignoring..." );
-        return;
+        if( notesLabel.getText().equals( edDial.getNotes() ) )
+        {
+          // hier hat sich nix geändert, ENTE
+          LOGGER.log( Level.FINE, "not a change in note, ignoring..." );
+          return;
+        }
       }
       LOGGER.log( Level.INFO, "save new Notes in database..." );
       notesLabel.setText( edDial.getNotes() );

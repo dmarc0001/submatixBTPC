@@ -28,12 +28,14 @@ import javax.swing.JPanel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -75,6 +77,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private String                   maxDepthLabelString;
   private String                   coldestLabelString;
   private String                   diveLenLabelString;
+  private String                   depthUnitName;
+  private String                   tempUnitName;
   private JPanel                   topPanel;
   private JPanel                   bottomPanel;
   private JComboBox                deviceComboBox;
@@ -210,62 +214,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     else
     {
       LOGGER.log( Level.WARNING, "unknown action command <" + cmd + "> recived." );
-    }
-  }
-
-  /**
-   * 
-   * Zeige ein einfaches Formular zum Eineben einer kleinen Notitz
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 03.08.2012
-   * @param dbId
-   */
-  private void showNotesEditForm( int dbId )
-  {
-    LogForDeviceDatabaseUtil logDatabaseUtil;
-    DiveNotesEditDialog edDial = new DiveNotesEditDialog( stringsBundle );
-    edDial.setNotes( notesLabel.getText() );
-    if( edDial.showModal() )
-    {
-      if( ( notesLabel.getText() != null ) && ( !notesLabel.getText().isEmpty() ) )
-      {
-        if( notesLabel.getText().equals( edDial.getNotes() ) )
-        {
-          // hier hat sich nix geändert, ENTE
-          LOGGER.log( Level.FINE, "not a change in note, ignoring..." );
-          return;
-        }
-      }
-      LOGGER.log( Level.INFO, "save new Notes in database..." );
-      notesLabel.setText( edDial.getNotes() );
-      edDial.dispose();
-      // jetzt ab in die Datenbank damit!
-      // das Datenbankutility initialisieren
-      logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
-      if( logDatabaseUtil.createConnection() == null )
-      {
-        // Tja, das ging schief
-        logDatabaseUtil = null;
-        showWarnBox( stringsBundle.getString( "spx42LogGraphPanel.warnBox.noDiveDataFound" ) );
-        return;
-      }
-      if( logDatabaseUtil != null && logDatabaseUtil.isOpenDB() )
-      {
-        if( -1 == logDatabaseUtil.saveNoteForId( dbId, notesLabel.getText() ) )
-        {
-          LOGGER.log( Level.SEVERE, "can't update notes for dive!" );
-        }
-        logDatabaseUtil.closeDB();
-        logDatabaseUtil = null;
-      }
-    }
-    else
-    {
-      edDial.dispose();
     }
   }
 
@@ -637,9 +585,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     detailGraphButton.setActionCommand( "set_detail_for_show_graph" );
     GroupLayout gl_topPanel = new GroupLayout( topPanel );
     gl_topPanel.setHorizontalGroup( gl_topPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
-            gl_topPanel.createSequentialGroup().addContainerGap().addComponent( deviceComboBox, 0, 235, Short.MAX_VALUE ).addGap( 18 )
-                    .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, 282, GroupLayout.PREFERRED_SIZE ).addGap( 18 ).addComponent( computeGraphButton )
-                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( detailGraphButton ).addGap( 27 ) ) );
+            gl_topPanel.createSequentialGroup().addContainerGap().addComponent( deviceComboBox, 0, 270, Short.MAX_VALUE ).addGap( 18 )
+                    .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, 282, GroupLayout.PREFERRED_SIZE ).addGap( 32 )
+                    .addComponent( computeGraphButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                    .addPreferredGap( ComponentPlacement.RELATED )
+                    .addComponent( detailGraphButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ).addGap( 18 ) ) );
     gl_topPanel.setVerticalGroup( gl_topPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_topPanel
                     .createSequentialGroup()
@@ -647,8 +597,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
                     .addGroup(
                             gl_topPanel.createParallelGroup( Alignment.BASELINE )
                                     .addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( computeGraphButton ).addComponent( detailGraphButton ) ) ) );
+                                    .addComponent( computeGraphButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( detailGraphButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) ) ) );
     topPanel.setLayout( gl_topPanel );
     bottomPanel = new JPanel();
     add( bottomPanel, BorderLayout.SOUTH );
@@ -690,6 +641,44 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
 
   /**
    * 
+   * Erzeuge den Graphen für die Tiefe
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.08.2012
+   * @param diveList
+   * @param thePlot
+   */
+  private void makeDepthGraph( Vector<Integer[]> diveList, XYPlot thePlot )
+  {
+    XYDataset depthDataSet;
+    LOGGER.log( Level.FINE, "create depth dataset" );
+    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    {
+      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
+              LogForDeviceDatabaseUtil.DEPTH );
+    }
+    else
+    {
+      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, progUnitSystem, 0,
+              LogForDeviceDatabaseUtil.DEPTH );
+    }
+    final NumberAxis depthAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) + " " + depthUnitName );
+    final XYAreaRenderer areaDepthRenderer = new XYAreaRenderer( XYAreaRenderer.AREA );
+    depthAxis.setAutoRangeIncludesZero( true );
+    depthAxis.setLabelPaint( new Color( ProjectConst.GRAPH_DEPTH_ACOLOR ) );
+    depthAxis.setTickLabelPaint( new Color( ProjectConst.GRAPH_DEPTH_ACOLOR ) );
+    thePlot.setRangeAxis( 0, depthAxis );
+    thePlot.setDataset( GRAPH_DEPTH, depthDataSet );
+    thePlot.mapDatasetToRangeAxis( 0, GRAPH_DEPTH );
+    areaDepthRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_DEPTH_RCOLOR ) );
+    thePlot.setRenderer( GRAPH_DEPTH, areaDepthRenderer, true );
+  }
+
+  /**
+   * 
    * Zeichne die eigentliche Grafik
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
@@ -707,10 +696,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     Vector<Integer[]> diveList;
     int[] headData;
     XYPlot thePlot;
-    XYDataset depthDataSet;
     JFreeChart logChart;
     int min, sec;
-    String depthUnitName, tempUnitName;
     // das alte Zeug entsorgen
     releaseGraph();
     //
@@ -780,16 +767,33 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     LOGGER.log( Level.FINE, "create graph..." );
     thePlot = new XYPlot();
     //
+    // Eigenschaften definieren
+    //
+    thePlot.setBackgroundPaint( Color.lightGray );
+    thePlot.setDomainGridlinesVisible( true );
+    thePlot.setDomainGridlinePaint( Color.white );
+    thePlot.setRangeGridlinesVisible( true );
+    thePlot.setRangeGridlinePaint( Color.white );
+    thePlot.setDomainPannable( true );
+    thePlot.setRangePannable( false );
+    //
     // ein Chart zur Anzeige in einem Panel erzeugen
     //
     logChart = new JFreeChart( stringsBundle.getString( "spx42LogGraphPanel.graph.chartTitle" ), thePlot );
+    logChart.setAntiAlias( true );
+    logChart.addSubtitle( new TextTitle( stringsBundle.getString( "spx42LogGraphPanel.graph.chartSubTitle" ) ) );
+    // ein Thema zufügen, damit ich eigene Farben einbauen kann
+    ChartUtilities.applyCurrentTheme( logChart );
     //
     // ein Diagramm-Panel erzeugen
     //
     chartPanel = new ChartPanel( logChart );
     chartPanel.setMouseZoomable( true );
+    chartPanel.setAutoscrolls( true );
     chartPanel.setMouseWheelEnabled( true );
     chartPanel.setRangeZoomable( false );
+    chartPanel.setDisplayToolTips( false );
+    chartPanel.setZoomTriggerDistance( 10 );
     add( chartPanel, BorderLayout.CENTER );
     //
     // Datumsachse umformatieren
@@ -818,6 +822,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       ppo2Axis.setAutoRangeIncludesZero( false );
       ppo2Axis.setAutoRange( false );
       ppo2Axis.setRange( 0.0, 3.5 );
+      ppo2Axis.setLabelPaint( new Color( ProjectConst.GRAPH_PPO2ALL_ACOLOR ) );
+      ppo2Axis.setTickLabelPaint( new Color( ProjectConst.GRAPH_PPO2ALL_ACOLOR ) );
       thePlot.setRangeAxis( GRAPH_PPO2ALL, ppo2Axis );
     }
     if( progConfig.isShowHe() || progConfig.isShowN2() )
@@ -825,6 +831,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       percentAxis.setAutoRangeIncludesZero( false );
       percentAxis.setAutoRange( false );
       percentAxis.setRange( 0.0, 100.0 );
+      percentAxis.setLabelPaint( new Color( ProjectConst.GRAPH_INNERTGAS_ACOLOR ) );
+      percentAxis.setTickLabelPaint( new Color( ProjectConst.GRAPH_INNERTGAS_ACOLOR ) );
       thePlot.setRangeAxis( GRAPH_HE, percentAxis );
     }
     //
@@ -876,26 +884,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // die Tiefe einfügen
     //
-    LOGGER.log( Level.FINE, "create depth dataset" );
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
-    {
-      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
-              LogForDeviceDatabaseUtil.DEPTH );
-    }
-    else
-    {
-      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, progUnitSystem, 0,
-              LogForDeviceDatabaseUtil.DEPTH );
-    }
-    final NumberAxis depthAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) + " " + depthUnitName );
-    final XYAreaRenderer areaDepthRenderer = new XYAreaRenderer( XYAreaRenderer.AREA );
-    depthAxis.setAutoRangeIncludesZero( true );
-    thePlot.setRangeAxis( 0, depthAxis );
-    thePlot.setDataset( GRAPH_DEPTH, depthDataSet );
-    thePlot.mapDatasetToRangeAxis( 0, GRAPH_DEPTH );
-    areaDepthRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_DEPTH_COLOR ) );
-    thePlot.setRenderer( GRAPH_DEPTH, areaDepthRenderer, true );
-    // brauch ich doch nicht
+    makeDepthGraph( diveList, thePlot );
+    //
     showingDbIdForDiveWasShowing = dbId;
     LOGGER.log( Level.FINE, "create graph...OK" );
   }
@@ -917,7 +907,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     XYDataset percentDataSet;
     int graphPos;
-    int graphColor;
+    int lRenderColor;
     //
     LOGGER.log( Level.FINE, "create percent dataset (" + gasName + ")" );
     final XYLineAndShapeRenderer setpointRenderer = new XYLineAndShapeRenderer( true, true );
@@ -925,18 +915,18 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     {
       percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.HEPERCENT );
       graphPos = GRAPH_HE;
-      graphColor = ProjectConst.GRAPH_HE_COLOR;
+      lRenderColor = ProjectConst.GRAPH_HE_RCOLOR;
     }
     else
     {
       percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.N2PERCENT );
       graphPos = GRAPH_N2;
-      graphColor = ProjectConst.GRAPH_N2_COLOR;
+      lRenderColor = ProjectConst.GRAPH_N2_RCOLOR;
     }
     // die Achse sollte schon erstellt sein
     thePlot.setDataset( graphPos, percentDataSet );
     thePlot.mapDatasetToRangeAxis( graphPos, GRAPH_HE );
-    setpointRenderer.setSeriesPaint( 0, new Color( graphColor ) );
+    setpointRenderer.setSeriesPaint( 0, new Color( lRenderColor ) );
     setpointRenderer.setSeriesShapesVisible( 0, false );
     setpointRenderer.setDrawSeriesLineAsPath( true );
     thePlot.setRenderer( graphPos, setpointRenderer );
@@ -964,7 +954,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     final XYLineAndShapeRenderer lineNullTimeRenderer = new XYLineAndShapeRenderer( true, true );
     final LogarithmicAxis nullTimeAxis = new LogarithmicAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.nulltimeAxisTitle" ) );
     nullTimeAxis.setNumberFormatOverride( new DecimalFormat( "#.###" ) );
-    lineNullTimeRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_NULLTIME_COLOR ) );
+    lineNullTimeRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_NULLTIME_ACOLOR ) );
     lineNullTimeRenderer.setSeriesShapesVisible( 0, false );
     lineNullTimeRenderer.setDrawSeriesLineAsPath( true );
     nullTimeAxis.setAutoRangeIncludesZero( true );
@@ -1005,28 +995,28 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       case 0:
         indexForCreate = LogForDeviceDatabaseUtil.PPO2;
         posForGraph = GRAPH_PPO2ALL;
-        posColor = ProjectConst.GRAPH_PPO2ALL_COLOR;
+        posColor = ProjectConst.GRAPH_PPO2ALL_RCOLOR;
         title = stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" );
         break;
       case 1:
         indexForCreate = LogForDeviceDatabaseUtil.PPO2_01;
         posForGraph = GRAPH_PPO2_01;
-        posColor = ProjectConst.GRAPH_PPO2_01_COLOR;
+        posColor = ProjectConst.GRAPH_PPO2_01_RCOLOR;
         break;
       case 2:
         indexForCreate = LogForDeviceDatabaseUtil.PPO2_02;
         posForGraph = GRAPH_PPO2_02;
-        posColor = ProjectConst.GRAPH_PPO2_02_COLOR;
+        posColor = ProjectConst.GRAPH_PPO2_02_RCOLOR;
         break;
       case 3:
         indexForCreate = LogForDeviceDatabaseUtil.PPO2_03;
         posForGraph = GRAPH_PPO2_03;
-        posColor = ProjectConst.GRAPH_PPO2_02_COLOR;
+        posColor = ProjectConst.GRAPH_PPO2_02_RCOLOR;
         break;
       default:
         indexForCreate = LogForDeviceDatabaseUtil.PPO2_01;
         posForGraph = GRAPH_PPO2_01;
-        posColor = ProjectConst.GRAPH_PPO2_01_COLOR;
+        posColor = ProjectConst.GRAPH_PPO2_01_RCOLOR;
     }
     if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
@@ -1077,7 +1067,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // die Achse sollte schon erstellt sein
     thePlot.setDataset( GRAPH_SETPOINT, setPointDataSet );
     thePlot.mapDatasetToRangeAxis( GRAPH_SETPOINT, GRAPH_PPO2ALL );
-    setpointRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_SETPOINT_COLOR ) );
+    setpointRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_SETPOINT_ACOLOR ) );
     setpointRenderer.setSeriesShapesVisible( 0, false );
     setpointRenderer.setDrawSeriesLineAsPath( true );
     thePlot.setRenderer( GRAPH_SETPOINT, setpointRenderer );
@@ -1099,6 +1089,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private void makeTemperatureGraph( Vector<Integer[]> diveList, XYPlot thePlot, String[] labels )
   {
     XYDataset tempDataSet;
+    Color axisColor = new Color( ProjectConst.GRAPH_TEMPERATURE_ACOLOR );
+    Color renderColor = new Color( ProjectConst.GRAPH_TEMPERATURE_RCOLOR );
     //
     LOGGER.log( Level.FINE, "create temp dataset" );
     if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
@@ -1114,8 +1106,10 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     }
     final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
     final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + labels[1] );
+    tempAxis.setLabelPaint( axisColor );
+    tempAxis.setTickLabelPaint( axisColor );
     tempAxis.setNumberFormatOverride( new DecimalFormat( "###.##" ) );
-    lineTemperatureRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_TEMPERATURE_COLOR ) );
+    lineTemperatureRenderer.setSeriesPaint( 0, renderColor );
     lineTemperatureRenderer.setSeriesShapesVisible( 0, false );
     lineTemperatureRenderer.setDrawSeriesLineAsPath( true );
     tempAxis.setAutoRangeIncludesZero( true );
@@ -1162,6 +1156,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   public void setGlobalChangeListener( MainCommGUI mainCommGUI )
   {
     deviceComboBox.addMouseMotionListener( mainCommGUI );
+    diveSelectComboBox.addMouseMotionListener( mainCommGUI );
     computeGraphButton.addMouseMotionListener( mainCommGUI );
     detailGraphButton.addMouseMotionListener( mainCommGUI );
     notesEditButton.addMouseMotionListener( mainCommGUI );
@@ -1213,6 +1208,62 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     }
     clearDiveComboBox();
     return( 1 );
+  }
+
+  /**
+   * 
+   * Zeige ein einfaches Formular zum Eineben einer kleinen Notitz
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.08.2012
+   * @param dbId
+   */
+  private void showNotesEditForm( int dbId )
+  {
+    LogForDeviceDatabaseUtil logDatabaseUtil;
+    DiveNotesEditDialog edDial = new DiveNotesEditDialog( stringsBundle );
+    edDial.setNotes( notesLabel.getText() );
+    if( edDial.showModal() )
+    {
+      if( ( notesLabel.getText() != null ) && ( !notesLabel.getText().isEmpty() ) )
+      {
+        if( notesLabel.getText().equals( edDial.getNotes() ) )
+        {
+          // hier hat sich nix geändert, ENTE
+          LOGGER.log( Level.FINE, "not a change in note, ignoring..." );
+          return;
+        }
+      }
+      LOGGER.log( Level.INFO, "save new Notes in database..." );
+      notesLabel.setText( edDial.getNotes() );
+      edDial.dispose();
+      // jetzt ab in die Datenbank damit!
+      // das Datenbankutility initialisieren
+      logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
+      if( logDatabaseUtil.createConnection() == null )
+      {
+        // Tja, das ging schief
+        logDatabaseUtil = null;
+        showWarnBox( stringsBundle.getString( "spx42LogGraphPanel.warnBox.noDiveDataFound" ) );
+        return;
+      }
+      if( logDatabaseUtil != null && logDatabaseUtil.isOpenDB() )
+      {
+        if( -1 == logDatabaseUtil.saveNoteForId( dbId, notesLabel.getText() ) )
+        {
+          LOGGER.log( Level.SEVERE, "can't update notes for dive!" );
+        }
+        logDatabaseUtil.closeDB();
+        logDatabaseUtil = null;
+      }
+    }
+    else
+    {
+      edDial.dispose();
+    }
   }
 
   /**

@@ -17,7 +17,7 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://localhost";
-  public static final String MANUFACTVERS               = "0.4beta";
+  public static final String MANUFACTVERS               = "0.6beta";
   public static final String GENYEAR                    = "2012";
   public static final String GENMONTH                   = "07";
   public static final String GENDAY                     = "30";
@@ -194,16 +194,21 @@ public final class ProjectConst
   //
   // Default Farben für die Graphen in der Loganzeige
   //
-  public static int          GRAPH_TEMPERATURE_COLOR    = 0xFF0000;
-  public static int          GRAPH_PPO2ALL_COLOR        = 0xB300FF;
-  public static int          GRAPH_PPO2_01_COLOR        = 0x0000FF;
-  public static int          GRAPH_PPO2_02_COLOR        = 0x0080FF;
-  public static int          GRAPH_PPO2_03_COLOR        = 0x7ABDFF;
-  public static int          GRAPH_SETPOINT_COLOR       = 0x000033;
-  public static int          GRAPH_HE_COLOR             = 0x1A9900;
-  public static int          GRAPH_N2_COLOR             = 0xFF3DD8;
-  public static int          GRAPH_NULLTIME_COLOR       = 0x006600;
-  public static int          GRAPH_DEPTH_COLOR          = 0x4775FF;
+  public static int          GRAPH_TEMPERATURE_ACOLOR   = 0xFF0000; // Axenfarbe (Beschriftungen)
+  public static int          GRAPH_TEMPERATURE_RCOLOR   = 0xFF0000; // Farbe des Graphen
+  public static int          GRAPH_PPO2ALL_ACOLOR       = 0xB300FF;
+  public static int          GRAPH_PPO2ALL_RCOLOR       = 0xB300FF;
+  public static int          GRAPH_PPO2_01_RCOLOR       = 0x0000FF;
+  public static int          GRAPH_PPO2_02_RCOLOR       = 0x0080FF;
+  public static int          GRAPH_PPO2_03_RCOLOR       = 0x7ABDFF;
+  public static int          GRAPH_SETPOINT_ACOLOR      = 0x000033;
+  public static int          GRAPH_SETPOINT_RCOLOR      = 0x000033;
+  public static int          GRAPH_INNERTGAS_ACOLOR     = 0x1A2000;
+  public static int          GRAPH_HE_RCOLOR            = 0x1A9900;
+  public static int          GRAPH_N2_RCOLOR            = 0xFF3DD8;
+  public static int          GRAPH_NULLTIME_ACOLOR      = 0x006600;
+  public static int          GRAPH_DEPTH_ACOLOR         = 0x4775FF;
+  public static int          GRAPH_DEPTH_RCOLOR         = 0x4775FF;
   
   
 

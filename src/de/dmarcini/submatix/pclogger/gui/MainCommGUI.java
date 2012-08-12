@@ -92,6 +92,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private final static int         TAB_GASLIST         = 2;
   private final static int         TAB_LOGREAD         = 3;
   private final static int         TAB_LOGGRAPH        = 4;
+  private final static int         TAB_DEBUG           = 5;
   private int                      licenseState        = -1;
   private int                      customConfig        = -1;
   private ConnectDatabaseUtil      sqliteDbUtil        = null;
@@ -131,6 +132,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private SpxPcloggerProgramConfig progConfig          = null;
   private PleaseWaitDialog         wDial               = null;
   private boolean                  ignoreAction        = false;
+  private spx42TestPanel           testPanel;
   private static Level             optionLogLevel      = Level.FINE;
   private static boolean           readBtCacheOnStart  = false;
   private static File              logFile             = null;
@@ -494,6 +496,46 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       processComboBoxActions( ev );
       return;
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Selbstgeneriert via textfeld
+    else if( ev.getSource() instanceof JTextField )
+    {
+      processTextFieldActions( ev );
+      return;
+    }
+  }
+
+  /**
+   * 
+   * Wenn selbstgenerierte Events vom Debugfeld kommen, mach als Source textField
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 12.08.2012
+   * @param ev
+   */
+  private void processTextFieldActions( ActionEvent ev )
+  {
+    LOGGER.log( Level.FINE, "Event for TextField input recived..." );
+    String cmd = ev.getActionCommand();
+    if( ev.getSource() instanceof JTextField )
+    {
+      LOGGER.log( Level.FINE, "Event from JTextField recived..." );
+      // So, was will ich?
+      if( cmd.equals( "send_debug_string" ) )
+      {
+        LOGGER.log( Level.FINE, "Event for debug input recived..." );
+        // ich will einen String zum SPX schicken
+        if( btComm != null && btComm.isConnected() )
+        {
+          LOGGER.log( Level.FINE, "Write to BT..." );
+          JTextField tf = ( JTextField )ev.getSource();
+          btComm.writeSPXMsgToDevice( tf.getText() );
+        }
+      }
     }
   }
 
@@ -927,6 +969,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     logGraphPanel = new spx42LogGraphPanel( LOGGER, sqliteDbUtil, progConfig );
     tabbedPane.addTab( "GRAPH", null, logGraphPanel, null );
     tabbedPane.setEnabledAt( TAB_LOGGRAPH, true );
+    // TESTPANEL
+    if( DEBUG )
+    {
+      testPanel = new spx42TestPanel( LOGGER, progConfig, this );
+      tabbedPane.addTab( "TEST/DEBUG", null, testPanel, null );
+      tabbedPane.setEnabledAt( TAB_DEBUG, true );
+    }
     // MENÜ
     JMenuBar menuBar = new JMenuBar();
     frmMainwindowtitle.setJMenuBar( menuBar );

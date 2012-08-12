@@ -1343,7 +1343,7 @@ public class BTCommunication implements IBTCommunication
   {
     if( isConnected && ( writer != null ) )
     {
-      writer.writeToDevice( ProjectConst.STX + msg + ProjectConst.ETX );
+      writer.writeToDevice( String.format( "%s~%s%s", ProjectConst.STX, msg, ProjectConst.ETX ) );
     }
   }
 

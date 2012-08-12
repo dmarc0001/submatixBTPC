@@ -27,6 +27,7 @@ public final class ProjectConst
   
   // Buggy Firmware, Temperatur-Lesen, Gradienten-Bug
   public static final String BUGGY_FIRMWARE_01          = "V2.6.7.7_V";
+  public static final String FIRMWARE_01                = "V2.7_V";
   
   // Verzeichnis für Datenbanken
   public static final String DEFAULTDATADIR             = "database";

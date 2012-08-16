@@ -380,14 +380,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         // zusammenbauen fuer Anzeige
         String[] elem = new String[3];
         // SPX-DiveNumber etwas einrücken, für vierstellige Anzeige
+        elem[0] = origSet[0];
         elem[1] = String.format( "%4s", origSet[1] );
         // Die UTC-Zeit als ASCII/UNIX wieder zu der originalen Zeit für Java zusammenbauen
         try
         {
-          // LOGGER.log( Level.FINE, "unix Timestamp <" + origSet[1] + ">..." );
           javaTime = Long.parseLong( origSet[2] ) * 1000;
           dateTime = new DateTime( javaTime );
-          elem[0] = origSet[0];
+          String testStr = stringsBundle.getString( "MainCommGUI.timeFormatterString" );
           elem[2] = dateTime.toString( stringsBundle.getString( "MainCommGUI.timeFormatterString" ) );
         }
         catch( NumberFormatException ex )

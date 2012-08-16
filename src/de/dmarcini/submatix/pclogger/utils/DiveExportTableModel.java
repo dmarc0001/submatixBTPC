@@ -25,10 +25,12 @@ public class DiveExportTableModel extends DefaultTableModel
    */
   private static final long serialVersionUID = 4949908890954476602L;
   private static final int  countColummns    = 4;
+  private String[][]        dataAsString     = null;
 
   public DiveExportTableModel( Object[][] data, String[] columnNames )
   {
     super( data, columnNames );
+    dataAsString = ( String[][] )data;
   }
 
   @Override
@@ -65,8 +67,15 @@ public class DiveExportTableModel extends DefaultTableModel
    * @param setNumber
    * @return Datenset als String[]
    */
-  public String[] getDataRowAt( int setNumber )
+  public int getDbIdAt( int setNumber )
   {
-    return( ( String[] )super.dataVector.elementAt( setNumber ) );
+    try
+    {
+      return( Integer.parseInt( dataAsString[setNumber][4] ) );
+    }
+    catch( NumberFormatException ex )
+    {
+      return( -1 );
+    }
   }
 }

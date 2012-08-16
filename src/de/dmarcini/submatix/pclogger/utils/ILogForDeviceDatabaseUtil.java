@@ -281,4 +281,17 @@ public interface ILogForDeviceDatabaseUtil
    * @return der Kommentar...
    */
   public String getNotesForId( int dbId );
+
+  /**
+   * 
+   * Entfernt aus der Datenbank alle Einträge zu den im Array befindlichen ID
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 17.08.2012
+   * @param dbIds
+   */
+  public void deleteAllSetsForIds( int[] dbIds );
 }

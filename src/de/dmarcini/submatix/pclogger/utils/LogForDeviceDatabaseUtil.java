@@ -87,112 +87,6 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     currentDiveId = -1;
   }
 
-  @Override
-  public Connection createConnection()
-  {
-    int version = 0;
-    //
-    try
-    {
-      if( conn != null )
-      {
-        if( !conn.isClosed() )
-        {
-          return( conn );
-        }
-      }
-      // erzeuge eine Verbindung zur DB-Engine
-      conn = null;
-      Class.forName( "org.sqlite.JDBC" );
-      conn = DriverManager.getConnection( "jdbc:sqlite:" + dbFile.getAbsoluteFile() );
-      conn.setAutoCommit( false );
-      // Datenbank öffnen, wenn File vorhanden
-      LOGGER.log( Level.FINE, "database <" + dbFile.getAbsoluteFile() + "> opened..." );
-      version = readDatabaseVersion();
-      if( version != ProjectConst.DB_VERSION )
-      {
-        // ACHTUNG, da hat sich was geändert! Oder die DB war nicht vorhanden
-        // ich muß mir was einfallen lassen
-        _updateDatabaseVersion( version );
-      }
-    }
-    catch( ClassNotFoundException ex )
-    {
-      LOGGER.log( Level.SEVERE, "ClassNotFoundException <" + ex.getLocalizedMessage() + ">" );
-      return( null );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't open/recreate Database <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-    return( conn );
-  }
-
-  /**
-   * 
-   * Lese die Version der Datenbank, wenn möglich
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 06.05.2012
-   * @return
-   */
-  private int readDatabaseVersion()
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    int version = 0;
-    //
-    LOGGER.log( Level.FINE, "read database version..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( 0 );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select max( %s ) from %s;",
-            ProjectConst.V_VERSION,
-            ProjectConst.V_DBVERSION
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        version = rs.getInt( 1 );
-        LOGGER.log( Level.FINE, String.format( "database read version:%d", version ) );
-        rs.close();
-        return( version );
-      }
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return( 0 );
-    }
-    return( 0 );
-  }
-
-  @Override
-  public Connection createNewDatabase() throws SQLException, ClassNotFoundException
-  {
-    return( _createNewDatabase( dbFile ) );
-  }
-
-  @Override
-  public Connection createNewDatabase( String dbFileName ) throws SQLException, ClassNotFoundException
-  {
-    dbFile = new File( dbFileName );
-    return( _createNewDatabase( dbFile ) );
-  }
-
   private Connection _createNewDatabase( File dbFl ) throws SQLException, ClassNotFoundException
   {
     String sql;
@@ -443,6 +337,104 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
   }
 
+  /**
+   * 
+   * Passe die Datenbank an von Version kleiner 3 auf 3
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.08.2012
+   */
+  private void _updateTableToVer3()
+  {
+    String sql;
+    Statement stat;
+    boolean rs;
+    //
+    LOGGER.log( Level.FINE, "update database version..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return;
+    }
+    try
+    {
+      //@formatter:off
+      sql = String.format( 
+              "insert into %s (%s) values ( '%d' );",
+              ProjectConst.V_DBVERSION,
+              ProjectConst.V_VERSION,
+              3
+             );
+      //@formatter:on
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Version updated." );
+      }
+      conn.commit();
+      stat.close();
+      //@formatter:off
+      sql = String.format( 
+              "alter table %s add column %s text;",
+              ProjectConst.H_TABLE_DIVELOGS,
+              ProjectConst.H_NOTES
+             );
+      //@formatter:on
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Database (table) updated." );
+      }
+      conn.commit();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return;
+    }
+    return;
+  }
+
+  @Override
+  public int allocateCache( int diveId )
+  {
+    // immer eine neue anlegen, löscht durch garbage collector auch eventuell vorhandene alte Liste
+    LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">..." );
+    logDataList = new Vector<LogLineDataObject>();
+    // aktuelle Id setzen
+    currentDiveId = diveId;
+    if( logDataList != null )
+    {
+      return( 1 );
+    }
+    LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">...OK" );
+    return( 0 );
+  }
+
+  @Override
+  public int appendLogToCache( int diveId, LogLineDataObject logLineObj )
+  {
+    if( logDataList == null )
+    {
+      LOGGER.log( Level.SEVERE, "no logDataList for caching allocated! ABORT" );
+      return( -1 );
+    }
+    if( currentDiveId == -1 || currentDiveId != diveId )
+    {
+      LOGGER.log( Level.SEVERE, "diveid for this logline is not correct in this situation! ABORT" );
+      return( -1 );
+    }
+    logDataList.add( logLineObj );
+    LOGGER.log( Level.FINE, "line dataset cached..." );
+    return( 1 );
+  }
+
   @Override
   public void closeDB()
   {
@@ -469,21 +461,406 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
-  public boolean isOpenDB()
+  public Connection createConnection()
   {
-    if( conn == null )
-    {
-      return( false );
-    }
+    int version = 0;
+    //
     try
     {
-      return( !conn.isClosed() );
+      if( conn != null )
+      {
+        if( !conn.isClosed() )
+        {
+          return( conn );
+        }
+      }
+      // erzeuge eine Verbindung zur DB-Engine
+      conn = null;
+      Class.forName( "org.sqlite.JDBC" );
+      conn = DriverManager.getConnection( "jdbc:sqlite:" + dbFile.getAbsoluteFile() );
+      conn.setAutoCommit( false );
+      // Datenbank öffnen, wenn File vorhanden
+      LOGGER.log( Level.FINE, "database <" + dbFile.getAbsoluteFile() + "> opened..." );
+      version = readDatabaseVersion();
+      if( version != ProjectConst.DB_VERSION )
+      {
+        // ACHTUNG, da hat sich was geändert! Oder die DB war nicht vorhanden
+        // ich muß mir was einfallen lassen
+        _updateDatabaseVersion( version );
+      }
+    }
+    catch( ClassNotFoundException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ClassNotFoundException <" + ex.getLocalizedMessage() + ">" );
+      return( null );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, String.format( "fail to check database ist opened (%s))", ex.getLocalizedMessage() ) );
+      LOGGER.log( Level.SEVERE, "Can't open/recreate Database <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return( null );
     }
-    return( false );
+    return( conn );
+  }
+
+  @Override
+  public Connection createNewDatabase() throws SQLException, ClassNotFoundException
+  {
+    return( _createNewDatabase( dbFile ) );
+  }
+
+  @Override
+  public Connection createNewDatabase( String dbFileName ) throws SQLException, ClassNotFoundException
+  {
+    dbFile = new File( dbFileName );
+    return( _createNewDatabase( dbFile ) );
+  }
+
+  @Override
+  public void deleteAllSetsForIds( int[] dbIds )
+  {
+    String sql;
+    Statement stat;
+    StringBuilder out = new StringBuilder();
+    //
+    if( dbIds.length == 0 || conn == null )
+    {
+      return;
+    }
+    // die Datenbankids zusammenflicken
+    // erste ID rein
+    out.append( String.format( "%d", dbIds[0] ) );
+    // restliche Ids, wenn vorhanden
+    for( int x = 1; x < dbIds.length; x++ )
+    {
+      out.append( String.format( ", %d", dbIds[x] ) );
+    }
+    LOGGER.fine( "delete dbIds: " + out.toString() + " from database..." );
+    //
+    // zuerst die logdaten entfernen
+    //
+    //@formatter:off
+    sql = String.format( 
+            "delete from %s\n" +
+            " where %s in (%s)"
+            ,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            out.toString()
+            );
+    //@formatter:on 
+    //
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      ex.printStackTrace();
+    }
+    //
+    // jetzt die Kopfdaten entfernen
+    //
+    //@formatter:off
+    sql = String.format( 
+            "delete from %s\n" +
+            " where %s in (%s)"
+            ,
+            ProjectConst.D_TABLE_DIVEDETAIL,
+            ProjectConst.D_DIVEID,
+            out.toString()
+            );
+    //@formatter:on 
+    //
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      ex.printStackTrace();
+    }
+  }
+
+  @Override
+  public int deleteLogFromDatabease()
+  {
+    String sql;
+    Statement stat;
+    //
+    if( currentDiveId == -1 )
+    {
+      // das war nix...
+      return( 0 );
+    }
+    //
+    // entferne Headerdaten
+    //
+    //@formatter:off
+    sql = String.format( 
+            "delete from %s\n" +
+            " where %s=%d"
+            ,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            currentDiveId
+            );
+    //@formatter:on 
+    //
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      ex.printStackTrace();
+    }
+    currentDiveId = -1;
+    if( logDataList != null )
+    {
+      logDataList.clear();
+      logDataList = null;
+    }
+    return 1;
+  }
+
+  @Override
+  public Double[] getDiveHeadsForDiveNumAsDouble( int numberOnSpx )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    Double[] diveHeadData = new Double[12];
+    //
+    LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_DIVENUMBERONSPX,
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_HADSEND,
+            ProjectConst.H_FIRSTTEMP,
+            ProjectConst.H_LOWTEMP,
+            ProjectConst.H_MAXDEPTH,
+            ProjectConst.H_SAMPLES,
+            ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_UNITS,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVENUMBERONSPX,
+            numberOnSpx
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        diveHeadData[0] = rs.getDouble( 1 );
+        diveHeadData[1] = rs.getDouble( 2 );
+        diveHeadData[2] = 0.0;
+        diveHeadData[3] = 0.0;
+        diveHeadData[4] = rs.getDouble( 3 );
+        diveHeadData[5] = rs.getDouble( 4 );
+        diveHeadData[6] = rs.getDouble( 5 );
+        diveHeadData[7] = rs.getDouble( 6 );
+        diveHeadData[8] = rs.getDouble( 7 );
+        diveHeadData[9] = rs.getDouble( 8 );
+        diveHeadData[10] = rs.getDouble( 9 );
+        diveHeadData[11] = rs.getDouble( 10 );
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
+      return( diveHeadData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  @Override
+  public String[] getDiveHeadsForDiveNumAsStrings( int numberOnSpx )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String[] diveHeadData = new String[12];
+    //
+    LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_DIVENUMBERONSPX,
+            ProjectConst.H_FILEONSPX,
+            ProjectConst.H_DEVICEID,
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_HADSEND,
+            ProjectConst.H_FIRSTTEMP,
+            ProjectConst.H_LOWTEMP,
+            ProjectConst.H_MAXDEPTH,
+            ProjectConst.H_SAMPLES,
+            ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_UNITS,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVENUMBERONSPX,
+            numberOnSpx
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        diveHeadData[0] = rs.getString( 1 );
+        diveHeadData[1] = rs.getString( 2 );
+        diveHeadData[2] = rs.getString( 3 );
+        diveHeadData[3] = rs.getString( 4 );
+        diveHeadData[4] = rs.getString( 5 );
+        diveHeadData[5] = rs.getString( 6 );
+        diveHeadData[6] = rs.getString( 7 );
+        diveHeadData[7] = rs.getString( 8 );
+        diveHeadData[8] = String.format( "%-3.1f", ( rs.getDouble( 9 ) / 10.0 ) ); // Tiefe
+        diveHeadData[9] = rs.getString( 10 );
+        // Minuten/Sekunden ausrechnen
+        int minutes = rs.getInt( 11 ) / 60;
+        int secounds = rs.getInt( 11 ) % 60;
+        diveHeadData[10] = String.format( "%d:%02d", minutes, secounds );
+        if( rs.getInt( 12 ) == ProjectConst.UNITS_IMPERIAL )
+        {
+          diveHeadData[11] = "IMPERIAL"; // Einheiten
+        }
+        else
+        {
+          diveHeadData[11] = "METRIC"; // Einheiten
+        }
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
+      return( diveHeadData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  @Override
+  public Vector<String[]> getDiveListForDevice( String device )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    Vector<String[]> results = new Vector<String[]>();
+    //
+    LOGGER.log( Level.FINE, "read divelist for device <" + device + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s from %s order by %s desc;",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_DIVENUMBERONSPX,
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVENUMBERONSPX
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      while( rs.next() )
+      {
+        // Daten kosolidieren
+        String[] resultSet = new String[3];
+        resultSet[0] = rs.getString( 1 ); // diveID
+        resultSet[1] = rs.getString( 2 ); // Nummer auf dem SPX
+        resultSet[2] = rs.getString( 3 ); // Anfangszeit
+        // ab in den vector
+        results.add( resultSet );
+        LOGGER.log( Level.FINE, String.format( "database read dive nr <%s>", rs.getString( 1 ) ) );
+      }
+      rs.close();
+      return( results );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  @Override
+  public String getNotesForId( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String notesForDive = null;
+    //
+    LOGGER.log( Level.FINE, "read notes for dive <" + dbId + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s from %s where %s=%d;",
+            ProjectConst.H_NOTES,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        notesForDive = rs.getString( 1 ); // die Bemerkungen
+      }
+      rs.close();
+      return( notesForDive );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read notes from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
   }
 
   @Override
@@ -532,90 +909,278 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
-  public int writeNewDive( String deviceId, String fileOnSPX, int units, long numberOnSPX, long startTime )
+  public boolean isOpenDB()
   {
-    Statement stat;
+    if( conn == null )
+    {
+      return( false );
+    }
+    try
+    {
+      return( !conn.isClosed() );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to check database ist opened (%s))", ex.getLocalizedMessage() ) );
+    }
+    return( false );
+  }
+
+  /**
+   * 
+   * Lese die Version der Datenbank, wenn möglich
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 06.05.2012
+   * @return
+   */
+  private int readDatabaseVersion()
+  {
     String sql;
+    Statement stat;
     ResultSet rs;
-    int generatedKey;
+    int version = 0;
     //
-    LOGGER.log( Level.FINE, "create new diving entry..." );
+    LOGGER.log( Level.FINE, "read database version..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( 0 );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select max( %s ) from %s;",
+            ProjectConst.V_VERSION,
+            ProjectConst.V_DBVERSION
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        version = rs.getInt( 1 );
+        LOGGER.log( Level.FINE, String.format( "database read version:%d", version ) );
+        rs.close();
+        return( version );
+      }
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return( 0 );
+    }
+    return( 0 );
+  }
+
+  @Override
+  public Vector<Integer[]> readDiveDataFromId( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    Vector<Integer[]> diveData = new Vector<Integer[]>();
+    //
+    diveData.clear();
+    LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            ProjectConst.D_DELTATIME,
+            ProjectConst.D_DEPTH,
+            ProjectConst.D_TEMPERATURE,
+            ProjectConst.D_PPO,
+            ProjectConst.D_PPO_1,
+            ProjectConst.D_PPO_2,
+            ProjectConst.D_PPO_3,
+            ProjectConst.D_SETPOINT,
+            ProjectConst.D_HE,
+            ProjectConst.D_N2,
+            ProjectConst.D_NULLTIME,
+            ProjectConst.D_TABLE_DIVEDETAIL,
+            ProjectConst.D_DIVEID,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      while( rs.next() )
+      {
+        // Daten kosolidieren
+        Integer[] resultSet = new Integer[12];
+        resultSet[DELTATIME] = rs.getInt( 1 );
+        resultSet[DEPTH] = rs.getInt( 2 );
+        resultSet[TEMPERATURE] = rs.getInt( 3 );
+        resultSet[PPO2] = ( int )( rs.getDouble( 4 ) * 1000.0 );
+        resultSet[PPO2_01] = ( int )( rs.getDouble( 5 ) * 1000.0 );
+        resultSet[PPO2_02] = ( int )( rs.getDouble( 6 ) * 1000.0 );
+        resultSet[PPO2_03] = ( int )( rs.getDouble( 7 ) * 1000.0 );
+        resultSet[SETPOINT] = rs.getInt( 8 );
+        resultSet[HEPERCENT] = rs.getInt( 9 );
+        resultSet[N2PERCENT] = rs.getInt( 10 );
+        resultSet[NULLTIME] = rs.getInt( 11 );
+        // ab in den vector
+        diveData.add( resultSet );
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB...OK" );
+      return( diveData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  @Override
+  public int[] readHeadDiveDataFromId( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    int[] diveHeadData = new int[7];
+    //
+    LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_FIRSTTEMP,
+            ProjectConst.H_LOWTEMP,
+            ProjectConst.H_MAXDEPTH,
+            ProjectConst.H_SAMPLES,
+            ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_UNITS,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        diveHeadData[0] = rs.getInt( 1 );
+        diveHeadData[1] = ( int )( rs.getDouble( 2 ) * 10.0 );
+        diveHeadData[2] = ( int )( rs.getDouble( 3 ) * 10.0 );
+        diveHeadData[3] = rs.getInt( 4 );
+        diveHeadData[4] = rs.getInt( 5 );
+        diveHeadData[5] = rs.getInt( 6 );
+        diveHeadData[6] = rs.getInt( 7 );
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB...OK" );
+      return( diveHeadData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  @Override
+  public int removeLogdataForId( int diveId )
+  {
+    String sql;
+    Statement stat;
+    //
+    if( diveId == -1 )
+    {
+      // das war nix...
+      return( 0 );
+    }
+    LOGGER.log( Level.FINE, "remove logdatedata for dive (update) <" + diveId + ">..." );
+    //
+    // entferne Logdatenfür ID
+    //
+    //@formatter:off
+    sql = String.format( 
+            "delete from %s\n" +
+            " where %s=%d"
+            ,
+            ProjectConst.D_TABLE_DIVEDETAIL,
+            ProjectConst.D_DIVEID,
+            diveId
+            );
+    //@formatter:on 
+    //
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+      LOGGER.log( Level.FINE, "remove logdatedata for dive (update) <" + diveId + ">...OK" );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      ex.printStackTrace();
+      return 0;
+    }
+    return 1;
+  }
+
+  @Override
+  public int saveNoteForId( int dbId, String notes )
+  {
+    String sql;
+    Statement stat;
+    boolean rs;
+    //
+    LOGGER.log( Level.FINE, "update notes for dive dbid: " + dbId + "..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
       return( -1 );
     }
-    // immer eine neue anlegen, löscht durch garbage collector auch eventuell vorhandene alte Liste
-    logDataList = new Vector<LogLineDataObject>();
-    //
     try
     {
-      stat = conn.createStatement();
-      LOGGER.log( Level.FINE, "insert new dataset into database..." );
       //@formatter:off
       sql = String.format( 
-              "insert into %s ( %s,%s,%s,%s,%s ) values ( '%s','%s', %d, %d, %d );",
+              "update %s set %s='%s' where %s=%d;",
               ProjectConst.H_TABLE_DIVELOGS,
-              ProjectConst.H_DEVICEID,
-              ProjectConst.H_FILEONSPX,
-              ProjectConst.H_UNITS,
-              ProjectConst.H_DIVENUMBERONSPX,
-              ProjectConst.H_STARTTIME,
-              deviceId, 
-              fileOnSPX,
-              units,
-              numberOnSPX,
-              startTime
-             );
-      //@formatter:on
-      LOGGER.log( Level.FINE, "write database... " );
-      stat.execute( sql );
-      conn.commit();
-      //@formatter:off
-      sql = String.format( 
-              "select max(%s) from %s ;",
+              ProjectConst.H_NOTES,
+              notes,
               ProjectConst.H_DIVEID,
-              ProjectConst.H_TABLE_DIVELOGS
+              dbId
              );
       //@formatter:on
-      LOGGER.log( Level.FINE, "read generated key... " );
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
       {
-        generatedKey = rs.getInt( 1 );
-        LOGGER.log( Level.INFO, String.format( "inserted dataset has diveId: <%d>...", generatedKey ) );
-        rs.close();
-        stat.close();
-        currentDiveId = generatedKey;
-        return( generatedKey );
+        LOGGER.log( Level.INFO, "Notes updated." );
       }
-      rs.close();
+      conn.commit();
       stat.close();
-      return( -1 );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't insert into database! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
       return( -1 );
     }
-  }
-
-  @Override
-  public int appendLogToCache( int diveId, LogLineDataObject logLineObj )
-  {
-    if( logDataList == null )
-    {
-      LOGGER.log( Level.SEVERE, "no logDataList for caching allocated! ABORT" );
-      return( -1 );
-    }
-    if( currentDiveId == -1 || currentDiveId != diveId )
-    {
-      LOGGER.log( Level.SEVERE, "diveid for this logline is not correct in this situation! ABORT" );
-      return( -1 );
-    }
-    logDataList.add( logLineObj );
-    LOGGER.log( Level.FINE, "line dataset cached..." );
-    return( 1 );
+    return( dbId );
   }
 
   @Override
@@ -843,562 +1408,71 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
-  public int deleteLogFromDatabease()
+  public int writeNewDive( String deviceId, String fileOnSPX, int units, long numberOnSPX, long startTime )
   {
-    String sql;
     Statement stat;
-    //
-    if( currentDiveId == -1 )
-    {
-      // das war nix...
-      return( 0 );
-    }
-    //
-    // entferne Headerdaten
-    //
-    //@formatter:off
-    sql = String.format( 
-            "delete from %s\n" +
-            " where %s=%d"
-            ,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVEID,
-            currentDiveId
-            );
-    //@formatter:on 
-    //
-    try
-    {
-      stat = conn.createStatement();
-      stat.execute( sql );
-      stat.close();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
-      ex.printStackTrace();
-    }
-    currentDiveId = -1;
-    if( logDataList != null )
-    {
-      logDataList.clear();
-      logDataList = null;
-    }
-    return 1;
-  }
-
-  @Override
-  public Vector<String[]> getDiveListForDevice( String device )
-  {
     String sql;
-    Statement stat;
     ResultSet rs;
-    Vector<String[]> results = new Vector<String[]>();
+    int generatedKey;
     //
-    LOGGER.log( Level.FINE, "read divelist for device <" + device + "> from DB..." );
+    LOGGER.log( Level.FINE, "create new diving entry..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
+      return( -1 );
     }
-    //@formatter:off
-    sql = String.format( 
-            "select %s,%s,%s from %s order by %s desc;",
-            ProjectConst.H_DIVEID,
-            ProjectConst.H_DIVENUMBERONSPX,
-            ProjectConst.H_STARTTIME,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVENUMBERONSPX
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      while( rs.next() )
-      {
-        // Daten kosolidieren
-        String[] resultSet = new String[3];
-        resultSet[0] = rs.getString( 1 ); // diveID
-        resultSet[1] = rs.getString( 2 ); // Nummer auf dem SPX
-        resultSet[2] = rs.getString( 3 ); // Anfangszeit
-        // ab in den vector
-        results.add( resultSet );
-        LOGGER.log( Level.FINE, String.format( "database read dive nr <%s>", rs.getString( 1 ) ) );
-      }
-      rs.close();
-      return( results );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-  }
-
-  @Override
-  public Vector<Integer[]> readDiveDataFromId( int dbId )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    Vector<Integer[]> diveData = new Vector<Integer[]>();
-    //
-    diveData.clear();
-    LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
-            ProjectConst.D_DELTATIME,
-            ProjectConst.D_DEPTH,
-            ProjectConst.D_TEMPERATURE,
-            ProjectConst.D_PPO,
-            ProjectConst.D_PPO_1,
-            ProjectConst.D_PPO_2,
-            ProjectConst.D_PPO_3,
-            ProjectConst.D_SETPOINT,
-            ProjectConst.D_HE,
-            ProjectConst.D_N2,
-            ProjectConst.D_NULLTIME,
-            ProjectConst.D_TABLE_DIVEDETAIL,
-            ProjectConst.D_DIVEID,
-            dbId
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      while( rs.next() )
-      {
-        // Daten kosolidieren
-        Integer[] resultSet = new Integer[12];
-        resultSet[DELTATIME] = rs.getInt( 1 );
-        resultSet[DEPTH] = rs.getInt( 2 );
-        resultSet[TEMPERATURE] = rs.getInt( 3 );
-        resultSet[PPO2] = ( int )( rs.getDouble( 4 ) * 1000.0 );
-        resultSet[PPO2_01] = ( int )( rs.getDouble( 5 ) * 1000.0 );
-        resultSet[PPO2_02] = ( int )( rs.getDouble( 6 ) * 1000.0 );
-        resultSet[PPO2_03] = ( int )( rs.getDouble( 7 ) * 1000.0 );
-        resultSet[SETPOINT] = rs.getInt( 8 );
-        resultSet[HEPERCENT] = rs.getInt( 9 );
-        resultSet[N2PERCENT] = rs.getInt( 10 );
-        resultSet[NULLTIME] = rs.getInt( 11 );
-        // ab in den vector
-        diveData.add( resultSet );
-      }
-      rs.close();
-      LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB...OK" );
-      return( diveData );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read dive data from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-  }
-
-  @Override
-  public int removeLogdataForId( int diveId )
-  {
-    String sql;
-    Statement stat;
-    //
-    if( diveId == -1 )
-    {
-      // das war nix...
-      return( 0 );
-    }
-    LOGGER.log( Level.FINE, "remove logdatedata for dive (update) <" + diveId + ">..." );
-    //
-    // entferne Logdatenfür ID
-    //
-    //@formatter:off
-    sql = String.format( 
-            "delete from %s\n" +
-            " where %s=%d"
-            ,
-            ProjectConst.D_TABLE_DIVEDETAIL,
-            ProjectConst.D_DIVEID,
-            diveId
-            );
-    //@formatter:on 
-    //
-    try
-    {
-      stat = conn.createStatement();
-      stat.execute( sql );
-      stat.close();
-      LOGGER.log( Level.FINE, "remove logdatedata for dive (update) <" + diveId + ">...OK" );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
-      ex.printStackTrace();
-      return 0;
-    }
-    return 1;
-  }
-
-  @Override
-  public int allocateCache( int diveId )
-  {
     // immer eine neue anlegen, löscht durch garbage collector auch eventuell vorhandene alte Liste
-    LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">..." );
     logDataList = new Vector<LogLineDataObject>();
-    // aktuelle Id setzen
-    currentDiveId = diveId;
-    if( logDataList != null )
-    {
-      return( 1 );
-    }
-    LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">...OK" );
-    return( 0 );
-  }
-
-  @Override
-  public String[] getDiveHeadsForDiveNumAsStrings( int numberOnSpx )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    String[] diveHeadData = new String[12];
     //
-    LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
-            ProjectConst.H_DIVEID,
-            ProjectConst.H_DIVENUMBERONSPX,
-            ProjectConst.H_FILEONSPX,
-            ProjectConst.H_DEVICEID,
-            ProjectConst.H_STARTTIME,
-            ProjectConst.H_HADSEND,
-            ProjectConst.H_FIRSTTEMP,
-            ProjectConst.H_LOWTEMP,
-            ProjectConst.H_MAXDEPTH,
-            ProjectConst.H_SAMPLES,
-            ProjectConst.H_DIVELENGTH,
-            ProjectConst.H_UNITS,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVENUMBERONSPX,
-            numberOnSpx
-           );
-    //@formatter:on
     try
     {
       stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        // Daten kosolidieren
-        diveHeadData[0] = rs.getString( 1 );
-        diveHeadData[1] = rs.getString( 2 );
-        diveHeadData[2] = rs.getString( 3 );
-        diveHeadData[3] = rs.getString( 4 );
-        diveHeadData[4] = rs.getString( 5 );
-        diveHeadData[5] = rs.getString( 6 );
-        diveHeadData[6] = rs.getString( 7 );
-        diveHeadData[7] = rs.getString( 8 );
-        diveHeadData[8] = String.format( "%-3.1f", ( rs.getDouble( 9 ) / 10.0 ) ); // Tiefe
-        diveHeadData[9] = rs.getString( 10 );
-        // Minuten/Sekunden ausrechnen
-        int minutes = rs.getInt( 11 ) / 60;
-        int secounds = rs.getInt( 11 ) % 60;
-        diveHeadData[10] = String.format( "%d:%02d", minutes, secounds );
-        if( rs.getInt( 12 ) == ProjectConst.UNITS_IMPERIAL )
-        {
-          diveHeadData[11] = "IMPERIAL"; // Einheiten
-        }
-        else
-        {
-          diveHeadData[11] = "METRIC"; // Einheiten
-        }
-      }
-      rs.close();
-      LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
-      return( diveHeadData );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-  }
-
-  @Override
-  public Double[] getDiveHeadsForDiveNumAsDouble( int numberOnSpx )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    Double[] diveHeadData = new Double[12];
-    //
-    LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
-            ProjectConst.H_DIVEID,
-            ProjectConst.H_DIVENUMBERONSPX,
-            ProjectConst.H_STARTTIME,
-            ProjectConst.H_HADSEND,
-            ProjectConst.H_FIRSTTEMP,
-            ProjectConst.H_LOWTEMP,
-            ProjectConst.H_MAXDEPTH,
-            ProjectConst.H_SAMPLES,
-            ProjectConst.H_DIVELENGTH,
-            ProjectConst.H_UNITS,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVENUMBERONSPX,
-            numberOnSpx
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        // Daten kosolidieren
-        diveHeadData[0] = rs.getDouble( 1 );
-        diveHeadData[1] = rs.getDouble( 2 );
-        diveHeadData[2] = 0.0;
-        diveHeadData[3] = 0.0;
-        diveHeadData[4] = rs.getDouble( 3 );
-        diveHeadData[5] = rs.getDouble( 4 );
-        diveHeadData[6] = rs.getDouble( 5 );
-        diveHeadData[7] = rs.getDouble( 6 );
-        diveHeadData[8] = rs.getDouble( 7 );
-        diveHeadData[9] = rs.getDouble( 8 );
-        diveHeadData[10] = rs.getDouble( 9 );
-        diveHeadData[11] = rs.getDouble( 10 );
-      }
-      rs.close();
-      LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
-      return( diveHeadData );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-  }
-
-  @Override
-  public int[] readHeadDiveDataFromId( int dbId )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    int[] diveHeadData = new int[7];
-    //
-    LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
-            ProjectConst.H_STARTTIME,
-            ProjectConst.H_FIRSTTEMP,
-            ProjectConst.H_LOWTEMP,
-            ProjectConst.H_MAXDEPTH,
-            ProjectConst.H_SAMPLES,
-            ProjectConst.H_DIVELENGTH,
-            ProjectConst.H_UNITS,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVEID,
-            dbId
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        // Daten kosolidieren
-        diveHeadData[0] = rs.getInt( 1 );
-        diveHeadData[1] = ( int )( rs.getDouble( 2 ) * 10.0 );
-        diveHeadData[2] = ( int )( rs.getDouble( 3 ) * 10.0 );
-        diveHeadData[3] = rs.getInt( 4 );
-        diveHeadData[4] = rs.getInt( 5 );
-        diveHeadData[5] = rs.getInt( 6 );
-        diveHeadData[6] = rs.getInt( 7 );
-      }
-      rs.close();
-      LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB...OK" );
-      return( diveHeadData );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-  }
-
-  /**
-   * 
-   * Passe die Datenbank an von Version kleiner 3 auf 3
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 03.08.2012
-   */
-  private void _updateTableToVer3()
-  {
-    String sql;
-    Statement stat;
-    boolean rs;
-    //
-    LOGGER.log( Level.FINE, "update database version..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return;
-    }
-    try
-    {
+      LOGGER.log( Level.FINE, "insert new dataset into database..." );
       //@formatter:off
       sql = String.format( 
-              "insert into %s (%s) values ( '%d' );",
-              ProjectConst.V_DBVERSION,
-              ProjectConst.V_VERSION,
-              3
+              "insert into %s ( %s,%s,%s,%s,%s ) values ( '%s','%s', %d, %d, %d );",
+              ProjectConst.H_TABLE_DIVELOGS,
+              ProjectConst.H_DEVICEID,
+              ProjectConst.H_FILEONSPX,
+              ProjectConst.H_UNITS,
+              ProjectConst.H_DIVENUMBERONSPX,
+              ProjectConst.H_STARTTIME,
+              deviceId, 
+              fileOnSPX,
+              units,
+              numberOnSPX,
+              startTime
              );
       //@formatter:on
-      stat = conn.createStatement();
-      rs = stat.execute( sql );
-      if( rs )
-      {
-        LOGGER.log( Level.INFO, "Version updated." );
-      }
+      LOGGER.log( Level.FINE, "write database... " );
+      stat.execute( sql );
       conn.commit();
-      stat.close();
       //@formatter:off
       sql = String.format( 
-              "alter table %s add column %s text;",
-              ProjectConst.H_TABLE_DIVELOGS,
-              ProjectConst.H_NOTES
-             );
-      //@formatter:on
-      stat = conn.createStatement();
-      rs = stat.execute( sql );
-      if( rs )
-      {
-        LOGGER.log( Level.INFO, "Database (table) updated." );
-      }
-      conn.commit();
-      stat.close();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return;
-    }
-    return;
-  }
-
-  @Override
-  public int saveNoteForId( int dbId, String notes )
-  {
-    String sql;
-    Statement stat;
-    boolean rs;
-    //
-    LOGGER.log( Level.FINE, "update notes for dive dbid: " + dbId + "..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( -1 );
-    }
-    try
-    {
-      //@formatter:off
-      sql = String.format( 
-              "update %s set %s='%s' where %s=%d;",
-              ProjectConst.H_TABLE_DIVELOGS,
-              ProjectConst.H_NOTES,
-              notes,
+              "select max(%s) from %s ;",
               ProjectConst.H_DIVEID,
-              dbId
+              ProjectConst.H_TABLE_DIVELOGS
              );
       //@formatter:on
-      stat = conn.createStatement();
-      rs = stat.execute( sql );
-      if( rs )
-      {
-        LOGGER.log( Level.INFO, "Notes updated." );
-      }
-      conn.commit();
-      stat.close();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return( -1 );
-    }
-    return( dbId );
-  }
-
-  @Override
-  public String getNotesForId( int dbId )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    String notesForDive = null;
-    //
-    LOGGER.log( Level.FINE, "read notes for dive <" + dbId + "> from DB..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select %s from %s where %s=%d;",
-            ProjectConst.H_NOTES,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVEID,
-            dbId
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
+      LOGGER.log( Level.FINE, "read generated key... " );
       rs = stat.executeQuery( sql );
       if( rs.next() )
       {
-        // Daten kosolidieren
-        notesForDive = rs.getString( 1 ); // die Bemerkungen
+        generatedKey = rs.getInt( 1 );
+        LOGGER.log( Level.INFO, String.format( "inserted dataset has diveId: <%d>...", generatedKey ) );
+        rs.close();
+        stat.close();
+        currentDiveId = generatedKey;
+        return( generatedKey );
       }
       rs.close();
-      return( notesForDive );
+      stat.close();
+      return( -1 );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read notes from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
+      LOGGER.log( Level.SEVERE, "Can't insert into database! (" + ex.getLocalizedMessage() + ")" );
+      return( -1 );
     }
   }
 }

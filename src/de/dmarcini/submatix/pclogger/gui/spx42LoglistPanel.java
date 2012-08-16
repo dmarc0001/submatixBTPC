@@ -493,7 +493,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
           diveTimeShowLabel.setText( "??" );
         }
         // Jetzt schau ich mal, ob da was in der Datenbank zu finden ist
-        if( logDatabaseUtil.isLogSaved( logdirFiles.get( spxNumber ) ) )
+        if( ( logDatabaseUtil != null ) && logDatabaseUtil.isLogSaved( logdirFiles.get( spxNumber ) ) )
         {
           // Ja, der ist in der Datenbank erfasst!
           String[] headers = logDatabaseUtil.getDiveHeadsForDiveNumAsStrings( spxNumber );
@@ -869,5 +869,14 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   public int removeFailedDataset()
   {
     return( logDatabaseUtil.deleteLogFromDatabease() );
+  }
+
+  public void closeDatabase()
+  {
+    if( logDatabaseUtil != null )
+    {
+      logDatabaseUtil.closeDB();
+      logDatabaseUtil = null;
+    }
   }
 }

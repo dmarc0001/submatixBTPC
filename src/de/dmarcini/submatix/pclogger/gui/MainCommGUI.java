@@ -2483,6 +2483,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane graph
       tabbedPane.setTitleAt( programTabs.TAB_LOGGRAPH.ordinal(), stringsBundle.getString( "spx42LogGraphPanel.title" ) );
+      logGraphPanel.setLanguageStrings( stringsBundle );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane import/export
       tabbedPane.setTitleAt( programTabs.TAB_IMPORTEXPORT.ordinal(), stringsBundle.getString( "logImportExportPanel.title" ) );
@@ -2834,9 +2835,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           {
             connDev = btComm.getConnectedDevice();
           }
-          // Grafiksachen initialisieren
+          // Panel initialisieren
           try
           {
+            logListPanel.closeDatabase();
             importExportPanel.initData( connDev, progConfig.getDatabaseDir() );
           }
           catch( Exception ex )

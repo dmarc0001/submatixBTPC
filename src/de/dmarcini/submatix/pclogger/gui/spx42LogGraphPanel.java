@@ -387,7 +387,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         {
           javaTime = Long.parseLong( origSet[2] ) * 1000;
           dateTime = new DateTime( javaTime );
-          String testStr = stringsBundle.getString( "MainCommGUI.timeFormatterString" );
           elem[2] = dateTime.toString( stringsBundle.getString( "MainCommGUI.timeFormatterString" ) );
         }
         catch( NumberFormatException ex )

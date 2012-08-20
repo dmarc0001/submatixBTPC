@@ -108,7 +108,7 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
       int result = showAskBox( stringsBundle.getString( "logImportExportPanel.showAskBox.message" ) );
       if( result == 1 )
       {
-        LOGGER.fine( "DELETE DATASETS!" );
+        LOGGER.info( "DELETE DATASETS!" );
         int[] sets = dataViewTable.getSelectedRows();
         deleteDatasetsForIdx( sets );
         // merke mir das ausgewählte Teilchen
@@ -156,7 +156,8 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
     // Klassische Schleife für alle Daten
     for( int setNumber = 0; setNumber < sets.length; setNumber++ )
     {
-      int dataSet = tm.getDbIdAt( setNumber );
+      int dataSet = tm.getDbIdAt( sets[setNumber] );
+      LOGGER.info( String.format( "DBID: <%d>, setNumber: <%d>", dataSet, setNumber ) );
       // datenbankid zufügen
       dbIds[setNumber] = dataSet;
     }

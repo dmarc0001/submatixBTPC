@@ -67,6 +67,10 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
   private ButtonGroup              unitsButtonGroup;
   private JButton                  databaseDirFileButton;
   private JButton                  logfileNameButton;
+  private JLabel                   exportDirLabel;
+  private JTextField               exportDirTextField;
+  private JButton                  exportDirButton;
+  private String                   fileChooserExportDirTitle;
 
   /**
    * Vor Aufruf schützen
@@ -98,6 +102,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     setLanguageStrings( stringsBundle );
     databaseDirTextField.setText( progConfig.getDatabaseDir().getAbsolutePath() );
     logfileNameTextField.setText( progConfig.getLogFile().getAbsolutePath() );
+    exportDirTextField.setText( progConfig.getExportDir().getAbsolutePath() );
     // Buttons entsprechend setzen
     switch ( progConfig.getUnitsProperty() )
     {
@@ -152,6 +157,11 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
             // da hat einer was dran gemacht
             testMoveDatafiles();
           }
+          if( !progConfig.getExportDir().getAbsolutePath().equals( exportDirTextField.getText() ) )
+          {
+            // da wurde was geändert!
+            progConfig.setExportDir( new File( exportDirTextField.getText() ) );
+          }
           // Log und Daten über Dialog
           // Einstellung für Maßeinheiten...
           if( defaultUnitsRadioButton.isSelected() && ( progConfig.getUnitsProperty() != ProjectConst.UNITS_DEFAULT ) )
@@ -185,6 +195,11 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
         LOGGER.fine( "choose datadir pressed..." );
         chooseDataDir();
       }
+      else if( cmd.equals( "choose_exportdir" ) )
+      {
+        LOGGER.fine( "choose datadir pressed..." );
+        chooseExportDir();
+      }
       else
       {
         LOGGER.warning( "unknown command <" + cmd + "> recived!" );
@@ -194,6 +209,40 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     else if( ev.getActionCommand().equals( "rbutton" ) )
     {
       // da hat jemand dran rumgefummelt
+      wasChangedParameter = true;
+    }
+  }
+
+  /**
+   * 
+   * Das exportverzeichis auswählen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   */
+  private void chooseExportDir()
+  {
+    JFileChooser fileChooser;
+    int retVal;
+    //
+    // Einen Dateiauswahldialog Creieren
+    //
+    fileChooser = new JFileChooser();
+    fileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
+    fileChooser.setDialogTitle( fileChooserExportDirTitle );
+    fileChooser.setDialogType( JFileChooser.CUSTOM_DIALOG );
+    fileChooser.setApproveButtonToolTipText( approveDirButtonTooltip );
+    // das existierende Verzeichnis voreinstellen
+    fileChooser.setSelectedFile( progConfig.getExportDir() );
+    retVal = fileChooser.showDialog( this, approveDirButtonText );
+    // Mal sehen, was der User gewollt hat
+    if( retVal == JFileChooser.APPROVE_OPTION )
+    {
+      // Ja, ich wollte das so
+      exportDirTextField.setText( fileChooser.getSelectedFile().getAbsolutePath() );
       wasChangedParameter = true;
     }
   }
@@ -298,7 +347,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     setResizable( false );
     setIconImage( Toolkit.getDefaultToolkit().getImage( ProgramProperetysDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/search.png" ) ) );
     // setVisible( true );
-    setBounds( 100, 100, 750, 345 );
+    setBounds( 100, 100, 750, 417 );
     getContentPane().setLayout( new BorderLayout() );
     contentPanel.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
     getContentPane().add( contentPanel, BorderLayout.SOUTH );
@@ -332,23 +381,24 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     pahtsPanel.setBorder( new TitledBorder( new LineBorder( new Color( 0, 0, 0 ) ), " DIRECTORYS ", TitledBorder.LEADING, TitledBorder.TOP, null, null ) );
     GroupLayout gl_contentPanel = new GroupLayout( contentPanel );
     gl_contentPanel.setHorizontalGroup( gl_contentPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
+            Alignment.LEADING,
             gl_contentPanel
                     .createSequentialGroup()
                     .addContainerGap()
                     .addGroup(
                             gl_contentPanel
                                     .createParallelGroup( Alignment.LEADING )
+                                    .addComponent( pahtsPanel, GroupLayout.PREFERRED_SIZE, 714, GroupLayout.PREFERRED_SIZE )
                                     .addGroup(
                                             gl_contentPanel.createSequentialGroup().addComponent( btnCancel, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE )
                                                     .addPreferredGap( ComponentPlacement.RELATED, 394, Short.MAX_VALUE )
                                                     .addComponent( btnOk, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE ) )
-                                    .addComponent( unitsPanel, GroupLayout.DEFAULT_SIZE, 714, Short.MAX_VALUE )
-                                    .addComponent( pahtsPanel, GroupLayout.PREFERRED_SIZE, 714, GroupLayout.PREFERRED_SIZE ) ).addContainerGap() ) );
+                                    .addComponent( unitsPanel, GroupLayout.DEFAULT_SIZE, 714, Short.MAX_VALUE ) ).addContainerGap() ) );
     gl_contentPanel.setVerticalGroup( gl_contentPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
             gl_contentPanel
                     .createSequentialGroup()
-                    .addContainerGap( 50, Short.MAX_VALUE )
-                    .addComponent( pahtsPanel, GroupLayout.PREFERRED_SIZE, 154, GroupLayout.PREFERRED_SIZE )
+                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                    .addComponent( pahtsPanel, GroupLayout.PREFERRED_SIZE, 225, GroupLayout.PREFERRED_SIZE )
                     .addPreferredGap( ComponentPlacement.UNRELATED )
                     .addComponent( unitsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
                     .addPreferredGap( ComponentPlacement.RELATED )
@@ -377,6 +427,15 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     logfileNameButton.addActionListener( this );
     logfileNameButton.setActionCommand( "choose_logfile" );
     logfileNameButton.addMouseMotionListener( this );
+    exportDirLabel = new JLabel( "EXPORTDIR" );
+    exportDirTextField = new JTextField();
+    exportDirTextField.setEditable( false );
+    exportDirTextField.setColumns( 10 );
+    exportDirButton = new JButton( "" );
+    exportDirButton.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource( "/javax/swing/plaf/metal/icons/ocean/directory.gif" ) ) );
+    exportDirButton.setActionCommand( "choose_exportdir" );
+    exportDirButton.addActionListener( this );
+    exportDirButton.addMouseMotionListener( this );
     GroupLayout gl_pahtsPanel = new GroupLayout( pahtsPanel );
     gl_pahtsPanel.setHorizontalGroup( gl_pahtsPanel.createParallelGroup( Alignment.LEADING )
             .addGroup(
@@ -399,10 +458,10 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
                                                                                             .addGap( 193 ) )
                                                                             .addGroup(
                                                                                     gl_pahtsPanel.createSequentialGroup()
-                                                                                            .addComponent( databaseDirTextField, GroupLayout.DEFAULT_SIZE, 602, Short.MAX_VALUE )
+                                                                                            .addComponent( databaseDirTextField, GroupLayout.DEFAULT_SIZE, 606, Short.MAX_VALUE )
                                                                                             .addPreferredGap( ComponentPlacement.RELATED ) ) )
                                                             .addComponent( databaseDirFileButton, GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE ) )
-                                            .addComponent( moveDataCheckBox )
+                                            .addComponent( moveDataCheckBox, Alignment.TRAILING )
                                             .addGroup(
                                                     Alignment.TRAILING,
                                                     gl_pahtsPanel
@@ -415,10 +474,24 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
                                                                                             .addComponent( logfileLabel, GroupLayout.DEFAULT_SIZE, 345, Short.MAX_VALUE )
                                                                                             .addGap( 267 ) )
                                                                             .addGroup(
-                                                                                    gl_pahtsPanel.createSequentialGroup()
-                                                                                            .addComponent( logfileNameTextField, GroupLayout.DEFAULT_SIZE, 606, Short.MAX_VALUE )
+                                                                                    Alignment.TRAILING,
+                                                                                    gl_pahtsPanel
+                                                                                            .createSequentialGroup()
+                                                                                            .addGroup(
+                                                                                                    gl_pahtsPanel
+                                                                                                            .createParallelGroup( Alignment.TRAILING )
+                                                                                                            .addComponent( exportDirLabel, Alignment.LEADING,
+                                                                                                                    GroupLayout.DEFAULT_SIZE, 606, Short.MAX_VALUE )
+                                                                                                            .addComponent( logfileNameTextField, GroupLayout.DEFAULT_SIZE, 606,
+                                                                                                                    Short.MAX_VALUE )
+                                                                                                            .addComponent( exportDirTextField, Alignment.LEADING,
+                                                                                                                    GroupLayout.DEFAULT_SIZE, 606, Short.MAX_VALUE ) )
                                                                                             .addPreferredGap( ComponentPlacement.RELATED ) ) )
-                                                            .addComponent( logfileNameButton, GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE ) ) ).addContainerGap() ) );
+                                                            .addGroup(
+                                                                    gl_pahtsPanel.createParallelGroup( Alignment.LEADING )
+                                                                            .addComponent( logfileNameButton, GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE )
+                                                                            .addComponent( exportDirButton, GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE ) ) ) )
+                            .addContainerGap() ) );
     gl_pahtsPanel.setVerticalGroup( gl_pahtsPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_pahtsPanel
                     .createSequentialGroup()
@@ -438,10 +511,15 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
                                     .createParallelGroup( Alignment.TRAILING )
                                     .addComponent( logfileNameButton, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE )
                                     .addGroup(
-                                            gl_pahtsPanel.createSequentialGroup().addGroup( gl_pahtsPanel.createSequentialGroup().addComponent( logfileLabel ).addGap( 6 ) )
-                                                    .addPreferredGap( ComponentPlacement.RELATED )
+                                            gl_pahtsPanel.createSequentialGroup().addComponent( logfileLabel ).addPreferredGap( ComponentPlacement.RELATED )
                                                     .addComponent( logfileNameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) ) )
-                    .addGap( 23 ) ) );
+                    .addGap( 18 )
+                    .addComponent( exportDirLabel )
+                    .addPreferredGap( ComponentPlacement.RELATED )
+                    .addGroup(
+                            gl_pahtsPanel.createParallelGroup( Alignment.BASELINE )
+                                    .addComponent( exportDirTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( exportDirButton, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE ) ).addGap( 24 ) ) );
     pahtsPanel.setLayout( gl_pahtsPanel );
     defaultUnitsRadioButton = new JRadioButton( "DEFAULT" );
     defaultUnitsRadioButton.setSelected( true );
@@ -537,6 +615,9 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
       approveDirButtonText = stringsBundle.getString( "ProgramProperetysDialog.approveDirButtonText.text" );
       approveDirButtonTooltip = stringsBundle.getString( "ProgramProperetysDialog.approveDirButtonTooltip.text" );
       fileChooserDirTitle = stringsBundle.getString( "ProgramProperetysDialog.fileChooserDirTitle.text" );
+      fileChooserExportDirTitle = stringsBundle.getString( "ProgramProperetysDialog.fileChooserExportDirTitle.text" );
+      exportDirLabel.setText( stringsBundle.getString( "ProgramProperetysDialog.exportDirLabel.text" ) );
+      exportDirTextField.setToolTipText( stringsBundle.getString( "ProgramProperetysDialog.exportDirTextField.tooltiptext" ) );
     }
     catch( NullPointerException ex )
     {

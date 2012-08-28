@@ -13,13 +13,14 @@ public final class ProjectConst
   
   // UDDF Festlegungen
   public static final String UDDFVERSION                = "2.2.0";
+  public static final String CREATORPROGRAM             = "SUBMATIX SPX42 Manager";
   public static final String CREATORNAME                = "SPX42";
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
-  public static final String MANUFACTHOME               = "http://localhost";
-  public static final String MANUFACTVERS               = "0.6beta";
+  public static final String MANUFACTHOME               = "http://www.submatix.com";
+  public static final String MANUFACTVERS               = "0.8beta";
   public static final String GENYEAR                    = "2012";
-  public static final String GENMONTH                   = "07";
+  public static final String GENMONTH                   = "08";
   public static final String GENDAY                     = "30";
 
   // interne Begrenzung für Empfangspuffer
@@ -27,6 +28,7 @@ public final class ProjectConst
   
   // Buggy Firmware, Temperatur-Lesen, Gradienten-Bug
   public static final String BUGGY_FIRMWARE_01          = "V2.6.7.7_V";
+  public static final String FIRMWARE_01                = "V2.7_V";
   
   // Verzeichnis für Datenbanken
   public static final String DEFAULTDATADIR             = "database";
@@ -143,7 +145,7 @@ public final class ProjectConst
   // DATENBANK
   // Dateiname für SQLite3
   public static final String DB_FILENAME                = "spx42Base.db";
-  public static int          DB_VERSION                 = 3;
+  public static int          DB_VERSION                 = 4;
   // Datenbanktabellen
   //
   // Tabelle für die Versionsnummer der Datenbank (bei Updates evtl gebraucht)
@@ -190,6 +192,9 @@ public final class ProjectConst
   public static final String D_HE                       = "he";
   public static final String D_NULLTIME                 = "nulltime";
   public static final String D_DELTATIME                = "deltatime";
+  public static final String D_PRESURE                  = "presure";
+  public static final String D_ACKU                     = "acku";
+  
   
   //
   // Default Farben für die Graphen in der Loganzeige

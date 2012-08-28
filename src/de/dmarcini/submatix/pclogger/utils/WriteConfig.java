@@ -98,6 +98,7 @@ public class WriteConfig
       out.append( "# generated file, do not edit." + LINE_SEPARATOR );
       out.append( String.format( "%s=%s%s", "databaseDir", conf.getDatabaseDir().getAbsolutePath(), LINE_SEPARATOR ) );
       out.append( String.format( "%s=%s%s", "logFile", conf.getLogFile().getAbsoluteFile(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%s%s", "exportDir", conf.getExportDir().getAbsoluteFile(), LINE_SEPARATOR ) );
       switch ( conf.getUnitsProperty() )
       {
         case ProjectConst.UNITS_DEFAULT:

@@ -137,6 +137,10 @@ public class ReadConfig
         {
           prgConfig.setLogFile( new File( fields[1] ) );
         }
+        if( 0 == fields[0].indexOf( "exportDir" ) )
+        {
+          prgConfig.setExportDir( new File( fields[1] ) );
+        }
         if( 0 == fields[0].indexOf( "showUnits" ) )
         {
           if( 0 == fields[1].indexOf( "default" ) )

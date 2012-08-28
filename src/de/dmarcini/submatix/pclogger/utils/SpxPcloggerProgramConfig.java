@@ -28,6 +28,7 @@ public class SpxPcloggerProgramConfig
   public static final File configFile      = new File( System.getProperty( "user.dir" ) + File.separator + ProjectConst.CONFIGFILENAME );
   public static final File programDir      = new File( System.getProperty( "user.dir" ) );
   private File             databaseDir     = null;
+  private File             exportDir       = null;
   private File             logFile         = null;
   private boolean          wasChanged      = false;
   private boolean          showTemperature = true;
@@ -54,6 +55,7 @@ public class SpxPcloggerProgramConfig
   {
     setDatabaseDir( new File( programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTDATADIR ) );
     setLogFile( new File( programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTLOGFILE ) );
+    setExportDir( new File( programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTEXPORTDIR ) );
     setWasChanged( false );
   }
 
@@ -63,6 +65,11 @@ public class SpxPcloggerProgramConfig
   public File getDatabaseDir()
   {
     return databaseDir;
+  }
+
+  public File getExportDir()
+  {
+    return( this.exportDir );
   }
 
   /**
@@ -169,6 +176,12 @@ public class SpxPcloggerProgramConfig
   {
     setWasChanged( true );
     this.databaseDir = databaseDir;
+  }
+
+  public void setExportDir( File exportDir )
+  {
+    setWasChanged( true );
+    this.exportDir = exportDir;
   }
 
   /**

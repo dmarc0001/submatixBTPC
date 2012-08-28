@@ -3,6 +3,8 @@ bin/
 *.log
 javadoc/
 database/
+export/
+*.uddf
 *.log.?
 *.log.lck
 *.db

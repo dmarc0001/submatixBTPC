@@ -4,17 +4,17 @@ import java.util.Locale;
 
 /**
  * 
- * Helferklasse speichert einen Log-Eintrag fuer UDDF
- * beim Scannen der XMl-Dateien
- *
- * Project: SubmatixBTLogger
- * Package: de.dmarcini.bluethooth.support
+ * Helferklasse speichert einen Log-Eintrag fuer UDDF beim Scannen der XMl-Dateien
+ * 
+ * Project: SubmatixBTLogger Package: de.dmarcini.bluethooth.support
+ * 
  * @author Dirk Marciniak (dirk_marciniak@arcor.de)
  * 
- * Stand: 13.12.2011
+ *         Stand: 13.12.2011
  */
 public class UDDFLogEntry
 {
+
   //@formatter:off
   public int     presure   = 0;
   public double  depth     = -1000;
@@ -32,7 +32,6 @@ public class UDDFLogEntry
   public boolean gasswitch = false;
   public boolean ppo2switch = false;
   //@formatter:on
-  
   public void clean()
   {
     presure = 0;
@@ -49,29 +48,53 @@ public class UDDFLogEntry
     time = 0;
     gasswitch = false;
   }
-  
+
   public boolean whereAlDataThere()
   {
-    if( presure == 0 ) 
-    { return( false ); }
-    else if( depth == -1000 ) 
-    { return( false ); }
-    else if( temp == -1000 ) 
-    { return( false ); }
-    else if( acku == -1000 ) 
-    { return( false ); }
-    else if( ppo2 == -1000 ) 
-    { return( false ); }
-    else if( setpoint == -1000 ) 
-    { return( false ); }
-    else if( n2 == -1 ) 
-    { return( false ); }
-    else if( he == -1 ) 
-    { return( false ); }
-    o2 = (1 - n2 - he);
-    if( o2 < 0 ) 
-    { return(false); }
-    gasSample = String.format( Locale.ENGLISH, "%.3f:%.3f:%.3f:%.3f:%.3f",o2,n2,he,0.0,0.0 );
+    if( presure == 0 )
+    {
+      return( false );
+    }
+    else if( depth == -1000 )
+    {
+      return( false );
+    }
+    else if( temp == -1000 )
+    {
+      return( false );
+    }
+    else if( acku == -1000 )
+    {
+      return( false );
+    }
+    else if( ppo2 == -1000 )
+    {
+      return( false );
+    }
+    else if( setpoint == -1000 )
+    {
+      return( false );
+    }
+    else if( n2 == -1 )
+    {
+      return( false );
+    }
+    else if( he == -1 )
+    {
+      return( false );
+    }
+    o2 = ( 1 - n2 - he );
+    if( o2 < 0 )
+    {
+      return( false );
+    }
+    gasSample = String.format( Locale.ENGLISH, "%.3f:%.3f:%.3f:%.3f:%.3f", o2, n2, he, 0.0, 0.0 );
     return( true );
+  }
+
+  public String makeGasSample()
+  {
+    gasSample = String.format( Locale.ENGLISH, "%.3f:%.3f:%.3f:%.3f:%.3f", o2, n2, he, 0.0, 0.0 );
+    return( gasSample );
   }
 }

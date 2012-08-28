@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Vector;
@@ -42,6 +43,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   public final static int           HEPERCENT   = 9;
   public final static int           NULLTIME    = 10;
   public final static int           UNITSYSTEM  = 11;
+  public final static int           PRESURE     = 12;
+  public final static int           ACKU        = 13;
   private Logger                    LOGGER      = null;
   private ActionListener            aListener   = null;
   private File                      dbFile      = null;
@@ -222,6 +225,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "  %s integer,\n" +
             "  %s integer,\n" +
             "  %s integer\n" +
+            "  %s integer\n" +
+            "  %s real\n" +
             " );",  
             ProjectConst.D_TABLE_DIVEDETAIL,
             ProjectConst.D_DBID,
@@ -236,7 +241,9 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.D_N2,
             ProjectConst.D_HE,
             ProjectConst.D_NULLTIME,
-            ProjectConst.D_DELTATIME );
+            ProjectConst.D_DELTATIME,
+            ProjectConst.D_PRESURE,
+            ProjectConst.D_ACKU );
     //@formatter:off     
     LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
     stat.execute( sql );
@@ -328,6 +335,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       case 1:
       case 2:
         _updateTableToVer3();
+      case 3:
+        _updateTableToVer4();
         break;
       default:
         // Tja, das gibt ja wohl nicht
@@ -382,6 +391,94 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
               "alter table %s add column %s text;",
               ProjectConst.H_TABLE_DIVELOGS,
               ProjectConst.H_NOTES
+             );
+      //@formatter:on
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Database (table) updated." );
+      }
+      conn.commit();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return;
+    }
+    return;
+  }
+
+  /**
+   * 
+   * passe Tabelle von Version 3 nach Version 4 an
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   */
+  private void _updateTableToVer4()
+  {
+    String sql;
+    Statement stat;
+    boolean rs;
+    //
+    LOGGER.log( Level.FINE, "update database version..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return;
+    }
+    try
+    {
+      //
+      // Versionsnummer updaten
+      //
+      //@formatter:off
+      sql = String.format( 
+              "insert into %s (%s) values ( '%d' );",
+              ProjectConst.V_DBVERSION,
+              ProjectConst.V_VERSION,
+              4
+             );
+      //@formatter:on
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Version updated." );
+      }
+      conn.commit();
+      stat.close();
+      //
+      // Druckspalte zufügen
+      //
+      //@formatter:off
+      sql = String.format( 
+              "alter table %s add column %s integer;",
+              ProjectConst.D_TABLE_DIVEDETAIL,
+              ProjectConst.D_PRESURE
+             );
+      //@formatter:on
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Database (table) updated." );
+      }
+      conn.commit();
+      stat.close();
+      //
+      // Ackuspalte zufügen
+      //
+      //@formatter:off
+      sql = String.format( 
+              "alter table %s add column %s real;",
+              ProjectConst.D_TABLE_DIVEDETAIL,
+              ProjectConst.D_ACKU
              );
       //@formatter:on
       stat = conn.createStatement();
@@ -822,6 +919,53 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
+  public ArrayList<String> getGaslistForDive( int dbId )
+  {
+    ArrayList<String> resultSet = new ArrayList<String>();
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    double n2, he, o2;
+    //
+    LOGGER.log( Level.FINE, "read gaslist for dive <" + dbId + ">" );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select distinct %s,%s from %s where %s=%d",
+            ProjectConst.D_N2,
+            ProjectConst.D_HE,
+            ProjectConst.D_TABLE_DIVEDETAIL,
+            ProjectConst.D_DBID,
+            dbId );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      while( rs.next() )
+      {
+        // Daten kosolidieren
+        n2 = rs.getDouble( 0 );
+        he = rs.getDouble( 1 );
+        o2 = 100.0 - n2 - he;
+        String entry = String.format( Locale.ENGLISH, "%.3f:%.3f:%.3f:%.3f:%.3f", o2 / 100.0, n2 / 100.0, he / 100.0, 0.0, 0.0 );
+        resultSet.add( entry );
+      }
+      rs.close();
+      return( resultSet );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read gaslist list from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  @Override
   public String getNotesForId( int dbId )
   {
     String sql;
@@ -994,7 +1138,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
             ProjectConst.D_DELTATIME,
             ProjectConst.D_DEPTH,
             ProjectConst.D_TEMPERATURE,
@@ -1006,6 +1150,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             ProjectConst.D_HE,
             ProjectConst.D_N2,
             ProjectConst.D_NULLTIME,
+            ProjectConst.D_PRESURE,
+            ProjectConst.D_ACKU,
             ProjectConst.D_TABLE_DIVEDETAIL,
             ProjectConst.D_DIVEID,
             dbId
@@ -1018,7 +1164,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       while( rs.next() )
       {
         // Daten kosolidieren
-        Integer[] resultSet = new Integer[12];
+        Integer[] resultSet = new Integer[14];
         resultSet[DELTATIME] = rs.getInt( 1 );
         resultSet[DEPTH] = rs.getInt( 2 );
         resultSet[TEMPERATURE] = rs.getInt( 3 );
@@ -1030,6 +1176,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
         resultSet[HEPERCENT] = rs.getInt( 9 );
         resultSet[N2PERCENT] = rs.getInt( 10 );
         resultSet[NULLTIME] = rs.getInt( 11 );
+        resultSet[PRESURE] = rs.getInt( 12 );
+        resultSet[ACKU] = ( int )( rs.getDouble( 13 ) * 10 );
         // ab in den vector
         diveData.add( resultSet );
       }
@@ -1080,13 +1228,13 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       if( rs.next() )
       {
         // Daten kosolidieren
-        diveHeadData[0] = rs.getInt( 1 );
-        diveHeadData[1] = ( int )( rs.getDouble( 2 ) * 10.0 );
-        diveHeadData[2] = ( int )( rs.getDouble( 3 ) * 10.0 );
-        diveHeadData[3] = rs.getInt( 4 );
-        diveHeadData[4] = rs.getInt( 5 );
-        diveHeadData[5] = rs.getInt( 6 );
-        diveHeadData[6] = rs.getInt( 7 );
+        diveHeadData[0] = rs.getInt( 1 ); // starttime
+        diveHeadData[1] = ( int )( rs.getDouble( 2 ) * 10.0 ); // firsttemp
+        diveHeadData[2] = ( int )( rs.getDouble( 3 ) * 10.0 ); // lowtemp
+        diveHeadData[3] = rs.getInt( 4 ); // maxdepth
+        diveHeadData[4] = rs.getInt( 5 ); // samples
+        diveHeadData[5] = rs.getInt( 6 ); // length
+        diveHeadData[6] = rs.getInt( 7 ); // units
       }
       rs.close();
       LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB...OK" );
@@ -1217,11 +1365,11 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
          sql = String.format( 
                  "insert into %s\n" +
                  " (\n" + 
-                 "  %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" + 
+                 "  %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" + 
                  " )\n" + 
                  " values\n" +
                  " (\n" +
-                 "  ?,?,?,?,?,?,?,?,?,?,?,?\n" + 
+                 "  ?,?,?,?,?,?,?,?,?,?,?,?,?,?\n" + 
                  " );\n" 
                  ,                    
                  ProjectConst.D_TABLE_DIVEDETAIL,
@@ -1236,7 +1384,9 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
                  ProjectConst.D_N2,
                  ProjectConst.D_HE,
                  ProjectConst.D_NULLTIME,
-                 ProjectConst.D_DELTATIME );
+                 ProjectConst.D_DELTATIME,
+                 ProjectConst.D_PRESURE,
+                 ProjectConst.D_ACKU);
          //@formatter:off 
          try
          {

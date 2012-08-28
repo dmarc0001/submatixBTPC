@@ -179,6 +179,8 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
       case 1:
       case 2:
         _updateTableToVer3();
+      case 3:
+        _updateTableToVer4();
         break;
       default:
         // Tja, das gibt ja wohl nicht
@@ -662,6 +664,55 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
             ProjectConst.V_DBVERSION,
             ProjectConst.V_VERSION,
             3
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.execute( sql );
+      if( rs )
+      {
+        LOGGER.log( Level.INFO, "Database updated." );
+      }
+      conn.commit();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      return;
+    }
+    return;
+  }
+
+  /**
+   * 
+   * Update zu Datenbankversion 4
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   */
+  private void _updateTableToVer4()
+  {
+    String sql;
+    Statement stat;
+    boolean rs;
+    //
+    LOGGER.log( Level.FINE, "update database version..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return;
+    }
+    //@formatter:off
+    sql = String.format( 
+            "insert into %s (%s) values ( '%d' );",
+            ProjectConst.V_DBVERSION,
+            ProjectConst.V_VERSION,
+            4
            );
     //@formatter:on
     try

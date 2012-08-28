@@ -34,6 +34,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 
 import org.joda.time.DateTime;
 
@@ -41,6 +44,7 @@ import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.FileManagerTableModel;
 import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
+import de.dmarcini.submatix.pclogger.utils.UDDFFileCreateClass;
 
 public class spx42FileManagerPanel extends JPanel implements ActionListener, ListSelectionListener
 {
@@ -126,9 +130,150 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
         LOGGER.fine( "abort deleting..." );
       }
     }
+    else if( cmd.equals( "export_selection" ) )
+    {
+      LOGGER.fine( "export selected dives to file" );
+      int[] sets = dataViewTable.getSelectedRows();
+      exportDatasetsForIdx( sets );
+    }
     else
     {
       LOGGER.warning( "unknown action command!" );
+    }
+  }
+
+  /**
+   * 
+   * Aus den Indizi der Tabelle die DBID erfragen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   * @param sets
+   * @return set datenbankID's
+   */
+  private int[] getDbIdsForTableIdx( int[] sets )
+  {
+    // Sets lesen, Array für DatenbankID erzeugen
+    int[] dbIds = new int[sets.length];
+    FileManagerTableModel tm = ( FileManagerTableModel )dataViewTable.getModel();
+    for( int setNumber = 0; setNumber < sets.length; setNumber++ )
+    {
+      int dataSet = tm.getDbIdAt( sets[setNumber] );
+      LOGGER.info( String.format( "DBID: <%d>, setNumber: <%d>", dataSet, setNumber ) );
+      // datenbankid zufügen
+      dbIds[setNumber] = dataSet;
+    }
+    return( dbIds );
+  }
+
+  /**
+   * 
+   * exportiere alle selektierten Tauchgänge in je eine Datei als UDDF 2.2
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   * @param sets
+   */
+  private void exportDatasetsForIdx( int[] sets )
+  {
+    LogForDeviceDatabaseUtil logDatabaseUtil = null;
+    UDDFFileCreateClass uddf = null;
+    //
+    if( device == null )
+    {
+      LOGGER.severe( "no device known in programobject! abort function!" );
+    }
+    if( !progConfig.getExportDir().exists() )
+    {
+      if( !progConfig.getExportDir().mkdirs() )
+      {
+        LOGGER.severe( "cant create export directory!" );
+        return;
+      }
+    }
+    if( !progConfig.getExportDir().isDirectory() )
+    {
+      LOGGER.severe( "export directory <" + progConfig.getExportDir().getAbsolutePath() + "> is NOT a directory!" );
+      return;
+    }
+    //
+    // datenbankhelper erzeugen und Verbindung aufbauen
+    //
+    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
+    if( logDatabaseUtil.createConnection() == null )
+    {
+      logDatabaseUtil = null;
+      return;
+    }
+    //
+    // versuche ein Transformobjekt für uddf zu erzeugen
+    //
+    try
+    {
+      uddf = new UDDFFileCreateClass( LOGGER, logDatabaseUtil );
+    }
+    catch( ParserConfigurationException ex )
+    {
+      LOGGER.severe( ex.getLocalizedMessage() );
+      if( LOGGER.getLevel().intValue() < Level.CONFIG.intValue() )
+      {
+        ex.printStackTrace();
+      }
+      return;
+    }
+    catch( TransformerException ex )
+    {
+      LOGGER.severe( ex.getLocalizedMessage() );
+      if( LOGGER.getLevel().intValue() < Level.CONFIG.intValue() )
+      {
+        ex.printStackTrace();
+      }
+      return;
+    }
+    catch( TransformerFactoryConfigurationError ex )
+    {
+      LOGGER.severe( ex.getLocalizedMessage() );
+      if( LOGGER.getLevel().intValue() < Level.CONFIG.intValue() )
+      {
+        ex.printStackTrace();
+      }
+      return;
+    }
+    catch( Exception ex )
+    {
+      LOGGER.severe( ex.getLocalizedMessage() );
+      if( LOGGER.getLevel().intValue() < Level.CONFIG.intValue() )
+      {
+        ex.printStackTrace();
+      }
+      return;
+    }
+    //
+    // Sets lesen, Array für DatenbankID erzeugen
+    //
+    int[] dbIds = getDbIdsForTableIdx( sets );
+    for( int idx : dbIds )
+    {
+      try
+      {
+        LOGGER.info( "export to dir: <" + progConfig.getExportDir().getAbsolutePath() + ">" );
+        uddf.createXML( progConfig.getExportDir(), idx, false );
+      }
+      catch( Exception ex )
+      {
+        LOGGER.severe( ex.getLocalizedMessage() );
+        if( LOGGER.getLevel().intValue() < Level.CONFIG.intValue() )
+        {
+          ex.printStackTrace();
+        }
+        return;
+      }
     }
   }
 
@@ -152,16 +297,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       return;
     }
     // Sets lesen, Array für DatenbankID erzeugen
-    int[] dbIds = new int[sets.length];
-    FileManagerTableModel tm = ( FileManagerTableModel )dataViewTable.getModel();
-    // Klassische Schleife für alle Daten
-    for( int setNumber = 0; setNumber < sets.length; setNumber++ )
-    {
-      int dataSet = tm.getDbIdAt( sets[setNumber] );
-      LOGGER.info( String.format( "DBID: <%d>, setNumber: <%d>", dataSet, setNumber ) );
-      // datenbankid zufügen
-      dbIds[setNumber] = dataSet;
-    }
+    int[] dbIds = getDbIdsForTableIdx( sets );
     //
     // so, jetzt sollte ich die ID haben, löschen angehen
     //
@@ -219,7 +355,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       //
       // Objekt für das Modell erstellen
       // [0] DIVENUMBERONSPX
-      // [1] Start Datum und Zeite localisiert
+      // [1] Start Datum und Zeiten localisiert
       // [2] Max Tiefe
       // [3] Länge
       // [4] DBID (ab 04 zeigt die Tabelle mit dem Tabellenmodell DiveExportTableModel nix mehr an!)
@@ -639,7 +775,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
         LOGGER.fine( "NO selected Rows...." );
         deleteButton.setEnabled( false );
         cancelButton.setEnabled( false );
-        exportButton.setEnabled( true );
+        exportButton.setEnabled( false );
       }
     }
     else

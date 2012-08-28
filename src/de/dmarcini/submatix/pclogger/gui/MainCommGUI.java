@@ -94,7 +94,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     TAB_GASLIST,
     TAB_LOGREAD,
     TAB_LOGGRAPH,
-    TAB_IMPORTEXPORT
+    TAB_FILEMANAGER
   };
   private int                      licenseState        = -1;
   private int                      customConfig        = -1;
@@ -109,7 +109,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private spx42GaslistEditPanel    gasConfigPanel;
   private spx42LoglistPanel        logListPanel;
   private spx42LogGraphPanel       logGraphPanel;
-  private spx42ImportExportPanel   importExportPanel;
+  private spx42FileManagerPanel    fileManagerPanel;
   private JMenuItem                mntmExit;
   private JMenu                    mnLanguages;
   private JMenu                    mnFile;
@@ -933,9 +933,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "GRAPH", null, logGraphPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_LOGGRAPH.ordinal(), true );
     // import/export Panel
-    importExportPanel = new spx42ImportExportPanel( LOGGER, this, sqliteDbUtil, progConfig );
-    tabbedPane.addTab( "EXPORT", null, importExportPanel, null );
-    tabbedPane.setEnabledAt( programTabs.TAB_IMPORTEXPORT.ordinal(), true );
+    fileManagerPanel = new spx42FileManagerPanel( LOGGER, this, sqliteDbUtil, progConfig );
+    tabbedPane.addTab( "EXPORT", null, fileManagerPanel, null );
+    tabbedPane.setEnabledAt( programTabs.TAB_FILEMANAGER.ordinal(), true );
     // MENÜ
     JMenuBar menuBar = new JMenuBar();
     frmMainwindowtitle.setJMenuBar( menuBar );
@@ -2486,8 +2486,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       logGraphPanel.setLanguageStrings( stringsBundle );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane import/export
-      tabbedPane.setTitleAt( programTabs.TAB_IMPORTEXPORT.ordinal(), stringsBundle.getString( "logImportExportPanel.title" ) );
-      importExportPanel.setLanguageStrings( stringsBundle );
+      tabbedPane.setTitleAt( programTabs.TAB_FILEMANAGER.ordinal(), stringsBundle.getString( "fileManagerPanel.title" ) );
+      fileManagerPanel.setLanguageStrings( stringsBundle );
     }
     catch( NullPointerException ex )
     {
@@ -2827,7 +2827,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         //
         // ist es das Exportpanel zum exportieren der Daten (importieren für Service)
         //
-        if( tabIdx == programTabs.TAB_IMPORTEXPORT.ordinal() )
+        if( tabIdx == programTabs.TAB_FILEMANAGER.ordinal() )
         {
           LOGGER.log( Level.FINE, "export/import tab select, init db..." );
           String connDev = null;
@@ -2839,7 +2839,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           try
           {
             logListPanel.closeDatabase();
-            importExportPanel.initData( connDev, progConfig.getDatabaseDir() );
+            fileManagerPanel.initData( connDev, progConfig.getDatabaseDir() );
           }
           catch( Exception ex )
           {

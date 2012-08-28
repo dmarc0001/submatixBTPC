@@ -38,11 +38,11 @@ import javax.swing.table.TableColumn;
 import org.joda.time.DateTime;
 
 import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
-import de.dmarcini.submatix.pclogger.utils.DiveExportTableModel;
+import de.dmarcini.submatix.pclogger.utils.FileManagerTableModel;
 import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
-public class spx42ImportExportPanel extends JPanel implements ActionListener, ListSelectionListener
+public class spx42FileManagerPanel extends JPanel implements ActionListener, ListSelectionListener
 {
   /**
    * 
@@ -61,8 +61,9 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
   private JComboBox                      deviceComboBox;
   private JButton                        cancelButton;
   private JButton                        deleteButton;
+  private JButton                        exportButton;
 
-  public spx42ImportExportPanel( Logger LOGGER, MouseMotionListener mListener, ConnectDatabaseUtil sqliteDbUtil, SpxPcloggerProgramConfig progConfig )
+  public spx42FileManagerPanel( Logger LOGGER, MouseMotionListener mListener, ConnectDatabaseUtil sqliteDbUtil, SpxPcloggerProgramConfig progConfig )
   {
     this.LOGGER = LOGGER;
     this.sqliteDbUtil = sqliteDbUtil;
@@ -105,7 +106,7 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
     }
     else if( cmd.equals( "delete_selection" ) )
     {
-      int result = showAskBox( stringsBundle.getString( "logImportExportPanel.showAskBox.message" ) );
+      int result = showAskBox( stringsBundle.getString( "fileManagerPanel.showAskBox.message" ) );
       if( result == 1 )
       {
         LOGGER.info( "DELETE DATASETS!" );
@@ -152,7 +153,7 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
     }
     // Sets lesen, Array für DatenbankID erzeugen
     int[] dbIds = new int[sets.length];
-    DiveExportTableModel tm = ( DiveExportTableModel )dataViewTable.getModel();
+    FileManagerTableModel tm = ( FileManagerTableModel )dataViewTable.getModel();
     // Klassische Schleife für alle Daten
     for( int setNumber = 0; setNumber < sets.length; setNumber++ )
     {
@@ -283,12 +284,12 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
       entrys = null;
       // die Tabelle initialisieren
       String[] title = new String[5];
-      title[0] = stringsBundle.getString( "logImportExportPanel.diveListHeaders.numberOnSpx" );
-      title[1] = stringsBundle.getString( "logImportExportPanel.diveListHeaders.startTime" );
-      title[2] = stringsBundle.getString( "logImportExportPanel.diveListHeaders.maxDepth" );
-      title[3] = stringsBundle.getString( "logImportExportPanel.diveListHeaders.diveLen" );
-      title[4] = stringsBundle.getString( "logImportExportPanel.diveListHeaders.dbId" );
-      DiveExportTableModel mTable = new DiveExportTableModel( diveEntrys, title );
+      title[0] = stringsBundle.getString( "fileManagerPanel.diveListHeaders.numberOnSpx" );
+      title[1] = stringsBundle.getString( "fileManagerPanel.diveListHeaders.startTime" );
+      title[2] = stringsBundle.getString( "fileManagerPanel.diveListHeaders.maxDepth" );
+      title[3] = stringsBundle.getString( "fileManagerPanel.diveListHeaders.diveLen" );
+      title[4] = stringsBundle.getString( "fileManagerPanel.diveListHeaders.dbId" );
+      FileManagerTableModel mTable = new FileManagerTableModel( diveEntrys, title );
       dataViewTable.setModel( mTable );
       // jetzt noch die rechte Spalte verschönern. Rechtsbündig und schmal bitte!
       DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
@@ -422,6 +423,8 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
     bottomButtonPanel.setPreferredSize( new Dimension( 10, 60 ) );
     add( bottomButtonPanel, BorderLayout.SOUTH );
     cancelButton = new JButton( "CANCEL" );
+    cancelButton.setIconTextGap( 40 );
+    cancelButton.setIcon( new ImageIcon( spx42FileManagerPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/quit.png" ) ) );
     cancelButton.setEnabled( false );
     cancelButton.setPreferredSize( new Dimension( 180, 40 ) );
     cancelButton.setMaximumSize( new Dimension( 160, 40 ) );
@@ -432,6 +435,8 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
     cancelButton.addMouseMotionListener( mListener );
     cancelButton.addActionListener( this );
     deleteButton = new JButton( "DELETE" );
+    deleteButton.setIconTextGap( 40 );
+    deleteButton.setIcon( new ImageIcon( spx42FileManagerPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/36.png" ) ) );
     deleteButton.setFont( new Font( "Tahoma", Font.BOLD, 12 ) );
     deleteButton.setEnabled( false );
     deleteButton.setPreferredSize( new Dimension( 180, 40 ) );
@@ -442,19 +447,33 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
     deleteButton.setActionCommand( "delete_selection" );
     deleteButton.addMouseMotionListener( mListener );
     deleteButton.addActionListener( this );
+    exportButton = new JButton( "EXPORT" );
+    exportButton.setIconTextGap( 40 );
+    exportButton.setIcon( new ImageIcon( spx42FileManagerPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Download.png" ) ) );
+    exportButton.setPreferredSize( new Dimension( 180, 40 ) );
+    exportButton.setMaximumSize( new Dimension( 160, 40 ) );
+    exportButton.setMargin( new Insets( 2, 30, 2, 30 ) );
+    exportButton.setForeground( new Color( 0, 0, 205 ) );
+    exportButton.setEnabled( false );
+    exportButton.setBackground( new Color( 0, 255, 255 ) );
+    exportButton.setActionCommand( "export_selection" );
+    exportButton.addMouseMotionListener( mListener );
+    exportButton.addActionListener( this );
     GroupLayout gl_bottomButtonPanel = new GroupLayout( bottomButtonPanel );
     gl_bottomButtonPanel.setHorizontalGroup( gl_bottomButtonPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_bottomButtonPanel.createSequentialGroup().addGap( 354 ).addComponent( cancelButton, GroupLayout.PREFERRED_SIZE, 191, GroupLayout.PREFERRED_SIZE )
-                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( deleteButton, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE )
-                    .addContainerGap( 46, Short.MAX_VALUE ) ) );
+            gl_bottomButtonPanel.createSequentialGroup().addGap( 36 ).addComponent( cancelButton, GroupLayout.PREFERRED_SIZE, 191, GroupLayout.PREFERRED_SIZE )
+                    .addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( deleteButton, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE )
+                    .addPreferredGap( ComponentPlacement.RELATED, 127, Short.MAX_VALUE ).addComponent( exportButton, GroupLayout.PREFERRED_SIZE, 191, GroupLayout.PREFERRED_SIZE )
+                    .addGap( 42 ) ) );
     gl_bottomButtonPanel.setVerticalGroup( gl_bottomButtonPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_bottomButtonPanel
                     .createSequentialGroup()
                     .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
                     .addGroup(
                             gl_bottomButtonPanel.createParallelGroup( Alignment.BASELINE )
+                                    .addComponent( cancelButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
                                     .addComponent( deleteButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-                                    .addComponent( cancelButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) ).addGap( 20 ) ) );
+                                    .addComponent( exportButton, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE ) ).addGap( 20 ) ) );
     bottomButtonPanel.setLayout( gl_bottomButtonPanel );
     JPanel dataListPanel = new JPanel();
     add( dataListPanel, BorderLayout.CENTER );
@@ -487,7 +506,7 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
    */
   private void releaseLists()
   {
-    dataViewTable.setModel( new DiveExportTableModel( null, null ) );
+    dataViewTable.setModel( new FileManagerTableModel( null, null ) );
     deleteButton.setEnabled( false );
     cancelButton.setEnabled( false );
   }
@@ -514,12 +533,14 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
       // merke mir das ausgewählte Teilchen
       selectedIndex = deviceComboBox.getSelectedIndex();
       // Sprache richten
-      deviceComboBox.setToolTipText( stringsBundle.getString( "logImportExportPanel.deviceComboBox.tooltiptext" ) );
-      dataViewTable.setToolTipText( stringsBundle.getString( "logImportExportPanel.dataViewTable.tooltiptext" ) );
-      cancelButton.setText( stringsBundle.getString( "logImportExportPanel.cancelButton.text" ) );
-      cancelButton.setToolTipText( stringsBundle.getString( "logImportExportPanel.cancelButton.tooltiptext" ) );
-      deleteButton.setText( stringsBundle.getString( "logImportExportPanel.deleteButton.text" ) );
-      deleteButton.setToolTipText( stringsBundle.getString( "logImportExportPanel.deleteButton.tooltiptext" ) );
+      deviceComboBox.setToolTipText( stringsBundle.getString( "fileManagerPanel.deviceComboBox.tooltiptext" ) );
+      dataViewTable.setToolTipText( stringsBundle.getString( "fileManagerPanel.dataViewTable.tooltiptext" ) );
+      cancelButton.setText( stringsBundle.getString( "fileManagerPanel.cancelButton.text" ) );
+      cancelButton.setToolTipText( stringsBundle.getString( "fileManagerPanel.cancelButton.tooltiptext" ) );
+      deleteButton.setText( stringsBundle.getString( "fileManagerPanel.deleteButton.text" ) );
+      deleteButton.setToolTipText( stringsBundle.getString( "fileManagerPanel.deleteButton.tooltiptext" ) );
+      exportButton.setText( stringsBundle.getString( "fileManagerPanel.exportButton.text" ) );
+      exportButton.setToolTipText( stringsBundle.getString( "fileManagerPanel.exportButton.tooltiptext" ) );
       // jetzt die Box neu befüllen, mit Trick 17...
       releaseLists();
       deviceComboBox.setSelectedIndex( -1 );
@@ -552,8 +573,8 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
     try
     {
       Object[] options =
-      { stringsBundle.getString( "logImportExportPanel.showAskBox.no" ), stringsBundle.getString( "logImportExportPanel.showAskBox.yes" ) };
-      return JOptionPane.showOptionDialog( this, msg, stringsBundle.getString( "logImportExportPanel.showAskBox.headline" ), JOptionPane.OK_CANCEL_OPTION,
+      { stringsBundle.getString( "fileManagerPanel.showAskBox.no" ), stringsBundle.getString( "fileManagerPanel.showAskBox.yes" ) };
+      return JOptionPane.showOptionDialog( this, msg, stringsBundle.getString( "fileManagerPanel.showAskBox.headline" ), JOptionPane.OK_CANCEL_OPTION,
               JOptionPane.QUESTION_MESSAGE, null, options, options[1] );
     }
     catch( NullPointerException ex )
@@ -611,12 +632,14 @@ public class spx42ImportExportPanel extends JPanel implements ActionListener, Li
         LOGGER.fine( String.format( "selected Rows <%02d>....", dataViewTable.getSelectedRowCount() ) );
         deleteButton.setEnabled( true );
         cancelButton.setEnabled( true );
+        exportButton.setEnabled( true );
       }
       else
       {
         LOGGER.fine( "NO selected Rows...." );
         deleteButton.setEnabled( false );
         cancelButton.setEnabled( false );
+        exportButton.setEnabled( true );
       }
     }
     else

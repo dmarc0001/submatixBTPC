@@ -2,6 +2,7 @@ package de.dmarcini.submatix.pclogger.utils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 public interface ILogForDeviceDatabaseUtil
@@ -294,4 +295,18 @@ public interface ILogForDeviceDatabaseUtil
    * @param dbIds
    */
   public void deleteAllSetsForIds( int[] dbIds );
+
+  /**
+   * 
+   * Erzeuge eine Liste von Gasen während des Tauchganges
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   * @param dbId
+   * @return Array von Strings, welche die benutzen Gase beinhaltet
+   */
+  public ArrayList<String> getGaslistForDive( int dbId );
 }

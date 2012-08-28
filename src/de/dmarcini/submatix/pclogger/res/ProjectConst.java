@@ -32,6 +32,7 @@ public final class ProjectConst
   
   // Verzeichnis für Datenbanken
   public static final String DEFAULTDATADIR             = "database";
+  public static final String DEFAULTEXPORTDIR           = "export";
   public static final String CONFIGFILENAME             = "spxLogProgram.conf";
   public static final String DEFAULTLOGFILE             = "spxLogProgram.log";
   

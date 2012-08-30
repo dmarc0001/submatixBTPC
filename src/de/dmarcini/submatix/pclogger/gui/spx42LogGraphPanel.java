@@ -565,9 +565,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     topPanel = new JPanel();
     add( topPanel, BorderLayout.NORTH );
     deviceComboBox = new JComboBox();
+    deviceComboBox.setMaximumRowCount( 26 );
     deviceComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     deviceComboBox.setActionCommand( "change_device_to_display" );
     diveSelectComboBox = new JComboBox();
+    diveSelectComboBox.setMaximumRowCount( 26 );
     diveSelectComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     diveSelectComboBox.setActionCommand( "change_dive_to_display" );
     computeGraphButton = new JButton( "GRAPHBUTTON" );
@@ -714,7 +716,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     }
     // Daten eines TG lesen
     LOGGER.log( Level.FINE, "read dive log from DB..." );
-    diveList = logDatabaseUtil.readDiveDataFromId( dbId );
+    diveList = logDatabaseUtil.getDiveDataFromId( dbId );
     if( diveList == null || diveList.isEmpty() )
     {
       return;
@@ -722,7 +724,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Labels für Tachgangseckdaten füllen
     //
-    headData = logDatabaseUtil.readHeadDiveDataFromId( dbId );
+    headData = logDatabaseUtil.getHeadDiveDataFromId( dbId );
     notesLabel.setText( logDatabaseUtil.getNotesForId( dbId ) );
     progUnitSystem = progConfig.getUnitsProperty();
     diveUnitSystem = headData[6];

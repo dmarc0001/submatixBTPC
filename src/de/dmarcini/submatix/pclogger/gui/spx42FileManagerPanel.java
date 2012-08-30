@@ -54,7 +54,6 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   private static final long              serialVersionUID = 2149212648166152026L;
   private final Logger                   LOGGER;
   private String                         device;
-  @SuppressWarnings( "unused" )
   private final SpxPcloggerProgramConfig progConfig;
   private ResourceBundle                 stringsBundle;
   private final ConnectDatabaseUtil      sqliteDbUtil;
@@ -135,6 +134,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       LOGGER.fine( "export selected dives to file" );
       int[] sets = dataViewTable.getSelectedRows();
       exportDatasetsForIdx( sets );
+      dataViewTable.clearSelection();
     }
     else
     {
@@ -184,7 +184,9 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   {
     LogForDeviceDatabaseUtil logDatabaseUtil = null;
     UDDFFileCreateClass uddf = null;
+    PleaseWaitDialog wDial = null;
     //
+    if( sets.length == 0 ) return;
     if( device == null )
     {
       LOGGER.severe( "no device known in programobject! abort function!" );
@@ -258,22 +260,46 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     // Sets lesen, Array für DatenbankID erzeugen
     //
     int[] dbIds = getDbIdsForTableIdx( sets );
-    for( int idx : dbIds )
+    if( dbIds.length == 0 )
     {
-      try
+      LOGGER.severe( "no database id's for export!" );
+      return;
+    }
+    try
+    {
+      if( dbIds.length == 1 )
       {
         LOGGER.info( "export to dir: <" + progConfig.getExportDir().getAbsolutePath() + ">" );
-        uddf.createXML( progConfig.getExportDir(), idx, false );
+        uddf.createXML( progConfig.getExportDir(), dbIds[0], false );
       }
-      catch( Exception ex )
+      else
       {
-        LOGGER.severe( ex.getLocalizedMessage() );
-        if( LOGGER.getLevel().intValue() < Level.CONFIG.intValue() )
-        {
-          ex.printStackTrace();
-        }
-        return;
+        // könnte dauern, Dialog machen
+        wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.exportDive" ) );
+        wDial.setMax( 100 );
+        wDial.resetProgress();
+        wDial.setVisible( true );
+        LOGGER.info( "export to dir: <" + progConfig.getExportDir().getAbsolutePath() + ">" );
+        uddf.createXML( progConfig.getExportDir(), dbIds, false );
+        wDial.setVisible( false );
+        showSuccessBox( stringsBundle.getString( "fileManagerPanel.succesExport" ) );
       }
+    }
+    catch( Exception ex )
+    {
+      LOGGER.severe( ex.getLocalizedMessage() );
+      if( LOGGER.getLevel().intValue() < Level.CONFIG.intValue() )
+      {
+        ex.printStackTrace();
+      }
+      showWarnBox( stringsBundle.getString( "fileManagerPanel.notSuccesExport" ) );
+      return;
+    }
+    finally
+    {
+      wDial.setVisible( false );
+      wDial.dispose();
+      wDial = null;
     }
   }
 
@@ -544,6 +570,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     topComboBoxPanel.setPreferredSize( new Dimension( 10, 40 ) );
     add( topComboBoxPanel, BorderLayout.NORTH );
     deviceComboBox = new JComboBox();
+    deviceComboBox.setMaximumRowCount( 26 );
     deviceComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     deviceComboBox.setActionCommand( "change_device_to_display" );
     deviceComboBox.addMouseMotionListener( mListener );
@@ -730,6 +757,17 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     }
   }
 
+  /**
+   * 
+   * Zeige eine Warnung an!
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 30.08.2012
+   * @param msg
+   */
   private void showWarnBox( String msg )
   {
     ImageIcon icon = null;
@@ -737,6 +775,42 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     {
       icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Abort.png" ) );
       JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
+    }
+    catch( NullPointerException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( MissingResourceException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( ClassCastException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+  }
+
+  /**
+   * 
+   * ERfolgreich beendet-Box
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 30.08.2012
+   * @param msg
+   */
+  private void showSuccessBox( String msg )
+  {
+    ImageIcon icon = null;
+    try
+    {
+      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/94.png" ) );
+      JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "MainCommGUI.successDialog.headline" ), JOptionPane.OK_OPTION, icon );
     }
     catch( NullPointerException ex )
     {

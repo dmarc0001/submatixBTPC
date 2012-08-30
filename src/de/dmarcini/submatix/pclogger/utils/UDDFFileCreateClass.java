@@ -47,6 +47,7 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
  */
 public class UDDFFileCreateClass
 {
+  private final String             gasPattern     = "0.";
   private Document                 uddfDoc        = null;
   private Logger                   LOGGER         = null;
   private LogForDeviceDatabaseUtil sqliteDbUtil   = null;
@@ -99,7 +100,7 @@ public class UDDFFileCreateClass
 
   /**
    * 
-   * Erzeuge die XML-Datei für einen Logeintrag
+   * Erzeuge die XML-Datei (UDDF) für einen Logeintrag
    * 
    * Project: SubmatixXMLTest Package: de.dmarcini.bluethooth.submatix.xml
    * 
@@ -117,8 +118,31 @@ public class UDDFFileCreateClass
    */
   public File createXML( File exportDir, int diveNum, boolean zipped ) throws Exception
   {
+    int[] diveNums = new int[1];
+    diveNums[0] = diveNum;
+    return( createXML( exportDir, diveNums, zipped ) );
+  }
+
+  /**
+   * 
+   * Erzeuge die XML-Datei (UDDF)
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 30.08.2012
+   * @param exportDir
+   * @param diveNums
+   * @param zipped
+   * @return Dateiobjekt für UDDF-Datei
+   * @throws Exception
+   */
+  public File createXML( File exportDir, int[] diveNums, boolean zipped ) throws Exception
+  {
     Element rootNode = null;
     String msg = null;
+    String fileName = null;
     File retFile = null;
     File saveFile = null;
     //
@@ -127,9 +151,27 @@ public class UDDFFileCreateClass
     {
       throw new Exception( "database not initiated" );
     }
-    headData = sqliteDbUtil.readHeadDiveDataFromId( diveNum );
-    diveComment = sqliteDbUtil.getNotesForId( diveNum );
+    //
+    // Daten vom ersten Tauchgang auslesen
+    //
+    headData = sqliteDbUtil.getHeadDiveDataFromId( diveNums[0] );
+    // die Tauchzeit rausbekommen
+    long diveTimeUnix = ( getDiveTime() ) * 1000L;
+    DateTime dateTime = new DateTime( diveTimeUnix );
+    // den Export-Dateinamen machen
+    if( diveNums.length == 1 )
+    {
+      fileName = String.format( "%s%s%s-dive-from-%s.uddf", exportDir.getAbsolutePath(), File.separatorChar, sqliteDbUtil.getDeviceId(), dateTime.toString( "yyyy-MM-dd-hh-mm" ) );
+    }
+    else
+    {
+      fileName = String.format( "%s%s%s-dive-from-%s-plus-%d.uddf", exportDir.getAbsolutePath(), File.separatorChar, sqliteDbUtil.getDeviceId(),
+              dateTime.toString( "yyyy-MM-dd-hh-mm" ), diveNums.length );
+    }
+    saveFile = new File( fileName );
+    //
     // Erzeuge Dokument neu
+    //
     uddfDoc = builder.newDocument();
     // Root-Element erzeugen
     rootNode = uddfDoc.createElement( "uddf" );
@@ -140,15 +182,13 @@ public class UDDFFileCreateClass
     // Appliziere Generator
     rootNode.appendChild( makeGeneratorNode( uddfDoc ) );
     // appliziere Gasdefinitionen
-    rootNode.appendChild( makeGasdefinitions( uddfDoc, diveNum ) );
+    rootNode.appendChild( makeGasdefinitions( uddfDoc, diveNums ) );
     // appliziere profiledata
-    rootNode.appendChild( makeProfilesData( uddfDoc, diveNum ) );
+    rootNode.appendChild( makeProfilesData( uddfDoc, diveNums ) );
     uddfDoc.normalizeDocument();
     try
     {
-      long diveTimeUnix = ( getDiveTime() ) * 1000L;
-      DateTime dateTime = new DateTime( diveTimeUnix );
-      saveFile = new File( exportDir.getAbsolutePath() + File.separatorChar + "dive-from-" + dateTime.toString( "yyyy-MM-dd-hh-mm" ) + ".uddf" );
+      // mach eine Datei aus dem DOM-Baum
       retFile = domToFile( saveFile, uddfDoc, zipped );
     }
     catch( TransformerException ex )
@@ -174,50 +214,164 @@ public class UDDFFileCreateClass
 
   /**
    * 
-   * Teilbaum profilesData erzeugen
+   * Erzeuge die XML-Datei aus dem DOM-Baum im speicher
    * 
    * Project: SubmatixXMLTest Package: de.dmarcini.bluethooth.submatix.xml
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 25.10.2011
-   * @param doc
-   *          Dokument Objekt
-   * @return Teilbam -Rootelement
+   *         Stand: 27.10.2011
+   * @param file
+   *          File Objekt für die Zieldatei
+   * @param document
+   *          Document Objekt
+   * @return Ok oder nicht OK
+   * @throws IOException
+   * @throws TransformerException
    */
-  private Node makeProfilesData( Document doc, int diveNum )
+  private File domToFile( File file, Document document, boolean zipped ) throws IOException, TransformerException
   {
-    Element profileNode;
-    int repNumber = 1;
-    profileNode = doc.createElement( "profiledata" );
-    profileNode.appendChild( makeRepetitiongroup( doc, repNumber, diveNum ) );
-    return( profileNode );
+    LOGGER.fine( "make dom to file..." );
+    // die Vorbereitungen treffen
+    LOGGER.fine( "...create writer..." );
+    StringWriter writer = new StringWriter();
+    DOMSource doc = new DOMSource( document );
+    StreamResult res = new StreamResult( writer );
+    LOGGER.fine( "...transform... " );
+    transformer.transform( doc, res );
+    // nun zur Frage: gezippt oder nicht
+    if( zipped )
+    {
+      // gezipptes File erzeugen
+      LOGGER.fine( "...write to zipped file... " );
+      file = new File( file.getAbsoluteFile() + ".gz" );
+      if( file.exists() )
+      {
+        // Datei ist da, ich will sie ueberschreiben
+        file.delete();
+      }
+      OutputStream fos = new FileOutputStream( file );
+      OutputStream zipOut = new GZIPOutputStream( fos );
+      zipOut.write( writer.toString().getBytes() );
+      zipOut.close();
+      LOGGER.fine( "...ok " );
+      return( file );
+    }
+    else
+    {
+      // ungezipptes file erzeugen
+      LOGGER.fine( "...write to unzipped file... " );
+      if( file.exists() )
+      {
+        // Datei ist da, ich will sie ueberschreiben
+        file.delete();
+      }
+      RandomAccessFile xmlFile = new RandomAccessFile( file, "rw" );
+      xmlFile.writeBytes( writer.toString() );
+      xmlFile.close();
+      LOGGER.fine( "...ok " );
+      return( file );
+    }
   }
 
   /**
    * 
-   * Teilbaum Wiederholungsgruppe einbauen
+   * Anzahl der Samples zum Tauchgang
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   * @return
+   */
+  private int getDiveSamples()
+  {
+    return( headData[4] );
+  }
+
+  /**
+   * 
+   * Gibt den Anfang des Tauchganges als unix timestamp zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   * @param dive_id
+   * @return
+   */
+  private int getDiveTime()
+  {
+    return( headData[0] );
+  }
+
+  /**
+   * 
+   * Allerersten Temperaturwert für Tauchgang erfragen
+   * 
+   * Temeraturen in KELVIN
    * 
    * Project: SubmatixXMLTest Package: de.dmarcini.bluethooth.submatix.xml
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 25.10.2011
-   * @param doc
-   *          Dokument Objekt
-   * @param repNumber
-   *          Nummer des Repetivtauchgangee (bei mir immer 1 :-( )
-   * @param number
-   *          Nummer des Logs in der Datenbank
-   * @return Teilbaum Repetitiongroup
+   * @param dive_id
+   *          Nummer des Tauchganges in der Datenbank
+   * @return Allererste Temperatur beim Tauchgang (müßte in etwa Lufttemperatur sein)
    */
-  private Node makeRepetitiongroup( Document doc, int repNumber, int diveNum )
+  private String getFirstTempForDive()
   {
-    Element repNode;
-    repNode = doc.createElement( "repetitiongroup" );
-    repNode.setAttribute( "id", String.valueOf( repNumber ) );
-    repNode.appendChild( makeDiveNode( doc, diveNum ) );
-    return( repNode );
+    float tempValue = 0;
+    String temperature;
+    //
+    tempValue = new Float( headData[1] );
+    tempValue = tempValue / 10;
+    tempValue += ProjectConst.KELVIN;
+    temperature = String.format( Locale.ENGLISH, "%.1f", tempValue );
+    return( temperature );
+  }
+
+  /**
+   * 
+   * Grösste Tiefe des Tauchganges zurückgeben
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   * @return Größte Tiefe des Tauchganges in dm
+   */
+  private String getGreatestDepthForDive()
+  {
+    return( String.format( Locale.ENGLISH, "%.1f", ( float )( headData[3] / 10.0 ) ) );
+  }
+
+  /**
+   * 
+   * Die tiefste Temperatur finden
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 28.08.2012
+   * @param dive_id
+   * @return
+   */
+  private String getLowestTempForDive()
+  {
+    float tempValue = 0;
+    String temperature;
+    //
+    tempValue = new Float( headData[2] );
+    tempValue = tempValue / 10;
+    tempValue += ProjectConst.KELVIN;
+    temperature = String.format( Locale.ENGLISH, "%.1f", tempValue );
+    return( temperature );
   }
 
   /**
@@ -333,151 +487,24 @@ public class UDDFFileCreateClass
 
   /**
    * 
-   * hole die samples für den Tauchgang
+   * Eerzeuge Teilbaum von Gsasdefinitionen für mehrere Tauchgänge
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 28.08.2012
+   *         Stand: 30.08.2012
    * @param doc
-   * @param diveNum
+   * @param diveNums
    * @return
    */
-  private Node makeSamplesForDive( final Document doc, int diveNum )
-  {
-    final Element sampleNode;
-    int diveSamples = 0;
-    int diveTimeCurrent = 0;
-    Vector<Integer[]> diveSamplesVector;
-    UDDFLogEntry entry = null;
-    String gasSample = "";
-    double setpoint = 0.0;
-    //
-    sampleNode = doc.createElement( "samples" );
-    // der erste waypoint hat immer Zeit 0, tiefe 0 und switchmix
-    // hole die anzahl der Samples aus der Datenbank
-    diveSamples = getDiveSamples();
-    if( diveSamples == 0 ) return( sampleNode );
-    //
-    // jetzt les ich alle Samples aus der Datenbank
-    //
-    diveSamplesVector = sqliteDbUtil.readDiveDataFromId( diveNum );
-    // einen Iterator zum durchkurbeln machen
-    Iterator<Integer[]> it = diveSamplesVector.iterator();
-    //
-    // Alle Samples durchmachen
-    //
-    while( it.hasNext() )
-    {
-      entry = new UDDFLogEntry();
-      Integer[] sampleSet = it.next();
-      //
-      // Daten in das Objekt übernehmen
-      //
-      entry.presure = sampleSet[LogForDeviceDatabaseUtil.PRESURE];
-      entry.depth = ( double )sampleSet[LogForDeviceDatabaseUtil.DEPTH] / 10.0;
-      entry.temp = ( double )sampleSet[LogForDeviceDatabaseUtil.TEMPERATURE] + ProjectConst.KELVIN;
-      entry.acku = ( double )sampleSet[LogForDeviceDatabaseUtil.ACKU] / 10.0;
-      entry.ppo2 = sampleSet[LogForDeviceDatabaseUtil.PPO2];
-      entry.setpoint = sampleSet[LogForDeviceDatabaseUtil.SETPOINT];
-      entry.n2 = sampleSet[LogForDeviceDatabaseUtil.N2PERCENT];
-      entry.he = sampleSet[LogForDeviceDatabaseUtil.HEPERCENT];
-      entry.o2 = 100 - ( entry.n2 + entry.he );
-      entry.zerotime = sampleSet[LogForDeviceDatabaseUtil.NULLTIME];
-      diveTimeCurrent += sampleSet[LogForDeviceDatabaseUtil.DELTATIME];
-      entry.time = diveTimeCurrent;
-      entry.makeGasSample();
-      //
-      // Jetzt mach ich einen Waypoint Knoten aus dem Teil
-      // gab es einen Gaswechsel?
-      //
-      if( !entry.gasSample.equals( gasSample ) )
-      {
-        entry.gasswitch = true;
-        gasSample = entry.gasSample;
-      }
-      if( entry.setpoint != setpoint )
-      {
-        entry.ppo2switch = true;
-        setpoint = entry.setpoint;
-      }
-      // und papp den dran
-      sampleNode.appendChild( makeWaypoint( doc, entry ) );
-    }
-    return( sampleNode );
-  }
-
-  /**
-   * 
-   * Node für einen Wegpunkt machen
-   * 
-   * Project: SubmatixBTLogger Package: de.dmarcini.bluethooth.support
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 29.08.2012
-   * @param doc
-   * @param entry
-   * @return Kompletter waypoint Knoten
-   */
-  private Node makeWaypoint( Document doc, UDDFLogEntry entry )
-  {
-    Element wpNode, dNode, dtNode, tNode, sNode, po2Node;
-    // # waypoint
-    wpNode = doc.createElement( "waypoint" );
-    // ## waypoint -> depth
-    dNode = doc.createElement( "depth" );
-    dNode.appendChild( doc.createTextNode( String.format( Locale.ENGLISH, "%.2f", entry.depth ) ) );
-    wpNode.appendChild( dNode );
-    // ## waypoint -> divetime
-    dtNode = doc.createElement( "divetime" );
-    dtNode.appendChild( doc.createTextNode( String.format( Locale.ENGLISH, "%d.0", entry.time ) ) );
-    wpNode.appendChild( dtNode );
-    // ## waypoint -> temperature
-    tNode = doc.createElement( "temperature" );
-    tNode.appendChild( doc.createTextNode( String.format( Locale.ENGLISH, "%.1f", entry.temp ) ) );
-    wpNode.appendChild( tNode );
-    // wenn sich das Gas geändert hat oder am anfang IMMER
-    if( entry.gasswitch == true )
-    {
-      // ## waypoint -> switch
-      sNode = doc.createElement( "switchmix" );
-      sNode.setAttribute( "ref", entry.gasSample.replaceAll( "(\\:|\\.|\\,)0*", "" ) );
-      wpNode.appendChild( sNode );
-    }
-    // wenn sich der Setpoint ge�ndert hat...
-    if( entry.ppo2switch )
-    {
-      // ## waypoint -> setpo2
-      po2Node = doc.createElement( "setpo2" );
-      po2Node.appendChild( doc.createTextNode( String.format( Locale.ENGLISH, "%.2f", entry.setpoint ) ) );
-      wpNode.appendChild( po2Node );
-    }
-    return( wpNode );
-  }
-
-  /**
-   * 
-   * Erzeuge den Teilbaum Gasdefinitionen
-   * 
-   * Project: SubmatixXMLTest Package: de.dmarcini.bluethooth.submatix.xml
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 24.10.2011
-   * @param doc
-   *          Document Objekt
-   * @param diveAttrs
-   * @return Teilbaum f�r Gasdefinitionen in diesem Tauchgang
-   */
-  private Node makeGasdefinitions( Document doc, int diveNum )
+  private Node makeGasdefinitions( Document doc, int[] diveNums )
   {
     Element gasNode, mixNode, nameNode, o2Node, n2Node, heNode, arNode, h2Node;
     String gasName;
     String[] fields;
     // gases füllen mit stringliste a'la O2:N2:HE:AR:H2 als Strings "%.3f"
-    gases = sqliteDbUtil.getGaslistForDive( diveNum );
+    gases = sqliteDbUtil.getGaslistForDive( diveNums );
     // # gasdefinitions
     gasNode = doc.createElement( "gasdefinitions" );
     if( gases == null )
@@ -487,10 +514,10 @@ public class UDDFFileCreateClass
     }
     for( String gas : gases )
     {
+      gasName = makeGasName( gas );
       fields = fieldPatternDp.split( gas );
       // ## gasdefinitions -> mix
       mixNode = doc.createElement( "mix" );
-      gasName = gas.replaceAll( "(\\:|\\.|\\,)0*", "" );
       mixNode.setAttribute( "id", gasName );
       gasNode.appendChild( mixNode );
       // ### gasdefinitions -> mix -> name
@@ -519,6 +546,26 @@ public class UDDFFileCreateClass
       mixNode.appendChild( h2Node );
     }
     return gasNode;
+  }
+
+  /**
+   * 
+   * Kleines Helferlein, macht einen Gasnamen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 31.08.2012
+   * @param fields
+   * @return
+   */
+  private String makeGasName( String gas )
+  {
+    String gasName = gas.replace( gasPattern, "" );
+    String[] fields = fieldPatternDp.split( gasName );
+    // TODO: Fehler bei parseInt abfangen!
+    return( String.format( "%02d%02d%02d", Integer.parseInt( fields[0] ) / 10, Integer.parseInt( fields[1] ) / 10, Integer.parseInt( fields[2] ) / 10 ) );
   }
 
   /**
@@ -585,163 +632,186 @@ public class UDDFFileCreateClass
 
   /**
    * 
-   * Erzeuge die XML-Datei aus dem DOM-Baum im speicher
-   * 
-   * Project: SubmatixXMLTest Package: de.dmarcini.bluethooth.submatix.xml
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 27.10.2011
-   * @param file
-   *          File Objekt für die Zieldatei
-   * @param document
-   *          Document Objekt
-   * @return Ok oder nicht OK
-   * @throws IOException
-   * @throws TransformerException
-   */
-  private File domToFile( File file, Document document, boolean zipped ) throws IOException, TransformerException
-  {
-    LOGGER.fine( "make dom to file..." );
-    // die Vorbereitungen treffen
-    LOGGER.fine( "...create writer..." );
-    StringWriter writer = new StringWriter();
-    DOMSource doc = new DOMSource( document );
-    StreamResult res = new StreamResult( writer );
-    LOGGER.fine( "...transform... " );
-    transformer.transform( doc, res );
-    // nun zur Frage: gezippt oder nicht
-    if( zipped )
-    {
-      // gezipptes File erzeugen
-      LOGGER.fine( "...write to zipped file... " );
-      file = new File( file.getAbsoluteFile() + ".gz" );
-      if( file.exists() )
-      {
-        // Datei ist da, ich will sie ueberschreiben
-        file.delete();
-      }
-      OutputStream fos = new FileOutputStream( file );
-      OutputStream zipOut = new GZIPOutputStream( fos );
-      zipOut.write( writer.toString().getBytes() );
-      zipOut.close();
-      LOGGER.fine( "...ok " );
-      return( file );
-    }
-    else
-    {
-      // ungezipptes file erzeugen
-      LOGGER.fine( "...write to unzipped file... " );
-      if( file.exists() )
-      {
-        // Datei ist da, ich will sie ueberschreiben
-        file.delete();
-      }
-      RandomAccessFile xmlFile = new RandomAccessFile( file, "rw" );
-      xmlFile.writeBytes( writer.toString() );
-      xmlFile.close();
-      LOGGER.fine( "...ok " );
-      return( file );
-    }
-  }
-
-  /**
-   * 
-   * Gibt den Anfang des Tauchganges als unix timestamp zurück
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 28.08.2012
-   * @param dive_id
-   * @return
-   */
-  private int getDiveTime()
-  {
-    return( headData[0] );
-  }
-
-  /**
-   * 
-   * Allerersten Temperaturwert für Tauchgang erfragen
-   * 
-   * Temeraturen in KELVIN
+   * Teilbaum profilesData erzeugen
    * 
    * Project: SubmatixXMLTest Package: de.dmarcini.bluethooth.submatix.xml
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 25.10.2011
-   * @param dive_id
-   *          Nummer des Tauchganges in der Datenbank
-   * @return Allererste Temperatur beim Tauchgang (müßte in etwa Lufttemperatur sein)
+   * @param doc
+   *          Dokument Objekt
+   * @return Teilbam -Rootelement
    */
-  private String getFirstTempForDive()
+  private Node makeProfilesData( Document doc, int[] diveNums )
   {
-    float tempValue = 0;
-    String temperature;
+    Element profileNode;
+    int repNumber = 0;
     //
-    tempValue = new Float( headData[1] );
-    tempValue = tempValue / 10;
-    tempValue += ProjectConst.KELVIN;
-    temperature = String.format( Locale.ENGLISH, "%.1f", tempValue );
-    return( temperature );
+    // Alle Tauchgänge als Repetivgroup einfügen
+    //
+    profileNode = doc.createElement( "profiledata" );
+    for( int diveNum : diveNums )
+    {
+      repNumber++;
+      // Kopfdaten zu diesen Tauchgang holen
+      headData = sqliteDbUtil.getHeadDiveDataFromId( diveNum );
+      // Kommentar, falls vorhanden...
+      diveComment = sqliteDbUtil.getNotesForId( diveNum );
+      profileNode.appendChild( makeRepetitiongroup( doc, repNumber, diveNum ) );
+    }
+    return( profileNode );
   }
 
   /**
    * 
-   * Die tiefste Temperatur finden
+   * Teilbaum Wiederholungsgruppe einbauen
+   * 
+   * Project: SubmatixXMLTest Package: de.dmarcini.bluethooth.submatix.xml
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 25.10.2011
+   * @param doc
+   *          Dokument Objekt
+   * @param repNumber
+   *          Nummer des Repetivtauchgangee (bei mir immer 1 :-( )
+   * @param number
+   *          Nummer des Logs in der Datenbank
+   * @return Teilbaum Repetitiongroup
+   */
+  private Node makeRepetitiongroup( Document doc, int repNumber, int diveNum )
+  {
+    Element repNode;
+    repNode = doc.createElement( "repetitiongroup" );
+    repNode.setAttribute( "id", String.valueOf( repNumber ) );
+    repNode.appendChild( makeDiveNode( doc, diveNum ) );
+    return( repNode );
+  }
+
+  /**
+   * 
+   * hole die samples für den Tauchgang
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 28.08.2012
-   * @param dive_id
+   * @param doc
+   * @param diveNum
    * @return
    */
-  private String getLowestTempForDive()
+  private Node makeSamplesForDive( final Document doc, int diveNum )
   {
-    float tempValue = 0;
-    String temperature;
+    final Element sampleNode;
+    int diveSamples = 0;
+    int diveTimeCurrent = 0;
+    Vector<Integer[]> diveSamplesVector;
+    UDDFLogEntry entry = null;
+    String gasSample = "";
+    double setpoint = 0.0;
     //
-    tempValue = new Float( headData[2] );
-    tempValue = tempValue / 10;
-    tempValue += ProjectConst.KELVIN;
-    temperature = String.format( Locale.ENGLISH, "%.1f", tempValue );
-    return( temperature );
+    sampleNode = doc.createElement( "samples" );
+    // der erste waypoint hat immer Zeit 0, tiefe 0 und switchmix
+    // hole die anzahl der Samples aus der Datenbank
+    diveSamples = getDiveSamples();
+    if( diveSamples == 0 ) return( sampleNode );
+    //
+    // jetzt les ich alle Samples aus der Datenbank
+    //
+    diveSamplesVector = sqliteDbUtil.getDiveDataFromId( diveNum );
+    // einen Iterator zum durchkurbeln machen
+    Iterator<Integer[]> it = diveSamplesVector.iterator();
+    //
+    // Alle Samples durchmachen
+    //
+    while( it.hasNext() )
+    {
+      entry = new UDDFLogEntry();
+      Integer[] sampleSet = it.next();
+      //
+      // Daten in das Objekt übernehmen
+      //
+      entry.presure = sampleSet[LogForDeviceDatabaseUtil.PRESURE];
+      entry.depth = ( double )sampleSet[LogForDeviceDatabaseUtil.DEPTH] / 10.0;
+      entry.temp = ( double )sampleSet[LogForDeviceDatabaseUtil.TEMPERATURE] + ProjectConst.KELVIN;
+      entry.acku = ( double )sampleSet[LogForDeviceDatabaseUtil.ACKU] / 10.0;
+      entry.ppo2 = sampleSet[LogForDeviceDatabaseUtil.PPO2];
+      entry.setpoint = sampleSet[LogForDeviceDatabaseUtil.SETPOINT];
+      entry.n2 = ( double )( sampleSet[LogForDeviceDatabaseUtil.N2PERCENT] ) / 100.0;
+      entry.he = ( double )( sampleSet[LogForDeviceDatabaseUtil.HEPERCENT] ) / 100.0;
+      entry.o2 = 1.0 - ( entry.n2 + entry.he );
+      entry.zerotime = sampleSet[LogForDeviceDatabaseUtil.NULLTIME];
+      diveTimeCurrent += sampleSet[LogForDeviceDatabaseUtil.DELTATIME];
+      entry.time = diveTimeCurrent;
+      entry.makeGasSample();
+      //
+      // Jetzt mach ich einen Waypoint Knoten aus dem Teil
+      // gab es einen Gaswechsel?
+      //
+      if( !entry.gasSample.equals( gasSample ) )
+      {
+        entry.gasswitch = true;
+        gasSample = entry.gasSample;
+      }
+      if( entry.setpoint != setpoint )
+      {
+        entry.ppo2switch = true;
+        setpoint = entry.setpoint;
+      }
+      // und papp den dran
+      sampleNode.appendChild( makeWaypoint( doc, entry ) );
+    }
+    return( sampleNode );
   }
 
   /**
    * 
-   * Grösste Tiefe des Tauchganges zurückgeben
+   * Node für einen Wegpunkt machen
    * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 28.08.2012
-   * @return Größte Tiefe des Tauchganges in dm
-   */
-  private String getGreatestDepthForDive()
-  {
-    return( String.format( Locale.ENGLISH, "%.1f", ( float )( headData[3] / 10.0 ) ) );
-  }
-
-  /**
-   * 
-   * Anzahl der Samples zum Tauchgang
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * Project: SubmatixBTLogger Package: de.dmarcini.bluethooth.support
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 28.08.2012
-   * @return
+   *         Stand: 29.08.2012
+   * @param doc
+   * @param entry
+   * @return Kompletter waypoint Knoten
    */
-  private int getDiveSamples()
+  private Node makeWaypoint( Document doc, UDDFLogEntry entry )
   {
-    return( headData[4] );
+    Element wpNode, dNode, dtNode, tNode, sNode, po2Node;
+    // # waypoint
+    wpNode = doc.createElement( "waypoint" );
+    // ## waypoint -> depth
+    dNode = doc.createElement( "depth" );
+    dNode.appendChild( doc.createTextNode( String.format( Locale.ENGLISH, "%.2f", entry.depth ) ) );
+    wpNode.appendChild( dNode );
+    // ## waypoint -> divetime
+    dtNode = doc.createElement( "divetime" );
+    dtNode.appendChild( doc.createTextNode( String.format( Locale.ENGLISH, "%d.0", entry.time ) ) );
+    wpNode.appendChild( dtNode );
+    // ## waypoint -> temperature
+    tNode = doc.createElement( "temperature" );
+    tNode.appendChild( doc.createTextNode( String.format( Locale.ENGLISH, "%.1f", entry.temp ) ) );
+    wpNode.appendChild( tNode );
+    // wenn sich das Gas geändert hat oder am anfang IMMER
+    if( entry.gasswitch == true )
+    {
+      // ## waypoint -> switch
+      sNode = doc.createElement( "switchmix" );
+      sNode.setAttribute( "ref", makeGasName( entry.gasSample ) );
+      wpNode.appendChild( sNode );
+    }
+    // wenn sich der Setpoint ge�ndert hat...
+    if( entry.ppo2switch )
+    {
+      // ## waypoint -> setpo2
+      po2Node = doc.createElement( "setpo2" );
+      po2Node.appendChild( doc.createTextNode( String.format( Locale.ENGLISH, "%.2f", entry.setpoint ) ) );
+      wpNode.appendChild( po2Node );
+    }
+    return( wpNode );
   }
 }

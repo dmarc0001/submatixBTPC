@@ -578,7 +578,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       conn.setAutoCommit( false );
       // Datenbank öffnen, wenn File vorhanden
       LOGGER.log( Level.FINE, "database <" + dbFile.getAbsoluteFile() + "> opened..." );
-      version = readDatabaseVersion();
+      version = getDatabaseVersion();
       if( version != ProjectConst.DB_VERSION )
       {
         // ACHTUNG, da hat sich was geändert! Oder die DB war nicht vorhanden
@@ -729,6 +729,47 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       logDataList = null;
     }
     return 1;
+  }
+
+  @Override
+  public String getDeviceId()
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String resultString = " ";
+    //
+    LOGGER.log( Level.FINE, "read deviceId from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select distinct %s from %s;",
+            ProjectConst.H_DEVICEID,
+            ProjectConst.H_TABLE_DIVELOGS
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        resultString = rs.getString( 1 );
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read device id from DB...OK" );
+      return( resultString );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read device id from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
   }
 
   @Override
@@ -921,13 +962,37 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   @Override
   public ArrayList<String> getGaslistForDive( int dbId )
   {
+    int[] dbIds = new int[1];
+    dbIds[0] = dbId;
+    return( getGaslistForDive( dbIds ) );
+  }
+
+  @Override
+  public ArrayList<String> getGaslistForDive( int[] dbIds )
+  {
     ArrayList<String> resultSet = new ArrayList<String>();
     String sql;
     Statement stat;
     ResultSet rs;
+    String dbIdString = "";
     double n2, he, o2;
+    boolean isFirst = true;
     //
-    LOGGER.log( Level.FINE, "read gaslist for dive <" + dbId + ">" );
+    // baue einen String mit dbId für die Datenbank
+    //
+    for( int dbId : dbIds )
+    {
+      if( isFirst )
+      {
+        dbIdString += String.format( " %d", dbId );
+        isFirst = false;
+      }
+      else
+      {
+        dbIdString += String.format( ", %d", dbId );
+      }
+    }
+    LOGGER.log( Level.FINE, "read gaslist for dive(s) <" + dbIdString + ">" );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -935,12 +1000,12 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select distinct %s,%s from %s where %s=%d",
+            "select distinct %s,%s from %s where %s in ( %s )",
             ProjectConst.D_N2,
             ProjectConst.D_HE,
             ProjectConst.D_TABLE_DIVEDETAIL,
-            ProjectConst.D_DBID,
-            dbId );
+            ProjectConst.D_DIVEID,
+            dbIdString );
     //@formatter:on
     try
     {
@@ -949,10 +1014,28 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       while( rs.next() )
       {
         // Daten kosolidieren
-        n2 = rs.getDouble( 0 );
-        he = rs.getDouble( 1 );
-        o2 = 100.0 - n2 - he;
-        String entry = String.format( Locale.ENGLISH, "%.3f:%.3f:%.3f:%.3f:%.3f", o2 / 100.0, n2 / 100.0, he / 100.0, 0.0, 0.0 );
+        // Stickstoff
+        if( rs.getDouble( 1 ) == 0.0 )
+        {
+          n2 = 0.0;
+        }
+        else
+        {
+          n2 = rs.getDouble( 1 ) / 100.0;
+        }
+        // Helium
+        if( rs.getDouble( 2 ) == 0.0 )
+        {
+          he = 0.0;
+        }
+        else
+        {
+          he = rs.getDouble( 2 ) / 100.0;
+        }
+        // Sauerstoff
+        o2 = 1.0 - ( n2 + he );
+        // Der vollständige Gasname
+        String entry = String.format( Locale.ENGLISH, "%.3f:%.3f:%.3f:%.3f:%.3f", o2, n2, he, 0.0, 0.0 );
         resultSet.add( entry );
       }
       rs.close();
@@ -1081,7 +1164,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
    *         Stand: 06.05.2012
    * @return
    */
-  private int readDatabaseVersion()
+  private int getDatabaseVersion()
   {
     String sql;
     Statement stat;
@@ -1122,7 +1205,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
-  public Vector<Integer[]> readDiveDataFromId( int dbId )
+  public Vector<Integer[]> getDiveDataFromId( int dbId )
   {
     String sql;
     Statement stat;
@@ -1193,12 +1276,12 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   }
 
   @Override
-  public int[] readHeadDiveDataFromId( int dbId )
+  public int[] getHeadDiveDataFromId( int dbId )
   {
     String sql;
     Statement stat;
     ResultSet rs;
-    int[] diveHeadData = new int[7];
+    int[] diveHeadData;
     //
     LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB..." );
     if( conn == null )
@@ -1223,6 +1306,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     //@formatter:on
     try
     {
+      diveHeadData = new int[7];
       stat = conn.createStatement();
       rs = stat.executeQuery( sql );
       if( rs.next() )

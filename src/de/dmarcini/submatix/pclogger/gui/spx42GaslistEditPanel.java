@@ -37,11 +37,15 @@ public class spx42GaslistEditPanel extends JPanel
   private final Logger                     LOGGER              = null;
   private int                              licenseState        = -1;
   private int                              customConfig        = -1;
+  private boolean                          isPanelInitiated    = false;
+  private ResourceBundle                   stringsBundle       = null;
+  private MainCommGUI                      mainCommGUI         = null;
+  private boolean                          isElementsGasMatrixEnabled = false;
   // @formatter:on
   /**
    * 
    */
-  private static final long                serialVersionUID    = 1L;
+  private static final long                serialVersionUID           = 1L;
   private JLabel                           gasLabel_00;
   private JLabel                           gasLabel_01;
   private JLabel                           gasLabel_03;
@@ -78,8 +82,8 @@ public class spx42GaslistEditPanel extends JPanel
   private JLabel                           gasNameLabel_05;
   private JLabel                           gasNameLabel_06;
   private JLabel                           gasNameLabel_07;
-  private final ButtonGroup                duluent1ButtonGroup = new ButtonGroup();
-  private final ButtonGroup                diluent2ButtonGroup = new ButtonGroup();
+  private final ButtonGroup                duluent1ButtonGroup        = new ButtonGroup();
+  private final ButtonGroup                diluent2ButtonGroup        = new ButtonGroup();
   private JLabel                           licenseStatusLabel;
   private JButton                          gasReadFromSPXButton;
   private JButton                          gasWriteToSPXButton;
@@ -111,7 +115,7 @@ public class spx42GaslistEditPanel extends JPanel
 
   /**
    * 
-   * gesperrte Versuion
+   * gesperrte Version
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
@@ -123,6 +127,7 @@ public class spx42GaslistEditPanel extends JPanel
   private spx42GaslistEditPanel()
   {
     setPreferredSize( new Dimension( 796, 504 ) );
+    isPanelInitiated = false;
     initPanel();
     initGasObjectMaps();
   }
@@ -144,11 +149,22 @@ public class spx42GaslistEditPanel extends JPanel
     {
       throw new NullPointerException( "no logger in constructor!" );
     }
-    initPanel();
-    initGasObjectMaps();
+    isPanelInitiated = false;
+    // initPanel();
+    // initGasObjectMaps();
   }
 
-  public void initPanel()
+  /**
+   * 
+   * Interne Funktion erzeugt die GUI
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   */
+  private void initPanel()
   {
     setLayout( null );
     gasReadFromSPXButton = new JButton( "READ" );
@@ -664,6 +680,49 @@ public class spx42GaslistEditPanel extends JPanel
     licenseStatusLabel = new JLabel( "LICENSE" );
     licenseStatusLabel.setBounds( 10, 385, 553, 14 );
     add( licenseStatusLabel );
+    isPanelInitiated = true;
+  }
+
+  /**
+   * 
+   * Panel GUI initialisieren
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   */
+  public void prepareGasslistPanel()
+  {
+    initPanel();
+    initGasObjectMaps();
+    setAllGasPanelsEnabled( isElementsGasMatrixEnabled );
+    setLanguageStrings( stringsBundle );
+    setLicenseLabel( stringsBundle );
+    setGlobalChangeListener( mainCommGUI );
+  }
+
+  /**
+   * 
+   * Daten des Panels freigeben
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   */
+  public void releasePanel()
+  {
+    isPanelInitiated = true;
+    this.removeAll();
+    o2SpinnerMap.clear();
+    heSpinnerMap.clear();
+    gasLblMap.clear();
+    bailoutMap.clear();
+    diluent1Map.clear();
+    diluent2Map.clear();
   }
 
   /**
@@ -686,6 +745,9 @@ public class spx42GaslistEditPanel extends JPanel
 
   public int setLanguageStrings( ResourceBundle stringsBundle )
   {
+    this.stringsBundle = stringsBundle;
+    if( !isPanelInitiated ) return( -1 );
+    if( stringsBundle == null ) return( -1 );
     // so, ignoriere mal alles....
     try
     {
@@ -770,10 +832,7 @@ public class spx42GaslistEditPanel extends JPanel
    */
   public void setLicenseLabel( ResourceBundle stringsBundle )
   {
-    // spx42GaslistEditPanel.gasPanel.licenseLabel.nitrox.text=License: Nitrox
-    // spx42GaslistEditPanel.gasPanel.licenseLabel.normoxic.text=License: Normoxic Trimix
-    // spx42GaslistEditPanel.gasPanel.licenseLabel.fulltrimix.text=License: Full Trimix
-    // spx42GaslistEditPanel.gasPanel.licenseLabel.customconfigEnabled.text=custom config enabled
+    if( !isPanelInitiated ) return;
     String licString;
     switch ( licenseState )
     {
@@ -881,11 +940,13 @@ public class spx42GaslistEditPanel extends JPanel
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 18.04.2012 TODO
+   *         Stand: 18.04.2012
    * @param mainCommGUI
    */
   public void setGlobalChangeListener( MainCommGUI mainCommGUI )
   {
+    this.mainCommGUI = mainCommGUI;
+    if( !isPanelInitiated ) return;
     for( Integer idx : o2SpinnerMap.keySet() )
     {
       JSpinner sp = o2SpinnerMap.get( idx );
@@ -943,6 +1004,8 @@ public class spx42GaslistEditPanel extends JPanel
    */
   public void setElementsGasMatrixPanelEnabled( boolean en )
   {
+    this.isElementsGasMatrixEnabled = en;
+    if( !isPanelInitiated ) return;
     for( Component cp : gasMatrixPanel.getComponents() )
     {
       // License State 0=Nitrox,1=Normoxic Trimix,2=Full Trimix
@@ -1074,6 +1137,7 @@ public class spx42GaslistEditPanel extends JPanel
    */
   public void setGasPresetObjectsEnabled( boolean en )
   {
+    if( !isPanelInitiated ) return;
     customPresetComboBox.setEnabled( en );
     writeGasPresetButton.setEnabled( en );
     readGasPresetButton.setEnabled( en );

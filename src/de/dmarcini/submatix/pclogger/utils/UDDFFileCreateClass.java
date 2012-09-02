@@ -109,8 +109,6 @@ public class UDDFFileCreateClass
    *          Verzeichnis, in die das Ergebnis nachher kommt
    * @param diveNum
    *          Nummer in der Datenbank (dive_id)
-   * @param zipped
-   *          Komprimieren?
    * @return true oder false
    * @throws Exception
    */
@@ -132,7 +130,6 @@ public class UDDFFileCreateClass
    *         Stand: 30.08.2012
    * @param exportDir
    * @param diveNums
-   * @param zipped
    * @return Dateiobjekt für UDDF-Datei
    * @throws Exception
    */
@@ -545,8 +542,16 @@ public class UDDFFileCreateClass
   {
     String gasName = gas.replace( gasPattern, "" );
     String[] fields = fieldPatternDp.split( gasName );
-    // TODO: Fehler bei parseInt abfangen!
-    return( String.format( "%02d%02d%02d", Integer.parseInt( fields[0] ) / 10, Integer.parseInt( fields[1] ) / 10, Integer.parseInt( fields[2] ) / 10 ) );
+    // Fehler abfangen
+    try
+    {
+      return( String.format( "%02d%02d%02d", Integer.parseInt( fields[0] ) / 10, Integer.parseInt( fields[1] ) / 10, Integer.parseInt( fields[2] ) / 10 ) );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.severe( "Number format from value <" + fields + "> are wrong (not a integer): " + ex.getLocalizedMessage() );
+      return( "210000" );
+    }
   }
 
   /**

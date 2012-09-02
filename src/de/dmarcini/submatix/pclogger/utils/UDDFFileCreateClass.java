@@ -6,8 +6,7 @@ package de.dmarcini.submatix.pclogger.utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,7 +14,6 @@ import java.util.Locale;
 import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPOutputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -116,11 +114,11 @@ public class UDDFFileCreateClass
    * @return true oder false
    * @throws Exception
    */
-  public File createXML( File exportDir, int diveNum, boolean zipped ) throws Exception
+  public File createXML( File exportDir, int diveNum ) throws Exception
   {
     int[] diveNums = new int[1];
     diveNums[0] = diveNum;
-    return( createXML( exportDir, diveNums, zipped ) );
+    return( createXML( exportDir, diveNums ) );
   }
 
   /**
@@ -138,7 +136,7 @@ public class UDDFFileCreateClass
    * @return Dateiobjekt für UDDF-Datei
    * @throws Exception
    */
-  public File createXML( File exportDir, int[] diveNums, boolean zipped ) throws Exception
+  public File createXML( File exportDir, int[] diveNums ) throws Exception
   {
     Element rootNode = null;
     String msg = null;
@@ -189,7 +187,7 @@ public class UDDFFileCreateClass
     try
     {
       // mach eine Datei aus dem DOM-Baum
-      retFile = domToFile( saveFile, uddfDoc, zipped );
+      retFile = domToFile( saveFile, uddfDoc );
     }
     catch( TransformerException ex )
     {
@@ -229,7 +227,7 @@ public class UDDFFileCreateClass
    * @throws IOException
    * @throws TransformerException
    */
-  private File domToFile( File file, Document document, boolean zipped ) throws IOException, TransformerException
+  private File domToFile( File file, Document document ) throws IOException, TransformerException
   {
     LOGGER.fine( "make dom to file..." );
     // die Vorbereitungen treffen
@@ -239,39 +237,22 @@ public class UDDFFileCreateClass
     StreamResult res = new StreamResult( writer );
     LOGGER.fine( "...transform... " );
     transformer.transform( doc, res );
-    // nun zur Frage: gezippt oder nicht
-    if( zipped )
+    // ungezipptes file erzeugen
+    LOGGER.fine( "...write to unzipped file... " );
+    if( file.exists() )
     {
-      // gezipptes File erzeugen
-      LOGGER.fine( "...write to zipped file... " );
-      file = new File( file.getAbsoluteFile() + ".gz" );
-      if( file.exists() )
-      {
-        // Datei ist da, ich will sie ueberschreiben
-        file.delete();
-      }
-      OutputStream fos = new FileOutputStream( file );
-      OutputStream zipOut = new GZIPOutputStream( fos );
-      zipOut.write( writer.toString().getBytes() );
-      zipOut.close();
-      LOGGER.fine( "...ok " );
-      return( file );
+      // Datei ist da, ich will sie ueberschreiben
+      file.delete();
     }
-    else
-    {
-      // ungezipptes file erzeugen
-      LOGGER.fine( "...write to unzipped file... " );
-      if( file.exists() )
-      {
-        // Datei ist da, ich will sie ueberschreiben
-        file.delete();
-      }
-      RandomAccessFile xmlFile = new RandomAccessFile( file, "rw" );
-      xmlFile.writeBytes( writer.toString() );
-      xmlFile.close();
-      LOGGER.fine( "...ok " );
-      return( file );
-    }
+    //
+    // das Ganze noch korrekt schreiben
+    //
+    OutputStreamWriter xmlFile = new OutputStreamWriter( new FileOutputStream( file ), "UTF-8" );
+    xmlFile.write( writer.toString() );
+    xmlFile.flush();
+    xmlFile.close();
+    LOGGER.fine( "...ok " );
+    return( file );
   }
 
   /**

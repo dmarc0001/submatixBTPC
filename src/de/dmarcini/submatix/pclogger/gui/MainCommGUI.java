@@ -447,7 +447,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     initLanuageMenu( programLocale );
     if( !DEBUG )
     {
-      setAllConfigPanlelsEnabled( false );
+      configPanel.setAllConfigPanlelsEnabled( false );
       gasConfigPanel.setAllGasPanelsEnabled( false );
       logListPanel.setAllLogPanelsEnabled( false );
       setElementsConnected( false );
@@ -1611,17 +1611,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       entry = ( String )srcBox.getSelectedItem();
       LOGGER.log( Level.FINE, "depth unit <" + entry + ">..." );
       currentConfig.setUnitDepth( srcBox.getSelectedIndex() );
-      if( currentConfig.isBuggyFirmware() )
-      {
-        if( srcBox.getSelectedIndex() == 0 )
-        {
-          configPanel.unitsTemperatureComboBox.setSelectedIndex( 1 );
-        }
-        else
-        {
-          configPanel.unitsTemperatureComboBox.setSelectedIndex( 0 );
-        }
-      }
+      configPanel.setUnitDepth( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
     // Süßwasser oder Salzwasser
@@ -1761,13 +1751,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       case ProjectConst.MESSAGE_FWVERSION_READ:
         LOGGER.log( Level.INFO, "Firmware Version <" + cmd + "> recived..." );
         currentConfig.setFirmwareVersion( cmd );
-        configPanel.firmwareVersionValueLabel.setText( cmd );
+        configPanel.setFirmwareLabel( cmd );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Seriennummer vom SPX42
       case ProjectConst.MESSAGE_SERIAL_READ:
         LOGGER.log( Level.INFO, "Serial Number from SPX42 recived..." );
-        configPanel.serialNumberText.setText( cmd );
+        configPanel.setSerialNumber( cmd );
         currentConfig.setSerial( cmd );
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1781,19 +1771,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setDecoGf( cmd ) )
         {
           LOGGER.log( Level.INFO, "DECO propertys set to GUI..." );
-          configPanel.decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
-          configPanel.decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
-          configPanel.decoGradientenPresetComboBox.setSelectedIndex( currentConfig.getDecoGfPreset() );
-          if( currentConfig.getLastStop() == 3 )
-          {
-            configPanel.decoLastStopComboBox.setSelectedIndex( 0 );
-          }
-          else
-          {
-            configPanel.decoLastStopComboBox.setSelectedIndex( 1 );
-          }
-          configPanel.decoDynGradientsCheckBox.setSelected( currentConfig.isDynGradientsEnable() );
-          configPanel.decoDeepStopCheckBox.setSelected( currentConfig.isDeepStopEnable() );
+          configPanel.setDecoGradient();
           LOGGER.log( Level.INFO, "DECO propertys set to GUI...OK" );
         }
         break;
@@ -1808,9 +1786,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setUnits( cmd ) )
         {
           LOGGER.log( Level.INFO, "UNITS propertys set to GUI..." );
-          configPanel.unitsTemperatureComboBox.setSelectedIndex( currentConfig.getUnitTemperature() );
-          configPanel.unitsDepthComboBox.setSelectedIndex( currentConfig.getUnitDepth() );
-          configPanel.unitsSalnityComboBox.setSelectedIndex( currentConfig.getUnitSalnity() );
+          configPanel.setUnits();
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1824,8 +1800,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setDisplay( cmd ) )
         {
           LOGGER.log( Level.INFO, "DISPLAY propertys set to GUI..." );
-          configPanel.displayBrightnessComboBox.setSelectedIndex( currentConfig.getDisplayBrightness() );
-          configPanel.displayOrientationComboBox.setSelectedIndex( currentConfig.getDisplayOrientation() );
+          configPanel.setDisplayPropertys();
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1839,8 +1814,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setSetpoint( cmd ) )
         {
           LOGGER.log( Level.INFO, "SETPOINT propertys set to GUI..." );
-          configPanel.autoSetpointComboBox.setSelectedIndex( currentConfig.getAutoSetpoint() );
-          configPanel.highSetpointComboBox.setSelectedIndex( currentConfig.getMaxSetpoint() );
+          configPanel.setSetpoint();
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1854,45 +1828,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( currentConfig.setIndividuals( cmd ) )
         {
           LOGGER.log( Level.INFO, "INDIVIDUAL propertys set to GUI..." );
-          if( !configPanel.individualPanel.isEnabled() )
-          {
-            configPanel.setIndividualsPanelEnabled( true );
-          }
-          // Sensormode eintragen
-          if( currentConfig.getSensorsOn() == 1 )
-          {
-            configPanel.individualsSensorsOnCheckbox.setSelected( true );
-          }
-          else
-          {
-            configPanel.individualsSensorsOnCheckbox.setSelected( false );
-          }
-          // Passiver MCCR Mode
-          if( currentConfig.getPscrModeOn() == 1 )
-          {
-            configPanel.individualsPscrModeOnCheckbox.setSelected( true );
-          }
-          else
-          {
-            configPanel.individualsPscrModeOnCheckbox.setSelected( false );
-          }
-          // Sensor Anzahl Warning
-          configPanel.individualsSensorWarnComboBox.setSelectedIndex( currentConfig.getSensorsCount() );
-          // akustische warnuingen
-          if( currentConfig.getSoundOn() == 1 )
-          {
-            configPanel.individualsWarningsOnCheckBox.setSelected( true );
-          }
-          else
-          {
-            configPanel.individualsWarningsOnCheckBox.setSelected( false );
-          }
-          // Loginterval
-          configPanel.individualsLogintervalComboBox.setSelectedIndex( currentConfig.getLogInterval() );
+          configPanel.setIndividuals( true );
         }
         else
         {
-          configPanel.setIndividualsPanelEnabled( false );
+          configPanel.setIndividuals( false );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -1936,7 +1876,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           wDial = null;
         }
         setElementsConnected( false );
-        setAllConfigPanlelsEnabled( false );
+        configPanel.setAllConfigPanlelsEnabled( false );
         gasConfigPanel.setElementsGasMatrixPanelEnabled( false );
         connectionPanel.refreshAliasTable();
         if( tabbedPane.getSelectedIndex() != programTabs.TAB_CONNECT.ordinal() )
@@ -1989,12 +1929,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           currentConfig.setWasInit( true );
         }
         savedConfig = new SPX42Config( currentConfig );
-        setAllConfigPanlelsEnabled( true );
-        if( currentConfig.isBuggyFirmware() )
-        {
-          configPanel.unitsTemperatureComboBox.setBackground( new Color( 0xffafaf ) );
-          configPanel.unitsTemperatureComboBox.setEnabled( false );
-        }
+        configPanel.setAllConfigPanlelsEnabled( true );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht, daß da etwas passiert, also Hinweisbox weiterzählen lassen
@@ -2255,45 +2190,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * 
-   * Setze alle Kon´figurationspanels auf "Enabled" wenn möglich
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.07.2012
-   * @param en
-   * 
-   */
-  private void setAllConfigPanlelsEnabled( boolean en )
-  {
-    configPanel.setDecoPanelEnabled( en );
-    configPanel.setDisplayPanelEnabled( en );
-    configPanel.setUnitsPanelEnabled( en );
-    configPanel.setSetpointPanel( en );
-    // nur, wenn eine gültige Konfiguration gelesen wurde
-    if( savedConfig != null )
-    {
-      // Gibt es eine Lizenz für Custom Config?
-      if( currentConfig.getCustomEnabled() == 1 )
-      {
-        configPanel.setIndividualsPanelEnabled( true );
-      }
-      else
-      {
-        configPanel.setIndividualsPanelEnabled( false );
-      }
-    }
-    else
-    {
-      // Keine Config gelesen!
-      configPanel.setIndividualsPanelEnabled( false );
-    }
-    logListPanel.setAllLogPanelsEnabled( en );
-  }
-
-  /**
    * Setze combobox für Deco Gradienten Preset entsprechend der Angaben in den Spinnern Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.04.2012
@@ -2302,12 +2198,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void setDecoComboAfterSpinnerChange()
   {
     int currentPreset = currentConfig.getDecoGfPreset();
-    if( configPanel.decoGradientenPresetComboBox.getSelectedIndex() != currentPreset )
-    {
-      ignoreAction = true;
-      configPanel.decoGradientenPresetComboBox.setSelectedIndex( currentPreset );
-      ignoreAction = false;
-    }
+    ignoreAction = true;
+    configPanel.setDecoGradientenPreset( currentPreset );
+    ignoreAction = false;
   }
 
   /**
@@ -2324,8 +2217,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.setEnabledAt( programTabs.TAB_LOGREAD.ordinal(), active );
     if( !active )
     {
-      configPanel.serialNumberText.setText( "-" );
-      configPanel.firmwareVersionValueLabel.setText( "-" );
+      configPanel.setSerialNumber( "-" );
+      configPanel.setFirmwareLabel( "-" );
       if( savedConfig != null )
       {
         savedConfig = null;
@@ -2412,10 +2305,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       case VERY_AGGRESSIVE:
         // in den oben genannten Fällen die Spinner auf den Preset einstellen
         ignoreAction = true;
-        configPanel.decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
-        configPanel.decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
+        configPanel.setDecoGradientenSpinner();
+        configPanel.setDecoGradientenPreset( selectedIndex );
         ignoreAction = false;
-        LOGGER.log( Level.FINE, "spinner korrected for preset." );
+        LOGGER.log( Level.FINE, "spinner corrected for preset." );
         break;
     }
   }
@@ -2744,7 +2637,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       currSpinner = ( JSpinner )ev.getSource();
       // //////////////////////////////////////////////////////////////////////
       // Deco gradient Hith
-      if( currSpinner.equals( configPanel.decoGradientenHighSpinner ) )
+      if( currSpinner.equals( configPanel.getDecoGradientenHighSpinner() ) )
       {
         // wert für High ändern
         currValue = ( Integer )currSpinner.getValue();
@@ -2754,7 +2647,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
       // //////////////////////////////////////////////////////////////////////
       // Deco gradient Low
-      else if( currSpinner.equals( configPanel.decoGradientenLowSpinner ) )
+      else if( currSpinner.equals( configPanel.getDecoGradientenLowSpinner() ) )
       {
         // Wert für LOW ändern
         currValue = ( Integer )currSpinner.getValue();
@@ -2790,6 +2683,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     // //////////////////////////////////////////////////////////////////////
     // war es ein tabbedPane
+    // //////////////////////////////////////////////////////////////////////
     else if( ev.getSource() instanceof JTabbedPane )
     {
       if( tabbedPane.equals( ev.getSource() ) )
@@ -2847,6 +2741,32 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             showErrorDialog( stringsBundle.getString( "MainCommGui.errorDialog.openExportWindow" ) );
             return;
           }
+        }
+        //
+        // ist es das Config Panel?
+        //
+        if( tabIdx == programTabs.TAB_CONFIG.ordinal() )
+        {
+          LOGGER.log( Level.FINE, "config tab select, init gui..." );
+          configPanel.prepareConfigPanel( currentConfig );
+        }
+        else
+        {
+          // Daten freigeben
+          configPanel.releaseConfig();
+        }
+        //
+        // ist es das Loglistpanel
+        //
+        if( tabIdx == programTabs.TAB_LOGREAD.ordinal() )
+        {
+          // Panel initialisieren
+          LOGGER.log( Level.FINE, "logreader tab select, init gui..." );
+        }
+        else
+        {
+          // Panel Daten freigeben
+          logListPanel.closeDatabase();
         }
       }
     }

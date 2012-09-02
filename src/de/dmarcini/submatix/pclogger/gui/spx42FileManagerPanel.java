@@ -281,7 +281,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
         wDial.setVisible( true );
         LOGGER.info( "export to dir: <" + progConfig.getExportDir().getAbsolutePath() + ">" );
         uddf.createXML( progConfig.getExportDir(), dbIds );
-        wDial.setVisible( false );
+        // wDial.setVisible( false );
         showSuccessBox( stringsBundle.getString( "fileManagerPanel.succesExport" ) );
       }
     }

@@ -270,7 +270,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       if( dbIds.length == 1 )
       {
         LOGGER.info( "export to dir: <" + progConfig.getExportDir().getAbsolutePath() + ">" );
-        uddf.createXML( progConfig.getExportDir(), dbIds[0], false );
+        uddf.createXML( progConfig.getExportDir(), dbIds[0] );
       }
       else
       {
@@ -280,7 +280,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
         wDial.resetProgress();
         wDial.setVisible( true );
         LOGGER.info( "export to dir: <" + progConfig.getExportDir().getAbsolutePath() + ">" );
-        uddf.createXML( progConfig.getExportDir(), dbIds, false );
+        uddf.createXML( progConfig.getExportDir(), dbIds );
         wDial.setVisible( false );
         showSuccessBox( stringsBundle.getString( "fileManagerPanel.succesExport" ) );
       }
@@ -297,9 +297,12 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     }
     finally
     {
-      wDial.setVisible( false );
-      wDial.dispose();
-      wDial = null;
+      if( wDial != null )
+      {
+        wDial.setVisible( false );
+        wDial.dispose();
+        wDial = null;
+      }
     }
   }
 

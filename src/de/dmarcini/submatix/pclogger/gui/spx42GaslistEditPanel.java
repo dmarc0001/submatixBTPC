@@ -27,12 +27,12 @@ import javax.swing.border.LineBorder;
 //@formatter:off
 public class spx42GaslistEditPanel extends JPanel
 {  //
-  public final HashMap<Integer, JSpinner>  o2SpinnerMap        = new HashMap<Integer, JSpinner>();
-  public final HashMap<Integer, JSpinner>  heSpinnerMap        = new HashMap<Integer, JSpinner>();
-  public final HashMap<Integer, JLabel>    gasLblMap           = new HashMap<Integer, JLabel>();
-  public final HashMap<Integer, JCheckBox> bailoutMap          = new HashMap<Integer, JCheckBox>();
-  public final HashMap<Integer, JCheckBox> diluent1Map         = new HashMap<Integer, JCheckBox>();
-  public final HashMap<Integer, JCheckBox> diluent2Map         = new HashMap<Integer, JCheckBox>();
+  private final HashMap<Integer, JSpinner>  o2SpinnerMap        = new HashMap<Integer, JSpinner>();
+  private final HashMap<Integer, JSpinner>  heSpinnerMap        = new HashMap<Integer, JSpinner>();
+  private final HashMap<Integer, JLabel>    gasLblMap           = new HashMap<Integer, JLabel>();
+  private final HashMap<Integer, JCheckBox> bailoutMap          = new HashMap<Integer, JCheckBox>();
+  private final HashMap<Integer, JCheckBox> diluent1Map         = new HashMap<Integer, JCheckBox>();
+  private final HashMap<Integer, JCheckBox> diluent2Map         = new HashMap<Integer, JCheckBox>();
   @SuppressWarnings( "unused" )
   private final Logger                     LOGGER              = null;
   private int                              licenseState        = -1;
@@ -45,73 +45,73 @@ public class spx42GaslistEditPanel extends JPanel
   /**
    * 
    */
-  private static final long                serialVersionUID           = 1L;
-  private JLabel                           gasLabel_00;
-  private JLabel                           gasLabel_01;
-  private JLabel                           gasLabel_03;
-  private JSpinner                         gasO2Spinner_00;
-  private JSpinner                         gasHESpinner_00;
-  private JCheckBox                        diluent1Checkbox_02;
-  private JCheckBox                        diluent1Checkbox_00;
-  private JCheckBox                        diluent1Checkbox_01;
-  private JCheckBox                        diluent1Checkbox_03;
-  private JCheckBox                        diluent1Checkbox_04;
-  private JCheckBox                        diluent1Checkbox_05;
-  private JCheckBox                        diluent1Checkbox_06;
-  private JCheckBox                        diluent1Checkbox_07;
-  private JCheckBox                        diluent2Checkbox_00;
-  private JCheckBox                        diluent2Checkbox_01;
-  private JCheckBox                        diluent2Checkbox_02;
-  private JCheckBox                        diluent2Checkbox_03;
-  private JCheckBox                        diluent2Checkbox_04;
-  private JCheckBox                        diluent2Checkbox_05;
-  private JCheckBox                        diluent2Checkbox_06;
-  private JCheckBox                        diluent2Checkbox_07;
-  private JCheckBox                        bailoutCheckbox_00;
-  private JCheckBox                        bailoutCheckbox_01;
-  private JCheckBox                        bailoutCheckbox_02;
-  private JCheckBox                        bailoutCheckbox_03;
-  private JCheckBox                        bailoutCheckbox_04;
-  private JCheckBox                        bailoutCheckbox_05;
-  private JCheckBox                        bailoutCheckbox_06;
-  private JCheckBox                        bailoutCheckbox_07;
-  private JLabel                           gasNameLabel_00;
-  private JLabel                           gasNameLabel_01;
-  private JLabel                           gasNameLabel_02;
-  private JLabel                           gasNameLabel_04;
-  private JLabel                           gasNameLabel_05;
-  private JLabel                           gasNameLabel_06;
-  private JLabel                           gasNameLabel_07;
-  private final ButtonGroup                duluent1ButtonGroup        = new ButtonGroup();
-  private final ButtonGroup                diluent2ButtonGroup        = new ButtonGroup();
-  private JLabel                           licenseStatusLabel;
-  private JButton                          gasReadFromSPXButton;
-  private JButton                          gasWriteToSPXButton;
-  private JSpinner                         gasO2Spinner_01;
-  private JSpinner                         gasO2Spinner_02;
-  private JSpinner                         gasO2Spinner_03;
-  private JSpinner                         gasO2Spinner_04;
-  private JSpinner                         gasO2Spinner_05;
-  private JSpinner                         gasO2Spinner_06;
-  private JSpinner                         gasO2Spinner_07;
-  private JSpinner                         gasHESpinner_01;
-  private JSpinner                         gasHESpinner_03;
-  private JSpinner                         gasHESpinner_04;
-  private JSpinner                         gasHESpinner_05;
-  private JSpinner                         gasHESpinner_06;
-  private JSpinner                         gasHESpinner_07;
-  private JSpinner                         gasHESpinner_02;
-  private JLabel                           gasNameLabel_03;
-  private JLabel                           gasLabel_02;
-  private JLabel                           gasLabel_04;
-  private JLabel                           gasLabel_05;
-  private JLabel                           gasLabel_06;
-  private JLabel                           gasLabel_07;
-  private JButton                          readGasPresetButton;
-  private JButton                          writeGasPresetButton;
-  private JComboBox                        customPresetComboBox;
-  private JLabel                           userPresetLabel;
-  private JPanel                           gasMatrixPanel;
+  private static final long                 serialVersionUID           = 1L;
+  private JLabel                            gasLabel_00;
+  private JLabel                            gasLabel_01;
+  private JLabel                            gasLabel_03;
+  private JSpinner                          gasO2Spinner_00;
+  private JSpinner                          gasHESpinner_00;
+  private JCheckBox                         diluent1Checkbox_02;
+  private JCheckBox                         diluent1Checkbox_00;
+  private JCheckBox                         diluent1Checkbox_01;
+  private JCheckBox                         diluent1Checkbox_03;
+  private JCheckBox                         diluent1Checkbox_04;
+  private JCheckBox                         diluent1Checkbox_05;
+  private JCheckBox                         diluent1Checkbox_06;
+  private JCheckBox                         diluent1Checkbox_07;
+  private JCheckBox                         diluent2Checkbox_00;
+  private JCheckBox                         diluent2Checkbox_01;
+  private JCheckBox                         diluent2Checkbox_02;
+  private JCheckBox                         diluent2Checkbox_03;
+  private JCheckBox                         diluent2Checkbox_04;
+  private JCheckBox                         diluent2Checkbox_05;
+  private JCheckBox                         diluent2Checkbox_06;
+  private JCheckBox                         diluent2Checkbox_07;
+  private JCheckBox                         bailoutCheckbox_00;
+  private JCheckBox                         bailoutCheckbox_01;
+  private JCheckBox                         bailoutCheckbox_02;
+  private JCheckBox                         bailoutCheckbox_03;
+  private JCheckBox                         bailoutCheckbox_04;
+  private JCheckBox                         bailoutCheckbox_05;
+  private JCheckBox                         bailoutCheckbox_06;
+  private JCheckBox                         bailoutCheckbox_07;
+  private JLabel                            gasNameLabel_00;
+  private JLabel                            gasNameLabel_01;
+  private JLabel                            gasNameLabel_02;
+  private JLabel                            gasNameLabel_04;
+  private JLabel                            gasNameLabel_05;
+  private JLabel                            gasNameLabel_06;
+  private JLabel                            gasNameLabel_07;
+  private final ButtonGroup                 duluent1ButtonGroup        = new ButtonGroup();
+  private final ButtonGroup                 diluent2ButtonGroup        = new ButtonGroup();
+  private JLabel                            licenseStatusLabel;
+  private JButton                           gasReadFromSPXButton;
+  private JButton                           gasWriteToSPXButton;
+  private JSpinner                          gasO2Spinner_01;
+  private JSpinner                          gasO2Spinner_02;
+  private JSpinner                          gasO2Spinner_03;
+  private JSpinner                          gasO2Spinner_04;
+  private JSpinner                          gasO2Spinner_05;
+  private JSpinner                          gasO2Spinner_06;
+  private JSpinner                          gasO2Spinner_07;
+  private JSpinner                          gasHESpinner_01;
+  private JSpinner                          gasHESpinner_03;
+  private JSpinner                          gasHESpinner_04;
+  private JSpinner                          gasHESpinner_05;
+  private JSpinner                          gasHESpinner_06;
+  private JSpinner                          gasHESpinner_07;
+  private JSpinner                          gasHESpinner_02;
+  private JLabel                            gasNameLabel_03;
+  private JLabel                            gasLabel_02;
+  private JLabel                            gasLabel_04;
+  private JLabel                            gasLabel_05;
+  private JLabel                            gasLabel_06;
+  private JLabel                            gasLabel_07;
+  private JButton                           readGasPresetButton;
+  private JButton                           writeGasPresetButton;
+  private JComboBox                         customPresetComboBox;
+  private JLabel                            userPresetLabel;
+  private JPanel                            gasMatrixPanel;
 
   /**
    * 
@@ -1141,5 +1141,41 @@ public class spx42GaslistEditPanel extends JPanel
     customPresetComboBox.setEnabled( en );
     writeGasPresetButton.setEnabled( en );
     readGasPresetButton.setEnabled( en );
+  }
+
+  public HashMap<Integer, JSpinner> getHeSpinnerMap()
+  {
+    if( !isPanelInitiated ) return( null );
+    return( heSpinnerMap );
+  }
+
+  public HashMap<Integer, JSpinner> getO2SpinnerMap()
+  {
+    if( !isPanelInitiated ) return( null );
+    return( o2SpinnerMap );
+  }
+
+  public HashMap<Integer, JLabel> getGasLblMap()
+  {
+    if( !isPanelInitiated ) return( null );
+    return( gasLblMap );
+  }
+
+  public HashMap<Integer, JCheckBox> getDiluent1Map()
+  {
+    if( !isPanelInitiated ) return( null );
+    return( diluent1Map );
+  }
+
+  public HashMap<Integer, JCheckBox> getDiluent2Map()
+  {
+    if( !isPanelInitiated ) return( null );
+    return( diluent2Map );
+  }
+
+  public HashMap<Integer, JCheckBox> getBailoutMap()
+  {
+    if( !isPanelInitiated ) return( null );
+    return( bailoutMap );
   }
 }

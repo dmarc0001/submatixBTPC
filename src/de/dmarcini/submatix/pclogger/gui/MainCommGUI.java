@@ -516,10 +516,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     int o2;
     o2 = currGasList.getO2FromGas( gasNr );
     ignoreAction = true;
+    if( gasConfigPanel.getHeSpinnerMap() == null ) return;
+    if( gasConfigPanel.getO2SpinnerMap() == null ) return;
+    if( gasConfigPanel.getGasLblMap() == null ) return;
     if( he < 0 )
     {
       he = 0;
-      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( 0 );
+      ( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ).setValue( 0 );
     }
     else if( he > 100 )
     {
@@ -527,8 +530,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // ungesundes Zeug!
       o2 = 0;
       he = 100;
-      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( he );
-      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      ( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ).setValue( he );
+      ( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ).setValue( o2 );
       LOGGER.log( Level.WARNING, String.format( "change helium (max) in Gas %d Value: <%d/0x%02x>...", gasNr, he, he ) );
     }
     else if( ( o2 + he ) > 100 )
@@ -536,7 +539,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Auch hier geht nicht mehr als 100%
       // Sauerstoff verringern!
       o2 = 100 - he;
-      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      ( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ).setValue( o2 );
       LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
     }
     else
@@ -544,7 +547,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
     }
     currGasList.setGas( gasNr, o2, he );
-    ( gasConfigPanel.gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
+    ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setText( getNameForGas( gasNr ) );
     setGasColor( gasNr, o2 );
     ignoreAction = false;
   }
@@ -563,19 +566,22 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     int he;
     he = currGasList.getHEFromGas( gasNr );
     ignoreAction = true;
+    if( gasConfigPanel.getHeSpinnerMap() == null ) return;
+    if( gasConfigPanel.getO2SpinnerMap() == null ) return;
+    if( gasConfigPanel.getGasLblMap() == null ) return;
     if( o2 < 0 )
     {
       // das Zeut ist dann auch ungesund!
       o2 = 0;
-      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( 0 );
+      ( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ).setValue( 0 );
     }
     else if( o2 > 100 )
     {
       // Mehr als 100% geht nicht!
       o2 = 100;
       he = 0;
-      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( he );
-      ( gasConfigPanel.o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      ( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ).setValue( he );
+      ( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ).setValue( o2 );
       LOGGER.log( Level.WARNING, String.format( "change oxygen (max) in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
     }
     else if( ( o2 + he ) > 100 )
@@ -583,7 +589,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Auch hier geht nicht mehr als 100%
       // Helium verringern!
       he = 100 - o2;
-      ( gasConfigPanel.heSpinnerMap.get( gasNr ) ).setValue( he );
+      ( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ).setValue( he );
       LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
     }
     else
@@ -593,7 +599,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     currGasList.setGas( gasNr, o2, he );
     // erzeuge und setze noch den Gasnamen
     // färbe dabei gleich die Zahlen ein
-    ( gasConfigPanel.gasLblMap.get( gasNr ) ).setText( getNameForGas( gasNr ) );
+    ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setText( getNameForGas( gasNr ) );
     setGasColor( gasNr, o2 );
     ignoreAction = false;
   }
@@ -1980,31 +1986,37 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             // wenn die Gaskiste initialisiert ist
             gasConfigPanel.setElementsGasMatrixPanelEnabled( true );
             // Mach mal alles in die Spinner rein
+            if( gasConfigPanel.getHeSpinnerMap() == null ) return;
+            if( gasConfigPanel.getO2SpinnerMap() == null ) return;
+            if( gasConfigPanel.getGasLblMap() == null ) return;
+            if( gasConfigPanel.getDiluent1Map() == null ) return;
+            if( gasConfigPanel.getDiluent2Map() == null ) return;
+            if( gasConfigPanel.getBailoutMap() == null ) return;
             ignoreAction = true;
             for( int i = 0; i < currGasList.getGasCount(); i++ )
             {
-              ( gasConfigPanel.heSpinnerMap.get( i ) ).setValue( currGasList.getHEFromGas( i ) );
-              ( gasConfigPanel.o2SpinnerMap.get( i ) ).setValue( currGasList.getO2FromGas( i ) );
-              ( gasConfigPanel.gasLblMap.get( i ) ).setText( getNameForGas( i ) );
+              ( gasConfigPanel.getHeSpinnerMap().get( i ) ).setValue( currGasList.getHEFromGas( i ) );
+              ( gasConfigPanel.getO2SpinnerMap().get( i ) ).setValue( currGasList.getO2FromGas( i ) );
+              ( gasConfigPanel.getGasLblMap().get( i ) ).setText( getNameForGas( i ) );
               setGasColor( i, currGasList.getO2FromGas( i ) );
               // ist dieses Gas Diluent 1?
               if( currGasList.getDiulent1() == i )
               {
-                ( gasConfigPanel.diluent1Map.get( i ) ).setSelected( true );
+                ( gasConfigPanel.getDiluent1Map().get( i ) ).setSelected( true );
               }
               // ist dieses Gas Diluent 2?
               if( currGasList.getDiluent2() == i )
               {
-                ( gasConfigPanel.diluent2Map.get( i ) ).setSelected( true );
+                ( gasConfigPanel.getDiluent2Map().get( i ) ).setSelected( true );
               }
               // Status als Bailoutgas?
               if( currGasList.getBailout( i ) == 3 )
               {
-                ( gasConfigPanel.bailoutMap.get( i ) ).setSelected( true );
+                ( gasConfigPanel.getBailoutMap().get( i ) ).setSelected( true );
               }
               else
               {
-                ( gasConfigPanel.bailoutMap.get( i ) ).setSelected( false );
+                ( gasConfigPanel.getBailoutMap().get( i ) ).setSelected( false );
               }
             }
             ignoreAction = false;
@@ -2254,20 +2266,22 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void setGasColor( int gasNr, int o2 )
   {
+    if( gasConfigPanel.getO2SpinnerMap() == null ) return;
+    if( gasConfigPanel.getGasLblMap() == null ) return;
     if( o2 < 14 )
     {
-      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasDangerousColor );
-      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasDangerousColor );
+      ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setForeground( gasDangerousColor );
+      ( ( NumberEditor )( gasConfigPanel.getO2SpinnerMap().get( gasNr ).getEditor() ) ).getTextField().setForeground( gasDangerousColor );
     }
     else if( o2 < 21 )
     {
-      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNoNormOxicColor );
-      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNoNormOxicColor );
+      ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setForeground( gasNoNormOxicColor );
+      ( ( NumberEditor )( gasConfigPanel.getO2SpinnerMap().get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNoNormOxicColor );
     }
     else
     {
-      ( gasConfigPanel.gasLblMap.get( gasNr ) ).setForeground( gasNameNormalColor );
-      ( ( NumberEditor )( gasConfigPanel.o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNameNormalColor );
+      ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setForeground( gasNameNormalColor );
+      ( ( NumberEditor )( gasConfigPanel.getO2SpinnerMap().get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNameNormalColor );
     }
   }
 
@@ -2659,9 +2673,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         // //////////////////////////////////////////////////////////////////////
         // Nix gefunden, also versuch mal die Listen durch
+        if( gasConfigPanel.getHeSpinnerMap() == null ) return;
+        if( gasConfigPanel.getO2SpinnerMap() == null ) return;
         for( int gasNr = 0; gasNr < currGasList.getGasCount(); gasNr++ )
         {
-          if( currSpinner.equals( gasConfigPanel.o2SpinnerMap.get( gasNr ) ) )
+          if( currSpinner.equals( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ) )
           {
             // O2 Spinner betätigt
             // Gas <gasNr> Sauerstoffanteil ändern
@@ -2669,7 +2685,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             changeO2FromGas( gasNr, currValue );
             return;
           }
-          else if( currSpinner.equals( gasConfigPanel.heSpinnerMap.get( gasNr ) ) )
+          else if( currSpinner.equals( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ) )
           {
             // Heliumspinner betätigt
             // Gas <gasNr> Heliumanteil ändern

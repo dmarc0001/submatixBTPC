@@ -2768,6 +2768,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           // Panel Daten freigeben
           logListPanel.closeDatabase();
         }
+        //
+        // ist es das Gaspanel?
+        //
+        if( tabIdx == programTabs.TAB_GASLIST.ordinal() )
+        {
+          // Panel initialisieren
+          LOGGER.log( Level.FINE, "gaslist tab select, init gui..." );
+          gasConfigPanel.prepareGasslistPanel();
+        }
+        else
+        {
+          // Panel Daten freigeben
+          gasConfigPanel.releasePanel();
+        }
       }
     }
     else

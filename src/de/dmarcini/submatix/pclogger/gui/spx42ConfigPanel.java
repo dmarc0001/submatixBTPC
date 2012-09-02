@@ -25,7 +25,7 @@ import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                                                                                                                      /**
+{                                                                                                                        /**
    * 
    */
   private static final long serialVersionUID     = 1L;
@@ -39,6 +39,7 @@ public class spx42ConfigPanel extends JPanel
   private int               currentPreset        = -1;
   private String            firmwareLabelText    = "-";
   private boolean           isIndividualsEnabled = false;
+  private ResourceBundle    stringsBundle        = null;
   // @formatter:on
   private JLabel            serialNumberText;
   private JLabel            firmwareVersionValueLabel;
@@ -87,7 +88,6 @@ public class spx42ConfigPanel extends JPanel
   private JLabel            individualsAcusticWarningsLabel;
   private JLabel            individualsLogintervalLabel;
   private JLabel            individualsNotLicensedLabel;
-  private ResourceBundle    stringsBundle;
 
   /**
    * Create the panel.
@@ -108,6 +108,18 @@ public class spx42ConfigPanel extends JPanel
     currentConfig = null;
     areAllConfigPanelsEnabled = false;
     // initPanel();
+  }
+
+  public Object getDecoGradientenHighSpinner()
+  {
+    if( !isPanelInitiated ) return( null );
+    return( decoGradientenHighSpinner );
+  }
+
+  public Object getDecoGradientenLowSpinner()
+  {
+    if( !isPanelInitiated ) return( null );
+    return( decoGradientenLowSpinner );
   }
 
   private void initPanel()
@@ -345,23 +357,6 @@ public class spx42ConfigPanel extends JPanel
 
   /**
    * 
-   * Alle Resourcen des Panels freigeben!
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 02.09.2012
-   */
-  public void releaseConfig()
-  {
-    this.removeAll();
-    isPanelInitiated = false;
-    currentConfig = null;
-  }
-
-  /**
-   * 
    * Erzeuge alle Elemente des Panels und setze config in die Elemente
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
@@ -390,6 +385,68 @@ public class spx42ConfigPanel extends JPanel
     }
   }
 
+  /**
+   * 
+   * Alle Resourcen des Panels freigeben!
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   */
+  public void releaseConfig()
+  {
+    this.removeAll();
+    isPanelInitiated = false;
+    currentConfig = null;
+  }
+
+  /**
+   * 
+   * Setze alle Kon´figurationspanels auf "Enabled" wenn möglich
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 18.07.2012
+   * @param en
+   * 
+   */
+  public void setAllConfigPanlelsEnabled( boolean en )
+  {
+    areAllConfigPanelsEnabled = en;
+    if( !isPanelInitiated ) return;
+    setDecoPanelEnabled( en );
+    setDisplayPanelEnabled( en );
+    setUnitsPanelEnabled( en );
+    setSetpointPanel( en );
+    // nur, wenn eine gültige Konfiguration gelesen wurde
+    if( currentConfig.isInitialized() )
+    {
+      // Gibt es eine Lizenz für Custom Config?
+      if( currentConfig.getCustomEnabled() == 1 )
+      {
+        setIndividualsPanelEnabled( true );
+      }
+      else
+      {
+        setIndividualsPanelEnabled( false );
+      }
+    }
+    else
+    {
+      // Keine Config gelesen!
+      setIndividualsPanelEnabled( false );
+    }
+    if( currentConfig.isBuggyFirmware() )
+    {
+      unitsTemperatureComboBox.setBackground( new Color( 0xffafaf ) );
+      unitsTemperatureComboBox.setEnabled( false );
+    }
+  }
+
   private void setConfigValues()
   {
     if( ( serialNumber != null ) && ( !serialNumber.equals( "0" ) ) )
@@ -398,6 +455,127 @@ public class spx42ConfigPanel extends JPanel
     }
     setDecoGradientenPreset( currentPreset );
     setDecoGradient();
+  }
+
+  /**
+   * 
+   * Deco Gradienten setzen (aus currentConfig)
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   */
+  public void setDecoGradient()
+  {
+    if( !isPanelInitiated ) return;
+    decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
+    decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
+    decoGradientenPresetComboBox.setSelectedIndex( currentConfig.getDecoGfPreset() );
+    if( currentConfig.getLastStop() == 3 )
+    {
+      decoLastStopComboBox.setSelectedIndex( 0 );
+    }
+    else
+    {
+      decoLastStopComboBox.setSelectedIndex( 1 );
+    }
+    decoDynGradientsCheckBox.setSelected( currentConfig.isDynGradientsEnable() );
+    decoDeepStopCheckBox.setSelected( currentConfig.isDeepStopEnable() );
+  }
+
+  /**
+   * 
+   * Setze Preset nach Änderung in Config korrekt
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   * @param currentPreset
+   */
+  public void setDecoGradientenPreset( int currentPreset )
+  {
+    this.currentPreset = currentPreset;
+    if( !isPanelInitiated ) return;
+    if( decoGradientenPresetComboBox.getSelectedIndex() != currentPreset )
+    {
+      decoGradientenPresetComboBox.setSelectedIndex( currentPreset );
+    }
+  }
+
+  /**
+   * 
+   * Setze dei Spinner auf den Korrekten Wert nach Änderung in config
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   */
+  public void setDecoGradientenSpinner()
+  {
+    if( !isPanelInitiated ) return;
+    decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
+    decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
+  }
+
+  public void setDecoPanelEnabled( boolean en )
+  {
+    if( !isPanelInitiated ) return;
+    for( Component cp : decompressionPanel.getComponents() )
+    {
+      cp.setEnabled( en );
+    }
+    decompressionPanel.setEnabled( en );
+  }
+
+  public void setDisplayPanelEnabled( boolean en )
+  {
+    if( !isPanelInitiated ) return;
+    for( Component cp : displayPanel.getComponents() )
+    {
+      cp.setEnabled( en );
+    }
+    displayPanel.setEnabled( en );
+  }
+
+  /**
+   * 
+   * Setze Displayeinstelungen (aus currentConfig )
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012 TODO
+   */
+  public void setDisplayPropertys()
+  {
+    if( !isPanelInitiated ) return;
+    displayBrightnessComboBox.setSelectedIndex( currentConfig.getDisplayBrightness() );
+    displayOrientationComboBox.setSelectedIndex( currentConfig.getDisplayOrientation() );
+  }
+
+  /**
+   * 
+   * Firmware Label anzeigen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   * @param cmd
+   */
+  public void setFirmwareLabel( String cmd )
+  {
+    this.firmwareLabelText = cmd;
+    if( !isPanelInitiated ) return;
+    firmwareVersionValueLabel.setText( cmd );
   }
 
   /**
@@ -452,6 +630,76 @@ public class spx42ConfigPanel extends JPanel
     individualsLogintervalComboBox.addMouseMotionListener( mainCommGUI );
     decoGradientenLowSpinner.addChangeListener( mainCommGUI );
     decoGradientenHighSpinner.addChangeListener( mainCommGUI );
+  }
+
+  /**
+   * 
+   * Setze Individuelle Einstelungenin der Anzeige (aus currentConfig )
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   * @param isEnabled
+   */
+  public void setIndividuals( boolean isEnabled )
+  {
+    if( !isPanelInitiated ) return;
+    setIndividualsPanelEnabled( isEnabled );
+    if( !isEnabled ) return;
+    // Sensormode eintragen
+    if( currentConfig.getSensorsOn() == 1 )
+    {
+      individualsSensorsOnCheckbox.setSelected( true );
+    }
+    else
+    {
+      individualsSensorsOnCheckbox.setSelected( false );
+    }
+    // Passiver MCCR Mode
+    if( currentConfig.getPscrModeOn() == 1 )
+    {
+      individualsPscrModeOnCheckbox.setSelected( true );
+    }
+    else
+    {
+      individualsPscrModeOnCheckbox.setSelected( false );
+    }
+    // Sensor Anzahl Warning
+    individualsSensorWarnComboBox.setSelectedIndex( currentConfig.getSensorsCount() );
+    // akustische warnuingen
+    if( currentConfig.getSoundOn() == 1 )
+    {
+      individualsWarningsOnCheckBox.setSelected( true );
+    }
+    else
+    {
+      individualsWarningsOnCheckBox.setSelected( false );
+    }
+    // Loginterval
+    individualsLogintervalComboBox.setSelectedIndex( currentConfig.getLogInterval() );
+  }
+
+  public void setIndividualsPanelEnabled( boolean en )
+  {
+    this.isIndividualsEnabled = en;
+    if( !isPanelInitiated ) return;
+    for( Component cp : individualPanel.getComponents() )
+    {
+      cp.setEnabled( en );
+    }
+    if( !en )
+    {
+      individualsNotLicensedLabel.setEnabled( false );
+      individualsNotLicensedLabel.setText( individualsNotLicensedLabel.getToolTipText() );
+    }
+    else
+    {
+      individualsNotLicensedLabel.setEnabled( true );
+      individualsNotLicensedLabel.setText( "" );
+    }
+    individualPanel.setEnabled( en );
   }
 
   public int setLanguageStrings( ResourceBundle stringsBundle )
@@ -608,55 +856,39 @@ public class spx42ConfigPanel extends JPanel
     return( 1 );
   }
 
-  public void setIndividualsPanelEnabled( boolean en )
+  /**
+   * 
+   * Seriennummer anzeigen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   * @param cmd
+   */
+  public void setSerialNumber( String cmd )
   {
-    this.isIndividualsEnabled = en;
+    this.serialNumber = cmd;
     if( !isPanelInitiated ) return;
-    for( Component cp : individualPanel.getComponents() )
-    {
-      cp.setEnabled( en );
-    }
-    if( !en )
-    {
-      individualsNotLicensedLabel.setEnabled( false );
-      individualsNotLicensedLabel.setText( individualsNotLicensedLabel.getToolTipText() );
-    }
-    else
-    {
-      individualsNotLicensedLabel.setEnabled( true );
-      individualsNotLicensedLabel.setText( "" );
-    }
-    individualPanel.setEnabled( en );
+    serialNumberText.setText( cmd );
   }
 
-  public void setDecoPanelEnabled( boolean en )
+  /**
+   * 
+   * Setpoint Einstellungen übernehmen (aus currentConfig )
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.09.2012
+   */
+  public void setSetpoint()
   {
     if( !isPanelInitiated ) return;
-    for( Component cp : decompressionPanel.getComponents() )
-    {
-      cp.setEnabled( en );
-    }
-    decompressionPanel.setEnabled( en );
-  }
-
-  public void setDisplayPanelEnabled( boolean en )
-  {
-    if( !isPanelInitiated ) return;
-    for( Component cp : displayPanel.getComponents() )
-    {
-      cp.setEnabled( en );
-    }
-    displayPanel.setEnabled( en );
-  }
-
-  public void setUnitsPanelEnabled( boolean en )
-  {
-    if( !isPanelInitiated ) return;
-    for( Component cp : unitsPanel.getComponents() )
-    {
-      cp.setEnabled( en );
-    }
-    unitsPanel.setEnabled( en );
+    autoSetpointComboBox.setSelectedIndex( currentConfig.getAutoSetpoint() );
+    highSetpointComboBox.setSelectedIndex( currentConfig.getMaxSetpoint() );
   }
 
   public void setSetpointPanel( boolean en )
@@ -699,70 +931,6 @@ public class spx42ConfigPanel extends JPanel
 
   /**
    * 
-   * Firmware Label anzeigen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 02.09.2012
-   * @param cmd
-   */
-  public void setFirmwareLabel( String cmd )
-  {
-    this.firmwareLabelText = cmd;
-    if( !isPanelInitiated ) return;
-    firmwareVersionValueLabel.setText( cmd );
-  }
-
-  /**
-   * 
-   * Seriennummer anzeigen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 02.09.2012
-   * @param cmd
-   */
-  public void setSerialNumber( String cmd )
-  {
-    this.serialNumber = cmd;
-    if( !isPanelInitiated ) return;
-    serialNumberText.setText( cmd );
-  }
-
-  /**
-   * 
-   * Deco Gradienten setzen (aus currentConfig)
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 02.09.2012
-   */
-  public void setDecoGradient()
-  {
-    if( !isPanelInitiated ) return;
-    decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
-    decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
-    decoGradientenPresetComboBox.setSelectedIndex( currentConfig.getDecoGfPreset() );
-    if( currentConfig.getLastStop() == 3 )
-    {
-      decoLastStopComboBox.setSelectedIndex( 0 );
-    }
-    else
-    {
-      decoLastStopComboBox.setSelectedIndex( 1 );
-    }
-    decoDynGradientsCheckBox.setSelected( currentConfig.isDynGradientsEnable() );
-    decoDeepStopCheckBox.setSelected( currentConfig.isDeepStopEnable() );
-  }
-
-  /**
-   * 
    * Einheiten setzen (aus currentConfig )
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
@@ -779,181 +947,13 @@ public class spx42ConfigPanel extends JPanel
     unitsSalnityComboBox.setSelectedIndex( currentConfig.getUnitSalnity() );
   }
 
-  /**
-   * 
-   * Setze Displayeinstelungen (aus currentConfig )
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 02.09.2012 TODO
-   */
-  public void setDisplayPropertys()
+  public void setUnitsPanelEnabled( boolean en )
   {
     if( !isPanelInitiated ) return;
-    displayBrightnessComboBox.setSelectedIndex( currentConfig.getDisplayBrightness() );
-    displayOrientationComboBox.setSelectedIndex( currentConfig.getDisplayOrientation() );
-  }
-
-  /**
-   * 
-   * Setpoint Einstellungen übernehmen (aus currentConfig )
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 02.09.2012
-   */
-  public void setSetpoint()
-  {
-    if( !isPanelInitiated ) return;
-    autoSetpointComboBox.setSelectedIndex( currentConfig.getAutoSetpoint() );
-    highSetpointComboBox.setSelectedIndex( currentConfig.getMaxSetpoint() );
-  }
-
-  /**
-   * 
-   * Setze Individuelle Einstelungenin der Anzeige (aus currentConfig )
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 02.09.2012
-   * @param isEnabled
-   */
-  public void setIndividuals( boolean isEnabled )
-  {
-    if( !isPanelInitiated ) return;
-    setIndividualsPanelEnabled( isEnabled );
-    if( !isEnabled ) return;
-    // Sensormode eintragen
-    if( currentConfig.getSensorsOn() == 1 )
+    for( Component cp : unitsPanel.getComponents() )
     {
-      individualsSensorsOnCheckbox.setSelected( true );
+      cp.setEnabled( en );
     }
-    else
-    {
-      individualsSensorsOnCheckbox.setSelected( false );
-    }
-    // Passiver MCCR Mode
-    if( currentConfig.getPscrModeOn() == 1 )
-    {
-      individualsPscrModeOnCheckbox.setSelected( true );
-    }
-    else
-    {
-      individualsPscrModeOnCheckbox.setSelected( false );
-    }
-    // Sensor Anzahl Warning
-    individualsSensorWarnComboBox.setSelectedIndex( currentConfig.getSensorsCount() );
-    // akustische warnuingen
-    if( currentConfig.getSoundOn() == 1 )
-    {
-      individualsWarningsOnCheckBox.setSelected( true );
-    }
-    else
-    {
-      individualsWarningsOnCheckBox.setSelected( false );
-    }
-    // Loginterval
-    individualsLogintervalComboBox.setSelectedIndex( currentConfig.getLogInterval() );
-  }
-
-  /**
-   * 
-   * Setze alle Kon´figurationspanels auf "Enabled" wenn möglich
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 18.07.2012
-   * @param en
-   * 
-   */
-  public void setAllConfigPanlelsEnabled( boolean en )
-  {
-    areAllConfigPanelsEnabled = en;
-    if( !isPanelInitiated ) return;
-    setDecoPanelEnabled( en );
-    setDisplayPanelEnabled( en );
-    setUnitsPanelEnabled( en );
-    setSetpointPanel( en );
-    // nur, wenn eine gültige Konfiguration gelesen wurde
-    if( currentConfig.isInitialized() )
-    {
-      // Gibt es eine Lizenz für Custom Config?
-      if( currentConfig.getCustomEnabled() == 1 )
-      {
-        setIndividualsPanelEnabled( true );
-      }
-      else
-      {
-        setIndividualsPanelEnabled( false );
-      }
-    }
-    else
-    {
-      // Keine Config gelesen!
-      setIndividualsPanelEnabled( false );
-    }
-    if( currentConfig.isBuggyFirmware() )
-    {
-      unitsTemperatureComboBox.setBackground( new Color( 0xffafaf ) );
-      unitsTemperatureComboBox.setEnabled( false );
-    }
-  }
-
-  /**
-   * 
-   * Setze Preset nach Änderung in Config korrekt
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 02.09.2012
-   * @param currentPreset
-   */
-  public void setDecoGradientenPreset( int currentPreset )
-  {
-    this.currentPreset = currentPreset;
-    if( !isPanelInitiated ) return;
-    if( decoGradientenPresetComboBox.getSelectedIndex() != currentPreset )
-    {
-      decoGradientenPresetComboBox.setSelectedIndex( currentPreset );
-    }
-  }
-
-  /**
-   * 
-   * Setze dei Spinner auf den Korrekten Wert nach Änderung in config
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 02.09.2012
-   */
-  public void setDecoGradientenSpinner()
-  {
-    if( !isPanelInitiated ) return;
-    decoGradientenHighSpinner.setValue( currentConfig.getDecoGfHigh() );
-    decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
-  }
-
-  public Object getDecoGradientenHighSpinner()
-  {
-    if( !isPanelInitiated ) return( null );
-    return( decoGradientenHighSpinner );
-  }
-
-  public Object getDecoGradientenLowSpinner()
-  {
-    if( !isPanelInitiated ) return( null );
-    return( decoGradientenLowSpinner );
+    unitsPanel.setEnabled( en );
   }
 }

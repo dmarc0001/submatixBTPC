@@ -1,7 +1,6 @@
 package de.dmarcini.submatix.pclogger.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -44,7 +43,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSpinner;
-import javax.swing.JSpinner.NumberEditor;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -141,9 +139,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static File              logFile             = null;
   private static File              databaseDir         = null;
   private static boolean           DEBUG               = false;
-  private static Color             gasNameNormalColor  = new Color( 0x000088 );
-  private static Color             gasDangerousColor   = Color.red;
-  private static Color             gasNoNormOxicColor  = Color.MAGENTA;
   private static final Pattern     fieldPatternDp      = Pattern.compile( ":" );
   private static final Pattern     fieldPatternUnderln = Pattern.compile( "[_.]" );
 
@@ -518,7 +513,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     ignoreAction = true;
     if( gasConfigPanel.getHeSpinnerMap() == null ) return;
     if( gasConfigPanel.getO2SpinnerMap() == null ) return;
-    if( gasConfigPanel.getGasLblMap() == null ) return;
     if( he < 0 )
     {
       he = 0;
@@ -547,8 +541,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
     }
     currGasList.setGas( gasNr, o2, he );
-    ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setText( getNameForGas( gasNr ) );
-    setGasColor( gasNr, o2 );
+    gasConfigPanel.setDescriptionForGas( gasNr, o2, he );
     ignoreAction = false;
   }
 
@@ -568,7 +561,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     ignoreAction = true;
     if( gasConfigPanel.getHeSpinnerMap() == null ) return;
     if( gasConfigPanel.getO2SpinnerMap() == null ) return;
-    if( gasConfigPanel.getGasLblMap() == null ) return;
     if( o2 < 0 )
     {
       // das Zeut ist dann auch ungesund!
@@ -599,8 +591,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     currGasList.setGas( gasNr, o2, he );
     // erzeuge und setze noch den Gasnamen
     // färbe dabei gleich die Zahlen ein
-    ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setText( getNameForGas( gasNr ) );
-    setGasColor( gasNr, o2 );
+    gasConfigPanel.setDescriptionForGas( gasNr, o2, he );
     ignoreAction = false;
   }
 
@@ -856,47 +847,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Gib einen Kurznamen für das Gasgemisch Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
-   * @param gasNr
-   *          Gasnummer
-   */
-  private String getNameForGas( int gasNr )
-  {
-    int o2, he, n2;
-    // Hexenküche: Was haben wir denn da....
-    o2 = currGasList.getO2FromGas( gasNr );
-    he = currGasList.getHEFromGas( gasNr );
-    n2 = currGasList.getN2FromGas( gasNr );
-    // Mal sondieren
-    if( n2 == 0 )
-    {
-      // heliox oder O2
-      if( o2 == 100 )
-      {
-        return( "O2" );
-      }
-      // Es gibt Helium und O2....
-      return( String.format( "HX%d/%d", o2, he ) );
-    }
-    if( he == 0 )
-    {
-      // eindeutig Nitrox
-      if( o2 == 21 )
-      {
-        return( "AIR" );
-      }
-      return( String.format( "NX%02d", o2 ) );
-    }
-    else
-    {
-      // das ist dan wohl Trimix
-      return( String.format( "TX%d/%d", o2, he ) );
-    }
-  }
-
-  /**
    * Initialize the contents of the frame.
    */
   private void initializeGUI()
@@ -927,7 +877,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "CONFIG", null, configPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_CONFIG.ordinal(), true );
     // GASPANEL
-    gasConfigPanel = new spx42GaslistEditPanel( LOGGER );
+    gasConfigPanel = new spx42GaslistEditPanel( LOGGER, progConfig );
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_GASLIST.ordinal(), true );
     // Loglisten Panel
@@ -1988,7 +1938,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             // Mach mal alles in die Spinner rein
             if( gasConfigPanel.getHeSpinnerMap() == null ) return;
             if( gasConfigPanel.getO2SpinnerMap() == null ) return;
-            if( gasConfigPanel.getGasLblMap() == null ) return;
+            // if( gasConfigPanel.getGasLblMap() == null ) return;
             if( gasConfigPanel.getDiluent1Map() == null ) return;
             if( gasConfigPanel.getDiluent2Map() == null ) return;
             if( gasConfigPanel.getBailoutMap() == null ) return;
@@ -1997,8 +1947,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             {
               ( gasConfigPanel.getHeSpinnerMap().get( i ) ).setValue( currGasList.getHEFromGas( i ) );
               ( gasConfigPanel.getO2SpinnerMap().get( i ) ).setValue( currGasList.getO2FromGas( i ) );
-              ( gasConfigPanel.getGasLblMap().get( i ) ).setText( getNameForGas( i ) );
-              setGasColor( i, currGasList.getO2FromGas( i ) );
+              gasConfigPanel.setDescriptionForGas( i, currGasList.getO2FromGas( i ), currGasList.getHEFromGas( i ) );
               // ist dieses Gas Diluent 1?
               if( currGasList.getDiulent1() == i )
               {
@@ -2250,39 +2199,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     connectionPanel.setElementsInactive( active );
     tabbedPane.setEnabledAt( programTabs.TAB_CONFIG.ordinal(), active );
-  }
-
-  /**
-   * 
-   * Färbe die Texte für die Gasse noch ordentlich ein
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 30.07.2012
-   * @param gasNr
-   * @param o2
-   */
-  private void setGasColor( int gasNr, int o2 )
-  {
-    if( gasConfigPanel.getO2SpinnerMap() == null ) return;
-    if( gasConfigPanel.getGasLblMap() == null ) return;
-    if( o2 < 14 )
-    {
-      ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setForeground( gasDangerousColor );
-      ( ( NumberEditor )( gasConfigPanel.getO2SpinnerMap().get( gasNr ).getEditor() ) ).getTextField().setForeground( gasDangerousColor );
-    }
-    else if( o2 < 21 )
-    {
-      ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setForeground( gasNoNormOxicColor );
-      ( ( NumberEditor )( gasConfigPanel.getO2SpinnerMap().get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNoNormOxicColor );
-    }
-    else
-    {
-      ( gasConfigPanel.getGasLblMap().get( gasNr ) ).setForeground( gasNameNormalColor );
-      ( ( NumberEditor )( gasConfigPanel.getO2SpinnerMap().get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNameNormalColor );
-    }
   }
 
   /**

@@ -4,6 +4,11 @@
  * Die Konstante const. dient zur Umrechnung einer Längenangabe (Tauchtiefe) in eine Druckeinheit Wird die Tauchtiefe d in [m] angegeben, gilt deshalb in etwa folgender
  * Zusammenhang für den Druck in [Bar]: const. = 0,0980665 [Bar/m], für Süsswasser, und const. = 0,100522 [Bar/m], für Salzwasser, und damit z.B.:
  */
+// 1 PSI = 0.06984757293 BAR
+// 1 Bar = 14.50377 PSI
+// 1 Meter = 3,2808399 Fuß
+// 1 Fuß = 0,3048 Meter
+// 33,071 feet sea water (fsw) = 33,8995 feet fresh water = 14,6960 psi
 package de.dmarcini.submatix.pclogger.utils;
 
 /**
@@ -18,11 +23,14 @@ package de.dmarcini.submatix.pclogger.utils;
  */
 public class GasComputeUnit
 {
-  private static double barConstcw = 0.0980665D; // Bar per Meter
-  private static double barConstsw = 0.100522D; // Bar Per Meter
-  private static double barOffset  = 1.0D;      // Oberflächendruck Meereshöhe
+  private static double barConstClearWater = 0.0980665D;        // Bar per 1 Meter
+  private static double barConstSaltWater  = 0.100522D;         // Bar Per 1 Meter
+  private static double psiConstClearWater = 0.4414814377793183; // PSI per feet
+  private static double psiConstSaltWater  = 0.4443772489492304; // PSI per feet
+  private static double barOffset          = 1.0D;              // Oberflächendruck Meereshöhe
+  private static double psiOffset          = 14.6960;           // Oberflächendruck Meereshöhe
 
-  public static String getNameForGas( int o2, int he )
+  public static String getNameForGas( final int o2, final int he )
   {
     //
     // Wieviel Stickstoff?
@@ -76,30 +84,56 @@ public class GasComputeUnit
    *          Salzwasser?
    * @return Maximale Tiefe für dasGas auf O2 bezogen
    */
-  public static double getMODForGasMetric( int o2, double ppOMax, boolean salnity )
+  public static double getMODForGasMetric( final int o2, final double ppOMax, final boolean salnity )
   {
     // Also, gegeben O2 in Prozent, PPOMax (meist wohl 1.6 Bar)
-    double pEnv;
+    double pEnv, mod;
     // errechne den Umgebungsdruck für ppOMax und Sauerstoffanteil
     pEnv = ( ppOMax * 100.0D ) / o2;
-    if( salnity )
+    //
+    if( salnity == true )
     {
-      return( ( pEnv - barOffset ) * ( 100.0D * barConstsw ) );
+      mod = ( pEnv - barOffset ) / barConstSaltWater;
+      // ( pEnv - barOffset ) * ( 10.0D * barConstSaltWater );
     }
     else
     {
-      return( ( pEnv - barOffset ) * ( 100.0D * barConstcw ) );
+      mod = ( pEnv - barOffset ) / barConstClearWater;
+      // ( pEnv - barOffset ) * ( 10.0D * barConstClearWater );
     }
+    return( mod );
   }
 
-  public static double getMODForGasImperial( int o2, double ppOMax, boolean salnity )
+  /**
+   * 
+   * Gibt die MOD in feet für einen Druck in psi an
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 04.09.2012
+   * @param o2
+   * @param ppOMax
+   * @param salnity
+   * @return MOD in feet
+   */
+  public static double getMODForGasImperial( final int o2, final double ppOMax, final boolean salnity )
   {
-    return ppOMax;
-    // 1 PSI = 0.06984757293 BAR
-    // 1 Bar = 14.50377 PSI
-    // 1 Meter = 3,2808399 Fuß
-    // 1 Fuß = 0,3048 Meter
-    // 33,071 feet sea water (fsw) = 33,8995 feet fresh water = 14,6960 psi
+    // Also, gegeben O2 in Prozent, PPOMax
+    double pEnv, mod;
+    // errechne den Umgebungsdruck für ppOMax und Sauerstoffanteil
+    pEnv = ( ppOMax * 100.0D ) / o2;
+    //
+    if( salnity == true )
+    {
+      mod = ( pEnv - psiOffset ) / psiConstSaltWater;
+    }
+    else
+    {
+      mod = ( pEnv - psiOffset ) / psiConstClearWater;
+    }
+    return( mod );
   }
 
   /**
@@ -119,21 +153,46 @@ public class GasComputeUnit
    *          Salzwasser?
    * @return Equivalente Lufttiefe in Metern
    */
-  public static double getEADForGasMetric( int n2, double depth, boolean salnity )
+  public static double getEADForGasMetric( final int n2, final double depth, final boolean salnity )
   {
     // Gegeben n2 in Prozent, ich will wissen, wie die equivalente Tiefe ist
     double p_env;
     // Umgebungsdruck multipliziert mit quotioent aus Stickstoffanteil und Normal Luftanteil Sticksstoff
     // das Ergebnis mal bar per Meter mal 10 ergibt die EAD
+    p_env = depth / 10.0D + barOffset;
+    double ead = ( ( p_env * n2 / 79.0D ) * 10.0D ) - 10.0D;
+    return( ead );
+  }
+
+  /**
+   * 
+   * EAD in feet ausgeben
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 04.09.2012
+   * @param n2
+   * @param depth
+   * @param salnity
+   * @return EAD n feet
+   */
+  public static double getEADForGasImperial( final int n2, final double depth, final boolean salnity )
+  {
+    // Gegeben n2 in Prozent, ich will wissen, wie die equivalente Tiefe ist
+    double ead;
+    // The equivalent air depth can be calculated for depths in feet as follows:
+    // EAD = (Depth + 33) × Fraction of N2 / 0.79 − 33
     if( salnity )
     {
-      p_env = ( depth * barConstsw ) + barOffset;
-      return( ( ( p_env * ( n2 / 79.0D ) ) - 1.0D ) * ( 100.0D * barConstsw ) );
+      ead = ( ( depth + 33.071D ) * ( n2 / 0.79 ) ) - 33.071D;
     }
     else
     {
-      p_env = ( depth * barConstcw ) + barOffset;
-      return( ( ( p_env * ( n2 / 79.0D ) ) - 1.0D ) * ( 100.0D * barConstcw ) );
+      // clearwater
+      ead = ( ( depth + 33.8995D ) * ( n2 / 0.79 ) ) - 33.8995D;
     }
+    return( ead );
   }
 }

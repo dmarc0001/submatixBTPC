@@ -1121,17 +1121,14 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
       mod = GasComputeUnit.getMODForGasMetric( o2, ppOMax, salnity );
       ead = GasComputeUnit.getEADForGasMetric( n2, mod, salnity );
       // MOD und EAD in String umformen und in das richtige Label schreiben
-      gasLblMap2.get( i ).setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.mod-ead-label.metric" ), mod, ead ) );
+      gasLblMap2.get( i ).setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.mod-ead-label.metric" ), Math.round( mod ), Math.round( ead ) ) );
     }
     else
     {
-      // mod = ( int )GasComputeUnit.getMODForGasMetric( o2, ppOMax, salnity );
-      // ead = (int)GasComputeUnit.getEADForGasMetric( n2, mod, salnity );
-      gasLblMap2.get( i ).setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.mod-ead-label.metric" ), 0.0D, 0.0D ) );
-      LOGGER.severe( "metric computing not implemented yet!" );
+      mod = GasComputeUnit.getMODForGasImperial( o2, ppOMax, salnity );
+      ead = GasComputeUnit.getEADForGasImperial( n2, mod, salnity );
+      gasLblMap2.get( i ).setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.mod-ead-label.imperial" ), Math.round( mod ), Math.round( ead ) ) );
     }
-    // unitsString
-    // Gas EAD,MOD machen, und schreibnen
   }
 
   /**

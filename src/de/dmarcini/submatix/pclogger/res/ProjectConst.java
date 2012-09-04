@@ -18,10 +18,10 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "0.9beta";
+  public static final String MANUFACTVERS               = "0.11beta";
   public static final String GENYEAR                    = "2012";
-  public static final String GENMONTH                   = "08";
-  public static final String GENDAY                     = "30";
+  public static final String GENMONTH                   = "09";
+  public static final String GENDAY                     = "04";
 
   // interne Begrenzung für Empfangspuffer
   public static final int    MAXINBUFFER                = 10 * 1024;

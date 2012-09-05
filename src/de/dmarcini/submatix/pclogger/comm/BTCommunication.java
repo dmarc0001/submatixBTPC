@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ import javax.microedition.io.StreamConnection;
 import com.intel.bluetooth.RemoteDeviceHelper;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
-import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 
@@ -54,7 +55,7 @@ public class BTCommunication implements IBTCommunication
   private final HashMap<String,String>         devicePinHash = new HashMap<String,String>();
   private final HashMap<String,String>       deviceAliasHash = new HashMap<String,String>();
   static Logger                                       LOGGER = null;
-  private ConnectDatabaseUtil                                dbUtil = null;
+  private LogDerbyDatabaseUtil                        dbUtil = null;
   private boolean                                        log = false;
   private boolean                                isConnected = false;
   private ActionListener                           aListener = null;
@@ -798,7 +799,7 @@ public class BTCommunication implements IBTCommunication
    * @param lg
    * @param dbUtil
    */
-  public BTCommunication( final Logger lg, final ConnectDatabaseUtil dbUtil )
+  public BTCommunication( final Logger lg, final LogDerbyDatabaseUtil dbUtil )
   {
     LOGGER = lg;
     this.dbUtil = dbUtil;
@@ -809,9 +810,22 @@ public class BTCommunication implements IBTCommunication
     // besorg mir die Gerätenamen aus der Datenbank
     if( !this.dbUtil.isOpenDB() )
     {
-      this.dbUtil.createConnection();
+      try
+      {
+        this.dbUtil.createConnection();
+      }
+      catch( SQLException ex )
+      {
+        // TODO Auto-generated catch block
+        ex.printStackTrace();
+      }
+      catch( ClassNotFoundException ex )
+      {
+        // TODO Auto-generated catch block
+        ex.printStackTrace();
+      }
     }
-    String[][] alData = dbUtil.getAliasData();
+    String[][] alData = dbUtil.getAliasDataConn();
     // gibt es welche: eintragen
     if( alData != null )
     {
@@ -1049,7 +1063,7 @@ public class BTCommunication implements IBTCommunication
     //
     if( alFromDb )
     {
-      String[][] alData = dbUtil.getAliasData();
+      String[][] alData = dbUtil.getAliasDataConn();
       deviceAliasHash.clear();
       // gibt es welche: eintragen
       if( alData != null )
@@ -1095,7 +1109,7 @@ public class BTCommunication implements IBTCommunication
     String url = null;
     String deviceAlias = null, devicePin = null;
     //
-    deviceName = devName;
+    this.deviceName = devName;
     this.connectedDevice = null;
     // suche die URL für die Verbindung
     // hab ich hier direkt den Devicenamen erwischt?
@@ -1116,7 +1130,7 @@ public class BTCommunication implements IBTCommunication
       // nicht gefunden. Es könnte ein Alias sein, versuche das.
       LOGGER.log( Level.FINE, "device name not found in list. try found as alias..." );
       deviceAlias = deviceName;
-      deviceName = dbUtil.getNameForAlias( deviceAlias );
+      this.deviceName = dbUtil.getNameForAliasConn( deviceAlias );
       if( deviceName != null && connectHash.containsKey( deviceName ) && deviceHash.containsKey( deviceName ) )
       {
         LOGGER.log( Level.FINE, "ok, it was an alias. device name is <" + deviceName + ">..." );
@@ -1133,7 +1147,7 @@ public class BTCommunication implements IBTCommunication
       {
         // das geht nicht! Kann nicht herausfinden, mit wem ich verbinden soll!
         LOGGER.log( Level.SEVERE, "device" + deviceName + "is not in list and not an alias. give up!" );
-        deviceName = null;
+        this.deviceName = null;
         this.connectedDevice = null;
         if( aListener != null )
         {
@@ -1166,7 +1180,7 @@ public class BTCommunication implements IBTCommunication
         }
         else
         {
-          devicePin = dbUtil.getPinForDevice( deviceName );
+          devicePin = dbUtil.getPinForDeviceConn( deviceName );
         }
         if( devicePin != null )
         {
@@ -1175,13 +1189,13 @@ public class BTCommunication implements IBTCommunication
           RemoteDeviceHelper.authenticate( this.connectedDevice, devicePinHash.get( deviceName ) );
           conn = ( StreamConnection )Connector.open( url );
           // Die Verbindung nun in die Alias Datenbank eintragen, wenn nicht schon vorhanden
-          deviceAlias = dbUtil.getAliasForName( deviceName );
+          deviceAlias = dbUtil.getAliasForNameConn( deviceName );
           if( deviceAlias == null )
           {
             // gibts noch nicht => Eintragen
-            dbUtil.addAliasForName( deviceName, "A-" + deviceName );
+            dbUtil.addAliasForNameConn( deviceName, "A-" + deviceName );
             // wenn ich schon dabei bin, die PIN mit eintragen
-            dbUtil.setPinForDevice( deviceName, devicePin );
+            dbUtil.setPinForDeviceConn( deviceName, devicePin );
           }
         }
         else
@@ -1189,6 +1203,8 @@ public class BTCommunication implements IBTCommunication
           // Benutzer anquengeln
           // und PIN eigeben lassen
           if( log ) LOGGER.log( Level.INFO, "Device is NOT Authentificated" );
+          this.connectedDevice = null;
+          this.deviceName = null;
           if( aListener != null )
           {
             ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
@@ -1197,8 +1213,6 @@ public class BTCommunication implements IBTCommunication
             aListener.actionPerformed( ex );
           }
           // isConnected = false;
-          this.connectedDevice = null;
-          deviceName = null;
           return;
         }
       }
@@ -1411,7 +1425,7 @@ public class BTCommunication implements IBTCommunication
     devicePinHash.put( dev, pin );
     // wenn da noch was anderes stehen sollte...
     // ansonsten passiert nix
-    dbUtil.setPinForDevice( dev, pin );
+    dbUtil.setPinForDeviceConn( dev, pin );
   }
 
   @Override

@@ -992,11 +992,13 @@ public class LogDerbyDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s from %s order by %s desc",
+            "select %s,%s,%s from %s where %s like '%s' order by %s desc",
             ProjectConst.H_DIVEID,
             ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_STARTTIME,
             ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DEVICEID,
+            device,
             ProjectConst.H_DIVENUMBERONSPX
            );
     //@formatter:on
@@ -1358,9 +1360,12 @@ public class LogDerbyDatabaseUtil
    * 
    *         Stand: 05.09.2012
    * @param filename
+   *          Dateiname auf Gerät
+   * @param device
+   *          Gerät
    * @return Log schon gespeichert?
    */
-  public int isLogSavedLog( String filename )
+  public int isLogSavedLog( String filename, String device )
   {
     String sql;
     Statement stat;
@@ -1375,11 +1380,13 @@ public class LogDerbyDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s from %s where %s like '%s'",
+            "select %s from %s where %s like '%s' and %s like '%s'",
             ProjectConst.H_DIVEID,
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_FILEONSPX,
-            filename
+            filename,
+            ProjectConst.H_DEVICEID,
+            device
            );
     //@formatter:on
     try

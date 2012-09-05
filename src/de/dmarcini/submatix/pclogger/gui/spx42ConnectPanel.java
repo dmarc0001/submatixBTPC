@@ -63,7 +63,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
    * @param _dbUtil
    * @param btComm
    */
-  public spx42ConnectPanel( Logger LOGGER, final ConnectDatabaseUtil _dbUtil, final BTCommunication btComm )
+  public spx42ConnectPanel( final Logger LOGGER, final ConnectDatabaseUtil _dbUtil, final BTCommunication btComm )
   {
     this.LOGGER = LOGGER;
     LOGGER.log( Level.FINE, "constructor..." );

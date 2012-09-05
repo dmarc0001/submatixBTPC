@@ -188,7 +188,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     // in die Liste einfügen
     if( databaseUtil != null )
     {
-      dbId = databaseUtil.isLogSavedLog( fileName );
+      dbId = databaseUtil.isLogSavedLog( fileName, deviceToLog );
       if( dbId != -1 )
       {
         wasSaved = "x";
@@ -221,7 +221,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       LOGGER.log( Level.SEVERE, "not opened a file for reading via startTransfer()! ABORT" );
       return( -1 );
     }
-    LOGGER.log( Level.SEVERE, "LINE: <" + logLine + ">..." );
+    LOGGER.log( Level.FINE, "LINE: <" + logLine + ">..." );
     // teile die Logline in Felder auf
     fields = fieldPattern0x09.split( logLine );
     try

@@ -1133,7 +1133,7 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
 
   /**
    * 
-   * Alles inm Panel für die Gsasmatrix de/aktivieren
+   * Alles inm Panel für die Gasmatrix de/aktivieren
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 

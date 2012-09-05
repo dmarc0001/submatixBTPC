@@ -6,7 +6,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.MissingResourceException;
@@ -42,8 +41,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.joda.time.DateTime;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
-import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
-import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogListComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.MinuteFormatter;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
@@ -65,14 +63,12 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private static int               GRAPH_NULLTIME    = 8;
   private static int               GRAPH_DEPTH       = 9;
   protected Logger                 LOGGER            = null;
-  private ConnectDatabaseUtil      dbUtil            = null;
+  private LogDerbyDatabaseUtil     databaseUtil      = null;
   private ResourceBundle           stringsBundle     = null;
-  private File                     dataDir           = null;
   private ChartPanel               chartPanel        = null;
   private SpxPcloggerProgramConfig progConfig        = null;
   private int                      progUnitSystem    = ProjectConst.UNITS_DEFAULT;
   private int                      diveUnitSystem    = ProjectConst.UNITS_DEFAULT;
-  private String                   device;
   private int                      showingDbIdForDiveWasShowing;
   private String                   maxDepthLabelString;
   private String                   coldestLabelString;
@@ -105,11 +101,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    * @param _dbUtil
    * @param progConfig
    */
-  public spx42LogGraphPanel( Logger LOGGER, final ConnectDatabaseUtil _dbUtil, SpxPcloggerProgramConfig progConfig )
+  public spx42LogGraphPanel( Logger LOGGER, final LogDerbyDatabaseUtil _dbUtil, SpxPcloggerProgramConfig progConfig )
   {
     this.LOGGER = LOGGER;
     LOGGER.log( Level.FINE, "constructor..." );
-    this.dbUtil = _dbUtil;
+    this.databaseUtil = _dbUtil;
     this.progConfig = progConfig;
     initPanel();
     showingDbIdForDiveWasShowing = -1;
@@ -141,7 +137,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
           LOGGER.log( Level.WARNING, "no device selected." );
           return;
         }
-        device = dbUtil.getNameForAlias( ( String )deviceComboBox.getSelectedItem() );
+        device = databaseUtil.getNameForAliasConn( ( String )deviceComboBox.getSelectedItem() );
         // welchen Tauchgang?
         index = diveSelectComboBox.getSelectedIndex();
         if( index < 0 )
@@ -261,7 +257,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     for( Enumeration<Integer[]> enu = diveList.elements(); enu.hasMoreElements(); )
     {
       dataSet = enu.nextElement();
-      if( y == LogForDeviceDatabaseUtil.DEPTH )
+      if( y == LogDerbyDatabaseUtil.DEPTH )
       {
         double fDepth = new Double( dataSet[y] );
         fDepth = 0.00 - ( fDepth / 10.00 );
@@ -280,17 +276,17 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         }
         series.add( secounds, fDepth );
       }
-      else if( y == LogForDeviceDatabaseUtil.PPO2 || y == LogForDeviceDatabaseUtil.PPO2_01 || y == LogForDeviceDatabaseUtil.PPO2_02 || y == LogForDeviceDatabaseUtil.PPO2_03 )
+      else if( y == LogDerbyDatabaseUtil.PPO2 || y == LogDerbyDatabaseUtil.PPO2_01 || y == LogDerbyDatabaseUtil.PPO2_02 || y == LogDerbyDatabaseUtil.PPO2_03 )
       {
         double fPpo2 = new Double( dataSet[y] / 1000.00 );
         series.add( secounds, fPpo2 );
       }
-      else if( y == LogForDeviceDatabaseUtil.SETPOINT )
+      else if( y == LogDerbyDatabaseUtil.SETPOINT )
       {
         double fSetPoint = new Double( dataSet[y] / 10.00 );
         series.add( secounds, fSetPoint );
       }
-      else if( y == LogForDeviceDatabaseUtil.TEMPERATURE )
+      else if( y == LogDerbyDatabaseUtil.TEMPERATURE )
       {
         double fTemp = new Double( dataSet[y] );
         // muss konvertiert werden?
@@ -333,37 +329,24 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    */
   private void fillDiveComboBox( String deviceAlias )
   {
-    LogForDeviceDatabaseUtil logDatabaseUtil;
     String device;
     DateTime dateTime;
     long javaTime;
     //
     // Alias fürs Gerät zurücksuchen
     //
-    device = dbUtil.getNameForAlias( deviceAlias );
+    device = databaseUtil.getNameForAliasConn( deviceAlias );
     if( device != null )
     {
       LOGGER.log( Level.FINE, "search dive list for device <" + device + ">..." );
       releaseGraph();
-      //
-      // richtige Datenbank öffnen
-      //
-      // das Datenbankutility initialisieren
-      logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
-      if( logDatabaseUtil.createConnection() == null )
-      {
-        logDatabaseUtil = null;
-        return;
-      }
       // Eine Liste der Dives lesen
       LOGGER.log( Level.FINE, "read dive list for device from DB..." );
-      Vector<String[]> entrys = logDatabaseUtil.getDiveListForDevice( device );
+      Vector<String[]> entrys = databaseUtil.getDiveListForDeviceLog( device );
       if( entrys.size() < 1 )
       {
         LOGGER.log( Level.INFO, "no dives for device <" + deviceAlias + "/" + device + "> found in DB." );
         clearDiveComboBox();
-        logDatabaseUtil.closeDB();
-        logDatabaseUtil = null;
         return;
       }
       //
@@ -406,8 +389,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       {
         diveSelectComboBox.setSelectedIndex( 0 );
       }
-      logDatabaseUtil.closeDB();
-      logDatabaseUtil = null;
     }
     else
     {
@@ -474,16 +455,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    *         Stand: 26.06.2012
    * @param connDev
    *          Falls verbunden, das aktuelle Gerät übergeben (für Voreinstellungen)
-   * @param dDir
    * @throws Exception
    */
-  public void initGraph( String connDev, File dDir ) throws Exception
+  public void initGraph( String connDev ) throws Exception
   {
     String connDevAlias = null;
     //
     // entsorge für alle Fälle das Zeug von vorher
     releaseGraph();
-    dataDir = dDir;
     if( connDev == null )
     {
       LOGGER.log( Level.FINE, "init graphic objects whitout active Device" );
@@ -495,20 +474,20 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Ist überhaupt eine Datenbank zum Auslesen vorhanden?
     //
-    if( dbUtil == null || ( !dbUtil.isOpenDB() ) )
+    if( databaseUtil == null || ( !databaseUtil.isOpenDB() ) )
     {
       throw new Exception( "no database object initiated!" );
     }
     // Alias fürs Gerät
     if( connDev != null )
     {
-      connDevAlias = dbUtil.getAliasForName( connDev );
+      connDevAlias = databaseUtil.getAliasForNameConn( connDev );
       LOGGER.log( Level.FINE, "Device <" + connDev + "> has alias <" + connDevAlias + ">..." );
     }
     //
     // Lese eine Liste der Tauchgänge für dieses Gerät
     //
-    String[] entrys = dbUtil.readDevicesFromDatabase();
+    String[] entrys = databaseUtil.readDevicesFromDatabaseConn();
     if( entrys == null )
     {
       LOGGER.log( Level.WARNING, "no devices found in database." );
@@ -659,12 +638,12 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
-              LogForDeviceDatabaseUtil.DEPTH );
+              LogDerbyDatabaseUtil.DEPTH );
     }
     else
     {
       depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, progUnitSystem, 0,
-              LogForDeviceDatabaseUtil.DEPTH );
+              LogDerbyDatabaseUtil.DEPTH );
     }
     final NumberAxis depthAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) + " " + depthUnitName );
     final XYAreaRenderer areaDepthRenderer = new XYAreaRenderer( XYAreaRenderer.AREA );
@@ -693,7 +672,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    */
   private void makeGraphForLog( int dbId, String device )
   {
-    LogForDeviceDatabaseUtil logDatabaseUtil;
     Vector<Integer[]> diveList;
     int[] headData;
     XYPlot thePlot;
@@ -702,21 +680,10 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // das alte Zeug entsorgen
     releaseGraph();
     //
-    // richtige Datenbank öffnen
-    //
-    // das Datenbankutility initialisieren
-    this.device = device;
-    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
-    if( logDatabaseUtil.createConnection() == null )
-    {
-      // Tja, das ging schief
-      logDatabaseUtil = null;
-      showWarnBox( stringsBundle.getString( "spx42LogGraphPanel.warnBox.noDiveDataFound" ) );
-      return;
-    }
     // Daten eines TG lesen
+    //
     LOGGER.log( Level.FINE, "read dive log from DB..." );
-    diveList = logDatabaseUtil.getDiveDataFromId( dbId );
+    diveList = databaseUtil.getDiveDataFromIdLog( dbId );
     if( diveList == null || diveList.isEmpty() )
     {
       return;
@@ -724,8 +691,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Labels für Tachgangseckdaten füllen
     //
-    headData = logDatabaseUtil.getHeadDiveDataFromId( dbId );
-    notesLabel.setText( logDatabaseUtil.getNotesForId( dbId ) );
+    headData = databaseUtil.getHeadDiveDataFromIdLog( dbId );
+    notesLabel.setText( databaseUtil.getNotesForIdLog( dbId ) );
     progUnitSystem = progConfig.getUnitsProperty();
     diveUnitSystem = headData[6];
     // jetzt die Strings für Masseinheiten holen
@@ -914,13 +881,13 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     final XYLineAndShapeRenderer setpointRenderer = new XYLineAndShapeRenderer( true, true );
     if( 0 == gasName.indexOf( "he" ) )
     {
-      percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.HEPERCENT );
+      percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogDerbyDatabaseUtil.HEPERCENT );
       graphPos = GRAPH_HE;
       lRenderColor = ProjectConst.GRAPH_HE_RCOLOR;
     }
     else
     {
-      percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.N2PERCENT );
+      percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogDerbyDatabaseUtil.N2PERCENT );
       graphPos = GRAPH_N2;
       lRenderColor = ProjectConst.GRAPH_N2_RCOLOR;
     }
@@ -951,7 +918,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     LOGGER.log( Level.FINE, "create nulltime dataset" );
     nullTimeDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.nulltimeScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
-            LogForDeviceDatabaseUtil.NULLTIME );
+            LogDerbyDatabaseUtil.NULLTIME );
     final XYLineAndShapeRenderer lineNullTimeRenderer = new XYLineAndShapeRenderer( true, true );
     final LogarithmicAxis nullTimeAxis = new LogarithmicAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.nulltimeAxisTitle" ) );
     nullTimeAxis.setNumberFormatOverride( new DecimalFormat( "#.###" ) );
@@ -994,28 +961,28 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     switch ( sensor )
     {
       case 0:
-        indexForCreate = LogForDeviceDatabaseUtil.PPO2;
+        indexForCreate = LogDerbyDatabaseUtil.PPO2;
         posForGraph = GRAPH_PPO2ALL;
         posColor = ProjectConst.GRAPH_PPO2ALL_RCOLOR;
         title = stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" );
         break;
       case 1:
-        indexForCreate = LogForDeviceDatabaseUtil.PPO2_01;
+        indexForCreate = LogDerbyDatabaseUtil.PPO2_01;
         posForGraph = GRAPH_PPO2_01;
         posColor = ProjectConst.GRAPH_PPO2_01_RCOLOR;
         break;
       case 2:
-        indexForCreate = LogForDeviceDatabaseUtil.PPO2_02;
+        indexForCreate = LogDerbyDatabaseUtil.PPO2_02;
         posForGraph = GRAPH_PPO2_02;
         posColor = ProjectConst.GRAPH_PPO2_02_RCOLOR;
         break;
       case 3:
-        indexForCreate = LogForDeviceDatabaseUtil.PPO2_03;
+        indexForCreate = LogDerbyDatabaseUtil.PPO2_03;
         posForGraph = GRAPH_PPO2_03;
         posColor = ProjectConst.GRAPH_PPO2_02_RCOLOR;
         break;
       default:
-        indexForCreate = LogForDeviceDatabaseUtil.PPO2_01;
+        indexForCreate = LogDerbyDatabaseUtil.PPO2_01;
         posForGraph = GRAPH_PPO2_01;
         posColor = ProjectConst.GRAPH_PPO2_01_RCOLOR;
     }
@@ -1057,11 +1024,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
-              LogForDeviceDatabaseUtil.SETPOINT );
+              LogDerbyDatabaseUtil.SETPOINT );
     }
     else
     {
-      setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.SETPOINT );
+      setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, progUnitSystem, 0, LogDerbyDatabaseUtil.SETPOINT );
     }
     // final NumberAxis setpoint2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointAxisTitle" ) );
     final XYLineAndShapeRenderer setpointRenderer = new XYLineAndShapeRenderer( true, true );
@@ -1098,12 +1065,12 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     {
       // Keine Änderung norwendig!
       tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
-              LogForDeviceDatabaseUtil.TEMPERATURE );
+              LogDerbyDatabaseUtil.TEMPERATURE );
     }
     else
     {
       // bitte konvertiere die Einheiten ins gewünschte Format!
-      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, progUnitSystem, 0, LogForDeviceDatabaseUtil.TEMPERATURE );
+      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, progUnitSystem, 0, LogDerbyDatabaseUtil.TEMPERATURE );
     }
     final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
     final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + labels[1] );
@@ -1224,7 +1191,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    */
   private void showNotesEditForm( int dbId )
   {
-    LogForDeviceDatabaseUtil logDatabaseUtil;
     DiveNotesEditDialog edDial = new DiveNotesEditDialog( stringsBundle );
     edDial.setNotes( notesLabel.getText() );
     if( edDial.showModal() )
@@ -1242,23 +1208,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       notesLabel.setText( edDial.getNotes() );
       edDial.dispose();
       // jetzt ab in die Datenbank damit!
-      // das Datenbankutility initialisieren
-      logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
-      if( logDatabaseUtil.createConnection() == null )
+      if( -1 == databaseUtil.saveNoteForIdLog( dbId, notesLabel.getText() ) )
       {
-        // Tja, das ging schief
-        logDatabaseUtil = null;
-        showWarnBox( stringsBundle.getString( "spx42LogGraphPanel.warnBox.noDiveDataFound" ) );
-        return;
-      }
-      if( logDatabaseUtil != null && logDatabaseUtil.isOpenDB() )
-      {
-        if( -1 == logDatabaseUtil.saveNoteForId( dbId, notesLabel.getText() ) )
-        {
-          LOGGER.log( Level.SEVERE, "can't update notes for dive!" );
-        }
-        logDatabaseUtil.closeDB();
-        logDatabaseUtil = null;
+        LOGGER.log( Level.SEVERE, "can't update notes for dive!" );
       }
     }
     else

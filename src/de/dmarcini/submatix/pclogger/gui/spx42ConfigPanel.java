@@ -25,7 +25,7 @@ import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                                                                                                                        /**
+{                                                                                                                          /**
    * 
    */
   private static final long serialVersionUID     = 1L;
@@ -110,13 +110,13 @@ public class spx42ConfigPanel extends JPanel
     // initPanel();
   }
 
-  public Object getDecoGradientenHighSpinner()
+  public JSpinner getDecoGradientenHighSpinner()
   {
     if( !isPanelInitiated ) return( null );
     return( decoGradientenHighSpinner );
   }
 
-  public Object getDecoGradientenLowSpinner()
+  public JSpinner getDecoGradientenLowSpinner()
   {
     if( !isPanelInitiated ) return( null );
     return( decoGradientenLowSpinner );

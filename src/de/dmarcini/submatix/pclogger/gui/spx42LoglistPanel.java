@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -27,7 +26,7 @@ import javax.swing.event.ListSelectionListener;
 import org.joda.time.DateTime;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
-import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogLineDataObject;
 import de.dmarcini.submatix.pclogger.utils.LogdirListModel;
 
@@ -51,7 +50,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private ActionListener                 aListener           = null;
   private final HashMap<Integer, String> logdirFiles         = new HashMap<Integer, String>();
   private final HashMap<Integer, String> logdirReadable      = new HashMap<Integer, String>();
-  private File                           dataDir             = null;
+  private boolean                        isPanelInitiated    = false;
+  private ResourceBundle                 stringsBundle       = null;
   private static final Pattern           fieldPatternSem     = Pattern.compile( ";" );
   private static final Pattern           fieldPatternDp      = Pattern.compile( ":" );
   private static final Pattern           fieldPatternDot     = Pattern.compile( "\\." );
@@ -61,7 +61,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private boolean                        isDirectoryComplete = false;
   private boolean                        isNextLogAnUpdate   = false;
   private int                            nextDiveIdForUpdate = -1;
-  private LogForDeviceDatabaseUtil       logDatabaseUtil     = null;
+  private LogDerbyDatabaseUtil           databaseUtil        = null;
   private String                         deviceToLog         = null;
   private int                            currLogEntry        = -1;
   private Vector<Integer[]>              logList             = null;
@@ -113,23 +113,210 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    *         Stand: 05.05.2012
    * @param LOGGER
    * @param al
-   * @param dataDir
+   * @param ldb
    */
-  public spx42LoglistPanel( Logger LOGGER, ActionListener al, String dataDir )
+  public spx42LoglistPanel( Logger LOGGER, ActionListener al, LogDerbyDatabaseUtil ldb )
   {
     this.LOGGER = LOGGER;
     this.aListener = al;
-    initPanel();
+    // initPanel();
+    databaseUtil = ldb;
     logdirFiles.clear();
     logdirReadable.clear();
     isDirectoryComplete = false;
-    logDatabaseUtil = null;
     deviceToLog = null;
     fileIndex = -1;
     currLogEntry = -1;
-    this.dataDir = new File( dataDir );
     isNextLogAnUpdate = false;
     nextDiveIdForUpdate = -1;
+    isPanelInitiated = false;
+  }
+
+  /**
+   * 
+   * Einen Eintrag in das Verzeichnis einfügen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.05.2012
+   * @param entryMsg
+   * 
+   */
+  public void addLogdirEntry( String entryMsg )
+  {
+    // Message etwa so "Nummer;filename;readableName;maxNumber"
+    String[] fields;
+    String fileName, readableName, wasSaved = " ";
+    int number, max;
+    //
+    if( !isPanelInitiated ) return;
+    //
+    // Felder aufteilen
+    fields = fieldPatternSem.split( entryMsg );
+    if( fields.length < 4 )
+    {
+      LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
+      return;
+    }
+    // Wandel die Nummerierung in Integer um
+    try
+    {
+      number = Integer.parseInt( fields[0] );
+      max = Integer.parseInt( fields[3] );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
+      return;
+    }
+    fileName = fields[1];
+    // Der lesbare Teil
+    readableName = fields[2];
+    // Alles ging gut....
+    if( number == max )
+    {
+      isDirectoryComplete = true;
+      return;
+    }
+    LOGGER.log( Level.FINE, "add to logdir number: <" + number + "> name: <" + readableName + ">" );
+    // Sichere die Dateiangabe
+    logdirFiles.put( number, fileName );
+    // Sichere Lesbares Format
+    logdirReadable.put( number, readableName );
+    // in die Liste einfügen
+    if( databaseUtil != null )
+    {
+      if( databaseUtil.isLogSavedLog( fileName ) )
+      {
+        wasSaved = "x";
+      }
+    }
+    logListModel.addLogentry( number, readableName, wasSaved );
+  }
+
+  /**
+   * 
+   * Sichert eine weitere Zeile der Logdatei...
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 09.05.2012
+   * @param logLine
+   * @return ok oder nicht
+   */
+  public int addLogLineFromSPX( String logLine )
+  {
+    String fields[] = null;
+    LogLineDataObject lineData = null;
+    //
+    if( !isPanelInitiated ) return( -1 );
+    //
+    if( fileIndex == -1 || currLogEntry < 0 )
+    {
+      LOGGER.log( Level.SEVERE, "not opened a file for reading via startTransfer()! ABORT" );
+      return( -1 );
+    }
+    LOGGER.log( Level.SEVERE, "LINE: <" + logLine + ">..." );
+    // teile die Logline in Felder auf
+    fields = fieldPattern0x09.split( logLine );
+    try
+    {
+      lineData = new LogLineDataObject();
+      // die Felder in Werte für die Datenbank umrechnen...
+      lineData.pressure = Integer.parseInt( fields[0].trim() );
+      lineData.depth = Integer.parseInt( fields[1].trim() );
+      lineData.temperature = Integer.parseInt( fields[2].trim() );
+      lineData.acku = Double.parseDouble( fields[3].trim() );
+      lineData.ppo2 = Double.parseDouble( fields[5].trim() );
+      lineData.ppo2_1 = Double.parseDouble( fields[13].trim() );
+      lineData.ppo2_2 = Double.parseDouble( fields[14].trim() );
+      lineData.ppo2_3 = Double.parseDouble( fields[15].trim() );
+      lineData.setpoint = Integer.parseInt( fields[6].trim() );
+      lineData.n2 = Integer.parseInt( fields[16].trim() );
+      lineData.he = Integer.parseInt( fields[17].trim() );
+      lineData.zeroTime = Integer.parseInt( fields[20].trim() );
+      lineData.nextStep = Integer.parseInt( fields[24].trim() );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.log( Level.SEVERE, "error in converting numbers <" + ex.getLocalizedMessage() + ">" );
+      return( -1 );
+    }
+    databaseUtil.appendLogToCacheLog( currLogEntry, lineData );
+    return( 1 );
+  }
+
+  /**
+   * 
+   * Die Details für einen TG löschen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 06.05.2012
+   */
+  public void cleanDetails()
+  {
+    if( !isPanelInitiated ) return;
+    diveDateShowLabel.setText( "-" );
+    diveTimeShowLabel.setText( "-" );
+  }
+
+  /**
+   * 
+   * Leere das Array für das Logverzeichnis des SPX (Cache)
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.05.2012
+   */
+  public void clearLogdirCache()
+  {
+    if( !isPanelInitiated ) return;
+    // Dateinamen auf dem SPX
+    logdirFiles.clear();
+    // Nummerierung auf dem SPX
+    logdirReadable.clear();
+    logListModel.clear();
+    isDirectoryComplete = false;
+  }
+
+  /**
+   * 
+   * Gib die nächste Nummer eines zu lesenden Eintrages zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 13.05.2012
+   * @return Nummer oder -1
+   */
+  public Integer[] getNextEntryToRead()
+  {
+    if( !isPanelInitiated ) return( null );
+    // Ist die Liste (Vector) allociert?
+    if( logList == null )
+    {
+      // Nein, nix zu tun!
+      return( null );
+    }
+    // Sind Elemente vorhanden?
+    if( logList.isEmpty() )
+    {
+      // Liste ist Leer, nix zu tun
+      logList = null;
+      return( null );
+    }
+    // den ersten Eintrag zurückgeben
+    return( logList.remove( 0 ) );
   }
 
   /**
@@ -246,6 +433,176 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
 
   /**
    * 
+   * Lesen vollständig?
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.05.2012
+   * @return Lesen vollständig opder nicht
+   */
+  public boolean isReadingComplete()
+  {
+    return( isDirectoryComplete );
+  }
+
+  /**
+   * 
+   * Vorbereitungen zum download der Logdaten treffen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 06.05.2012
+   * @param device
+   * @return Array von Logdateinummern (Nummer des Logs auf dem SPX42)
+   */
+  public int prepareDownloadLogdata( String device )
+  {
+    int[] logSelected = null;
+    deviceToLog = device;
+    if( deviceToLog == null )
+    {
+      return( 0 );
+    }
+    if( !isPanelInitiated ) return( -1 );
+    LOGGER.log( Level.FINE, "prepare to download logdata..." );
+    //
+    // Ok, das sieht so aus, als könne es losgehen
+    //
+    LOGGER.log( Level.FINE, "test for selected logentrys..." );
+    logSelected = logListField.getSelectedIndices();
+    if( logSelected.length > 0 )
+    {
+      // es ist auch etwas markiert!
+      // Array erzeugen
+      logList = new Vector<Integer[]>();
+      // für jeden markierten index die Lognummer holen
+      for( int idx = 0; idx < logSelected.length; idx++ )
+      {
+        Integer[] lEntry = new Integer[2];
+        lEntry[0] = logListModel.getLognumberAt( logSelected[idx] );
+        lEntry[1] = logListModel.istInDb( logSelected[idx] ) ? 1 : 0;
+        logList.add( lEntry );
+        LOGGER.log( Level.FINE, "select dive number <" + logSelected[idx] + "> for download..." );
+      }
+      return( logList.size() );
+    }
+    // Es ist nichts markiert
+    LOGGER.log( Level.WARNING, "prepare to download logdata...NOTHING selected!" );
+    return( 0 );
+  }
+
+  /**
+   * 
+   * Das Panel zur Anzeige bereit machen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param connDev
+   */
+  public void prepareLogListPanel( String connDev )
+  {
+    initPanel();
+    logdirFiles.clear();
+    logdirReadable.clear();
+    isDirectoryComplete = false;
+    deviceToLog = connDev;
+    fileIndex = -1;
+    currLogEntry = -1;
+    isNextLogAnUpdate = false;
+    nextDiveIdForUpdate = -1;
+    isPanelInitiated = true;
+    setLanguageStrings( stringsBundle );
+    setGlobalChangeListener( ( MainCommGUI )aListener );
+  }
+
+  /**
+   * 
+   * Bereite das Lesen des Logverzeichnisses vor
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 08.05.2012
+   * @param device
+   * @return In Ordnung
+   */
+  public boolean prepareReadLogdir( String device )
+  {
+    deviceToLog = device;
+    if( deviceToLog == null )
+    {
+      return( false );
+    }
+    LOGGER.log( Level.FINE, "prepare to read logdir..." );
+    return( true );
+  }
+
+  /**
+   * 
+   * Das Panel entfernen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   */
+  public void releasePanel()
+  {
+    isPanelInitiated = false;
+    this.removeAll();
+    logdirFiles.clear();
+    logdirReadable.clear();
+    deviceToLog = null;
+    fileIndex = -1;
+    currLogEntry = -1;
+    isNextLogAnUpdate = false;
+    nextDiveIdForUpdate = -1;
+  }
+
+  /**
+   * 
+   * Wenn Datenbankfehler auftraten, Datenreste entfernen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 25.06.2012
+   * @return ging oder Fehler
+   */
+  public int removeFailedDataset()
+  {
+    return( databaseUtil.deleteLogFromDatabeaseLog() );
+  }
+
+  /**
+   * 
+   * Elemente, die je nach Status erlaubt oder ausgeblendet werden sollen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.05.2012
+   * @param en
+   */
+  public void setAllLogPanelsEnabled( boolean en )
+  {
+    if( !isPanelInitiated ) return;
+    logListScrollPane.setEnabled( en );
+  }
+
+  /**
+   * 
    * Alle Listener setzen, die benötigt werden
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
@@ -257,6 +614,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   public void setGlobalChangeListener( MainCommGUI mainCommGUI )
   {
+    this.aListener = mainCommGUI;
+    if( !isPanelInitiated ) return;
     readLogDirectoryButton.addActionListener( mainCommGUI );
     readLogDirectoryButton.addMouseMotionListener( mainCommGUI );
     readLogfilesFromSPXButton.addActionListener( mainCommGUI );
@@ -279,6 +638,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   public int setLanguageStrings( ResourceBundle stringsBundle )
   {
+    this.stringsBundle = stringsBundle;
+    if( !isPanelInitiated ) return( 1 );
     try
     {
       clearLogdirCache();
@@ -322,345 +683,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
 
   /**
    * 
-   * Elemente, die je nach Status erlaubt oder ausgeblendet werden sollen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.05.2012
-   * @param en
-   */
-  public void setAllLogPanelsEnabled( boolean en )
-  {
-    logListScrollPane.setEnabled( en );
-  }
-
-  /**
-   * 
-   * Leere das Array für das Logverzeichnis des SPX (Cache)
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.05.2012
-   */
-  public void clearLogdirCache()
-  {
-    // Dateinamen auf dem SPX
-    logdirFiles.clear();
-    // Nummerierung auf dem SPX
-    logdirReadable.clear();
-    logListModel.clear();
-    isDirectoryComplete = false;
-  }
-
-  /**
-   * 
-   * Bereite das Lesen des Logverzeichnisses vor
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 08.05.2012
-   * @param device
-   * @return In Ordnung
-   */
-  public boolean prepareReadLogdir( String device )
-  {
-    deviceToLog = device;
-    if( deviceToLog == null )
-    {
-      return( false );
-    }
-    LOGGER.log( Level.FINE, "prepare to read logdir..." );
-    // wenn da noch was ist, entferne
-    if( logDatabaseUtil != null )
-    {
-      if( logDatabaseUtil.isOpenDB() )
-      {
-        logDatabaseUtil.closeDB();
-      }
-      logDatabaseUtil = null;
-    }
-    // das Datenbankutility initialisieren
-    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, aListener, deviceToLog, dataDir.getAbsolutePath() );
-    if( logDatabaseUtil.createConnection() == null )
-    {
-      return( false );
-    }
-    return( true );
-  }
-
-  /**
-   * 
-   * Einen Eintrag in das Verzeichnis einfügen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.05.2012
-   * @param entryMsg
-   * 
-   */
-  public void addLogdirEntry( String entryMsg )
-  {
-    // Message etwa so "Nummer;filename;readableName;maxNumber"
-    String[] fields;
-    String fileName, readableName, wasSaved = " ";
-    int number, max;
-    //
-    // Felder aufteilen
-    fields = fieldPatternSem.split( entryMsg );
-    if( fields.length < 4 )
-    {
-      LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
-      return;
-    }
-    // Wandel die Nummerierung in Integer um
-    try
-    {
-      number = Integer.parseInt( fields[0] );
-      max = Integer.parseInt( fields[3] );
-    }
-    catch( NumberFormatException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
-      return;
-    }
-    fileName = fields[1];
-    // Der lesbare Teil
-    readableName = fields[2];
-    // Alles ging gut....
-    if( number == max )
-    {
-      isDirectoryComplete = true;
-      return;
-    }
-    LOGGER.log( Level.FINE, "add to logdir number: <" + number + "> name: <" + readableName + ">" );
-    // Sichere die Dateiangabe
-    logdirFiles.put( number, fileName );
-    // Sichere Lesbares Format
-    logdirReadable.put( number, readableName );
-    // in die Liste einfügen
-    if( logDatabaseUtil != null )
-    {
-      if( logDatabaseUtil.isLogSaved( fileName ) )
-      {
-        wasSaved = "x";
-      }
-    }
-    logListModel.addLogentry( number, readableName, wasSaved );
-  }
-
-  @Override
-  public void valueChanged( ListSelectionEvent ev )
-  {
-    // Wen die Selektion der Liste verändert wurde...
-    int fIndex, spxNumber, dbId;
-    String[] fields;
-    //
-    if( ev.getSource().equals( logListField ) )
-    {
-      if( !ev.getValueIsAdjusting() )
-      {
-        // Das Ende der Serie, jetzt guck ich mal nach der ersten markierten...
-        LOGGER.log( Level.FINE, "ist last or once change..." );
-        fIndex = logListField.getSelectedIndex();
-        LOGGER.log( Level.FINE, String.format( "first selected Index: %d ", fIndex ) );
-        spxNumber = logListModel.getLognumberAt( fIndex );
-        if( spxNumber == -1 )
-        {
-          cleanDetails();
-          return;
-        }
-        LOGGER.log( Level.FINE, String.format( "number on SPX: %d, readable Name: %s, filename: %s", spxNumber, logListModel.getLogNameAt( fIndex ), logdirFiles.get( spxNumber ) ) );
-        // erst mal die allgemeinen Daten des Dives anzeigen
-        fileNameShowLabel.setText( logdirFiles.get( spxNumber ) );
-        // Aus der Anzeige Datum und Zeitstring trennen
-        fields = fieldPatternDtTm.split( logdirReadable.get( spxNumber ) );
-        if( fields.length == 2 )
-        {
-          diveDateShowLabel.setText( fields[0] );
-          diveTimeShowLabel.setText( fields[1] );
-        }
-        else
-        {
-          diveDateShowLabel.setText( "??" );
-          diveTimeShowLabel.setText( "??" );
-        }
-        // Jetzt schau ich mal, ob da was in der Datenbank zu finden ist
-        if( ( logDatabaseUtil != null ) && logDatabaseUtil.isLogSaved( logdirFiles.get( spxNumber ) ) )
-        {
-          // Ja, der ist in der Datenbank erfasst!
-          String[] headers = logDatabaseUtil.getDiveHeadsForDiveNumAsStrings( spxNumber );
-          try
-          {
-            dbId = Integer.parseInt( headers[0] );
-            diveNotesShowLabel.setText( logDatabaseUtil.getNotesForId( dbId ) );
-          }
-          catch( NumberFormatException ex )
-          {
-            dbId = -1;
-            diveNotesShowLabel.setText( "??" );
-          }
-          if( headers[11].equals( "METRIC" ) )
-          {
-            // Maximale Tiefe anzeigen
-            diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], metricLength ) );
-            // kälteste Temperatur anzeigen
-            diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], metricTemperature ) );
-          }
-          else
-          {
-            // Maximale Tiefe anzeigen
-            diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], imperialLength ) );
-            // kälteste Temperatur anzeigen
-            diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], imperialTemperature ) );
-          }
-          // Länge des Tauchgangs anzeigen
-          diveLengthShowLabel.setText( String.format( "%s %s", headers[10], timeMinutes ) );
-        }
-        else
-        {
-          diveMaxDepthShowLabel.setText( "-" );
-          diveLengthShowLabel.setText( "-" );
-          diveLowTempShowLabel.setText( "-" );
-          diveNotesShowLabel.setText( "-" );
-        }
-      }
-    }
-  }
-
-  /**
-   * 
-   * Die Details für einen TG löschen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 06.05.2012
-   */
-  public void cleanDetails()
-  {
-    diveDateShowLabel.setText( "-" );
-    diveTimeShowLabel.setText( "-" );
-  }
-
-  /**
-   * 
-   * Lesen vollständig?
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.05.2012
-   * @return Lesen vollständig opder nicht
-   */
-  public boolean isReadingComplete()
-  {
-    return( isDirectoryComplete );
-  }
-
-  /**
-   * 
-   * Vorbereitungen zum download der Logdaten treffen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 06.05.2012
-   * @param device
-   * @return Array von Logdateinummern (Nummer des Logs auf dem SPX42)
-   */
-  public int prepareDownloadLogdata( String device )
-  {
-    int[] logSelected = null;
-    deviceToLog = device;
-    if( deviceToLog == null )
-    {
-      return( 0 );
-    }
-    LOGGER.log( Level.FINE, "prepare to download logdata..." );
-    // wen da noch was ist, entfernen
-    if( logDatabaseUtil != null )
-    {
-      if( logDatabaseUtil.isOpenDB() )
-      {
-        logDatabaseUtil.closeDB();
-      }
-      logDatabaseUtil = null;
-    }
-    // das Datenbankutility initialisieren
-    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, aListener, deviceToLog, dataDir.getAbsolutePath() );
-    if( logDatabaseUtil.createConnection() == null )
-    {
-      return( 0 );
-    }
-    //
-    // Ok, das sieht so aus, als könne es losgehen
-    //
-    LOGGER.log( Level.FINE, "test for selected logentrys..." );
-    logSelected = logListField.getSelectedIndices();
-    if( logSelected.length > 0 )
-    {
-      // es ist auch etwas markiert!
-      // Array erzeugen
-      logList = new Vector<Integer[]>();
-      // für jeden markierten index die Lognummer holen
-      for( int idx = 0; idx < logSelected.length; idx++ )
-      {
-        Integer[] lEntry = new Integer[2];
-        lEntry[0] = logListModel.getLognumberAt( logSelected[idx] );
-        lEntry[1] = logListModel.istInDb( logSelected[idx] ) ? 1 : 0;
-        logList.add( lEntry );
-        LOGGER.log( Level.FINE, "select dive number <" + logSelected[idx] + "> for download..." );
-      }
-      return( logList.size() );
-    }
-    // Es ist nichts markiert
-    LOGGER.log( Level.WARNING, "prepare to download logdata...NOTHING selected!" );
-    return( 0 );
-  }
-
-  /**
-   * 
-   * Gib die nächste Nummer eines zu lesenden Eintrages zurück
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.05.2012
-   * @return Nummer oder -1
-   */
-  public Integer[] getNextEntryToRead()
-  {
-    // Ist die Liste (Vector) allociert?
-    if( logList == null )
-    {
-      // Nein, nix zu tun!
-      return( null );
-    }
-    // Sind Elemente vorhanden?
-    if( logList.isEmpty() )
-    {
-      // Liste ist Leer, nic zu tun
-      logList = null;
-      return( null );
-    }
-    // den ersten Eintrag zurückgeben
-    return( logList.remove( 0 ) );
-  }
-
-  /**
-   * 
    * Ist der nächste Start eines Logs ein Update?
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
@@ -699,10 +721,11 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     DateTime dateTime;
     int year, month, day, hour, minute, second;
     int diveId;
+    if( !isPanelInitiated ) return;
     //
     // Datenbank bereit für mich?
     //
-    if( logDatabaseUtil == null )
+    if( databaseUtil == null )
     {
       LOGGER.log( Level.SEVERE, "logDatabaseUtil not allocated!" );
       fileIndex = -1;
@@ -728,8 +751,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       nextDiveIdForUpdate = -1;
       isNextLogAnUpdate = false;
       // Logdaten aus der DB entfernen
-      logDatabaseUtil.removeLogdataForId( currLogEntry );
-      logDatabaseUtil.allocateCache( currLogEntry );
+      databaseUtil.removeLogdataForIdLog( currLogEntry );
+      databaseUtil.allocateCacheLog( currLogEntry );
     }
     else
     {
@@ -774,7 +797,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         return;
       }
       // Ersten Eintrag für den Tauchgang machen
-      diveId = logDatabaseUtil.writeNewDive( deviceToLog, fileName, unitSystem, fileIndex, ( dateTime.getMillis() ) / 1000 );
+      diveId = databaseUtil.writeNewDiveLog( deviceToLog, fileName, unitSystem, fileIndex, ( dateTime.getMillis() ) / 1000 );
       if( diveId < 0 )
       {
         fileIndex = -1;
@@ -785,56 +808,83 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     }
   }
 
-  /**
-   * 
-   * Sichert eine weitere Zeile der Logdatei...
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 09.05.2012
-   * @param logLine
-   * @return ok oder nicht
-   */
-  public int addLogLineFromSPX( String logLine )
+  @Override
+  public void valueChanged( ListSelectionEvent ev )
   {
-    String fields[] = null;
-    LogLineDataObject lineData = null;
+    // Wen die Selektion der Liste verändert wurde...
+    int fIndex, spxNumber, dbId;
+    String[] fields;
     //
-    if( fileIndex == -1 || currLogEntry < 0 )
+    if( ev.getSource().equals( logListField ) )
     {
-      LOGGER.log( Level.SEVERE, "not opened a file for reading via startTransfer()! ABORT" );
-      return( -1 );
+      if( !ev.getValueIsAdjusting() )
+      {
+        // Das Ende der Serie, jetzt guck ich mal nach der ersten markierten...
+        LOGGER.log( Level.FINE, "ist last or once change..." );
+        fIndex = logListField.getSelectedIndex();
+        LOGGER.log( Level.FINE, String.format( "first selected Index: %d ", fIndex ) );
+        spxNumber = logListModel.getLognumberAt( fIndex );
+        if( spxNumber == -1 )
+        {
+          cleanDetails();
+          return;
+        }
+        LOGGER.log( Level.FINE, String.format( "number on SPX: %d, readable Name: %s, filename: %s", spxNumber, logListModel.getLogNameAt( fIndex ), logdirFiles.get( spxNumber ) ) );
+        // erst mal die allgemeinen Daten des Dives anzeigen
+        fileNameShowLabel.setText( logdirFiles.get( spxNumber ) );
+        // Aus der Anzeige Datum und Zeitstring trennen
+        fields = fieldPatternDtTm.split( logdirReadable.get( spxNumber ) );
+        if( fields.length == 2 )
+        {
+          diveDateShowLabel.setText( fields[0] );
+          diveTimeShowLabel.setText( fields[1] );
+        }
+        else
+        {
+          diveDateShowLabel.setText( "??" );
+          diveTimeShowLabel.setText( "??" );
+        }
+        // Jetzt schau ich mal, ob da was in der Datenbank zu finden ist
+        // if( ( logDatabaseUtil != null ) && logDatabaseUtil.isLogSavedLog( logdirFiles.get( spxNumber ) ) )
+        // {
+        // // Ja, der ist in der Datenbank erfasst!
+        // String[] headers = logDatabaseUtil.getDiveHeadsForDiveNumAsStringsLog( spxNumber );
+        // try
+        // {
+        // dbId = Integer.parseInt( headers[0] );
+        // diveNotesShowLabel.setText( logDatabaseUtil.getNotesForId( dbId ) );
+        // }
+        // catch( NumberFormatException ex )
+        // {
+        // dbId = -1;
+        // diveNotesShowLabel.setText( "??" );
+        // }
+        // if( headers[11].equals( "METRIC" ) )
+        // {
+        // // Maximale Tiefe anzeigen
+        // diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], metricLength ) );
+        // // kälteste Temperatur anzeigen
+        // diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], metricTemperature ) );
+        // }
+        // else
+        // {
+        // // Maximale Tiefe anzeigen
+        // diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], imperialLength ) );
+        // // kälteste Temperatur anzeigen
+        // diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], imperialTemperature ) );
+        // }
+        // // Länge des Tauchgangs anzeigen
+        // diveLengthShowLabel.setText( String.format( "%s %s", headers[10], timeMinutes ) );
+        // }
+        // else
+        {
+          diveMaxDepthShowLabel.setText( "-" );
+          diveLengthShowLabel.setText( "-" );
+          diveLowTempShowLabel.setText( "-" );
+          diveNotesShowLabel.setText( "-" );
+        }
+      }
     }
-    LOGGER.log( Level.SEVERE, "LINE: <" + logLine + ">..." );
-    // teile die Logline in Felder auf
-    fields = fieldPattern0x09.split( logLine );
-    try
-    {
-      lineData = new LogLineDataObject();
-      // die Felder in Werte für die Datenbank umrechnen...
-      lineData.pressure = Integer.parseInt( fields[0].trim() );
-      lineData.depth = Integer.parseInt( fields[1].trim() );
-      lineData.temperature = Integer.parseInt( fields[2].trim() );
-      lineData.acku = Double.parseDouble( fields[3].trim() );
-      lineData.ppo2 = Double.parseDouble( fields[5].trim() );
-      lineData.ppo2_1 = Double.parseDouble( fields[13].trim() );
-      lineData.ppo2_2 = Double.parseDouble( fields[14].trim() );
-      lineData.ppo2_3 = Double.parseDouble( fields[15].trim() );
-      lineData.setpoint = Integer.parseInt( fields[6].trim() );
-      lineData.n2 = Integer.parseInt( fields[16].trim() );
-      lineData.he = Integer.parseInt( fields[17].trim() );
-      lineData.zeroTime = Integer.parseInt( fields[20].trim() );
-      lineData.nextStep = Integer.parseInt( fields[24].trim() );
-    }
-    catch( NumberFormatException ex )
-    {
-      LOGGER.log( Level.SEVERE, "error in converting numbers <" + ex.getLocalizedMessage() + ">" );
-      return( -1 );
-    }
-    logDatabaseUtil.appendLogToCache( currLogEntry, lineData );
-    return( 1 );
   }
 
   /**
@@ -850,33 +900,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   public int writeCacheToDatabase()
   {
-    int ret = logDatabaseUtil.writeLogToDatabase( currLogEntry );
+    int ret = databaseUtil.writeLogToDatabaseLog( currLogEntry );
     currLogEntry = -1;
     return( ret );
-  }
-
-  /**
-   * 
-   * Wenn Datenbankfehler auftraten, Datenreste entfernen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 25.06.2012
-   * @return ging oder Fehler
-   */
-  public int removeFailedDataset()
-  {
-    return( logDatabaseUtil.deleteLogFromDatabease() );
-  }
-
-  public void closeDatabase()
-  {
-    if( logDatabaseUtil != null )
-    {
-      logDatabaseUtil.closeDB();
-      logDatabaseUtil = null;
-    }
   }
 }

@@ -45,16 +45,16 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
  */
 public class UDDFFileCreateClass
 {
-  private final String             gasPattern     = "0.";
-  private Document                 uddfDoc        = null;
-  private Logger                   LOGGER         = null;
-  private LogForDeviceDatabaseUtil sqliteDbUtil   = null;
-  private Transformer              transformer    = null;
-  private DocumentBuilder          builder        = null;
-  private ArrayList<String>        gases          = null;
-  private final Pattern            fieldPatternDp = Pattern.compile( ":" );
-  private int[]                    headData       = null;
-  private String                   diveComment    = null;
+  private final String         gasPattern     = "0.";
+  private Document             uddfDoc        = null;
+  private Logger               LOGGER         = null;
+  private LogDerbyDatabaseUtil sqliteDbUtil   = null;
+  private Transformer          transformer    = null;
+  private DocumentBuilder      builder        = null;
+  private ArrayList<String>    gases          = null;
+  private final Pattern        fieldPatternDp = Pattern.compile( ":" );
+  private int[]                headData       = null;
+  private String               diveComment    = null;
 
   @SuppressWarnings( "unused" )
   private UDDFFileCreateClass()
@@ -70,18 +70,18 @@ public class UDDFFileCreateClass
    * 
    *         Stand: 24.10.2011
    * @param lg
-   * @param sqliteDbUtil
+   * @param databaseUtil
    * @throws ParserConfigurationException
    * @throws TransformerException
    * @throws TransformerFactoryConfigurationError
    * @throws Exception
    */
-  public UDDFFileCreateClass( Logger lg, final LogForDeviceDatabaseUtil sqliteDbUtil ) throws ParserConfigurationException, TransformerException,
-          TransformerFactoryConfigurationError, Exception
+  public UDDFFileCreateClass( Logger lg, final LogDerbyDatabaseUtil databaseUtil ) throws ParserConfigurationException, TransformerException, TransformerFactoryConfigurationError,
+          Exception
   {
     // initialisiere die Klasse
-    this.sqliteDbUtil = sqliteDbUtil;
-    if( sqliteDbUtil == null || !sqliteDbUtil.isOpenDB() )
+    this.sqliteDbUtil = databaseUtil;
+    if( databaseUtil == null || !databaseUtil.isOpenDB() )
     {
       throw new Exception( "database not initiated" );
     }
@@ -149,18 +149,19 @@ public class UDDFFileCreateClass
     //
     // Daten vom ersten Tauchgang auslesen
     //
-    headData = sqliteDbUtil.getHeadDiveDataFromId( diveNums[0] );
+    headData = sqliteDbUtil.getHeadDiveDataFromIdLog( diveNums[0] );
     // die Tauchzeit rausbekommen
     long diveTimeUnix = ( getDiveTime() ) * 1000L;
     DateTime dateTime = new DateTime( diveTimeUnix );
     // den Export-Dateinamen machen
     if( diveNums.length == 1 )
     {
-      fileName = String.format( "%s%s%s-dive-from-%s.uddf", exportDir.getAbsolutePath(), File.separatorChar, sqliteDbUtil.getDeviceId(), dateTime.toString( "yyyy-MM-dd-hh-mm" ) );
+      fileName = String.format( "%s%s%s-dive-from-%s.uddf", exportDir.getAbsolutePath(), File.separatorChar, sqliteDbUtil.getDeviceIdLog( diveNums[0] ),
+              dateTime.toString( "yyyy-MM-dd-hh-mm" ) );
     }
     else
     {
-      fileName = String.format( "%s%s%s-dive-from-%s-plus-%d.uddf", exportDir.getAbsolutePath(), File.separatorChar, sqliteDbUtil.getDeviceId(),
+      fileName = String.format( "%s%s%s-dive-from-%s-plus-%d.uddf", exportDir.getAbsolutePath(), File.separatorChar, sqliteDbUtil.getDeviceIdLog( diveNums[0] ),
               dateTime.toString( "yyyy-MM-dd-hh-mm" ), diveNums.length );
     }
     saveFile = new File( fileName );
@@ -482,7 +483,7 @@ public class UDDFFileCreateClass
     String gasName;
     String[] fields;
     // gases füllen mit stringliste a'la O2:N2:HE:AR:H2 als Strings "%.3f"
-    gases = sqliteDbUtil.getGaslistForDive( diveNums );
+    gases = sqliteDbUtil.getGaslistForDiveLog( diveNums );
     // # gasdefinitions
     gasNode = doc.createElement( "gasdefinitions" );
     if( gases == null )
@@ -641,9 +642,9 @@ public class UDDFFileCreateClass
     {
       repNumber++;
       // Kopfdaten zu diesen Tauchgang holen
-      headData = sqliteDbUtil.getHeadDiveDataFromId( diveNum );
+      headData = sqliteDbUtil.getHeadDiveDataFromIdLog( diveNum );
       // Kommentar, falls vorhanden...
-      diveComment = sqliteDbUtil.getNotesForId( diveNum );
+      diveComment = sqliteDbUtil.getNotesForIdLog( diveNum );
       profileNode.appendChild( makeRepetitiongroup( doc, repNumber, diveNum ) );
     }
     return( profileNode );
@@ -706,7 +707,7 @@ public class UDDFFileCreateClass
     //
     // jetzt les ich alle Samples aus der Datenbank
     //
-    diveSamplesVector = sqliteDbUtil.getDiveDataFromId( diveNum );
+    diveSamplesVector = sqliteDbUtil.getDiveDataFromIdLog( diveNum );
     // einen Iterator zum durchkurbeln machen
     Iterator<Integer[]> it = diveSamplesVector.iterator();
     //
@@ -719,17 +720,17 @@ public class UDDFFileCreateClass
       //
       // Daten in das Objekt übernehmen
       //
-      entry.presure = sampleSet[LogForDeviceDatabaseUtil.PRESURE];
-      entry.depth = ( double )sampleSet[LogForDeviceDatabaseUtil.DEPTH] / 10.0;
-      entry.temp = ( double )sampleSet[LogForDeviceDatabaseUtil.TEMPERATURE] + ProjectConst.KELVIN;
-      entry.acku = ( double )sampleSet[LogForDeviceDatabaseUtil.ACKU] / 10.0;
-      entry.ppo2 = sampleSet[LogForDeviceDatabaseUtil.PPO2];
-      entry.setpoint = sampleSet[LogForDeviceDatabaseUtil.SETPOINT];
-      entry.n2 = ( double )( sampleSet[LogForDeviceDatabaseUtil.N2PERCENT] ) / 100.0;
-      entry.he = ( double )( sampleSet[LogForDeviceDatabaseUtil.HEPERCENT] ) / 100.0;
+      entry.presure = sampleSet[LogDerbyDatabaseUtil.PRESURE];
+      entry.depth = ( double )sampleSet[LogDerbyDatabaseUtil.DEPTH] / 10.0;
+      entry.temp = ( double )sampleSet[LogDerbyDatabaseUtil.TEMPERATURE] + ProjectConst.KELVIN;
+      entry.acku = ( double )sampleSet[LogDerbyDatabaseUtil.ACKU] / 10.0;
+      entry.ppo2 = sampleSet[LogDerbyDatabaseUtil.PPO2];
+      entry.setpoint = sampleSet[LogDerbyDatabaseUtil.SETPOINT];
+      entry.n2 = ( double )( sampleSet[LogDerbyDatabaseUtil.N2PERCENT] ) / 100.0;
+      entry.he = ( double )( sampleSet[LogDerbyDatabaseUtil.HEPERCENT] ) / 100.0;
       entry.o2 = 1.0 - ( entry.n2 + entry.he );
-      entry.zerotime = sampleSet[LogForDeviceDatabaseUtil.NULLTIME];
-      diveTimeCurrent += sampleSet[LogForDeviceDatabaseUtil.DELTATIME];
+      entry.zerotime = sampleSet[LogDerbyDatabaseUtil.NULLTIME];
+      diveTimeCurrent += sampleSet[LogDerbyDatabaseUtil.DELTATIME];
       entry.time = diveTimeCurrent;
       entry.makeGasSample();
       //

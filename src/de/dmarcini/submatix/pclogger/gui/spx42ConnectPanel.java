@@ -3,6 +3,7 @@ package de.dmarcini.submatix.pclogger.gui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.sql.SQLException;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -25,29 +26,29 @@ import javax.swing.event.TableModelListener;
 
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.utils.AliasEditTableModel;
-import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 
 public class spx42ConnectPanel extends JPanel implements TableModelListener
 {
   /**
    * 
    */
-  private static final long   serialVersionUID = 1L;
-  protected Logger            LOGGER           = null;
-  public JComboBox            deviceToConnectComboBox;
-  public JButton              connectButton;
-  public JButton              connectBtRefreshButton;
-  public JProgressBar         discoverProgressBar;
-  public JButton              pinButton;
-  public JButton              deviceAliasButton;
-  public JTable               aliasEditTable;
-  private JScrollPane         aliasScrollPane;
-  private String[]            columnNames      = null;
-  private String[][]          aliasData        = null;
-  private ConnectDatabaseUtil dbUtil           = null;
-  private ResourceBundle      stringsBundle    = null;
-  private BTCommunication     btComm           = null;
-  private JLabel              discoverBtLabel;
+  private static final long    serialVersionUID = 1L;
+  protected Logger             LOGGER           = null;
+  public JComboBox             deviceToConnectComboBox;
+  public JButton               connectButton;
+  public JButton               connectBtRefreshButton;
+  public JProgressBar          discoverProgressBar;
+  public JButton               pinButton;
+  public JButton               deviceAliasButton;
+  public JTable                aliasEditTable;
+  private JScrollPane          aliasScrollPane;
+  private String[]             columnNames      = null;
+  private String[][]           aliasData        = null;
+  private LogDerbyDatabaseUtil databaseUtil     = null;
+  private ResourceBundle       stringsBundle    = null;
+  private BTCommunication      btComm           = null;
+  private JLabel               discoverBtLabel;
 
   @SuppressWarnings( "unused" )
   private spx42ConnectPanel()
@@ -62,12 +63,14 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
    * @param LOGGER
    * @param _dbUtil
    * @param btComm
+   * @throws ClassNotFoundException
+   * @throws SQLException
    */
-  public spx42ConnectPanel( final Logger LOGGER, final ConnectDatabaseUtil _dbUtil, final BTCommunication btComm )
+  public spx42ConnectPanel( final Logger LOGGER, final LogDerbyDatabaseUtil _dbUtil, final BTCommunication btComm ) throws SQLException, ClassNotFoundException
   {
     this.LOGGER = LOGGER;
     LOGGER.log( Level.FINE, "constructor..." );
-    this.dbUtil = _dbUtil;
+    this.databaseUtil = _dbUtil;
     this.btComm = btComm;
     // dbUtil.closeDB();
     aliasData = null;
@@ -75,11 +78,11 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     columnNames[0] = "DEVICE";
     columnNames[1] = "ALIAS";
     initPanel();
-    if( !dbUtil.isOpenDB() )
+    if( !databaseUtil.isOpenDB() )
     {
-      dbUtil.createConnection();
+      databaseUtil.createConnection();
     }
-    aliasData = dbUtil.getAliasData();
+    aliasData = databaseUtil.getAliasDataConn();
     setAliasesEditable( false );
   }
 
@@ -209,7 +212,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
       columnNames[0] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn00.text" );
       columnNames[1] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn01.text" );
       LOGGER.log( Level.FINE, "fill aliases in stringarray..." );
-      aliasData = dbUtil.getAliasData();
+      aliasData = databaseUtil.getAliasDataConn();
       if( aliasData != null )
       {
         AliasEditTableModel alMod = new AliasEditTableModel( aliasData, columnNames );
@@ -278,7 +281,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     columnNames[0] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn00.text" );
     columnNames[1] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn01.text" );
     LOGGER.log( Level.FINE, "fill aliases in stringarray..." );
-    aliasData = dbUtil.getAliasData();
+    aliasData = databaseUtil.getAliasDataConn();
     if( aliasData != null )
     {
       AliasEditTableModel alMod = new AliasEditTableModel( aliasData, columnNames );
@@ -353,7 +356,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     devName = ( String )aliasEditTable.getModel().getValueAt( row, 0 );
     // AliasName erfrage
     devAlias = ( String )aliasEditTable.getModel().getValueAt( row, 1 );
-    dbUtil.updateDeviceAlias( devName, devAlias );
+    databaseUtil.updateDeviceAliasConn( devName, devAlias );
     // Jetzt die Verbindungsbox neu einlesen, sonst gibte Chaos ;-)
     LOGGER.log( Level.FINE, "read combobox entrys again...." );
     String[] entrys = btComm.getNameArray( true );

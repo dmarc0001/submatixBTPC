@@ -18,18 +18,7 @@ import java.util.logging.Logger;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
-/**
- * 
- * Helferlein für Logdaten in der Datenbank. Alle zeitangaben werden in der DB in UTC abgelegt und werden je nach Zeitzohne des PC wieder in Localzeit umgerechnet.
- * 
- * 
- * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
- * 
- * @author Dirk Marciniak (dirk_marciniak@arcor.de)
- * 
- *         Stand: 06.05.2012
- */
-public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
+public class LogDerbyDatabaseUtil
 {
   public final static int           DELTATIME   = 0;
   public final static int           DEPTH       = 1;
@@ -46,84 +35,85 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
   public final static int           PRESURE     = 12;
   public final static int           ACKU        = 13;
   private Logger                    LOGGER      = null;
-  private ActionListener            aListener   = null;
-  private File                      dbFile      = null;
+  private File                      dbFolder    = null;
   private Connection                conn        = null;
+  private final File                programDir  = new File( System.getProperty( "user.dir" ) );
+  private final File                dataBase    = new File( programDir.getAbsolutePath() + File.separator + "spx42Log" );
+  private final String              driver      = "org.apache.derby.jdbc.EmbeddedDriver";
+  private ActionListener            aListener   = null;
   private Vector<LogLineDataObject> logDataList = null;
   private int                       currentDiveId;
 
   /**
    * 
-   * Privater / gesperrter Konstruktor
+   * Das Datenbankmodul für den Logger erzeugen
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 06.05.2012
+   *         Stand: 05.09.2012
+   * @param LOGGER
+   *          Logausgabe
+   * @param dbFolder
    */
-  @SuppressWarnings( "unused" )
-  private LogForDeviceDatabaseUtil()
-  {};
+  // public LogDerbyDatabaseUtil( Logger LOGGER, File dbFolder )
+  // {
+  // this.LOGGER = LOGGER;
+  // this.dbFolder = dbFolder;
+  // conn = null;
+  // aListener = null;
+  // }
+  /**
+   * 
+   * Alternativer Konstruktor mit ActionListener
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param LOGGER
+   * @param dbFolder
+   * @param al
+   */
+  public LogDerbyDatabaseUtil( Logger LOGGER, File dbFolder, ActionListener al )
+  {
+    this.LOGGER = LOGGER;
+    this.dbFolder = dbFolder;
+    conn = null;
+    aListener = al;
+  }
 
   /**
    * 
-   * Konstruktor für dieses Objekt
+   * Erzeuge alle Tabellen in der Datenbank
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 06.05.2012
-   * @param lg
-   * @param al
-   * @param device
-   * @param logdataDir
+   *         Stand: 05.09.2012
+   * @param dbFl
+   * @return
+   * @throws SQLException
+   * @throws ClassNotFoundException
    */
-  public LogForDeviceDatabaseUtil( Logger lg, ActionListener al, String device, String logdataDir )
-  {
-    LOGGER = lg;
-    this.aListener = al;
-    dbFile = new File( String.format( "%s%sdivelog_%s.db", logdataDir, File.separator, device ) );
-    conn = null;
-    logDataList = null;
-    currentDiveId = -1;
-  }
-
-  private Connection _createNewDatabase( File dbFl ) throws SQLException, ClassNotFoundException
+  private Connection _createNewDatabase() throws SQLException, ClassNotFoundException
   {
     String sql;
     Statement stat;
     //
     LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
-    dbFile = dbFl;
-    // DB schliessen, wenn offen
-    if( conn != null )
-    {
-      if( conn.isClosed() )
-      {
-        conn = null;
-      }
-      else
-      {
-        conn.close();
-        conn = null;
-      }
-    }
-    // Datendatei verschwinden lassen
-    dbFile.delete();
-    Class.forName( "org.sqlite.JDBC" );
-    conn = DriverManager.getConnection( "jdbc:sqlite:" + dbFile.getAbsolutePath() );
-    conn.setAutoCommit( false );
-    stat = conn.createStatement();
     // ////////////////////////////////////////////////////////////////////////
     // Datentabellen erzeugen
     //
+    stat = conn.createStatement();
     // ////////////////////////////////////////////////////////////////////////
     // Die Versionstabelle
     //@formatter:off
     sql = String.format( 
-            "create table %s ( %s numeric );",
+            "create table %s ( %s integer )",
             ProjectConst.V_DBVERSION,
             ProjectConst.V_VERSION
            );
@@ -131,7 +121,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     stat.execute(sql);
     // Versionsnummer reinschreiben
     sql = String.format( 
-            "insert into %s ( %s ) values ( '%d' );",
+            "insert into %s ( %s ) values ( %d )",
             ProjectConst.V_DBVERSION,
             ProjectConst.V_VERSION,
             ProjectConst.DB_VERSION
@@ -142,15 +132,30 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     //@formatter:on
     //
     // ////////////////////////////////////////////////////////////////////////
+    // Die Tabelle für Geräte (Tauchcompis mit aliasnamen und PIN)
+    //@formatter:off
+    sql = String.format( 
+            "create table %s ( %s varchar(64) not null, %s varchar(64) not null, %s char(6) )",
+            ProjectConst.A_DBALIAS,
+            ProjectConst.A_DEVNAME,
+            ProjectConst.A_ALIAS,
+            ProjectConst.A_PIN
+            );
+    //@formatter:on
+    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.V_DBVERSION ) );
+    stat.execute( sql );
+    conn.commit();
+    //
+    // ////////////////////////////////////////////////////////////////////////
     // Die Tabelle für die Kopfdaten des Tauchganges
     //@formatter:off
     sql = String.format( 
             "create table %s \n" + 
             " ( \n" + 
-            "   %s integer primary key autoincrement,\n" +
+            "   %s integer not null generated always as identity,\n" +
             "   %s integer not null,\n" +
-            "   %s text not null,\n" +
-            "   %s text not null,\n" +
+            "   %s varchar(64) not null,\n" +
+            "   %s varchar(64) not null,\n" +
             "   %s integer not null,\n" +
             "   %s integer,\n" +
             "   %s real,\n" +
@@ -159,8 +164,8 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "   %s integer,\n" +
             "   %s integer, \n" +
             "   %s integer, \n" +
-            "   %s text \n" + 
-            " );",
+            "   %s varchar(128) \n" + 
+            " )",
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVEID,
             ProjectConst.H_DIVENUMBERONSPX,
@@ -184,7 +189,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     // index für Tauchnummer auf SPX
     //@formatter:off
     sql = String.format(
-            "create index idx_%s_%s on %s ( %s ASC);",
+            "create index idx_%s_%s on %s ( %s ASC)",
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_TABLE_DIVELOGS,
@@ -197,7 +202,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     // index für Startzeit
     //@formatter:off
     sql = String.format(
-            "create index idx_%s_%s on %s ( %s ASC);",
+            "create index idx_%s_%s on %s ( %s ASC)",
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_STARTTIME,
             ProjectConst.H_TABLE_DIVELOGS,
@@ -212,7 +217,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     sql = String.format( 
             "create table %s\n" +
             " (\n" +
-            "  %s integer primary key asc autoincrement, \n" + 
+            "  %s integer not null generated always as identity, \n" + 
             "  %s integer not null,\n" +
             "  %s integer,\n" +
             "  %s integer,\n" +
@@ -227,7 +232,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
             "  %s integer,\n" +
             "  %s integer,\n" +
             "  %s real\n" +
-            " );",  
+            " )",  
             ProjectConst.D_TABLE_DIVEDETAIL,
             ProjectConst.D_DBID,
             ProjectConst.D_DIVEID,
@@ -251,7 +256,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     // Index fuer die Tabelle erzeugen
     //@formatter:off
     sql = String.format(
-            "create index idx_%s_%s on %s ( %s ASC);",
+            "create index idx_%s_%s on %s ( %s ASC)",
             ProjectConst.D_TABLE_DIVEDETAIL,
             ProjectConst.D_DIVEID,
             ProjectConst.D_TABLE_DIVEDETAIL,
@@ -259,247 +264,118 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     //@formatter:off     
     LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
     stat.execute( sql );
-    conn.commit();
     //
-    // TODO: weitere Tabellen :-)
+    // eventuell noch mehr Tabellen
     //
     stat.close();
+    conn.commit();
     return( conn );
   }
 
   /**
-   * Aus der DB alle Tabellen löschen... Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.04.2012
+   * eine einzelne Tabelle entfernen, wenn vorhanden
+   *
+   * Project: SubmatixBTForPC
+   * Package: de.dmarcini.submatix.pclogger.utils
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   * Stand: 05.09.2012
+   * @param table
+   */
+  private void _dropTable( String table )
+  {
+    String sql;
+    Statement stat;
+    try
+    {
+      stat = conn.createStatement();
+      //@formatter:off
+      sql = String.format("drop table %s", table );
+      LOGGER.log( Level.FINE, sql );
+      stat.execute(sql);
+      stat.close();
+      //@formatter:on
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.severe( "can't create statement <" + ex.getLocalizedMessage() + ">" );
+      return;
+    }
+  }
+
+  /**
+   * 
+   * Tabellen von der Datenbank entfernen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
    * @throws SQLException
-   * @throws SQLiteException
    */
   private void _dropTablesFromDatabase() throws SQLException
   {
-    String sql;
-    Statement stat;
-    stat = conn.createStatement();
-    //@formatter:off
-    sql = String.format( 
-            "drop table if exists %s;",
-            ProjectConst.V_DBVERSION
-           );
-    LOGGER.log( Level.FINE, String.format( "drop table: %s", ProjectConst.V_DBVERSION ) );
-    stat.execute(sql);
-    //@formatter:on
-    //
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Tabelle für Kopfdaten löschen
-    //@formatter:off
-    sql = String.format( 
-            "drop table if exists %s;",
-            ProjectConst.H_TABLE_DIVELOGS
-            );
-    //@formatter:on
-    LOGGER.log( Level.FINE, String.format( "drop table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
-    stat.execute( sql );
-    //
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Tabelle für Logdetails löschen
-    //@formatter:off
-    sql = String.format( 
-            "drop table if exists %s;",
-            ProjectConst.D_TABLE_DIVEDETAIL
-            );
-    //@formatter:on
-    LOGGER.log( Level.FINE, String.format( "drop table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
-    //
-    stat.close();
-    conn.commit();
-  }
-
-  /**
-   * Wenn sich die Versionsnummer der DB verändert hat, Datenbankinhalt/Struktur anpassen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 24.04.2012
-   * @throws SQLException
-   * @throws ClassNotFoundException
-   * @throws SQLiteException
-   */
-  private void _updateDatabaseVersion( int oldVersion ) throws SQLException, ClassNotFoundException
-  {
-    // so, mal sehen ob sich was machen läßt
-    if( oldVersion > ProjectConst.DB_VERSION )
-    {
-      // das kann eigentlich nicht passieren
-      LOGGER.log( Level.SEVERE, String.format( "found db-version is GREATER than this Version? found: %d, this version: %d", oldVersion, ProjectConst.DB_VERSION ) );
-      return;
-    }
-    switch ( oldVersion )
-    {
-      case 1:
-      case 2:
-        _updateTableToVer3();
-      case 3:
-        _updateTableToVer4();
-        break;
-      default:
-        // Tja, das gibt ja wohl nicht
-        LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
-        _dropTablesFromDatabase();
-        _createNewDatabase( dbFile );
-    }
+    if( checkForTable( ProjectConst.V_DBVERSION ) ) _dropTable( ProjectConst.V_DBVERSION );
+    if( checkForTable( ProjectConst.A_DBALIAS ) ) _dropTable( ProjectConst.A_DBALIAS );
+    if( checkForTable( ProjectConst.H_TABLE_DIVELOGS ) ) _dropTable( ProjectConst.H_TABLE_DIVELOGS );
+    if( checkForTable( ProjectConst.D_TABLE_DIVEDETAIL ) ) _dropTable( ProjectConst.D_TABLE_DIVEDETAIL );
   }
 
   /**
    * 
-   * Passe die Datenbank an von Version kleiner 3 auf 3
+   * Einen neuen Alias in die DB aufnehmen
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 03.08.2012
+   *         Stand: 05.09.2012
+   * @param dev
+   * @param alias
+   * @return hat geklappt?
    */
-  private void _updateTableToVer3()
+  public boolean addAliasForNameConn( final String dev, final String alias )
   {
     String sql;
     Statement stat;
-    boolean rs;
     //
-    LOGGER.log( Level.FINE, "update database version..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
-      return;
+      return( false );
     }
+    LOGGER.log( Level.FINE, "try to add alias..." );
+    sql = String.format( "insert into %s (%s, %s) values ('%s', '%s')", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, dev, alias );
     try
     {
-      //@formatter:off
-      sql = String.format( 
-              "insert into %s (%s) values ( '%d' );",
-              ProjectConst.V_DBVERSION,
-              ProjectConst.V_VERSION,
-              3
-             );
-      //@formatter:on
       stat = conn.createStatement();
-      rs = stat.execute( sql );
-      if( rs )
-      {
-        LOGGER.log( Level.INFO, "Version updated." );
-      }
-      conn.commit();
+      stat.execute( sql );
       stat.close();
-      //@formatter:off
-      sql = String.format( 
-              "alter table %s add column %s text;",
-              ProjectConst.H_TABLE_DIVELOGS,
-              ProjectConst.H_NOTES
-             );
-      //@formatter:on
-      stat = conn.createStatement();
-      rs = stat.execute( sql );
-      if( rs )
-      {
-        LOGGER.log( Level.INFO, "Database (table) updated." );
-      }
       conn.commit();
-      stat.close();
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return;
+      LOGGER.log( Level.SEVERE, String.format( "fail to insert device alias for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
+      return( false );
     }
-    return;
+    return( true );
   }
 
   /**
    * 
-   * passe Tabelle von Version 3 nach Version 4 an
+   * Cache für Logzeilen allocieren
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 28.08.2012
+   *         Stand: 05.09.2012
+   * @param diveId
+   * @return ok oder nicht
    */
-  private void _updateTableToVer4()
-  {
-    String sql;
-    Statement stat;
-    boolean rs;
-    //
-    LOGGER.log( Level.FINE, "update database version..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return;
-    }
-    try
-    {
-      //
-      // Versionsnummer updaten
-      //
-      //@formatter:off
-      sql = String.format( 
-              "insert into %s (%s) values ( '%d' );",
-              ProjectConst.V_DBVERSION,
-              ProjectConst.V_VERSION,
-              4
-             );
-      //@formatter:on
-      stat = conn.createStatement();
-      rs = stat.execute( sql );
-      if( rs )
-      {
-        LOGGER.log( Level.INFO, "Version updated." );
-      }
-      conn.commit();
-      stat.close();
-      //
-      // Druckspalte zufügen
-      //
-      //@formatter:off
-      sql = String.format( 
-              "alter table %s add column %s integer;",
-              ProjectConst.D_TABLE_DIVEDETAIL,
-              ProjectConst.D_PRESURE
-             );
-      //@formatter:on
-      stat = conn.createStatement();
-      rs = stat.execute( sql );
-      if( rs )
-      {
-        LOGGER.log( Level.INFO, "Database (table) updated." );
-      }
-      conn.commit();
-      stat.close();
-      //
-      // Ackuspalte zufügen
-      //
-      //@formatter:off
-      sql = String.format( 
-              "alter table %s add column %s real;",
-              ProjectConst.D_TABLE_DIVEDETAIL,
-              ProjectConst.D_ACKU
-             );
-      //@formatter:on
-      stat = conn.createStatement();
-      rs = stat.execute( sql );
-      if( rs )
-      {
-        LOGGER.log( Level.INFO, "Database (table) updated." );
-      }
-      conn.commit();
-      stat.close();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return;
-    }
-    return;
-  }
-
-  @Override
-  public int allocateCache( int diveId )
+  public int allocateCacheLog( int diveId )
   {
     // immer eine neue anlegen, löscht durch garbage collector auch eventuell vorhandene alte Liste
     LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">..." );
@@ -514,8 +390,20 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     return( 0 );
   }
 
-  @Override
-  public int appendLogToCache( int diveId, LogLineDataObject logLineObj )
+  /**
+   * 
+   * Füge eine Logzeile an den Cache an
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param diveId
+   * @param logLineObj
+   * @return ok oder nicht
+   */
+  public int appendLogToCacheLog( int diveId, LogLineDataObject logLineObj )
   {
     if( logDataList == null )
     {
@@ -532,7 +420,68 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     return( 1 );
   }
 
-  @Override
+  /**
+   * 
+   * Teste, ob die Versionstabelle vorhanden ist
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param cn
+   * @param table
+   * @return tabelle existiert?
+   * @throws SQLException
+   */
+  private boolean checkForTable( String table ) throws SQLException
+  {
+    Statement s = null;
+    try
+    {
+      s = conn.createStatement();
+      // es wird IMMER eine Exception ausgelöst ;-)
+      String sql = String.format( "select * from %s where 1=2", table );
+      s.execute( sql );
+    }
+    catch( SQLException sqle )
+    {
+      String theError = ( sqle ).getSQLState();
+      /** If table exists will get - WARNING 02000: No row was found **/
+      if( theError.equals( "42X05" ) ) // Table does not exist
+      {
+        LOGGER.fine( "table <" + table + "> was not found." );
+        return false;
+      }
+      else if( theError.equals( "42X14" ) || theError.equals( "42821" ) )
+      {
+        LOGGER.severe( "incorect table definition. create new tables!" );
+        throw sqle;
+      }
+      else
+      {
+        LOGGER.severe( "unhandled exception < " + sqle.getLocalizedMessage() + "> !" );
+        throw sqle;
+      }
+    }
+    finally
+    {
+      if( s != null ) s.close();
+    }
+    LOGGER.fine( "Table <" + table + "> exists! " );
+    return true;
+  }
+
+  /**
+   * 
+   * Datenbank schliessen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   */
   public void closeDB()
   {
     LOGGER.log( Level.FINE, "try close database..." );
@@ -550,70 +499,112 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       }
       catch( SQLException ex )
       {
-        LOGGER.log( Level.SEVERE, "Can't close Database <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+        LOGGER.log( Level.SEVERE, "Can't close Database (" + ex.getLocalizedMessage() + ")" );
         return;
       }
     }
     LOGGER.log( Level.FINE, "close database...OK" );
   }
 
-  @Override
-  public Connection createConnection()
+  /**
+   * 
+   * Versuche eine Verbindung zur (embedded) Datenbank
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @return Connection-Objekt
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   */
+  public Connection createConnection() throws SQLException, ClassNotFoundException
   {
-    int version = 0;
+    String connectionURL = null;
+    int dbVersion = 0;
+    //
+    if( dbFolder == null )
+    {
+      LOGGER.severe( "no database folder selected!" );
+      return( null );
+    }
+    if( !dbFolder.isDirectory() )
+    {
+      LOGGER.severe( dbFolder.getName() + " is not a folder! (" + dbFolder.getAbsolutePath() + ")" );
+      return( null );
+    }
+    //
+    // versuche den Datenbanktreiber zu laden
     //
     try
     {
-      if( conn != null )
-      {
-        if( !conn.isClosed() )
-        {
-          return( conn );
-        }
-      }
-      // erzeuge eine Verbindung zur DB-Engine
-      conn = null;
-      Class.forName( "org.sqlite.JDBC" );
-      conn = DriverManager.getConnection( "jdbc:sqlite:" + dbFile.getAbsoluteFile() );
+      Class.forName( driver );
+    }
+    catch( java.lang.ClassNotFoundException ex )
+    {
+      LOGGER.severe( "can't locaize database driver! Inform programmer!" );
+      return( null );
+    }
+    //
+    // Verbindungsbeschreibung
+    //
+    connectionURL = "jdbc:derby:" + dbFolder.getAbsolutePath() + File.separator + dataBase.getName() + ";create=true";
+    //
+    // versuche eine Verbindung zur Datenbank (embedded)
+    //
+    try
+    {
+      conn = DriverManager.getConnection( connectionURL );
       conn.setAutoCommit( false );
-      // Datenbank öffnen, wenn File vorhanden
-      LOGGER.log( Level.FINE, "database <" + dbFile.getAbsoluteFile() + "> opened..." );
-      version = getDatabaseVersion();
-      if( version != ProjectConst.DB_VERSION )
-      {
-        // ACHTUNG, da hat sich was geändert! Oder die DB war nicht vorhanden
-        // ich muß mir was einfallen lassen
-        _updateDatabaseVersion( version );
-      }
     }
-    catch( ClassNotFoundException ex )
+    catch( Throwable ex )
     {
-      LOGGER.log( Level.SEVERE, "ClassNotFoundException <" + ex.getLocalizedMessage() + ">" );
+      LOGGER.severe( "no connection to database <" + ex.getLocalizedMessage() + ">" );
+      conn = null;
       return( null );
     }
-    catch( SQLException ex )
+    //
+    // finde heraus, welche Datenbankversion vorliegt
+    // 0 == keine Tabellen vorhanden
+    //
+    dbVersion = readDatabaseVersion();
+    switch ( dbVersion )
     {
-      LOGGER.log( Level.SEVERE, "Can't open/recreate Database <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return( null );
+      case 0:
+        // Datenbank nagelneu initialisieren
+        _createNewDatabase();
+        return( conn );
+      case 1:
+      case 2:
+      case 3:
+        _dropTablesFromDatabase();
+        // Datenbank nagelneu initialisieren
+        _createNewDatabase();
+        return( conn );
+      case 4:
+        // das ist momentan aktuell
+        return( conn );
+      default:
+        LOGGER.severe( "database version found was to high for this version!" );
+        conn.close();
+        conn = null;
+        return( null );
     }
-    return( conn );
   }
 
-  @Override
-  public Connection createNewDatabase() throws SQLException, ClassNotFoundException
-  {
-    return( _createNewDatabase( dbFile ) );
-  }
-
-  @Override
-  public Connection createNewDatabase( String dbFileName ) throws SQLException, ClassNotFoundException
-  {
-    dbFile = new File( dbFileName );
-    return( _createNewDatabase( dbFile ) );
-  }
-
-  @Override
-  public void deleteAllSetsForIds( int[] dbIds )
+  /**
+   * 
+   * Alle Daten für eine Ids löschen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dbIds
+   */
+  public void deleteAllSetsForIdsLog( int[] dbIds )
   {
     String sql;
     Statement stat;
@@ -686,8 +677,18 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
   }
 
-  @Override
-  public int deleteLogFromDatabease()
+  /**
+   * 
+   * aktuell bearbeitetes Log entfernen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @return gelöscht oder nicht
+   */
+  public int deleteLogFromDatabeaseLog()
   {
     String sql;
     Statement stat;
@@ -728,18 +729,149 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       logDataList.clear();
       logDataList = null;
     }
-    return 1;
+    return( 1 );
   }
 
-  @Override
-  public String getDeviceId()
+  /**
+   * 
+   * Alias-Daten für Geräte zurückgeben
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @return Array mit Aliaseinträgen
+   */
+  public String[][] getAliasDataConn()
+  {
+    String sql;
+    String[][] aliasData;
+    Statement stat;
+    ResultSet rs;
+    String devName, aliasName;
+    int rows = 0, cnt = 0;
+    //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    try
+    {
+      LOGGER.log( Level.FINE, "try to read aliases..." );
+      stat = conn.createStatement();
+      //
+      // Wie viele Einträge
+      //
+      sql = String.format( "select count(*) from %s", ProjectConst.A_DBALIAS );
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        rows = rs.getInt( 1 );
+        LOGGER.log( Level.FINE, String.format( "Aliases in database: %d", rows ) );
+      }
+      rs.close();
+      if( rows == 0 )
+      {
+        return( null );
+      }
+      // Erzeuge das Array für die Tabelle
+      aliasData = new String[rows][2];
+      //
+      // Gib her die Einträge, wenn welche vorhanden sind
+      //
+      sql = String.format( "select %s,%s from %s order by %s", ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME );
+      rs = stat.executeQuery( sql );
+      cnt = 0;
+      while( rs.next() )
+      {
+        devName = rs.getString( 1 );
+        aliasName = rs.getString( 2 );
+        aliasData[cnt][0] = devName;
+        aliasData[cnt][1] = aliasName;
+        cnt++;
+        LOGGER.log( Level.FINE, String.format( "Read:%s::%s", devName, aliasName ) );
+      }
+      rs.close();
+      stat.close();
+      return( aliasData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to read device alias for devices (%s)", ex.getLocalizedMessage() ) );
+    }
+    return( null );
+  }
+
+  /**
+   * 
+   * Suche einen Alias für einen Namen raus
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param devName
+   * @return Alias
+   */
+  public String getAliasForNameConn( final String devName )
   {
     String sql;
     Statement stat;
     ResultSet rs;
-    String resultString = " ";
+    String aliasName = null;
     //
-    LOGGER.log( Level.FINE, "read deviceId from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    LOGGER.log( Level.FINE, "try to read aliases..." );
+    sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, devName );
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        aliasName = rs.getString( 1 );
+        LOGGER.log( Level.FINE, String.format( "Alias for device %s : %s", devName, aliasName ) );
+      }
+      rs.close();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to read device alias for device %s (%s)", devName, ex.getLocalizedMessage() ) );
+      LOGGER.log( Level.SEVERE, sql );
+    }
+    return( aliasName );
+  }
+
+  /**
+   * 
+   * Lese die Id des Devices aus für einen Tauchgang
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dbId
+   * @return Geräteid
+   */
+  public String getDeviceIdLog( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String dbIdString = null;
+    //
+    // baue einen String mit dbId für die Datenbank
+    //
+    LOGGER.log( Level.FINE, "read device id from db for <" + dbId + ">" );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -747,10 +879,11 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select distinct %s from %s;",
+            "select %s from %s where %s=%s",
             ProjectConst.H_DEVICEID,
-            ProjectConst.H_TABLE_DIVELOGS
-           );
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            dbId);
     //@formatter:on
     try
     {
@@ -758,29 +891,39 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       rs = stat.executeQuery( sql );
       if( rs.next() )
       {
-        // Daten kosolidieren
-        resultString = rs.getString( 1 );
+        dbIdString = rs.getString( 1 );
       }
       rs.close();
-      LOGGER.log( Level.FINE, "read device id from DB...OK" );
-      return( resultString );
+      return( dbIdString );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read device id from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.log( Level.SEVERE, "Can't read deviceId from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
 
-  @Override
-  public Double[] getDiveHeadsForDiveNumAsDouble( int numberOnSpx )
+  /**
+   * 
+   * Erfrage Daten von einem Tauchgang mit der DBID
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dbId
+   * @return Array mit Logdaten
+   */
+  public Vector<Integer[]> getDiveDataFromIdLog( int dbId )
   {
     String sql;
     Statement stat;
     ResultSet rs;
-    Double[] diveHeadData = new Double[12];
+    Vector<Integer[]> diveData = new Vector<Integer[]>();
     //
-    LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
+    diveData.clear();
+    LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -788,130 +931,73 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
-            ProjectConst.H_DIVEID,
-            ProjectConst.H_DIVENUMBERONSPX,
-            ProjectConst.H_STARTTIME,
-            ProjectConst.H_HADSEND,
-            ProjectConst.H_FIRSTTEMP,
-            ProjectConst.H_LOWTEMP,
-            ProjectConst.H_MAXDEPTH,
-            ProjectConst.H_SAMPLES,
-            ProjectConst.H_DIVELENGTH,
-            ProjectConst.H_UNITS,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVENUMBERONSPX,
-            numberOnSpx
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d",
+            ProjectConst.D_DELTATIME,
+            ProjectConst.D_DEPTH,
+            ProjectConst.D_TEMPERATURE,
+            ProjectConst.D_PPO,
+            ProjectConst.D_PPO_1,
+            ProjectConst.D_PPO_2,
+            ProjectConst.D_PPO_3,
+            ProjectConst.D_SETPOINT,
+            ProjectConst.D_HE,
+            ProjectConst.D_N2,
+            ProjectConst.D_NULLTIME,
+            ProjectConst.D_PRESURE,
+            ProjectConst.D_ACKU,
+            ProjectConst.D_TABLE_DIVEDETAIL,
+            ProjectConst.D_DIVEID,
+            dbId
            );
     //@formatter:on
     try
     {
       stat = conn.createStatement();
       rs = stat.executeQuery( sql );
-      if( rs.next() )
+      while( rs.next() )
       {
         // Daten kosolidieren
-        diveHeadData[0] = rs.getDouble( 1 );
-        diveHeadData[1] = rs.getDouble( 2 );
-        diveHeadData[2] = 0.0;
-        diveHeadData[3] = 0.0;
-        diveHeadData[4] = rs.getDouble( 3 );
-        diveHeadData[5] = rs.getDouble( 4 );
-        diveHeadData[6] = rs.getDouble( 5 );
-        diveHeadData[7] = rs.getDouble( 6 );
-        diveHeadData[8] = rs.getDouble( 7 );
-        diveHeadData[9] = rs.getDouble( 8 );
-        diveHeadData[10] = rs.getDouble( 9 );
-        diveHeadData[11] = rs.getDouble( 10 );
+        Integer[] resultSet = new Integer[14];
+        resultSet[DELTATIME] = rs.getInt( 1 );
+        resultSet[DEPTH] = rs.getInt( 2 );
+        resultSet[TEMPERATURE] = rs.getInt( 3 );
+        resultSet[PPO2] = ( int )( rs.getDouble( 4 ) * 1000.0 );
+        resultSet[PPO2_01] = ( int )( rs.getDouble( 5 ) * 1000.0 );
+        resultSet[PPO2_02] = ( int )( rs.getDouble( 6 ) * 1000.0 );
+        resultSet[PPO2_03] = ( int )( rs.getDouble( 7 ) * 1000.0 );
+        resultSet[SETPOINT] = rs.getInt( 8 );
+        resultSet[HEPERCENT] = rs.getInt( 9 );
+        resultSet[N2PERCENT] = rs.getInt( 10 );
+        resultSet[NULLTIME] = rs.getInt( 11 );
+        resultSet[PRESURE] = rs.getInt( 12 );
+        resultSet[ACKU] = ( int )( rs.getDouble( 13 ) * 10 );
+        // ab in den vector
+        diveData.add( resultSet );
       }
       rs.close();
-      LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
-      return( diveHeadData );
+      LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB...OK" );
+      return( diveData );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.log( Level.SEVERE, "Can't read dive data from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
 
-  @Override
-  public String[] getDiveHeadsForDiveNumAsStrings( int numberOnSpx )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    String[] diveHeadData = new String[12];
-    //
-    LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
-            ProjectConst.H_DIVEID,
-            ProjectConst.H_DIVENUMBERONSPX,
-            ProjectConst.H_FILEONSPX,
-            ProjectConst.H_DEVICEID,
-            ProjectConst.H_STARTTIME,
-            ProjectConst.H_HADSEND,
-            ProjectConst.H_FIRSTTEMP,
-            ProjectConst.H_LOWTEMP,
-            ProjectConst.H_MAXDEPTH,
-            ProjectConst.H_SAMPLES,
-            ProjectConst.H_DIVELENGTH,
-            ProjectConst.H_UNITS,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVENUMBERONSPX,
-            numberOnSpx
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        // Daten kosolidieren
-        diveHeadData[0] = rs.getString( 1 );
-        diveHeadData[1] = rs.getString( 2 );
-        diveHeadData[2] = rs.getString( 3 );
-        diveHeadData[3] = rs.getString( 4 );
-        diveHeadData[4] = rs.getString( 5 );
-        diveHeadData[5] = rs.getString( 6 );
-        diveHeadData[6] = rs.getString( 7 );
-        diveHeadData[7] = rs.getString( 8 );
-        diveHeadData[8] = String.format( "%-3.1f", ( rs.getDouble( 9 ) / 10.0 ) ); // Tiefe
-        diveHeadData[9] = rs.getString( 10 );
-        // Minuten/Sekunden ausrechnen
-        int minutes = rs.getInt( 11 ) / 60;
-        int secounds = rs.getInt( 11 ) % 60;
-        diveHeadData[10] = String.format( "%d:%02d", minutes, secounds );
-        if( rs.getInt( 12 ) == ProjectConst.UNITS_IMPERIAL )
-        {
-          diveHeadData[11] = "IMPERIAL"; // Einheiten
-        }
-        else
-        {
-          diveHeadData[11] = "METRIC"; // Einheiten
-        }
-      }
-      rs.close();
-      LOGGER.log( Level.FINE, "read head data for spx dive number <" + numberOnSpx + "> from DB...OK" );
-      return( diveHeadData );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-  }
-
-  @Override
-  public Vector<String[]> getDiveListForDevice( String device )
+  /**
+   * 
+   * Gib eine Liste von Tauchgängen für ein Gerät zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param device
+   * @return array mit der Liste der Logs für ein Gerät
+   */
+  public Vector<String[]> getDiveListForDeviceLog( String device )
   {
     String sql;
     Statement stat;
@@ -926,7 +1012,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s from %s order by %s desc;",
+            "select %s,%s,%s from %s order by %s desc",
             ProjectConst.H_DIVEID,
             ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_STARTTIME,
@@ -959,16 +1045,38 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
   }
 
-  @Override
-  public ArrayList<String> getGaslistForDive( int dbId )
+  /**
+   * 
+   * Gib eine Gasliste für einen Tauchgang zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dbId
+   * @return Array mit Gasliste für Tauchgang
+   */
+  public ArrayList<String> getGaslistForDiveLog( int dbId )
   {
     int[] dbIds = new int[1];
     dbIds[0] = dbId;
-    return( getGaslistForDive( dbIds ) );
+    return( getGaslistForDiveLog( dbIds ) );
   }
 
-  @Override
-  public ArrayList<String> getGaslistForDive( int[] dbIds )
+  /**
+   * 
+   * Gib eine gasliste für eine Anzahl Tauchgänge zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dbIds
+   * @return Array mit Gasliste für Tauchgänge
+   */
+  public ArrayList<String> getGaslistForDiveLog( int[] dbIds )
   {
     ArrayList<String> resultSet = new ArrayList<String>();
     String sql;
@@ -1048,235 +1156,19 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
   }
 
-  @Override
-  public String getNotesForId( int dbId )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    String notesForDive = null;
-    //
-    LOGGER.log( Level.FINE, "read notes for dive <" + dbId + "> from DB..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select %s from %s where %s=%d;",
-            ProjectConst.H_NOTES,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVEID,
-            dbId
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        // Daten kosolidieren
-        notesForDive = rs.getString( 1 ); // die Bemerkungen
-      }
-      rs.close();
-      return( notesForDive );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read notes from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-  }
-
-  @Override
-  public boolean isLogSaved( String filename )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    //
-    LOGGER.log( Level.FINE, "was log <" + filename + "> always saved?" );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( false );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select %s from %s where %s like '%s';",
-            ProjectConst.H_DIVEID,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_FILEONSPX,
-            filename
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        LOGGER.log( Level.FINE, String.format( "file <%s> was saved.", filename ) );
-        rs.close();
-        stat.close();
-        return( true );
-      }
-      LOGGER.log( Level.FINE, "log <" + filename + "> was not saved." );
-      rs.close();
-      stat.close();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't select from database! (" + ex.getLocalizedMessage() + ")" );
-      return( false );
-    }
-    return( false );
-  }
-
-  @Override
-  public boolean isOpenDB()
-  {
-    if( conn == null )
-    {
-      return( false );
-    }
-    try
-    {
-      return( !conn.isClosed() );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, String.format( "fail to check database ist opened (%s))", ex.getLocalizedMessage() ) );
-    }
-    return( false );
-  }
-
   /**
    * 
-   * Lese die Version der Datenbank, wenn möglich
+   * Gib Kopfdaten für einen Tauchgang zurück
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 06.05.2012
-   * @return
+   *         Stand: 05.09.2012
+   * @param dbId
+   * @return Kopfdaten für einenn Tauchgang
    */
-  private int getDatabaseVersion()
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    int version = 0;
-    //
-    LOGGER.log( Level.FINE, "read database version..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( 0 );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select max( %s ) from %s;",
-            ProjectConst.V_VERSION,
-            ProjectConst.V_DBVERSION
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        version = rs.getInt( 1 );
-        LOGGER.log( Level.FINE, String.format( "database read version:%d", version ) );
-        rs.close();
-        return( version );
-      }
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
-      return( 0 );
-    }
-    return( 0 );
-  }
-
-  @Override
-  public Vector<Integer[]> getDiveDataFromId( int dbId )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    Vector<Integer[]> diveData = new Vector<Integer[]>();
-    //
-    diveData.clear();
-    LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    //@formatter:off
-    sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
-            ProjectConst.D_DELTATIME,
-            ProjectConst.D_DEPTH,
-            ProjectConst.D_TEMPERATURE,
-            ProjectConst.D_PPO,
-            ProjectConst.D_PPO_1,
-            ProjectConst.D_PPO_2,
-            ProjectConst.D_PPO_3,
-            ProjectConst.D_SETPOINT,
-            ProjectConst.D_HE,
-            ProjectConst.D_N2,
-            ProjectConst.D_NULLTIME,
-            ProjectConst.D_PRESURE,
-            ProjectConst.D_ACKU,
-            ProjectConst.D_TABLE_DIVEDETAIL,
-            ProjectConst.D_DIVEID,
-            dbId
-           );
-    //@formatter:on
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      while( rs.next() )
-      {
-        // Daten kosolidieren
-        Integer[] resultSet = new Integer[14];
-        resultSet[DELTATIME] = rs.getInt( 1 );
-        resultSet[DEPTH] = rs.getInt( 2 );
-        resultSet[TEMPERATURE] = rs.getInt( 3 );
-        resultSet[PPO2] = ( int )( rs.getDouble( 4 ) * 1000.0 );
-        resultSet[PPO2_01] = ( int )( rs.getDouble( 5 ) * 1000.0 );
-        resultSet[PPO2_02] = ( int )( rs.getDouble( 6 ) * 1000.0 );
-        resultSet[PPO2_03] = ( int )( rs.getDouble( 7 ) * 1000.0 );
-        resultSet[SETPOINT] = rs.getInt( 8 );
-        resultSet[HEPERCENT] = rs.getInt( 9 );
-        resultSet[N2PERCENT] = rs.getInt( 10 );
-        resultSet[NULLTIME] = rs.getInt( 11 );
-        resultSet[PRESURE] = rs.getInt( 12 );
-        resultSet[ACKU] = ( int )( rs.getDouble( 13 ) * 10 );
-        // ab in den vector
-        diveData.add( resultSet );
-      }
-      rs.close();
-      LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB...OK" );
-      return( diveData );
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, "Can't read dive data from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-  }
-
-  @Override
-  public int[] getHeadDiveDataFromId( int dbId )
+  public int[] getHeadDiveDataFromIdLog( int dbId )
   {
     String sql;
     Statement stat;
@@ -1291,7 +1183,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     //@formatter:off
     sql = String.format( 
-            "select %s,%s,%s,%s,%s,%s,%s from %s where %s=%d;",
+            "select %s,%s,%s,%s,%s,%s,%s from %s where %s=%d",
             ProjectConst.H_STARTTIME,
             ProjectConst.H_FIRSTTEMP,
             ProjectConst.H_LOWTEMP,
@@ -1331,8 +1223,372 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
   }
 
-  @Override
-  public int removeLogdataForId( int diveId )
+  /**
+   * 
+   * Den Devicenamen für einen Alias raussuchen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param aliasName
+   * @return Einen Aliasnamen für ein Gerät suchen
+   */
+  public String getNameForAliasConn( final String aliasName )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String deviceName = null;
+    //
+    //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    LOGGER.log( Level.FINE, "try to read device name for alias..." );
+    sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_DEVNAME, ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, aliasName );
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        deviceName = rs.getString( 1 );
+        LOGGER.log( Level.FINE, String.format( "device name for alias %s : %s", aliasName, deviceName ) );
+      }
+      rs.close();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to read device name for alias %s (%s)", aliasName, ex.getLocalizedMessage() ) );
+    }
+    return( deviceName );
+  }
+
+  /**
+   * 
+   * Gib Bemerkungen für eine ID zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dbId
+   * @return Bemerkungen
+   */
+  public String getNotesForIdLog( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String notesForDive = null;
+    //
+    LOGGER.log( Level.FINE, "read notes for dive <" + dbId + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s from %s where %s=%d",
+            ProjectConst.H_NOTES,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        // Daten kosolidieren
+        notesForDive = rs.getString( 1 ); // die Bemerkungen
+      }
+      rs.close();
+      return( notesForDive );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read notes from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  /**
+   * 
+   * Gib die PIN für ein Gerät zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param deviceName
+   * @return PIN oder null
+   */
+  public String getPinForDeviceConn( final String deviceName )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String pin = null;
+    //
+    //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    LOGGER.log( Level.FINE, "try to read pin for device..." );
+    sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_PIN, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, deviceName );
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        pin = rs.getString( 1 );
+        LOGGER.log( Level.FINE, String.format( "pin for device %s : %s", deviceName, pin ) );
+      }
+      rs.close();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to read pin for device %s (%s)", deviceName, ex.getLocalizedMessage() ) );
+    }
+    return( pin );
+  }
+
+  /**
+   * 
+   * Ist der Tauchgang mitr dem Namen (vom SPX) gesichert?
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param filename
+   * @return Log schon gespeichert?
+   */
+  public boolean isLogSavedLog( String filename )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    //
+    LOGGER.log( Level.FINE, "was log <" + filename + "> always saved?" );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( false );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select %s from %s where %s like '%s'",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_FILEONSPX,
+            filename
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        LOGGER.log( Level.FINE, String.format( "file <%s> was saved.", filename ) );
+        rs.close();
+        stat.close();
+        return( true );
+      }
+      LOGGER.log( Level.FINE, "log <" + filename + "> was not saved." );
+      rs.close();
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't select from database! (" + ex.getLocalizedMessage() + ")" );
+      return( false );
+    }
+    return( false );
+  }
+
+  /**
+   * 
+   * Ist die Datenbank offen?
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @return ist DB offen?
+   */
+  public boolean isOpenDB()
+  {
+    if( conn == null )
+    {
+      return( false );
+    }
+    try
+    {
+      return( !conn.isClosed() );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to check database ist opened (%s))", ex.getLocalizedMessage() ) );
+    }
+    return( false );
+  }
+
+  /**
+   * 
+   * Datenbankversion erfragen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @return 0 == nicht vorhanden, ansonstren DB-Version
+   */
+  private int readDatabaseVersion()
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    int version = 0;
+    //
+    LOGGER.log( Level.FINE, "read database version..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( 0 );
+    }
+    //
+    // gibts die Tabelle überhaupt?
+    //
+    try
+    {
+      if( !checkForTable( ProjectConst.V_DBVERSION ) )
+      {
+        // Tabelle nicht da, erzeuge Datenbank neu
+        return( 0 );
+      }
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.severe( ex.getLocalizedMessage() );
+      return( 0 );
+    }
+    //
+    // jetzt lies mal, welche Versionsnummer da ist
+    //
+    //@formatter:off
+    sql = String.format( 
+            "select max( %s ) from %s",
+            ProjectConst.V_VERSION,
+            ProjectConst.V_DBVERSION
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        version = rs.getInt( 1 );
+        LOGGER.log( Level.FINE, String.format( "database read version:%d", version ) );
+        rs.close();
+        return( version );
+      }
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dbversion (" + ex.getLocalizedMessage() + ")" );
+      return( 0 );
+    }
+    return( 0 );
+  }
+
+  /**
+   * 
+   * Lese die geräte aus der Datenbank aus
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @return Geräteliste lesen
+   */
+  public String[] readDevicesFromDatabaseConn()
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String[] results;
+    Vector<String> sammel = new Vector<String>();
+    //
+    LOGGER.log( Level.FINE, "read devices from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format( 
+            "select distinct %s from %s",
+            ProjectConst.A_ALIAS,
+            ProjectConst.A_DBALIAS
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      while( rs.next() )
+      {
+        sammel.add( rs.getString( 1 ) );
+        LOGGER.log( Level.FINE, String.format( "database read device <%s>", rs.getString( 1 ) ) );
+      }
+      rs.close();
+      // stelle die Liste der Geräte zusammen!
+      results = new String[sammel.size()];
+      results = sammel.toArray( results );
+      return( results );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  /**
+   * 
+   * Entsorge Logdaten für einen Tauchgang
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param diveId
+   * @return Sämtliche Logdaten für einen Tauchgang löschen
+   */
+  public int removeLogdataForIdLog( int diveId )
   {
     String sql;
     Statement stat;
@@ -1373,8 +1629,20 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     return 1;
   }
 
-  @Override
-  public int saveNoteForId( int dbId, String notes )
+  /**
+   * 
+   * Sichere Bemerkungen für einen Tauchgang
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dbId
+   * @param notes
+   * @return Gesichert?
+   */
+  public int saveNoteForIdLog( int dbId, String notes )
   {
     String sql;
     Statement stat;
@@ -1390,7 +1658,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     {
       //@formatter:off
       sql = String.format( 
-              "update %s set %s='%s' where %s=%d;",
+              "update %s set %s='%s' where %s=%d",
               ProjectConst.H_TABLE_DIVELOGS,
               ProjectConst.H_NOTES,
               notes,
@@ -1409,14 +1677,134 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't update dbversion <" + dbFile.getName() + "> (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.log( Level.SEVERE, "Can't update dbversion (" + ex.getLocalizedMessage() + ")" );
       return( -1 );
     }
     return( dbId );
   }
 
-  @Override
-  public int writeLogToDatabase( final int diveId )
+  /**
+   * 
+   * Actionlisteneer setzen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param al
+   */
+  public void setActionListener( ActionListener al )
+  {
+    aListener = al;
+  }
+
+  /**
+   * 
+   * PIN für Gerät in DB eintragen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dev
+   * @param pin
+   * @return Pin setzen erfolgreich?
+   */
+  public boolean setPinForDeviceConn( final String dev, final String pin )
+  {
+    String sql;
+    Statement stat;
+    //
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( false );
+    }
+    LOGGER.log( Level.FINE, "try to set pin for device..." );
+    if( null == getAliasForNameConn( dev ) )
+    {
+      LOGGER.log( Level.WARNING, "no Aliasname fpr Device..." );
+      return( false );
+    }
+    // jetzt kann ich die PIN einbauen, wenn datensatz schon vorhanden
+    sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_PIN, pin, ProjectConst.A_DEVNAME, dev );
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to update pin for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
+      return( false );
+    }
+    return( true );
+  }
+
+  /**
+   * 
+   * Alias für ein Gerät eintragen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param devName
+   * @param devAlias
+   * @return Alias aktualisieren
+   */
+  public boolean updateDeviceAliasConn( final String devName, final String devAlias )
+  {
+    String sql;
+    Statement stat;
+    //
+    LOGGER.log( Level.FINE, "try to update alias..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "try to update alias even if database is not created! ABORT!" );
+      return( false );
+    }
+    try
+    {
+      if( conn.isClosed() )
+      {
+        LOGGER.log( Level.WARNING, "try to update alias even if database is closed! ABORT!" );
+        return( false );
+      }
+      // Ok, Datenbank da und geöffnet!
+      stat = conn.createStatement();
+      sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, devAlias, ProjectConst.A_DEVNAME, devName );
+      LOGGER.log( Level.FINE, String.format( "update device alias <%s> to <%s>", devName, devAlias ) );
+      stat.execute( sql );
+      stat.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, String.format( "fail to update device alias for device <%s> (%s)", devName, ex.getLocalizedMessage() ) );
+      return( false );
+    }
+    return( true );
+  }
+
+  /**
+   * 
+   * Schreibe Daten vom Tauchgang in die Datenbank
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param diveId
+   * @return Erfolgreich?
+   */
+  public int writeLogToDatabaseLog( final int diveId )
   {
     Thread writeDb;
     //
@@ -1454,7 +1842,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
                  " values\n" +
                  " (\n" +
                  "  ?,?,?,?,?,?,?,?,?,?,?,?,?,?\n" + 
-                 " );\n" 
+                 " )" 
                  ,                    
                  ProjectConst.D_TABLE_DIVEDETAIL,
                  ProjectConst.D_DIVEID,
@@ -1596,7 +1984,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
                  "     %s=%d, \n" + 
                  "     %s=%d, \n" + 
                  "     %s=%d \n" + 
-                 " where %s=%d;",                    
+                 " where %s=%d",                    
                  ProjectConst.H_TABLE_DIVELOGS,
                  ProjectConst.H_FIRSTTEMP,markAirtemp,
                  ProjectConst.H_LOWTEMP,markLowestTemp,
@@ -1641,8 +2029,23 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
     return 0;
   }
 
-  @Override
-  public int writeNewDive( String deviceId, String fileOnSPX, int units, long numberOnSPX, long startTime )
+  /**
+   * 
+   * Schreibe einen neuen Tachgang in die Datenbank (Kopfdaten)
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param deviceId
+   * @param fileOnSPX
+   * @param units
+   * @param numberOnSPX
+   * @param startTime
+   * @return erfolgreich?
+   */
+  public int writeNewDiveLog( String deviceId, String fileOnSPX, int units, long numberOnSPX, long startTime )
   {
     Statement stat;
     String sql;
@@ -1664,7 +2067,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       LOGGER.log( Level.FINE, "insert new dataset into database..." );
       //@formatter:off
       sql = String.format( 
-              "insert into %s ( %s,%s,%s,%s,%s ) values ( '%s','%s', %d, %d, %d );",
+              "insert into %s ( %s,%s,%s,%s,%s ) values ( '%s','%s', %d, %d, %d )",
               ProjectConst.H_TABLE_DIVELOGS,
               ProjectConst.H_DEVICEID,
               ProjectConst.H_FILEONSPX,
@@ -1683,7 +2086,7 @@ public class LogForDeviceDatabaseUtil implements ILogForDeviceDatabaseUtil
       conn.commit();
       //@formatter:off
       sql = String.format( 
-              "select max(%s) from %s ;",
+              "select max(%s) from %s",
               ProjectConst.H_DIVEID,
               ProjectConst.H_TABLE_DIVELOGS
              );

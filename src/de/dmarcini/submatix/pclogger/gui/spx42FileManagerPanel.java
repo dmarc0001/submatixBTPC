@@ -40,9 +40,8 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 
 import org.joda.time.DateTime;
 
-import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.FileManagerTableModel;
-import de.dmarcini.submatix.pclogger.utils.LogForDeviceDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 import de.dmarcini.submatix.pclogger.utils.UDDFFileCreateClass;
 
@@ -56,7 +55,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   private String                         device;
   private final SpxPcloggerProgramConfig progConfig;
   private ResourceBundle                 stringsBundle;
-  private final ConnectDatabaseUtil      sqliteDbUtil;
+  private final LogDerbyDatabaseUtil     sqliteDbUtil;
   private File                           dataDir;
   private final MouseMotionListener      mListener;
   // private final ActionListener aListener;
@@ -66,7 +65,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   private JButton                        deleteButton;
   private JButton                        exportButton;
 
-  public spx42FileManagerPanel( Logger LOGGER, MouseMotionListener mListener, ConnectDatabaseUtil sqliteDbUtil, SpxPcloggerProgramConfig progConfig )
+  public spx42FileManagerPanel( Logger LOGGER, MouseMotionListener mListener, LogDerbyDatabaseUtil sqliteDbUtil, SpxPcloggerProgramConfig progConfig )
   {
     this.LOGGER = LOGGER;
     this.sqliteDbUtil = sqliteDbUtil;
@@ -182,7 +181,6 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
    */
   private void exportDatasetsForIdx( int[] sets )
   {
-    LogForDeviceDatabaseUtil logDatabaseUtil = null;
     UDDFFileCreateClass uddf = null;
     PleaseWaitDialog wDial = null;
     //
@@ -205,20 +203,11 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       return;
     }
     //
-    // datenbankhelper erzeugen und Verbindung aufbauen
-    //
-    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
-    if( logDatabaseUtil.createConnection() == null )
-    {
-      logDatabaseUtil = null;
-      return;
-    }
-    //
     // versuche ein Transformobjekt für uddf zu erzeugen
     //
     try
     {
-      uddf = new UDDFFileCreateClass( LOGGER, logDatabaseUtil );
+      uddf = new UDDFFileCreateClass( LOGGER, sqliteDbUtil );
     }
     catch( ParserConfigurationException ex )
     {
@@ -319,7 +308,6 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
    */
   private void deleteDatasetsForIdx( int[] sets )
   {
-    LogForDeviceDatabaseUtil logDatabaseUtil = null;
     if( device == null )
     {
       LOGGER.severe( "no device known in programobject! abort function!" );
@@ -330,25 +318,11 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     // so, jetzt sollte ich die ID haben, löschen angehen
     //
-    //
-    // richtige Datenbank öffnen
-    //
-    // das Datenbankutility initialisieren
-    //
-    logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
-    if( logDatabaseUtil.createConnection() == null )
-    {
-      logDatabaseUtil = null;
-      return;
-    }
-    logDatabaseUtil.deleteAllSetsForIds( dbIds );
-    logDatabaseUtil.closeDB();
-    logDatabaseUtil = null;
+    sqliteDbUtil.deleteAllSetsForIdsLog( dbIds );
   }
 
   private void fillDiveTable( String deviceAlias )
   {
-    LogForDeviceDatabaseUtil logDatabaseUtil;
     DateTime dateTime;
     long javaTime;
     int spxNumber;
@@ -356,29 +330,16 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     // Alias fürs Gerät zurücksuchen
     //
-    device = sqliteDbUtil.getNameForAlias( deviceAlias );
+    device = sqliteDbUtil.getNameForAliasConn( deviceAlias );
     if( device != null )
     {
       LOGGER.log( Level.FINE, "search dive list for device <" + device + ">..." );
-      //
-      // richtige Datenbank öffnen
-      //
-      // das Datenbankutility initialisieren
-      //
-      logDatabaseUtil = new LogForDeviceDatabaseUtil( LOGGER, this, device, dataDir.getAbsolutePath() );
-      if( logDatabaseUtil.createConnection() == null )
-      {
-        logDatabaseUtil = null;
-        return;
-      }
       // Eine Liste der Dives lesen
       LOGGER.log( Level.FINE, "read dive list for device from DB..." );
-      Vector<String[]> entrys = logDatabaseUtil.getDiveListForDevice( device );
+      Vector<String[]> entrys = sqliteDbUtil.getDiveListForDeviceLog( device );
       if( entrys.size() < 1 )
       {
         LOGGER.log( Level.INFO, "no dives for device <" + deviceAlias + "/" + device + "> found in DB." );
-        logDatabaseUtil.closeDB();
-        logDatabaseUtil = null;
         return;
       }
       //
@@ -423,16 +384,17 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
           // [9] H_SAMPLES,
           // [10] H_DIVELENGTH,
           // [11] H_UNITS,
-          String[] headers = logDatabaseUtil.getDiveHeadsForDiveNumAsStrings( spxNumber );
-          if( headers[11].equals( "METRIC" ) )
-          {
-            diveEntrys[row][2] = headers[8] + " m";
-          }
-          else
-          {
-            diveEntrys[row][2] = headers[8] + " ft";
-          }
-          diveEntrys[row][3] = headers[10] + " min";
+          // TODO: H_ier noch abhilfe
+          // String[] headers = sqliteDbUtil.getDiveHeadsForDiveNumAsStrings( spxNumber );
+          // if( headers[11].equals( "METRIC" ) )
+          // {
+          // diveEntrys[row][2] = headers[8] + " m";
+          // }
+          // else
+          // {
+          // diveEntrys[row][2] = headers[8] + " ft";
+          // }
+          // diveEntrys[row][3] = headers[10] + " min";
         }
         catch( NumberFormatException ex )
         {
@@ -463,8 +425,6 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       column.setPreferredWidth( 60 );
       column.setMaxWidth( 120 );
       column.setCellRenderer( rightRenderer );
-      logDatabaseUtil.closeDB();
-      logDatabaseUtil = null;
     }
     else
     {
@@ -512,13 +472,13 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     // Alias fürs Gerät
     if( connDev != null )
     {
-      connDevAlias = sqliteDbUtil.getAliasForName( connDev );
+      connDevAlias = sqliteDbUtil.getAliasForNameConn( connDev );
       LOGGER.log( Level.FINE, "Device <" + connDev + "> has alias <" + connDevAlias + ">..." );
     }
     //
     // Lese eine Liste der Tauchgänge für dieses Gerät
     //
-    String[] entrys = sqliteDbUtil.readDevicesFromDatabase();
+    String[] entrys = sqliteDbUtil.readDevicesFromDatabaseConn();
     if( entrys == null )
     {
       LOGGER.log( Level.WARNING, "no devices found in database." );

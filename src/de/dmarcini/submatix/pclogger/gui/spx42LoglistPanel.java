@@ -149,7 +149,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     // Message etwa so "Nummer;filename;readableName;maxNumber"
     String[] fields;
     String fileName, readableName, wasSaved = " ";
-    int number, max;
+    int number, max, dbId = -1;
     //
     if( !isPanelInitiated ) return;
     //
@@ -180,7 +180,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       isDirectoryComplete = true;
       return;
     }
-    LOGGER.log( Level.FINE, "add to logdir number: <" + number + "> name: <" + readableName + ">" );
+    LOGGER.log( Level.FINE, "add to logdir number: <" + number + "> name: <" + readableName + "> device: <" + deviceToLog + ">" );
     // Sichere die Dateiangabe
     logdirFiles.put( number, fileName );
     // Sichere Lesbares Format
@@ -188,12 +188,13 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     // in die Liste einfügen
     if( databaseUtil != null )
     {
-      if( databaseUtil.isLogSavedLog( fileName ) )
+      dbId = databaseUtil.isLogSavedLog( fileName );
+      if( dbId != -1 )
       {
         wasSaved = "x";
       }
     }
-    logListModel.addLogentry( number, readableName, wasSaved );
+    logListModel.addLogentry( number, readableName, wasSaved, dbId );
   }
 
   /**
@@ -829,7 +830,9 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
           cleanDetails();
           return;
         }
-        LOGGER.log( Level.FINE, String.format( "number on SPX: %d, readable Name: %s, filename: %s", spxNumber, logListModel.getLogNameAt( fIndex ), logdirFiles.get( spxNumber ) ) );
+        dbId = logListModel.getDbIdAt( fIndex );
+        LOGGER.log( Level.FINE,
+                String.format( "number on SPX: %d, DBID: %d, readable Name: %s, filename: %s", spxNumber, dbId, logListModel.getLogNameAt( fIndex ), logdirFiles.get( spxNumber ) ) );
         // erst mal die allgemeinen Daten des Dives anzeigen
         fileNameShowLabel.setText( logdirFiles.get( spxNumber ) );
         // Aus der Anzeige Datum und Zeitstring trennen
@@ -845,38 +848,29 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
           diveTimeShowLabel.setText( "??" );
         }
         // Jetzt schau ich mal, ob da was in der Datenbank zu finden ist
-        // if( ( logDatabaseUtil != null ) && logDatabaseUtil.isLogSavedLog( logdirFiles.get( spxNumber ) ) )
-        // {
-        // // Ja, der ist in der Datenbank erfasst!
-        // String[] headers = logDatabaseUtil.getDiveHeadsForDiveNumAsStringsLog( spxNumber );
-        // try
-        // {
-        // dbId = Integer.parseInt( headers[0] );
-        // diveNotesShowLabel.setText( logDatabaseUtil.getNotesForId( dbId ) );
-        // }
-        // catch( NumberFormatException ex )
-        // {
-        // dbId = -1;
-        // diveNotesShowLabel.setText( "??" );
-        // }
-        // if( headers[11].equals( "METRIC" ) )
-        // {
-        // // Maximale Tiefe anzeigen
-        // diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], metricLength ) );
-        // // kälteste Temperatur anzeigen
-        // diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], metricTemperature ) );
-        // }
-        // else
-        // {
-        // // Maximale Tiefe anzeigen
-        // diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], imperialLength ) );
-        // // kälteste Temperatur anzeigen
-        // diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], imperialTemperature ) );
-        // }
-        // // Länge des Tauchgangs anzeigen
-        // diveLengthShowLabel.setText( String.format( "%s %s", headers[10], timeMinutes ) );
-        // }
-        // else
+        // Ja, der ist in der Datenbank erfasst!
+        String[] headers = databaseUtil.getHeadDiveDataFromIdAsSTringLog( dbId );
+        if( headers != null )
+        {
+          diveNotesShowLabel.setText( databaseUtil.getNotesForIdLog( dbId ) );
+          if( headers[11].equals( "METRIC" ) )
+          {
+            // Maximale Tiefe anzeigen
+            diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], metricLength ) );
+            // kälteste Temperatur anzeigen
+            diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], metricTemperature ) );
+          }
+          else
+          {
+            // Maximale Tiefe anzeigen
+            diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], imperialLength ) );
+            // kälteste Temperatur anzeigen
+            diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], imperialTemperature ) );
+          }
+          // Länge des Tauchgangs anzeigen
+          diveLengthShowLabel.setText( String.format( "%s %s", headers[10], timeMinutes ) );
+        }
+        else
         {
           diveMaxDepthShowLabel.setText( "-" );
           diveLengthShowLabel.setText( "-" );

@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Locale;
@@ -65,8 +66,8 @@ import org.joda.time.format.DateTimeFormatter;
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.ConfigReadWriteException;
-import de.dmarcini.submatix.pclogger.utils.ConnectDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
+import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.ReadConfig;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
@@ -96,7 +97,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   };
   private int                      licenseState        = -1;
   private int                      customConfig        = -1;
-  private ConnectDatabaseUtil      sqliteDbUtil        = null;
+  private LogDerbyDatabaseUtil     databaseUtil        = null;
   private int                      waitForMessage      = 0;
   //
   // @formatter:on
@@ -409,7 +410,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // wenn auf der Kommandozeile ein neues Verzeichnis angegeben wurde
       progConfig.setDatabaseDir( databaseDir );
     }
-    // logdataDir = new File( programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTDATADIR );
     if( !progConfig.getDatabaseDir().isDirectory() )
     {
       if( false == progConfig.getDatabaseDir().mkdirs() )
@@ -426,14 +426,29 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     catch( MissingResourceException ex )
     {
-      System.out.println( "ERROR get resources <" + ex.getMessage() + "> try standart Strings..." );
+      System.err.println( "ERROR get resources <" + ex.getMessage() + "> try standart Strings..." );
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages_en" );
     }
     prepareDatabase();
     currentConfig.setLogger( LOGGER );
-    btComm = new BTCommunication( LOGGER, sqliteDbUtil );
+    btComm = new BTCommunication( LOGGER, databaseUtil );
     btComm.addActionListener( this );
-    initializeGUI();
+    try
+    {
+      initializeGUI();
+    }
+    catch( SQLException ex )
+    {
+      System.err.println( "ERROR while create GUI: <" + ex.getLocalizedMessage() + ">" );
+      ex.printStackTrace();
+      System.exit( -1 );
+    }
+    catch( ClassNotFoundException ex )
+    {
+      System.err.println( "ERROR while create GUI: <" + ex.getLocalizedMessage() + ">" );
+      ex.printStackTrace();
+      System.exit( -1 );
+    }
     // Listener setzen (braucht auch die Maps)
     setGlobalChangeListener();
     String[] entrys = btComm.getNameArray( false );
@@ -802,13 +817,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void exitProgram()
   {
-    if( sqliteDbUtil != null )
+    if( databaseUtil != null )
     {
-      if( sqliteDbUtil.isOpenDB() )
+      if( databaseUtil.isOpenDB() )
       {
-        sqliteDbUtil.closeDB();
+        databaseUtil.closeDB();
       }
-      sqliteDbUtil = null;
+      databaseUtil = null;
     }
     if( btComm != null )
     {
@@ -848,8 +863,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
 
   /**
    * Initialize the contents of the frame.
+   * 
+   * @throws ClassNotFoundException
+   * @throws SQLException
    */
-  private void initializeGUI()
+  private void initializeGUI() throws SQLException, ClassNotFoundException
   {
     frmMainwindowtitle = new JFrame();
     frmMainwindowtitle.setFont( new Font( "Arial", Font.PLAIN, 12 ) );
@@ -869,7 +887,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     frmMainwindowtitle.getContentPane().add( tabbedPane, BorderLayout.CENTER );
     tabbedPane.addMouseMotionListener( this );
     // Connection Panel
-    connectionPanel = new spx42ConnectPanel( LOGGER, sqliteDbUtil, btComm );
+    connectionPanel = new spx42ConnectPanel( LOGGER, databaseUtil, btComm );
     tabbedPane.addTab( "CONNECTION", null, connectionPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_CONNECT.ordinal(), true );
     // config Panel
@@ -881,15 +899,15 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_GASLIST.ordinal(), true );
     // Loglisten Panel
-    logListPanel = new spx42LoglistPanel( LOGGER, this, progConfig.getDatabaseDir().getAbsolutePath() );
+    logListPanel = new spx42LoglistPanel( LOGGER, this, databaseUtil );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_LOGREAD.ordinal(), true );
     // Grafik Panel
-    logGraphPanel = new spx42LogGraphPanel( LOGGER, sqliteDbUtil, progConfig );
+    logGraphPanel = new spx42LogGraphPanel( LOGGER, databaseUtil, progConfig );
     tabbedPane.addTab( "GRAPH", null, logGraphPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_LOGGRAPH.ordinal(), true );
     // import/export Panel
-    fileManagerPanel = new spx42FileManagerPanel( LOGGER, this, sqliteDbUtil, progConfig );
+    fileManagerPanel = new spx42FileManagerPanel( LOGGER, this, databaseUtil, progConfig );
     tabbedPane.addTab( "EXPORT", null, fileManagerPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_FILEMANAGER.ordinal(), true );
     // MENÜ
@@ -1247,16 +1265,29 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void prepareDatabase()
   {
     // Verbindung zum Datenbanktreiber
-    sqliteDbUtil = new ConnectDatabaseUtil( LOGGER, progConfig.getDatabaseDir().getAbsolutePath() + File.separator + ProjectConst.DB_FILENAME );
-    if( sqliteDbUtil == null )
+    databaseUtil = new LogDerbyDatabaseUtil( LOGGER, progConfig.getDatabaseDir(), this );
+    if( databaseUtil == null )
     {
       LOGGER.log( Level.SEVERE, "can connect to database drivers!" );
       System.exit( -1 );
     }
     // öffne die Datenbank
     // ging das?
-    if( sqliteDbUtil.createConnection() == null )
+    try
     {
+      if( databaseUtil.createConnection() == null )
+      {
+        System.exit( -1 );
+      }
+    }
+    catch( SQLException ex )
+    {
+      ex.printStackTrace();
+      System.exit( -1 );
+    }
+    catch( ClassNotFoundException ex )
+    {
+      ex.printStackTrace();
       System.exit( -1 );
     }
     // hier ist alles gut...
@@ -2486,11 +2517,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     LOGGER.log( Level.FINE, "create an show propertys dialog..." );
-    // Wenn da was passieren sollte, muss die DB geschlossen sein.
-    if( sqliteDbUtil != null )
-    {
-      sqliteDbUtil.closeDB();
-    }
     ProgramProperetysDialog pDial = new ProgramProperetysDialog( stringsBundle, progConfig, LOGGER );
     // pDial.setVisible( true );
     if( pDial.showModal() )
@@ -2499,17 +2525,16 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // progConfig = pDial.getProcConfig();
       if( progConfig.isWasChanged() )
       {
+        // Wenn da was passieren sollte, muss die DB geschlossen sein.
+        if( databaseUtil != null )
+        {
+          databaseUtil.closeDB();
+        }
         showWarnBox( "RESTART PROGRAMM!" );
         pDial.dispose();
         exitProgram();
       }
       LOGGER.log( Level.FINE, "dialog whith OK closed NO Changes...." );
-      // reconnect mit DB
-      if( sqliteDbUtil.createConnection() == null )
-      {
-        LOGGER.severe( "can't reconnect to database! ABORT!" );
-        System.exit( -1 );
-      }
     }
     else
     {
@@ -2636,7 +2661,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           // Grafiksachen initialisieren
           try
           {
-            logGraphPanel.initGraph( connDev, progConfig.getDatabaseDir() );
+            logGraphPanel.initGraph( connDev );
           }
           catch( Exception ex )
           {
@@ -2664,7 +2689,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           // Panel initialisieren
           try
           {
-            logListPanel.closeDatabase();
             fileManagerPanel.initData( connDev, progConfig.getDatabaseDir() );
           }
           catch( Exception ex )
@@ -2694,11 +2718,16 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           // Panel initialisieren
           LOGGER.log( Level.FINE, "logreader tab select, init gui..." );
+          String connDev = null;
+          if( btComm != null )
+          {
+            connDev = btComm.getConnectedDevice();
+          }
+          logListPanel.prepareLogListPanel( connDev );
         }
         else
         {
-          // Panel Daten freigeben
-          logListPanel.closeDatabase();
+          logListPanel.releasePanel();
         }
         //
         // ist es das Gaspanel?

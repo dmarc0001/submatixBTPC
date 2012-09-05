@@ -46,26 +46,6 @@ public class LogDerbyDatabaseUtil
 
   /**
    * 
-   * Das Datenbankmodul für den Logger erzeugen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.09.2012
-   * @param LOGGER
-   *          Logausgabe
-   * @param dbFolder
-   */
-  // public LogDerbyDatabaseUtil( Logger LOGGER, File dbFolder )
-  // {
-  // this.LOGGER = LOGGER;
-  // this.dbFolder = dbFolder;
-  // conn = null;
-  // aListener = null;
-  // }
-  /**
-   * 
    * Alternativer Konstruktor mit ActionListener
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
@@ -1380,17 +1360,18 @@ public class LogDerbyDatabaseUtil
    * @param filename
    * @return Log schon gespeichert?
    */
-  public boolean isLogSavedLog( String filename )
+  public int isLogSavedLog( String filename )
   {
     String sql;
     Statement stat;
     ResultSet rs;
+    int dbId = -1;
     //
     LOGGER.log( Level.FINE, "was log <" + filename + "> always saved?" );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( false );
+      return( -1 );
     }
     //@formatter:off
     sql = String.format( 
@@ -1408,9 +1389,10 @@ public class LogDerbyDatabaseUtil
       if( rs.next() )
       {
         LOGGER.log( Level.FINE, String.format( "file <%s> was saved.", filename ) );
+        dbId = rs.getInt( 1 );
         rs.close();
         stat.close();
-        return( true );
+        return( dbId );
       }
       LOGGER.log( Level.FINE, "log <" + filename + "> was not saved." );
       rs.close();
@@ -1419,9 +1401,9 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.log( Level.SEVERE, "Can't select from database! (" + ex.getLocalizedMessage() + ")" );
-      return( false );
+      return( -1 );
     }
-    return( false );
+    return( -1 );
   }
 
   /**
@@ -2110,6 +2092,93 @@ public class LogDerbyDatabaseUtil
     {
       LOGGER.log( Level.SEVERE, "Can't insert into database! (" + ex.getLocalizedMessage() + ")" );
       return( -1 );
+    }
+  }
+
+  /**
+   * 
+   * Kopfdaten als Strings für eine Id zurückgeben
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dbId
+   * @return Array von Strings
+   */
+  public String[] getHeadDiveDataFromIdAsSTringLog( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String[] diveHeadData = null;
+    //
+    LOGGER.log( Level.FINE, "read head data for spx dive number <" + dbId + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format(
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_DIVENUMBERONSPX,
+            ProjectConst.H_FILEONSPX,
+            ProjectConst.H_DEVICEID,
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_HADSEND,
+            ProjectConst.H_FIRSTTEMP,
+            ProjectConst.H_LOWTEMP,
+            ProjectConst.H_MAXDEPTH,
+            ProjectConst.H_SAMPLES,
+            ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_UNITS,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        diveHeadData = new String[12];
+        // Daten kosolidieren
+        diveHeadData[0] = rs.getString( 1 );
+        diveHeadData[1] = rs.getString( 2 );
+        diveHeadData[2] = rs.getString( 3 );
+        diveHeadData[3] = rs.getString( 4 );
+        diveHeadData[4] = rs.getString( 5 );
+        diveHeadData[5] = rs.getString( 6 );
+        diveHeadData[6] = rs.getString( 7 );
+        diveHeadData[7] = rs.getString( 8 );
+        diveHeadData[8] = String.format( "%-3.1f", ( rs.getDouble( 9 ) / 10.0 ) ); // Tiefe
+        diveHeadData[9] = rs.getString( 10 );
+        // Minuten/Sekunden ausrechnen
+        int minutes = rs.getInt( 11 ) / 60;
+        int secounds = rs.getInt( 11 ) % 60;
+        diveHeadData[10] = String.format( "%d:%02d", minutes, secounds );
+        if( rs.getInt( 12 ) == ProjectConst.UNITS_IMPERIAL )
+        {
+          diveHeadData[11] = "IMPERIAL"; // Einheiten
+        }
+        else
+        {
+          diveHeadData[11] = "METRIC"; // Einheiten
+        }
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read head data for spx dive number <" + dbId + "> from DB...OK" );
+      return( diveHeadData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
     }
   }
 }

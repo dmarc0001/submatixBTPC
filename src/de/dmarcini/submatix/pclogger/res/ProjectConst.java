@@ -18,10 +18,10 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "0.11beta";
+  public static final String MANUFACTVERS               = "0.12beta";
   public static final String GENYEAR                    = "2012";
   public static final String GENMONTH                   = "09";
-  public static final String GENDAY                     = "04";
+  public static final String GENDAY                     = "05";
 
   // interne Begrenzung für Empfangspuffer
   public static final int    MAXINBUFFER                = 10 * 1024;
@@ -145,7 +145,7 @@ public final class ProjectConst
 
   // DATENBANK
   // Dateiname für SQLite3
-  public static final String DB_FILENAME                = "spx42Base.db";
+  //public static final String DB_FILENAME                = "spx42Base.db";
   public static int          DB_VERSION                 = 4;
   // Datenbanktabellen
   //

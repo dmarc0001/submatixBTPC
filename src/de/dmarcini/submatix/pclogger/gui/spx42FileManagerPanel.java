@@ -8,7 +8,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseMotionListener;
-import java.io.File;
 import java.util.Enumeration;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -56,9 +55,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   private final SpxPcloggerProgramConfig progConfig;
   private ResourceBundle                 stringsBundle;
   private final LogDerbyDatabaseUtil     sqliteDbUtil;
-  private File                           dataDir;
   private final MouseMotionListener      mListener;
-  // private final ActionListener aListener;
   private JTable                         dataViewTable;
   private JComboBox                      deviceComboBox;
   private JButton                        cancelButton;
@@ -325,8 +322,8 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   {
     DateTime dateTime;
     long javaTime;
-    int spxNumber;
     int row = 0;
+    int dbId = -1;
     //
     // Alias fürs Gerät zurücksuchen
     //
@@ -366,7 +363,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
         {
           // Die Tauchgangszeit formatieren
           javaTime = Long.parseLong( origSet[2] ) * 1000;
-          spxNumber = Integer.parseInt( origSet[1] );
+          dbId = Integer.parseInt( origSet[0] );
           dateTime = new DateTime( javaTime );
           diveEntrys[row][4] = origSet[0];
           diveEntrys[row][0] = origSet[1];
@@ -384,17 +381,16 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
           // [9] H_SAMPLES,
           // [10] H_DIVELENGTH,
           // [11] H_UNITS,
-          // TODO: H_ier noch abhilfe
-          // String[] headers = sqliteDbUtil.getDiveHeadsForDiveNumAsStrings( spxNumber );
-          // if( headers[11].equals( "METRIC" ) )
-          // {
-          // diveEntrys[row][2] = headers[8] + " m";
-          // }
-          // else
-          // {
-          // diveEntrys[row][2] = headers[8] + " ft";
-          // }
-          // diveEntrys[row][3] = headers[10] + " min";
+          String[] headers = sqliteDbUtil.getHeadDiveDataFromIdAsSTringLog( dbId );
+          if( headers[11].equals( "METRIC" ) )
+          {
+            diveEntrys[row][2] = headers[8] + " m";
+          }
+          else
+          {
+            diveEntrys[row][2] = headers[8] + " ft";
+          }
+          diveEntrys[row][3] = headers[10] + " min";
         }
         catch( NumberFormatException ex )
         {
@@ -442,10 +438,9 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
    * 
    *         Stand: 13.08.2012
    * @param connDev
-   * @param dDir
    * @throws Exception
    */
-  public void initData( String connDev, File dDir ) throws Exception
+  public void initData( String connDev ) throws Exception
   {
     String connDevAlias = null;
     //
@@ -453,7 +448,6 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     deviceComboBox.removeActionListener( this );
     releaseLists();
-    dataDir = dDir;
     if( connDev == null )
     {
       LOGGER.log( Level.FINE, "init export objects whitout active Device" );

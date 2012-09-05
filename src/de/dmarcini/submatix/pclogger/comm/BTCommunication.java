@@ -775,7 +775,7 @@ public class BTCommunication implements IBTCommunication
      * 
      * @author Dirk Marciniak (dirk_marciniak@arcor.de)
      * 
-     *         Stand: 06.05.2012 TODO
+     *         Stand: 06.05.2012
      */
     public synchronized void doTeminate()
     {
@@ -920,7 +920,7 @@ public class BTCommunication implements IBTCommunication
         deviceHash.clear();
         // suche nach Serial devices
         UUID serviceUUID = UUID_SERIAL_DEVICE;
-        // Event Objet TODO:
+        // Event Objet
         final Object serviceSearchCompletedEvent = new Object();
         // Inline Klasse
         DiscoveryListener listener = new DiscoveryListener() {

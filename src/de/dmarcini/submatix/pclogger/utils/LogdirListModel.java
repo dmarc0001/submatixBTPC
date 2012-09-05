@@ -62,9 +62,21 @@ public class LogdirListModel extends DefaultListModel
     // String[0] = Nummer
     // String[1] = Lesbarer Name
     // String[2] = Schon in der DB?
+    // String[3] = dbId wenn vorhanden
     String[] element =
-    { String.format( "%03d", number ), name, inDB };
-    // super.addElement( element );
+    { String.format( "%03d", number ), name, inDB, "-1" };
+    super.add( 0, element );
+  }
+
+  public void addLogentry( int number, String name, String inDB, int dbId )
+  {
+    // Die Einträge in der Form:
+    // String[0] = Nummer
+    // String[1] = Lesbarer Name
+    // String[2] = Schon in der DB?
+    // String[3] = dbId wenn vorhanden
+    String[] element =
+    { String.format( "%03d", number ), name, inDB, String.format( "%d", dbId ) };
     super.add( 0, element );
   }
 
@@ -171,5 +183,29 @@ public class LogdirListModel extends DefaultListModel
       return( false );
     }
     return( true );
+  }
+
+  public int getDbIdAt( int number )
+  {
+    int dbId = -1;
+    //
+    if( super.isEmpty() )
+    {
+      return( -1 );
+    }
+    String[] element = ( String[] )super.getElementAt( number );
+    if( element.length >= 4 )
+    {
+      try
+      {
+        dbId = Integer.parseInt( element[3] );
+        return( dbId );
+      }
+      catch( NumberFormatException ex )
+      {
+        System.err.println( "NUMBERFORMATEXEPTION on " + element[3] + "(" + ex.getMessage() + ")" );
+      }
+    }
+    return( -1 );
   }
 }

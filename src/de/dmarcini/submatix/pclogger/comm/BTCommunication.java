@@ -798,7 +798,7 @@ public class BTCommunication implements IBTCommunication
    * @param lg
    * @param dbUtil
    */
-  public BTCommunication( Logger lg, final ConnectDatabaseUtil dbUtil )
+  public BTCommunication( final Logger lg, final ConnectDatabaseUtil dbUtil )
   {
     LOGGER = lg;
     this.dbUtil = dbUtil;
@@ -1096,7 +1096,7 @@ public class BTCommunication implements IBTCommunication
     String deviceAlias = null, devicePin = null;
     //
     deviceName = devName;
-    connectedDevice = null;
+    this.connectedDevice = null;
     // suche die URL für die Verbindung
     // hab ich hier direkt den Devicenamen erwischt?
     if( connectHash.containsKey( deviceName ) && deviceHash.containsKey( deviceName ) )
@@ -1104,7 +1104,7 @@ public class BTCommunication implements IBTCommunication
       LOGGER.log( Level.FINE, "device name found in list. can try to connect device..." );
       // Ich hab den Gerätenamen gefunden, kann verbinden
       url = connectHash.get( deviceName );
-      connectedDevice = deviceHash.get( deviceName );
+      this.connectedDevice = deviceHash.get( deviceName );
       if( aListener != null )
       {
         ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTING, null );
@@ -1122,7 +1122,7 @@ public class BTCommunication implements IBTCommunication
         LOGGER.log( Level.FINE, "ok, it was an alias. device name is <" + deviceName + ">..." );
         // Der Alias stand für einen Gerätenamen, und für den gibt es eine url
         url = connectHash.get( deviceName );
-        connectedDevice = deviceHash.get( deviceName );
+        this.connectedDevice = deviceHash.get( deviceName );
         if( aListener != null )
         {
           ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTING, null );
@@ -1134,7 +1134,7 @@ public class BTCommunication implements IBTCommunication
         // das geht nicht! Kann nicht herausfinden, mit wem ich verbinden soll!
         LOGGER.log( Level.SEVERE, "device" + deviceName + "is not in list and not an alias. give up!" );
         deviceName = null;
-        connectedDevice = null;
+        this.connectedDevice = null;
         if( aListener != null )
         {
           ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTNODEVCONN, null );
@@ -1148,7 +1148,7 @@ public class BTCommunication implements IBTCommunication
     {
       if( log ) LOGGER.log( Level.FINE, "Connect to Device <" + deviceName + ">" );
       // Verbinden....
-      if( connectedDevice.isAuthenticated() )
+      if( this.connectedDevice.isAuthenticated() )
       {
         // Wenn device authentifiziert ist, alles OK
         if( log ) LOGGER.log( Level.INFO, "Device is Authentificated" );
@@ -1172,7 +1172,7 @@ public class BTCommunication implements IBTCommunication
         {
           // ich habe eine PIN in meinem Speicher
           if( log ) LOGGER.log( Level.INFO, "try autentificating whith pin <" + devicePin + ">" );
-          RemoteDeviceHelper.authenticate( connectedDevice, devicePinHash.get( deviceName ) );
+          RemoteDeviceHelper.authenticate( this.connectedDevice, devicePinHash.get( deviceName ) );
           conn = ( StreamConnection )Connector.open( url );
           // Die Verbindung nun in die Alias Datenbank eintragen, wenn nicht schon vorhanden
           deviceAlias = dbUtil.getAliasForName( deviceName );
@@ -1197,7 +1197,7 @@ public class BTCommunication implements IBTCommunication
             aListener.actionPerformed( ex );
           }
           // isConnected = false;
-          connectedDevice = null;
+          this.connectedDevice = null;
           deviceName = null;
           return;
         }
@@ -1238,7 +1238,7 @@ public class BTCommunication implements IBTCommunication
     catch( BluetoothConnectionException ex )
     {
       isConnected = false;
-      connectedDevice = null;
+      this.connectedDevice = null;
       if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <" + ex.getLocalizedMessage() + ">" );
       if( aListener != null )
       {
@@ -1277,7 +1277,7 @@ public class BTCommunication implements IBTCommunication
     catch( Exception ex )
     {
       isConnected = false;
-      connectedDevice = null;
+      this.connectedDevice = null;
       if( log ) LOGGER.log( Level.SEVERE, "Exception <" + ex.getLocalizedMessage() + ">" );
       if( aListener != null )
       {
@@ -1664,7 +1664,7 @@ public class BTCommunication implements IBTCommunication
     if( isConnected )
     {
       // ich muss mal sehen, ob da ein Eintrag ist oder besorgt werden kann
-      if( connectedDevice == null )
+      if( this.connectedDevice == null )
       {
         LOGGER.log( Level.WARNING, "connected Device is NULL!" );
         // Kein Eintrag da...
@@ -1682,12 +1682,12 @@ public class BTCommunication implements IBTCommunication
         }
         // eintrag besorgen
         LOGGER.log( Level.WARNING, "connected Device read from Hash" );
-        connectedDevice = deviceHash.get( deviceName );
+        this.connectedDevice = deviceHash.get( deviceName );
       }
-      // ich muss mal sehen, ob da ein Eintrag un da ist
-      if( connectedDevice != null )
+      // ich muss mal sehen, ob da ein Eintrag nun da ist
+      if( this.connectedDevice != null )
       {
-        return( connectedDevice.getBluetoothAddress() );
+        return( this.connectedDevice.getBluetoothAddress() );
       }
       LOGGER.log( Level.WARNING, "connected Device is again NULL!" );
     }

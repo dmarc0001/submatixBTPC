@@ -2689,7 +2689,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           // Panel initialisieren
           try
           {
-            fileManagerPanel.initData( connDev, progConfig.getDatabaseDir() );
+            fileManagerPanel.initData( connDev );
           }
           catch( Exception ex )
           {

@@ -207,8 +207,8 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
     {
       stat = conn.createStatement();
       stat.execute( sql );
-      conn.commit();
       stat.close();
+      conn.commit();
     }
     catch( SQLException ex )
     {
@@ -584,6 +584,11 @@ public class ConnectDatabaseUtil implements IConnectDatabaseUtil
       return( false );
     }
     LOGGER.log( Level.FINE, "try to set pin for device..." );
+    if( null == getAliasForName( dev ) )
+    {
+      LOGGER.log( Level.WARNING, "no Aliasname fpr Device..." );
+      return( false );
+    }
     // jetzt kann ich die PIN einbauen, wenn datensatz schon vorhanden
     sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_PIN, pin, ProjectConst.A_DEVNAME, dev );
     try

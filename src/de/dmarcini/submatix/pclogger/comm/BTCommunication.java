@@ -11,6 +11,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -825,7 +828,7 @@ public class BTCommunication implements IBTCommunication
         ex.printStackTrace();
       }
     }
-    String[][] alData = dbUtil.getAliasDataConn();
+    Vector<String[]> alData = dbUtil.getAliasDataConn();
     // gibt es welche: eintragen
     if( alData != null )
     {
@@ -945,15 +948,7 @@ public class BTCommunication implements IBTCommunication
               }
               DataElement serviceName = servRecord[i].getAttributeValue( 0x0100 );
               String devName;
-              // try
-              // {
-              // devName = servRecord[i].getHostDevice().getFriendlyName( false );
               devName = servRecord[i].getHostDevice().getBluetoothAddress();
-              // }
-              // catch( IOException ex )
-              // {
-              // devName = "unknown";
-              // }
               if( serviceName != null )
               {
                 String sName = ( ( String )serviceName.getValue() );
@@ -1054,16 +1049,16 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
-  public String[] getNameArray( boolean alFromDb )
+  public Vector<String[]> getNameArray( boolean alFromDb )
   {
-    ArrayList<String> nList = new ArrayList<String>();
-    String alias = null;
+    Vector<String[]> alData = null;
+    //
+    alData = dbUtil.getAliasDataConn();
     //
     // wenn aliase verändert wurden, neu einlesen
     //
     if( alFromDb )
     {
-      String[][] alData = dbUtil.getAliasDataConn();
       deviceAliasHash.clear();
       // gibt es welche: eintragen
       if( alData != null )
@@ -1074,27 +1069,42 @@ public class BTCommunication implements IBTCommunication
         }
       }
     }
+    // devicehash noch zufügen?
+    // dazu alle Einträge aus der Datenbank mit den gefundenen Einträgen vergleichen
     //
-    // jetzt das eigentliche Geschäft
-    //
-    if( log ) LOGGER.log( Level.FINE, "make stringarray of Services..." );
-    for( String dev : deviceHash.keySet() )
+    Iterator<String> it = deviceHash.keySet().iterator();
+    // Alle Einträge aus dem deviceHash vergleichen,
+    // ob der schon in der Datenbank vorhanden war
+    while( it.hasNext() )
     {
-      // Jetzt bringe (falls vorhanden) den Alias in Erfahrung...
-      if( deviceAliasHash.containsKey( dev ) )
+      // Einen DeviceHash eintrag bearbeiten (DeviceID)
+      String devEntr = it.next();
+      // Voreingestellt: Er war nicht in der DB
+      boolean wasPresent = false;
+      // ist nun der Devivename schon im Vector entalten?
+      // dazu mit allen Einträgen aus dem Vector vergleichen
+      ListIterator<String[]> lit = alData.listIterator();
+      while( lit.hasNext() )
       {
-        alias = deviceAliasHash.get( dev );
+        String[] entr = lit.next();
+        if( entr[0].equals( devEntr ) )
+        {
+          // War vorhanden, kann also ignoriert werden
+          wasPresent = true;
+          break;
+        }
       }
-      else
+      // War jetzt der Wert schon in der DB vorhanden
+      if( !wasPresent )
       {
-        alias = dev;
+        // war nicht vorhanden, also zufügen
+        String[] e = new String[2];
+        e[0] = devEntr;
+        e[1] = devEntr;
+        alData.add( e );
       }
-      // Aliase in die Liste
-      nList.add( alias );
     }
-    int size = nList.size();
-    String[] list = new String[size];
-    return( nList.toArray( list ) );
+    return( alData );
   }
 
   @Override
@@ -1127,35 +1137,16 @@ public class BTCommunication implements IBTCommunication
     }
     else
     {
-      // nicht gefunden. Es könnte ein Alias sein, versuche das.
-      LOGGER.log( Level.FINE, "device name not found in list. try found as alias..." );
-      deviceAlias = deviceName;
-      this.deviceName = dbUtil.getNameForAliasConn( deviceAlias );
-      if( deviceName != null && connectHash.containsKey( deviceName ) && deviceHash.containsKey( deviceName ) )
+      // das geht nicht! Kann nicht herausfinden, mit wem ich verbinden soll!
+      LOGGER.log( Level.SEVERE, "device" + deviceName + "is not in list and not an alias. give up!" );
+      this.deviceName = null;
+      this.connectedDevice = null;
+      if( aListener != null )
       {
-        LOGGER.log( Level.FINE, "ok, it was an alias. device name is <" + deviceName + ">..." );
-        // Der Alias stand für einen Gerätenamen, und für den gibt es eine url
-        url = connectHash.get( deviceName );
-        this.connectedDevice = deviceHash.get( deviceName );
-        if( aListener != null )
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTING, null );
-          aListener.actionPerformed( ex );
-        }
+        ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTNODEVCONN, null );
+        aListener.actionPerformed( ex );
       }
-      else
-      {
-        // das geht nicht! Kann nicht herausfinden, mit wem ich verbinden soll!
-        LOGGER.log( Level.SEVERE, "device" + deviceName + "is not in list and not an alias. give up!" );
-        this.deviceName = null;
-        this.connectedDevice = null;
-        if( aListener != null )
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTNODEVCONN, null );
-          aListener.actionPerformed( ex );
-        }
-        return;
-      }
+      return;
     }
     // So, das Verbinden halt...
     try

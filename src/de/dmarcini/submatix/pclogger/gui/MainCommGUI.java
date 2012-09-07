@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Vector;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -32,8 +33,6 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -66,6 +65,7 @@ import org.joda.time.format.DateTimeFormatter;
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.ConfigReadWriteException;
+import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.ReadConfig;
@@ -451,8 +451,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     // Listener setzen (braucht auch die Maps)
     setGlobalChangeListener();
-    String[] entrys = btComm.getNameArray( false );
-    ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
+    Vector<String[]> entrys = btComm.getNameArray( false );
+    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
     initLanuageMenu( programLocale );
     if( !DEBUG )
@@ -708,7 +708,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
       return;
     }
-    String deviceName = ( String )connectionPanel.deviceToConnectComboBox.getItemAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
+    String deviceName = ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getDeviceIdAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
     LOGGER.log( Level.FINE, "connect via device <" + deviceName + ">..." );
     if( btComm.isConnected() )
     {
@@ -2154,8 +2154,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void refillPortComboBox()
   {
-    String[] entrys = btComm.getNameArray( false );
-    ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
+    Vector<String[]> entrys = btComm.getNameArray( false );
+    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
   }
 

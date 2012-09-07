@@ -6,11 +6,10 @@ import java.awt.Insets;
 import java.sql.SQLException;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -26,6 +25,7 @@ import javax.swing.event.TableModelListener;
 
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.utils.AliasEditTableModel;
+import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 
 public class spx42ConnectPanel extends JPanel implements TableModelListener
@@ -43,8 +43,8 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
   public JButton               deviceAliasButton;
   public JTable                aliasEditTable;
   private JScrollPane          aliasScrollPane;
-  private String[]             columnNames      = null;
-  private String[][]           aliasData        = null;
+  private Vector<String>       columnNames      = null;
+  private Vector<String[]>     aliasData        = null;
   private LogDerbyDatabaseUtil databaseUtil     = null;
   private ResourceBundle       stringsBundle    = null;
   private BTCommunication      btComm           = null;
@@ -74,15 +74,15 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     this.btComm = btComm;
     // dbUtil.closeDB();
     aliasData = null;
-    columnNames = new String[2];
-    columnNames[0] = "DEVICE";
-    columnNames[1] = "ALIAS";
+    columnNames = new Vector<String>();
+    columnNames.add( "DEVICE" );
+    columnNames.add( "ALIAS" );
     initPanel();
     if( !databaseUtil.isOpenDB() )
     {
       databaseUtil.createConnection();
     }
-    aliasData = databaseUtil.getAliasDataConn();
+    // aliasData = databaseUtil.getAliasDataConn();
     setAliasesEditable( false );
   }
 
@@ -98,6 +98,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     deviceToConnectComboBox.setPreferredSize( new Dimension( 220, 40 ) );
     deviceToConnectComboBox.setMinimumSize( new Dimension( 180, 20 ) );
     deviceToConnectComboBox.setMaximumSize( new Dimension( 500, 40 ) );
+    deviceToConnectComboBox.setModel( new DeviceComboBoxModel() );
     connectButton = new JButton( "CONNECT" );
     connectButton.setLocation( 347, 24 );
     connectButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/112-mono.png" ) ) );
@@ -209,8 +210,9 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
       deviceAliasButton.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.deviceAliasButton.tooltiptext" ) );
       //
       //
-      columnNames[0] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn00.text" );
-      columnNames[1] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn01.text" );
+      columnNames.clear();
+      columnNames.add( stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn00.text" ) );
+      columnNames.add( stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn01.text" ) );
       LOGGER.log( Level.FINE, "fill aliases in stringarray..." );
       aliasData = databaseUtil.getAliasDataConn();
       if( aliasData != null )
@@ -278,8 +280,9 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
    */
   public void refreshAliasTable()
   {
-    columnNames[0] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn00.text" );
-    columnNames[1] = stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn01.text" );
+    columnNames.clear();
+    columnNames.add( stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn00.text" ) );
+    columnNames.add( stringsBundle.getString( "spx42ConnectPanel.aliasTableColumn01.text" ) );
     LOGGER.log( Level.FINE, "fill aliases in stringarray..." );
     aliasData = databaseUtil.getAliasDataConn();
     if( aliasData != null )
@@ -359,8 +362,8 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     databaseUtil.updateDeviceAliasConn( devName, devAlias );
     // Jetzt die Verbindungsbox neu einlesen, sonst gibte Chaos ;-)
     LOGGER.log( Level.FINE, "read combobox entrys again...." );
-    String[] entrys = btComm.getNameArray( true );
-    ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
+    Vector<String[]> entrys = btComm.getNameArray( true );
+    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     deviceToConnectComboBox.setModel( portBoxModel );
   }
 

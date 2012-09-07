@@ -14,8 +14,6 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
@@ -41,6 +39,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.joda.time.DateTime;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
+import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogListComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.MinuteFormatter;
@@ -116,7 +115,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     String cmd = ev.getActionCommand();
     String entry = null;
-    int index, dbId;
+    int dbId;
     String device;
     //
     // /////////////////////////////////////////////////////////////////////////
@@ -129,23 +128,21 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       if( cmd.equals( "show_log_graph" ) )
       {
         LOGGER.log( Level.FINE, "show log graph initiated." );
-        // welches Device (wichtig um das richtige DB-File zu wählen)
-        index = deviceComboBox.getSelectedIndex();
-        if( index < 0 )
+        // welches Device ?
+        if( deviceComboBox.getSelectedIndex() < 0 )
         {
           // kein Gerät ausgewählt
           LOGGER.log( Level.WARNING, "no device selected." );
           return;
         }
-        device = databaseUtil.getNameForAliasConn( ( String )deviceComboBox.getSelectedItem() );
         // welchen Tauchgang?
-        index = diveSelectComboBox.getSelectedIndex();
-        if( index < 0 )
+        if( diveSelectComboBox.getSelectedIndex() < 0 )
         {
           LOGGER.log( Level.WARNING, "no dive selected." );
           return;
         }
-        dbId = ( ( LogListComboBoxModel )diveSelectComboBox.getModel() ).getDatabaseIdAt( index );
+        device = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceIdAt( deviceComboBox.getSelectedIndex() );
+        dbId = ( ( LogListComboBoxModel )diveSelectComboBox.getModel() ).getDatabaseIdAt( diveSelectComboBox.getSelectedIndex() );
         if( dbId < 0 )
         {
           LOGGER.log( Level.SEVERE, "can't find database id for dive." );
@@ -189,9 +186,12 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       // Gerät zur Grafischen Darstellung auswählen
       if( cmd.equals( "change_device_to_display" ) )
       {
-        entry = ( String )srcBox.getSelectedItem();
-        LOGGER.log( Level.FINE, "device <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
-        fillDiveComboBox( entry );
+        if( srcBox.getModel() instanceof DeviceComboBoxModel )
+        {
+          entry = ( ( DeviceComboBoxModel )srcBox.getModel() ).getDeviceIdAt( srcBox.getSelectedIndex() );
+          LOGGER.log( Level.FINE, "device <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
+          fillDiveComboBox( entry );
+        }
       }
       // /////////////////////////////////////////////////////////////////////////
       // Dive zur Grafischen Darstellung auswählen
@@ -327,15 +327,13 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    *         Stand: 02.07.2012
    * @param deviceAlias
    */
-  private void fillDiveComboBox( String deviceAlias )
+  private void fillDiveComboBox( String cDevice )
   {
     String device;
     DateTime dateTime;
     long javaTime;
     //
-    // Alias fürs Gerät zurücksuchen
-    //
-    device = databaseUtil.getNameForAliasConn( deviceAlias );
+    device = cDevice;
     if( device != null )
     {
       LOGGER.log( Level.FINE, "search dive list for device <" + device + ">..." );
@@ -345,7 +343,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       Vector<String[]> entrys = databaseUtil.getDiveListForDeviceLog( device );
       if( entrys.size() < 1 )
       {
-        LOGGER.log( Level.INFO, "no dives for device <" + deviceAlias + "/" + device + "> found in DB." );
+        LOGGER.log( Level.INFO, "no dives for device <" + cDevice + "/" + databaseUtil.getAliasForNameConn( device ) + "> found in DB." );
         clearDiveComboBox();
         return;
       }
@@ -459,7 +457,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    */
   public void initGraph( String connDev ) throws Exception
   {
-    String connDevAlias = null;
     //
     // entsorge für alle Fälle das Zeug von vorher
     releaseGraph();
@@ -478,16 +475,10 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     {
       throw new Exception( "no database object initiated!" );
     }
-    // Alias fürs Gerät
-    if( connDev != null )
-    {
-      connDevAlias = databaseUtil.getAliasForNameConn( connDev );
-      LOGGER.log( Level.FINE, "Device <" + connDev + "> has alias <" + connDevAlias + ">..." );
-    }
     //
     // Lese eine Liste der Tauchgänge für dieses Gerät
     //
-    String[] entrys = databaseUtil.readDevicesFromDatabaseConn();
+    Vector<String[]> entrys = databaseUtil.getAliasDataConn();
     if( entrys == null )
     {
       LOGGER.log( Level.WARNING, "no devices found in database." );
@@ -500,22 +491,24 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // fülle deviceComboBox
     //
-    ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
+    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     deviceComboBox.setModel( portBoxModel );
-    if( entrys.length > 1 )
+    if( !entrys.isEmpty() )
     {
-      // wenn kein Alias da ist, brauch ich auchnicht zu suchen
-      if( connDevAlias != null )
+      // wen kein Gerät da ist, brauc ich nicht suchen
+      if( connDev != null )
       {
         // Alle Einträge testen
-        for( int index = 0; index < entrys.length; index++ )
+        int index = 0;
+        for( String[] entr : entrys )
         {
-          if( entrys[index].equals( connDevAlias ) )
+          if( entr[0].equals( connDev ) )
           {
             deviceComboBox.setSelectedIndex( index );
-            LOGGER.log( Level.FINE, "device alias found and set as index für combobox..." );
+            LOGGER.log( Level.FINE, "device found and set as index für combobox..." );
             break;
           }
+          index++;
         }
       }
     }
@@ -525,11 +518,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     if( deviceComboBox.getSelectedIndex() != -1 )
     {
-      connDevAlias = ( String )deviceComboBox.getSelectedItem();
-      if( connDevAlias != null )
-      {
-        fillDiveComboBox( connDevAlias );
-      }
+      connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceIdAt( deviceComboBox.getSelectedIndex() );
+      fillDiveComboBox( connDev );
     }
   }
 

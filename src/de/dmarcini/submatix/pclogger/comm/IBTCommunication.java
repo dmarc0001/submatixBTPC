@@ -10,6 +10,7 @@
 package de.dmarcini.submatix.pclogger.comm;
 
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
@@ -41,9 +42,9 @@ public interface IBTCommunication
    * 
    *         Stand: 26.04.2012
    * @param aliasFromDB
-   * @return TODO
+   * @return NAmen und Aliase
    */
-  public String[] getNameArray( boolean aliasFromDB );
+  public Vector<String[]> getNameArray( boolean aliasFromDB );
 
   public boolean isConnected();
 

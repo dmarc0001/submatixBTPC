@@ -15,8 +15,6 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
@@ -39,6 +37,7 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 
 import org.joda.time.DateTime;
 
+import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.FileManagerTableModel;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
@@ -54,7 +53,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   private String                         device;
   private final SpxPcloggerProgramConfig progConfig;
   private ResourceBundle                 stringsBundle;
-  private final LogDerbyDatabaseUtil     sqliteDbUtil;
+  private final LogDerbyDatabaseUtil     dbUtil;
   private final MouseMotionListener      mListener;
   private JTable                         dataViewTable;
   private JComboBox                      deviceComboBox;
@@ -65,7 +64,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   public spx42FileManagerPanel( Logger LOGGER, MouseMotionListener mListener, LogDerbyDatabaseUtil sqliteDbUtil, SpxPcloggerProgramConfig progConfig )
   {
     this.LOGGER = LOGGER;
-    this.sqliteDbUtil = sqliteDbUtil;
+    this.dbUtil = sqliteDbUtil;
     this.progConfig = progConfig;
     this.mListener = mListener;
     initPanel();
@@ -90,10 +89,10 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
           // ist was ausgewählt?
           if( deviceComboBox.getSelectedIndex() != -1 )
           {
-            String connDevAlias = ( String )deviceComboBox.getSelectedItem();
-            if( connDevAlias != null )
+            String connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceIdAt( deviceComboBox.getSelectedIndex() );
+            if( connDev != null )
             {
-              fillDiveTable( connDevAlias );
+              fillDiveTable( connDev );
             }
           }
         }
@@ -204,7 +203,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     try
     {
-      uddf = new UDDFFileCreateClass( LOGGER, sqliteDbUtil );
+      uddf = new UDDFFileCreateClass( LOGGER, dbUtil );
     }
     catch( ParserConfigurationException ex )
     {
@@ -315,28 +314,26 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     // so, jetzt sollte ich die ID haben, löschen angehen
     //
-    sqliteDbUtil.deleteAllSetsForIdsLog( dbIds );
+    dbUtil.deleteAllSetsForIdsLog( dbIds );
   }
 
-  private void fillDiveTable( String deviceAlias )
+  private void fillDiveTable( String cDevice )
   {
     DateTime dateTime;
     long javaTime;
     int row = 0;
     int dbId = -1;
     //
-    // Alias fürs Gerät zurücksuchen
-    //
-    device = sqliteDbUtil.getNameForAliasConn( deviceAlias );
+    device = cDevice;
     if( device != null )
     {
       LOGGER.log( Level.FINE, "search dive list for device <" + device + ">..." );
       // Eine Liste der Dives lesen
       LOGGER.log( Level.FINE, "read dive list for device from DB..." );
-      Vector<String[]> entrys = sqliteDbUtil.getDiveListForDeviceLog( device );
+      Vector<String[]> entrys = dbUtil.getDiveListForDeviceLog( device );
       if( entrys.size() < 1 )
       {
-        LOGGER.log( Level.INFO, "no dives for device <" + deviceAlias + "/" + device + "> found in DB." );
+        LOGGER.log( Level.INFO, "no dives for device <" + device + "/" + dbUtil.getAliasForNameConn( device ) + "> found in DB." );
         return;
       }
       //
@@ -381,7 +378,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
           // [9] H_SAMPLES,
           // [10] H_DIVELENGTH,
           // [11] H_UNITS,
-          String[] headers = sqliteDbUtil.getHeadDiveDataFromIdAsSTringLog( dbId );
+          String[] headers = dbUtil.getHeadDiveDataFromIdAsSTringLog( dbId );
           if( headers[11].equals( "METRIC" ) )
           {
             diveEntrys[row][2] = headers[8] + " m";
@@ -442,7 +439,6 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
    */
   public void initData( String connDev ) throws Exception
   {
-    String connDevAlias = null;
     //
     // entsorge für alle Fälle das Zeug von vorher
     //
@@ -459,20 +455,14 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     // Ist überhaupt eine Datenbank zum Auslesen vorhanden?
     //
-    if( sqliteDbUtil == null || ( !sqliteDbUtil.isOpenDB() ) )
+    if( dbUtil == null || ( !dbUtil.isOpenDB() ) )
     {
       throw new Exception( "no database object initiated!" );
     }
-    // Alias fürs Gerät
-    if( connDev != null )
-    {
-      connDevAlias = sqliteDbUtil.getAliasForNameConn( connDev );
-      LOGGER.log( Level.FINE, "Device <" + connDev + "> has alias <" + connDevAlias + ">..." );
-    }
     //
-    // Lese eine Liste der Tauchgänge für dieses Gerät
+    // Lese eine Liste der Geräte/Aliase
     //
-    String[] entrys = sqliteDbUtil.readDevicesFromDatabaseConn();
+    Vector<String[]> entrys = dbUtil.getAliasDataConn();
     if( entrys == null )
     {
       LOGGER.log( Level.WARNING, "no devices found in database." );
@@ -485,23 +475,26 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     // fülle deviceComboBox
     //
-    ComboBoxModel portBoxModel = new DefaultComboBoxModel( entrys );
+    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     deviceComboBox.setModel( portBoxModel );
-    if( entrys.length > 1 )
+    if( entrys.isEmpty() )
     {
-      // wenn kein Alias da ist, brauch ich auchnicht zu suchen
-      if( connDevAlias != null )
+      // sind keine Geräte verbunden, nix selektieren
+      deviceComboBox.setSelectedIndex( -1 );
+    }
+    else
+    {
+      // Alle Einträge testen
+      int index = 0;
+      for( String[] entr : entrys )
       {
-        // Alle Einträge testen
-        for( int index = 0; index < entrys.length; index++ )
+        if( entr[0].equals( connDev ) )
         {
-          if( entrys[index].equals( connDevAlias ) )
-          {
-            deviceComboBox.setSelectedIndex( index );
-            LOGGER.log( Level.FINE, "device alias found and set as index für combobox..." );
-            break;
-          }
+          deviceComboBox.setSelectedIndex( index );
+          LOGGER.log( Level.FINE, "device found and set as index für combobox..." );
+          break;
         }
+        index++;
       }
     }
     //
@@ -510,10 +503,10 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     if( deviceComboBox.getSelectedIndex() != -1 )
     {
-      connDevAlias = ( String )deviceComboBox.getSelectedItem();
-      if( connDevAlias != null )
+      connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceIdAt( deviceComboBox.getSelectedIndex() );
+      if( connDev != null )
       {
-        fillDiveTable( connDevAlias );
+        fillDiveTable( connDev );
       }
     }
     deviceComboBox.addActionListener( this );

@@ -3,7 +3,6 @@
  */
 package de.dmarcini.submatix.pclogger.utils;
 
-import java.util.Enumeration;
 import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
@@ -29,18 +28,18 @@ public class LogListComboBoxModel extends DefaultComboBoxModel
    */
   public LogListComboBoxModel( Vector<String[]> listEntrys )
   {
-    super();
-    if( listEntrys == null )
-    {
-      return;
-    }
-    // die vectordaten in das Comboboxmodell reintackern
-    // iterator nutzen
-    for( Enumeration<String[]> en = listEntrys.elements(); en.hasMoreElements(); )
-    {
-      String[] entry = en.nextElement();
-      super.addElement( entry );
-    }
+    super( listEntrys );
+    // if( listEntrys == null )
+    // {
+    // return;
+    // }
+    // // die vectordaten in das Comboboxmodell reintackern
+    // // iterator nutzen
+    // for( Enumeration<String[]> en = listEntrys.elements(); en.hasMoreElements(); )
+    // {
+    // String[] entry = en.nextElement();
+    // super.addElement( entry );
+    // }
   }
 
   /**

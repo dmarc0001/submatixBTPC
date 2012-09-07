@@ -27,8 +27,10 @@ public final class ProjectConst
   public static final int    MAXINBUFFER                = 10 * 1024;
   
   // Buggy Firmware, Temperatur-Lesen, Gradienten-Bug
-  public static final String BUGGY_FIRMWARE_01          = "V2.6.7.7_V";
-  public static final String FIRMWARE_01                = "V2.7_V";
+  public static final String FIRMWARE_2_6_7_7V          = "V2.6.7.7_V";
+  public static final String FIRMWARE_2_7V              = "V2.7_V";
+  public static final int    FW_2_6_7_7V                = 0;
+  public static final int    FW_2_7V                    = 1;
   
   // Verzeichnis für Datenbanken
   public static final String DEFAULTDATADIR             = "database";
@@ -130,10 +132,11 @@ public final class ProjectConst
   public static final int    MESSAGE_BTWAITFOR          = ActionEvent.RESERVED_ID_MAX + 33;
   public static final int    MESSAGE_BTNODEVCONN        = ActionEvent.RESERVED_ID_MAX + 34;
   public static final int    MESSAGE_BTAUTHREQEST       = ActionEvent.RESERVED_ID_MAX + 35;
-  public static final int    MESSAGE_SPXALIVE           = ActionEvent.RESERVED_ID_MAX + 36;
-  public static final int    MESSAGE_PROCESS_NEXT       = ActionEvent.RESERVED_ID_MAX + 37;
-  public static final int    MESSAGE_PROCESS_END        = ActionEvent.RESERVED_ID_MAX + 38;
-  public static final int    MESSAGE_SYCSTAT_OFF        = ActionEvent.RESERVED_ID_MAX + 39;
+  public static final int    MESSAGE_BTMESSAGE          = ActionEvent.RESERVED_ID_MAX + 36;
+  public static final int    MESSAGE_SPXALIVE           = ActionEvent.RESERVED_ID_MAX + 37;
+  public static final int    MESSAGE_PROCESS_NEXT       = ActionEvent.RESERVED_ID_MAX + 38;
+  public static final int    MESSAGE_PROCESS_END        = ActionEvent.RESERVED_ID_MAX + 39;
+  public static final int    MESSAGE_SYCSTAT_OFF        = ActionEvent.RESERVED_ID_MAX + 40;
   
   // Interne Messages
   private static final int   INT_MESSAGE_OFFSET         = 100;

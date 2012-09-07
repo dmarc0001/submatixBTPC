@@ -1907,6 +1907,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         connectSPX();
         break;
       // /////////////////////////////////////////////////////////////////////////
+      // Discover Nachricht gesendet
+      case ProjectConst.MESSAGE_BTMESSAGE:
+        connectionPanel.setBtMessage( "device: " + cmd );
+        break;
+      // /////////////////////////////////////////////////////////////////////////
       // Lebenszeichen mit Ackuspannugn empfangen
       case ProjectConst.MESSAGE_SPXALIVE:
         LOGGER.log( Level.INFO, "acku value from spx42 recived..." );

@@ -25,7 +25,7 @@ import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                                                                                                                          /**
+{                                                                                                                                /**
    * 
    */
   private static final long serialVersionUID     = 1L;
@@ -790,7 +790,7 @@ public class spx42ConfigPanel extends JPanel
       lblUnitsTemperature.setText( stringsBundle.getString( "spx42ConfigPanel.lblUnitsTemperature.text" ) );
       unitsTemperatureComboBox.removeAllItems();
       entrys = new String[]
-      { stringsBundle.getString( "spx42ConfigPanel.unitsTemperatureComboBox.fahrenheit.text" ), stringsBundle.getString( "spx42ConfigPanel.unitsTemperatureComboBox.celsius.text" ) };
+      { stringsBundle.getString( "spx42ConfigPanel.unitsTemperatureComboBox.celsius.text" ), stringsBundle.getString( "spx42ConfigPanel.unitsTemperatureComboBox.fahrenheit.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       unitsTemperatureComboBox.setModel( portBoxModel );
       unitsTemperatureComboBox.setToolTipText( stringsBundle.getString( "spx42ConfigPanel.unitsTemperatureComboBox.tooltiptext" ) );
@@ -920,11 +920,11 @@ public class spx42ConfigPanel extends JPanel
     {
       if( depthUnit == 0 )
       {
-        unitsTemperatureComboBox.setSelectedIndex( 1 );
+        unitsTemperatureComboBox.setSelectedIndex( 0 );
       }
       else
       {
-        unitsTemperatureComboBox.setSelectedIndex( 0 );
+        unitsTemperatureComboBox.setSelectedIndex( 1 );
       }
     }
   }

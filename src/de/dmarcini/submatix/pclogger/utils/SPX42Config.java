@@ -526,7 +526,7 @@ public class SPX42Config implements ISPX42Config
   {
     // Kommando SPX_GET_SETUP_UNITS
     // ~37:UD:UL:UW
-    // UD= 0=Fahrenheit/1=Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
+    // UD= 1=Fahrenheit/0=Celsius => immer 0 in der aktuellen Firmware 2.6.7.7_U
     // UL= 0=metrisch 1=imperial
     // UW= 0->Salzwasser 1->Süßwasser
     if( LOGGER != null ) LOGGER.log( Level.FINE, "setUnits() <" + fromSpx + ">" );
@@ -543,19 +543,19 @@ public class SPX42Config implements ISPX42Config
       if( LOGGER != null ) LOGGER.log( Level.SEVERE, "setUnits() <" + fromSpx + "> - not expected String!" );
       return false;
     }
-    // BUGGY_FIRMWARE_01
+    // FIRMWARE_2_6_7_7V
     if( isBuggyFirmware() )
     {
       if( unitsDepth == 1 )
       {
         // Metrische Angaben!
-        unitsTemperature = 0;
+        unitsTemperature = 1;
         unitsDepth = 1;
       }
       else
       {
         // Imperiale Angaben!
-        unitsTemperature = 1;
+        unitsTemperature = 0;
         unitsDepth = 0;
       }
     }

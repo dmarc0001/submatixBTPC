@@ -958,6 +958,11 @@ public class BTCommunication implements IBTCommunication
                 connectHash.put( devName, url );
                 // das Gerät für die Anzeige speichern
                 deviceHash.put( devName, servRecord[i].getHostDevice() );
+                if( aListener != null )
+                {
+                  ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTMESSAGE, devName );
+                  aListener.actionPerformed( ev );
+                }
               }
               else
               {
@@ -1029,6 +1034,8 @@ public class BTCommunication implements IBTCommunication
         if( aListener != null )
         {
           ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVEROK, new String( "discover_ok" ) );
+          aListener.actionPerformed( ex );
+          ex = new ActionEvent( this, ProjectConst.MESSAGE_BTMESSAGE, "OK" );
           aListener.actionPerformed( ex );
         }
         if( log ) LOGGER.log( Level.FINE, "Bluethooth Discovering OK" );
@@ -1439,9 +1446,8 @@ public class BTCommunication implements IBTCommunication
       if( log ) LOGGER.log( Level.SEVERE, "config was not initialized! CANCEL!" );
       return;
     }
-    if( ProjectConst.BUGGY_FIRMWARE_01.equals( config.getFirmwareVersion() ) )
+    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( config.getFirmwareVersion() ) || ProjectConst.FIRMWARE_2_7V.equals( config.getFirmwareVersion() ) )
     {
-      // Schreibe für die leicht Fehlerhafte Version
       // Führe als eigenen Thread aus, damit die Swing-Oberfläche
       // Gelegenheit bekommt, sich zu zeichnen
       configWriteThread = new Thread() {
@@ -1450,19 +1456,49 @@ public class BTCommunication implements IBTCommunication
         @Override
         public void run()
         {
-          String command;
+          String command = null;
+          int firmware = 0;
+          if( ProjectConst.FIRMWARE_2_6_7_7V.equals( config.getFirmwareVersion() ) )
+          {
+            firmware = ProjectConst.FW_2_6_7_7V;
+          }
+          else if( ProjectConst.FIRMWARE_2_7V.equals( config.getFirmwareVersion() ) )
+          {
+            firmware = ProjectConst.FW_2_7V;
+          }
+          else
+          {
+            if( log ) LOGGER.log( Level.SEVERE, "Firmware not supportet! CANCEL!" );
+            return;
+          }
           //
           // Kommando SPX_SET_SETUP_DEKO
-          // ~29:GH:GL:LS:DY:DS
-          // GH = Gradient HIGH
-          // GL = Gradient LOW
-          // LS = Last Stop 0=>6m 1=>3m
-          // DY = Dynamische gradienten 0->off 1->on
-          // DS = Deepstops 0=> enabled, 1=>disabled
           // Deco-Einstellungen setzen
           if( log ) LOGGER.log( Level.INFO, "write deco propertys" );
-          command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_DEKO, config.getDecoGfHigh(), config.getDecoGfLow(), config.getLastStop(),
-                  config.getDynGradientsEnable(), config.getDeepStopEnable() );
+          switch ( firmware )
+          {
+            case ProjectConst.FW_2_6_7_7V:
+              // ~29:GH:GL:LS:DY:DS
+              // GH = Gradient HIGH
+              // GL = Gradient LOW
+              // LS = Last Stop 0=>6m 1=>3m
+              // DY = Dynamische gradienten 0->off 1->on
+              // DS = Deepstops 0=> enabled, 1=>disabled
+              command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_DEKO, config.getDecoGfHigh(), config.getDecoGfLow(), config.getLastStop(),
+                      config.getDynGradientsEnable(), config.getDeepStopEnable() );
+              break;
+            default:
+            case ProjectConst.FW_2_7V:
+              // Kommando SPX_SET_SETUP_DEKO
+              // ~29:GL:GH:DS:DY:LS
+              // GL=GF-Low, GH=GF-High,
+              // DS=Deepstops (0/1)
+              // DY=Dynamische Gradienten (0/1)
+              // LS=Last Decostop (0=3 Meter/1=6 Meter)
+              command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_DEKO, config.getDecoGfLow(), config.getDecoGfHigh(), config.getDeepStopEnable(),
+                      config.getDynGradientsEnable(), config.getLastStop() );
+              break;
+          }
           if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
           writeSPXMsgToDevice( command );
           // gib Bescheid
@@ -1503,13 +1539,25 @@ public class BTCommunication implements IBTCommunication
             ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_NEXT, null );
             aListener.actionPerformed( ae );
           }
-          //
-          // Kommando SPX_SET_SETUP_SETPOINT
-          // ~30:P:A
-          // P = Partialdruck (0..4) 1.0 .. 1.4
-          // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
           if( log ) LOGGER.log( Level.INFO, "write setpoint propertys" );
-          command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getMaxSetpoint(), config.getAutoSetpoint() );
+          switch ( firmware )
+          {
+            case ProjectConst.FW_2_6_7_7V:
+              //
+              // Kommando SPX_SET_SETUP_SETPOINT
+              // ~30:P:A
+              // P = Partialdruck (0..4) 1.0 .. 1.4
+              // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
+              command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getMaxSetpoint(), config.getAutoSetpoint() );
+              break;
+            default:
+            case ProjectConst.FW_2_7V:
+              // ~30:A:P
+              // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
+              // P = Partialdruck (0..4) 1.0 .. 1.4
+              command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getAutoSetpoint(), config.getMaxSetpoint() );
+              break;
+          }
           if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
           writeSPXMsgToDevice( command );
           // gib Bescheid
@@ -1580,7 +1628,7 @@ public class BTCommunication implements IBTCommunication
       if( log ) LOGGER.log( Level.SEVERE, "config was not initialized! CANCEL!" );
       return;
     }
-    if( spxVersion.equals( "V2.6.7.7_V" ) )
+    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( spxVersion ) || ProjectConst.FIRMWARE_2_7V.equals( spxVersion ) )
     {
       // Schreibe für die leicht Fehlerhafte Version
       // Führe als eigenen Thread aus, damit die Swing-Oberfläche
@@ -1595,35 +1643,79 @@ public class BTCommunication implements IBTCommunication
           int gasCount = gList.getGasCount();
           int gasNr;
           int diluent;
+          int firmware = 0;
+          if( ProjectConst.FIRMWARE_2_6_7_7V.equals( spxVersion ) )
+          {
+            firmware = ProjectConst.FW_2_6_7_7V;
+          }
+          else if( ProjectConst.FIRMWARE_2_7V.equals( spxVersion ) )
+          {
+            firmware = ProjectConst.FW_2_7V;
+          }
+          else
+          {
+            if( log ) LOGGER.log( Level.SEVERE, "Firmware not supportet! CANCEL!" );
+            return;
+          }
           //
           // Alle Gase des Computers durchexerzieren
           //
           for( gasNr = 0; gasNr < gasCount; gasNr++ )
           {
-            // Kommando SPX_SET_SETUP_GASLIST
-            // ~40:NR:HE:N2:BO:DI:CU
-            // NR -> Gas Nummer
-            // HE -> Heliumanteil
-            // N2 -> Stickstoffanteil
-            // BO -> Bailoutgas? (3?)
-            // DI -> Diluent ( 0, 1 oder 2 )
-            // CU Current Gas (0 oder 1)
-            if( gList.getDiulent1() == gasNr )
+            if( log ) LOGGER.log( Level.INFO, String.format( "write gas number %d to SPX...", gasNr ) );
+            switch ( firmware )
             {
-              diluent = 1;
-            }
-            else if( gList.getDiluent2() == gasNr )
-            {
-              diluent = 2;
-            }
-            else
-            {
-              diluent = 0;
+              case ProjectConst.FW_2_6_7_7V:
+                // Kommando SPX_SET_SETUP_GASLIST
+                // ~40:NR:HE:N2:BO:DI:CU
+                // NR -> Gas Nummer
+                // HE -> Heliumanteil
+                // N2 -> Stickstoffanteil
+                // BO -> Bailoutgas? (3?)
+                // DI -> Diluent ( 0, 1 oder 2 )
+                // CU Current Gas (0 oder 1)
+                if( gList.getDiulent1() == gasNr )
+                {
+                  diluent = 1;
+                }
+                else if( gList.getDiluent2() == gasNr )
+                {
+                  diluent = 2;
+                }
+                else
+                {
+                  diluent = 0;
+                }
+                command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_GASLIST, gasNr, gList.getHEFromGas( gasNr ), gList.getN2FromGas( gasNr ),
+                        gList.getBailout( gasNr ), diluent, gList.getCurrGas( gasNr ) );
+                break;
+              default:
+              case ProjectConst.FW_2_7V:
+                // Kommando SPX_SET_SETUP_GASLIST
+                // ~40:NR:N2:HE:BO:DI:CU
+                // NR: Nummer des Gases 0..7
+                // N2: Sticksoff in %
+                // HE: Heluim in %
+                // BO: Bailout (Werte 0,1 und 3 gefunden, 0 kein BO, 3 BO Wert 1 unbekannt?)
+                // DI: Diluent 1 oder 2
+                // CU: Current Gas
+                if( gList.getDiulent1() == gasNr )
+                {
+                  diluent = 1;
+                }
+                else if( gList.getDiluent2() == gasNr )
+                {
+                  diluent = 2;
+                }
+                else
+                {
+                  diluent = 0;
+                }
+                command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_GASLIST, gasNr, gList.getN2FromGas( gasNr ), gList.getHEFromGas( gasNr ),
+                        gList.getBailout( gasNr ), diluent, gList.getCurrGas( gasNr ) );
+                break;
             }
             //
-            if( log ) LOGGER.log( Level.INFO, String.format( "write gas number %d to SPX...", gasNr ) );
-            command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_GASLIST, gasNr, gList.getHEFromGas( gasNr ), gList.getN2FromGas( gasNr ),
-                    gList.getBailout( gasNr ), diluent, gList.getCurrGas( gasNr ) );
             if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
             writeSPXMsgToDevice( command );
             // gib Bescheid

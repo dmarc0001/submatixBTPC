@@ -2,6 +2,7 @@ package de.dmarcini.submatix.pclogger.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Insets;
 import java.sql.SQLException;
 import java.util.MissingResourceException;
@@ -49,6 +50,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
   private ResourceBundle       stringsBundle    = null;
   private BTCommunication      btComm           = null;
   private JLabel               discoverBtLabel;
+  private JLabel               messageBtLabel;
 
   @SuppressWarnings( "unused" )
   private spx42ConnectPanel()
@@ -143,6 +145,12 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     discoverBtLabel.setHorizontalAlignment( SwingConstants.CENTER );
     discoverBtLabel.setBounds( 10, 461, 763, 14 );
     add( discoverBtLabel );
+    messageBtLabel = new JLabel( "-" );
+    messageBtLabel.setForeground( Color.DARK_GRAY );
+    messageBtLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
+    messageBtLabel.setHorizontalAlignment( SwingConstants.CENTER );
+    messageBtLabel.setBounds( 10, 479, 763, 14 );
+    add( messageBtLabel );
   }
 
   /**
@@ -377,15 +385,36 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
    * 
    *         Stand: 09.05.2012
    * @param isDiscovering
-   *          TODO
+   * 
    */
   public void setElementsDiscovering( boolean isDiscovering )
   {
     connectBtRefreshButton.setEnabled( !isDiscovering );
     discoverProgressBar.setVisible( isDiscovering );
     discoverBtLabel.setVisible( isDiscovering );
+    messageBtLabel.setVisible( isDiscovering );
     connectButton.setEnabled( !isDiscovering );
     pinButton.setEnabled( !isDiscovering );
     deviceToConnectComboBox.setEnabled( !isDiscovering );
+    if( !isDiscovering )
+    {
+      messageBtLabel.setText( "-" );
+    }
+  }
+
+  /**
+   * 
+   * Schreibe eine Meldung für BT auf die Oberfläche
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.09.2012
+   * @param msg
+   */
+  public void setBtMessage( String msg )
+  {
+    messageBtLabel.setText( msg );
   }
 }

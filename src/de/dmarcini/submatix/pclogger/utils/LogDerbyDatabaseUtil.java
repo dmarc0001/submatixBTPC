@@ -714,7 +714,7 @@ public class LogDerbyDatabaseUtil
 
   /**
    * 
-   * Alias-Daten für Geräte zurückgeben
+   * Alias-Daten für Geräte zurückgeben Name/Alias
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
@@ -723,14 +723,12 @@ public class LogDerbyDatabaseUtil
    *         Stand: 05.09.2012
    * @return Array mit Aliaseinträgen
    */
-  public String[][] getAliasDataConn()
+  public Vector<String[]> getAliasDataConn()
   {
     String sql;
-    String[][] aliasData;
+    Vector<String[]> aliasData;
     Statement stat;
     ResultSet rs;
-    String devName, aliasName;
-    int rows = 0, cnt = 0;
     //
     if( conn == null )
     {
@@ -741,37 +739,20 @@ public class LogDerbyDatabaseUtil
     {
       LOGGER.log( Level.FINE, "try to read aliases..." );
       stat = conn.createStatement();
-      //
-      // Wie viele Einträge
-      //
-      sql = String.format( "select count(*) from %s", ProjectConst.A_DBALIAS );
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        rows = rs.getInt( 1 );
-        LOGGER.log( Level.FINE, String.format( "Aliases in database: %d", rows ) );
-      }
-      rs.close();
-      if( rows == 0 )
-      {
-        return( null );
-      }
       // Erzeuge das Array für die Tabelle
-      aliasData = new String[rows][2];
+      aliasData = new Vector<String[]>();
       //
       // Gib her die Einträge, wenn welche vorhanden sind
       //
       sql = String.format( "select %s,%s from %s order by %s", ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME );
       rs = stat.executeQuery( sql );
-      cnt = 0;
       while( rs.next() )
       {
-        devName = rs.getString( 1 );
-        aliasName = rs.getString( 2 );
-        aliasData[cnt][0] = devName;
-        aliasData[cnt][1] = aliasName;
-        cnt++;
-        LOGGER.log( Level.FINE, String.format( "Read:%s::%s", devName, aliasName ) );
+        String[] entr = new String[2];
+        entr[0] = rs.getString( 1 );
+        entr[1] = rs.getString( 2 );
+        aliasData.add( entr );
+        LOGGER.log( Level.FINE, String.format( "Read:%s::%s", entr[0], entr[1] ) );
       }
       rs.close();
       stat.close();
@@ -1203,52 +1184,6 @@ public class LogDerbyDatabaseUtil
       LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
-  }
-
-  /**
-   * 
-   * Den Devicenamen für einen Alias raussuchen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.09.2012
-   * @param aliasName
-   * @return Einen Aliasnamen für ein Gerät suchen
-   */
-  public String getNameForAliasConn( final String aliasName )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    String deviceName = null;
-    //
-    //
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    LOGGER.log( Level.FINE, "try to read device name for alias..." );
-    sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_DEVNAME, ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, aliasName );
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
-      {
-        deviceName = rs.getString( 1 );
-        LOGGER.log( Level.FINE, String.format( "device name for alias %s : %s", aliasName, deviceName ) );
-      }
-      rs.close();
-      stat.close();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.log( Level.SEVERE, String.format( "fail to read device name for alias %s (%s)", aliasName, ex.getLocalizedMessage() ) );
-    }
-    return( deviceName );
   }
 
   /**

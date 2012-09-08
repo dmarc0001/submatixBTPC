@@ -18,10 +18,13 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "0.14beta";
+  public static final String MANUFACTVERS               = "0.15beta";
   public static final String GENYEAR                    = "2012";
   public static final String GENMONTH                   = "09";
   public static final String GENDAY                     = "08";
+  
+  // Datenbankversion
+  public static int          DB_VERSION                 = 5;
 
   // interne Begrenzung für Empfangspuffer
   public static final int    MAXINBUFFER                = 10 * 1024;
@@ -148,9 +151,6 @@ public final class ProjectConst
   public static final int    INT_SETTITLEDIAL           = INT_MESSAGE_OFFSET + 5;
 
   // DATENBANK
-  // Dateiname für SQLite3
-  //public static final String DB_FILENAME                = "spx42Base.db";
-  public static int          DB_VERSION                 = 4;
   // Datenbanktabellen
   //
   // Tabelle für die Versionsnummer der Datenbank (bei Updates evtl gebraucht)
@@ -199,7 +199,23 @@ public final class ProjectConst
   public static final String D_DELTATIME                = "deltatime";
   public static final String D_PRESURE                  = "presure";
   public static final String D_ACKU                     = "acku";
-  
+  //
+  // Tabelle für Gas-Presets
+  // Tabelle presets
+  public static final String P_TABLE_PRESETS            = "presets";
+  public static final String P_DBID                     = "id";
+  public static final String P_SETNAME                  = "setname";
+  //
+  // Tablelle preset_details
+  public static final String PD_TABLE_PRESETDETAIL      = "presets_details";
+  public static final String PD_DBID                    = "id";
+  public static final String PD_SETID                   = "setid";
+  public static final String PD_GASNR                   = "gasnr";
+  public static final String PD_O2                      = "o2";
+  public static final String PD_HE                      = "he";
+  public static final String PD_DILUENT1                = "dil1";
+  public static final String PD_DILUENT2                = "dil2";
+  public static final String PD_BAILOUT                 = "bailout";
   
   //
   // Default Farben für die Graphen in der Loganzeige

@@ -244,6 +244,63 @@ public class LogDerbyDatabaseUtil
     //@formatter:off     
     LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
     stat.execute( sql );
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Tabelle für die Gaspresets
+    //@formatter:off
+    sql = String.format( 
+            "create table %s\n" +
+            " (\n" +
+            "  %s integer not null generated always as identity, \n" + 
+            "  %s varchar(64) not null\n" +
+            " )", 
+            ProjectConst.P_TABLE_PRESETS,
+            ProjectConst.P_DBID,
+            ProjectConst.P_SETNAME
+            );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
+    stat.execute( sql );
+    conn.commit();
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Tabelle für die Gaspreset Details
+    //@formatter:off
+    sql = String.format( 
+            "create table %s\n" +
+            " (\n" +
+            "  %s integer not null generated always as identity, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s boolean, \n" + 
+            "  %s boolean, \n" + 
+            "  %s boolean \n" + 
+            " )", 
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_DBID,
+            ProjectConst.PD_SETID,
+            ProjectConst.PD_GASNR,
+            ProjectConst.PD_O2,
+            ProjectConst.PD_HE,
+            ProjectConst.PD_DILUENT1,
+            ProjectConst.PD_DILUENT2,
+            ProjectConst.PD_BAILOUT
+            );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    stat.execute( sql );
+    // Index fuer die Tabelle erzeugen
+    //@formatter:off
+    sql = String.format(
+            "create index idx_%s_%s on %s ( %s ASC)",
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_SETID,
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_SETID );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    stat.execute( sql );
+    conn.commit();
     //
     // eventuell noch mehr Tabellen
     //
@@ -563,6 +620,10 @@ public class LogDerbyDatabaseUtil
         _createNewDatabase();
         return( conn );
       case 4:
+        // Da muss ich was machen
+        _updateDatabaseToVersion5();
+        return( conn );
+      case 5:
         // das ist momentan aktuell
         return( conn );
       default:
@@ -571,6 +632,88 @@ public class LogDerbyDatabaseUtil
         conn = null;
         return( null );
     }
+  }
+
+  private void _updateDatabaseToVersion5() throws SQLException
+  {
+    String sql;
+    Statement stat;
+    //
+    LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
+    // ////////////////////////////////////////////////////////////////////////
+    // Datentabellen ergänzen
+    //
+    stat = conn.createStatement();
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Versionstabelle updaten
+    // Versionsnummer reinschreiben
+    sql = String.format( "insert into %s ( %s ) values ( %d )", ProjectConst.V_DBVERSION, ProjectConst.V_VERSION, ProjectConst.DB_VERSION );
+    LOGGER.log( Level.FINE, String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
+    stat.execute( sql );
+    conn.commit();
+    // @formatter:on
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Tabelle für die Gaspresets
+    //@formatter:off
+    sql = String.format( 
+            "create table %s\n" +
+            " (\n" +
+            "  %s integer not null generated always as identity, \n" + 
+            "  %s varchar(64) not null\n" +
+            " )", 
+            ProjectConst.P_TABLE_PRESETS,
+            ProjectConst.P_DBID,
+            ProjectConst.P_SETNAME
+            );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
+    stat.execute( sql );
+    conn.commit();
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Tabelle für die Gaspreset Details
+    //@formatter:off
+    sql = String.format( 
+            "create table %s\n" +
+            " (\n" +
+            "  %s integer not null generated always as identity, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s boolean, \n" + 
+            "  %s boolean, \n" + 
+            "  %s boolean \n" + 
+            " )", 
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_DBID,
+            ProjectConst.PD_SETID,
+            ProjectConst.PD_GASNR,
+            ProjectConst.PD_O2,
+            ProjectConst.PD_HE,
+            ProjectConst.PD_DILUENT1,
+            ProjectConst.PD_DILUENT2,
+            ProjectConst.PD_BAILOUT
+            );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    stat.execute( sql );
+    // Index fuer die Tabelle erzeugen
+    //@formatter:off
+    sql = String.format(
+            "create index idx_%s_%s on %s ( %s ASC)",
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_SETID,
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_SETID );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    stat.execute( sql );
+    conn.commit();
+    //
+    // eventuell noch mehr Tabellen
+    //
+    stat.close();
+    conn.commit();
   }
 
   /**

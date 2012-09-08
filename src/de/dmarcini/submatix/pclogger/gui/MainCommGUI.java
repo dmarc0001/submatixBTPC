@@ -1445,7 +1445,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           if( logListPanel.prepareReadLogdir( btComm.getConnectedDevice() ) )
           {
-            //
+            // Die Liste direkt vom SPX einlesen!
             // an dieser Stelle muss ich sicherstellen, daß ich die Masseinheiten des SPX42 kenne
             // ich gehe mal von den Längeneinheiten aus!
             // also Meter/Fuss
@@ -1456,9 +1456,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
               // jetzt wird es schwierig. erfrage erst mal die Config!
               btComm.readConfigFromSPX42();
             }
-            // beginne mit leerem Cache
-            logListPanel.clearLogdirCache();
-            logListPanel.cleanDetails();
             // Sag dem SPX er soll alles schicken
             btComm.readLogDirectoryFromSPX();
           }
@@ -2054,7 +2051,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
-      // Nachricht: Start einer Lagdatenübermittling
+      // Nachricht: Start einer Logdatenübermittling
       case ProjectConst.MESSAGE_LOGENTRY_START:
         LOGGER.log( Level.FINE, "start transfer logentry <" + cmd + ">..." );
         logListPanel.startTransfer( cmd, currentConfig.getUnitSystem() );
@@ -2068,9 +2065,15 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht: Logzeile übertragen
       case ProjectConst.MESSAGE_LOGENTRY_STOP:
-        LOGGER.log( Level.FINE, "loglist transfer done..." );
+        LOGGER.log( Level.FINE, "logfile transfer done..." );
         // Ab auf die Platte ind die DB damit!
         logListPanel.writeCacheToDatabase();
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Nachricht: Logdirectory aus Cache neu aufbauen
+      case ProjectConst.MESSAGE_LOGDIRFROMCACHE:
+        LOGGER.log( Level.FINE, "log directory from cache rebuilding..." );
+        logListPanel.addLogDirFromCache();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht: Daten gesichert....
@@ -2094,20 +2097,28 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             }
             else
             {
+              // Da sind keine Einträge mehr zu lesen. Mach ein Update der Logverzeichnisliste
               if( btComm != null )
               {
                 if( btComm.isConnected() )
                 {
-                  if( logListPanel.prepareReadLogdir( btComm.getConnectedDevice() ) )
+                  // Kann ich vom Cache lesen?
+                  if( logListPanel.canReadFromCache() )
                   {
-                    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
-                    wDial.setVisible( true );
-                    // beginne mit leerem Cache
-                    // TODO: Aus Chache neu aufbauen!
-                    logListPanel.clearLogdirCache();
-                    logListPanel.cleanDetails();
-                    // Sag dem SPX er soll alles schicken
-                    btComm.readLogDirectoryFromSPX();
+                    // Baue die Liste mit dem Cache wieder auf
+                    ev = new ActionEvent( this, ProjectConst.MESSAGE_LOGDIRFROMCACHE, "from_ache" );
+                    actionPerformed( ev );
+                  }
+                  else
+                  {
+                    // lese die Liste der Logeinträge neu ein
+                    if( logListPanel.prepareReadLogdir( btComm.getConnectedDevice() ) )
+                    {
+                      // Sag dem SPX er soll alles schicken
+                      wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
+                      wDial.setVisible( true );
+                      btComm.readLogDirectoryFromSPX();
+                    }
                   }
                 }
                 else

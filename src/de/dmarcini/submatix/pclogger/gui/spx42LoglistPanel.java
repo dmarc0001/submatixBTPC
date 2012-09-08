@@ -4,8 +4,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Vector;
@@ -27,8 +29,10 @@ import org.joda.time.DateTime;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.LogDirListModel;
 import de.dmarcini.submatix.pclogger.utils.LogLineDataObject;
-import de.dmarcini.submatix.pclogger.utils.LogdirListModel;
+import de.dmarcini.submatix.pclogger.utils.LogListCache;
+import de.dmarcini.submatix.pclogger.utils.LogListCache.DataSave;
 
 /**
  * 
@@ -40,7 +44,7 @@ import de.dmarcini.submatix.pclogger.utils.LogdirListModel;
  * 
  *         Stand: 22.04.2012
  */
-public class spx42LoglistPanel extends JPanel implements ListSelectionListener
+public class spx42LoglistPanel extends JPanel implements ListSelectionListener, ActionListener
 {
   /**
    * 
@@ -57,15 +61,16 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private static final Pattern           fieldPatternDot     = Pattern.compile( "\\." );
   private static final Pattern           fieldPatternDtTm    = Pattern.compile( " - " );
   private static final Pattern           fieldPattern0x09    = Pattern.compile( ProjectConst.LOGSELECTOR );
-  private final LogdirListModel          logListModel        = new LogdirListModel();
   private boolean                        isDirectoryComplete = false;
   private boolean                        isNextLogAnUpdate   = false;
+  private boolean                        shouldReadFromSpx   = true;
   private int                            nextDiveIdForUpdate = -1;
   private LogDerbyDatabaseUtil           databaseUtil        = null;
   private String                         deviceToLog         = null;
   private int                            currLogEntry        = -1;
-  private Vector<Integer[]>              logList             = null;
+  private Vector<Integer[]>              logListForRecive    = null;
   private int                            fileIndex           = -1;
+  private LogListCache                   logListCache        = null;
   private JList                          logListField;
   private JButton                        readLogDirectoryButton;
   private JButton                        readLogfilesFromSPXButton;
@@ -91,6 +96,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private String                         timeMinutes;
   private JLabel                         diveNotesLabel;
   private JLabel                         diveNotesShowLabel;
+  private JButton                        testCacheButton;
 
   /**
    * Create the panel.
@@ -132,6 +138,17 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     isPanelInitiated = false;
   }
 
+  @Override
+  public void actionPerformed( ActionEvent ev )
+  {
+    String cmd = ev.getActionCommand();
+    if( cmd.equals( "test_cache" ) )
+    {
+      LOGGER.severe( "manual test chache comand!" );
+      addLogDirFromCache();
+    }
+  }
+
   /**
    * 
    * Einen Eintrag in das Verzeichnis einfügen
@@ -149,7 +166,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     // Message etwa so "Nummer;filename;readableName;maxNumber"
     String[] fields;
     String fileName, readableName, wasSaved = " ";
-    int number, max, dbId = -1;
+    int numberOnSpx, max, dbId = -1;
     //
     if( !isPanelInitiated ) return;
     //
@@ -163,7 +180,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     // Wandel die Nummerierung in Integer um
     try
     {
-      number = Integer.parseInt( fields[0] );
+      numberOnSpx = Integer.parseInt( fields[0] );
       max = Integer.parseInt( fields[3] );
     }
     catch( NumberFormatException ex )
@@ -175,16 +192,16 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     // Der lesbare Teil
     readableName = fields[2];
     // Alles ging gut....
-    if( number == max )
+    if( numberOnSpx == max )
     {
       isDirectoryComplete = true;
+      shouldReadFromSpx = false;
       return;
     }
-    LOGGER.log( Level.FINE, "add to logdir number: <" + number + "> name: <" + readableName + "> device: <" + deviceToLog + ">" );
     // Sichere die Dateiangabe
-    logdirFiles.put( number, fileName );
+    logdirFiles.put( numberOnSpx, fileName );
     // Sichere Lesbares Format
-    logdirReadable.put( number, readableName );
+    logdirReadable.put( numberOnSpx, readableName );
     // in die Liste einfügen
     if( databaseUtil != null )
     {
@@ -194,7 +211,77 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         wasSaved = "x";
       }
     }
-    logListModel.addLogentry( number, readableName, wasSaved, dbId );
+    LOGGER.log( Level.FINE, "add to logdir number: <" + numberOnSpx + " " + wasSaved + "> name: <" + readableName + "> device: <" + deviceToLog + ">" );
+    ( ( LogDirListModel )logListField.getModel() ).addLogentry( numberOnSpx, readableName, wasSaved, dbId );
+    logListCache.addLogentry( numberOnSpx, readableName, fileName, dbId );
+  }
+
+  /**
+   * 
+   * Baue vom Cache aus auf!
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 08.09.2012
+   */
+  public void addLogDirFromCache()
+  {
+    LogDirListModel listMod = null;
+    if( !isPanelInitiated ) return;
+    if( logListCache == null ) return;
+    if( deviceToLog == null ) return;
+    LOGGER.log( Level.FINE, "read logdir from cache..." );
+    // beginne mit leeren Datenhashes
+    clearLogdirData( false );
+    // hole mal die Liste
+    Vector<DataSave> logList = logListCache.getLogList();
+    // erzeuge einen iterator für die Liste
+    Iterator<DataSave> iterator = logList.iterator();
+    //
+    // Alle Listeneinträge abarbeiten
+    // Anzeigeliste löschen
+    //
+    listMod = new LogDirListModel();
+    // ( ( LogDirListModel )logListField.getModel() ).clear();
+    //
+    // alle Cacheinträge bearbeiten
+    //
+    while( iterator.hasNext() )
+    {
+      int dbId = 0;
+      String wasSaved = null;
+      // Eintrag holen...
+      DataSave entry = iterator.next();
+      // Sichere die Dateiangabe
+      logdirFiles.put( entry.numberOnSpx, entry.fileName );
+      // Sichere Lesbares Format
+      logdirReadable.put( entry.numberOnSpx, entry.readableName );
+      if( databaseUtil != null )
+      {
+        dbId = databaseUtil.isLogSavedLog( entry.fileName, deviceToLog );
+        if( dbId != -1 )
+        {
+          wasSaved = new String( "x" );
+        }
+        else
+        {
+          wasSaved = new String( " " );
+        }
+      }
+      // in die Liste einfügen
+      LOGGER.log( Level.FINE, "add to logdir number: <" + entry.numberOnSpx + " " + wasSaved + "> name: <" + entry.readableName + "> device: <" + deviceToLog + ">" );
+      listMod.addLogentry( entry.numberOnSpx, entry.readableName, wasSaved, dbId );
+      // ( ( LogDirListModel )logListField.getModel() ).addLogentry( entry.numberOnSpx, entry.readableName, wasSaved, dbId );
+      // validate();
+    }
+    // Lesen ist beendet ;-)
+    logListField.setModel( listMod );
+    logListField.clearSelection();
+    logListField.validate();
+    isDirectoryComplete = true;
+    LOGGER.log( Level.FINE, "read logdir from cache...OK" );
   }
 
   /**
@@ -253,19 +340,18 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
 
   /**
    * 
-   * Die Details für einen TG löschen
+   * kann/sollte ich vom Cache lesen?
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 06.05.2012
+   *         Stand: 08.09.2012
+   * @return vom Cache lesen
    */
-  public void cleanDetails()
+  public boolean canReadFromCache()
   {
-    if( !isPanelInitiated ) return;
-    diveDateShowLabel.setText( "-" );
-    diveTimeShowLabel.setText( "-" );
+    return( !shouldReadFromSpx );
   }
 
   /**
@@ -277,16 +363,27 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 05.05.2012
+   * @param clearCache
+   *          Verzeichniscache löschen
    */
-  public void clearLogdirCache()
+  private void clearLogdirData( boolean clearCache )
   {
     if( !isPanelInitiated ) return;
     // Dateinamen auf dem SPX
     logdirFiles.clear();
     // Nummerierung auf dem SPX
     logdirReadable.clear();
-    logListModel.clear();
+    // Anzeigeliste
+    ( ( LogDirListModel )logListField.getModel() ).clear();
     isDirectoryComplete = false;
+    if( clearCache )
+    {
+      // Erzeuge einen neuen Cache
+      logListCache = new LogListCache();
+      shouldReadFromSpx = true;
+    }
+    diveDateShowLabel.setText( "-" );
+    diveTimeShowLabel.setText( "-" );
   }
 
   /**
@@ -304,20 +401,20 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   {
     if( !isPanelInitiated ) return( null );
     // Ist die Liste (Vector) allociert?
-    if( logList == null )
+    if( logListForRecive == null )
     {
       // Nein, nix zu tun!
       return( null );
     }
     // Sind Elemente vorhanden?
-    if( logList.isEmpty() )
+    if( logListForRecive.isEmpty() )
     {
       // Liste ist Leer, nix zu tun
-      logList = null;
+      logListForRecive = null;
       return( null );
     }
     // den ersten Eintrag zurückgeben
-    return( logList.remove( 0 ) );
+    return( logListForRecive.remove( 0 ) );
   }
 
   /**
@@ -339,7 +436,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     logListField = new JList();
     logListField.setForeground( Color.BLUE );
     logListField.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
-    logListField.setModel( logListModel );
+    logListField.setModel( new LogDirListModel() );
     logListScrollPane.setViewportView( logListField );
     readLogDirectoryButton = new JButton( "READDIR" );
     readLogDirectoryButton.setIcon( new ImageIcon( spx42LoglistPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/109.png" ) ) );
@@ -429,6 +526,10 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveNotesShowLabel.setForeground( new Color( 0, 128, 0 ) );
     diveNotesShowLabel.setBounds( 268, 275, 492, 14 );
     add( diveNotesShowLabel );
+    testCacheButton = new JButton( "TESTCACHE" );
+    testCacheButton.setBounds( 560, 216, 199, 23 );
+    testCacheButton.setActionCommand( "test_cache" );
+    add( testCacheButton );
     logfileCommLabel.setVisible( false );
   }
 
@@ -479,17 +580,17 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     {
       // es ist auch etwas markiert!
       // Array erzeugen
-      logList = new Vector<Integer[]>();
+      logListForRecive = new Vector<Integer[]>();
       // für jeden markierten index die Lognummer holen
       for( int idx = 0; idx < logSelected.length; idx++ )
       {
         Integer[] lEntry = new Integer[2];
-        lEntry[0] = logListModel.getLognumberAt( logSelected[idx] );
-        lEntry[1] = logListModel.istInDb( logSelected[idx] ) ? 1 : 0;
-        logList.add( lEntry );
+        lEntry[0] = ( ( LogDirListModel )logListField.getModel() ).getLognumberAt( logSelected[idx] );
+        lEntry[1] = ( ( LogDirListModel )logListField.getModel() ).istInDb( logSelected[idx] ) ? 1 : 0;
+        logListForRecive.add( lEntry );
         LOGGER.log( Level.FINE, "select dive number <" + logSelected[idx] + "> for download..." );
       }
-      return( logList.size() );
+      return( logListForRecive.size() );
     }
     // Es ist nichts markiert
     LOGGER.log( Level.WARNING, "prepare to download logdata...NOTHING selected!" );
@@ -537,11 +638,18 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   public boolean prepareReadLogdir( String device )
   {
-    deviceToLog = device;
-    if( deviceToLog == null )
+    if( !isPanelInitiated ) return( false );
+    // die Voreinstellung:
+    shouldReadFromSpx = true;
+    // Kein Gerät, keine Aktion
+    if( device == null )
     {
       return( false );
     }
+    // welches Gerät loggen wir
+    deviceToLog = device;
+    // ich soll direkt vom SPX lesen!
+    clearLogdirData( true );
     LOGGER.log( Level.FINE, "prepare to read logdir..." );
     return( true );
   }
@@ -623,6 +731,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     readLogfilesFromSPXButton.addMouseMotionListener( mainCommGUI );
     logListField.addMouseMotionListener( mainCommGUI );
     logListField.addListSelectionListener( this );
+    testCacheButton.addActionListener( this );
   }
 
   /**
@@ -643,8 +752,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     if( !isPanelInitiated ) return( 1 );
     try
     {
-      clearLogdirCache();
-      cleanDetails();
+      clearLogdirData( true );
       logListLabel.setText( stringsBundle.getString( "spx42LoglistPanel.logListLabel.text" ) );
       readLogDirectoryButton.setText( stringsBundle.getString( "spx42LoglistPanel.readLogDirectoryButton.text" ) );
       readLogDirectoryButton.setToolTipText( stringsBundle.getString( "spx42LoglistPanel.readLogDirectoryButton.tooltiptext" ) );
@@ -824,15 +932,18 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         LOGGER.log( Level.FINE, "ist last or once change..." );
         fIndex = logListField.getSelectedIndex();
         LOGGER.log( Level.FINE, String.format( "first selected Index: %d ", fIndex ) );
-        spxNumber = logListModel.getLognumberAt( fIndex );
+        spxNumber = ( ( LogDirListModel )logListField.getModel() ).getLognumberAt( fIndex );
         if( spxNumber == -1 )
         {
-          cleanDetails();
+          diveDateShowLabel.setText( "-" );
+          diveTimeShowLabel.setText( "-" );
           return;
         }
-        dbId = logListModel.getDbIdAt( fIndex );
-        LOGGER.log( Level.FINE,
-                String.format( "number on SPX: %d, DBID: %d, readable Name: %s, filename: %s", spxNumber, dbId, logListModel.getLogNameAt( fIndex ), logdirFiles.get( spxNumber ) ) );
+        dbId = ( ( LogDirListModel )logListField.getModel() ).getDbIdAt( fIndex );
+        LOGGER.log(
+                Level.FINE,
+                String.format( "number on SPX: %d, DBID: %d, readable Name: %s, filename: %s", spxNumber, dbId,
+                        ( ( LogDirListModel )logListField.getModel() ).getLogNameAt( fIndex ), logdirFiles.get( spxNumber ) ) );
         // erst mal die allgemeinen Daten des Dives anzeigen
         fileNameShowLabel.setText( logdirFiles.get( spxNumber ) );
         // Aus der Anzeige Datum und Zeitstring trennen

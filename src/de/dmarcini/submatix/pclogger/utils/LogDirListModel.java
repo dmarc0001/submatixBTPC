@@ -14,7 +14,7 @@ import javax.swing.DefaultListModel;
  * 
  *         Stand: 05.05.2012
  */
-public class LogdirListModel extends DefaultListModel
+public class LogDirListModel extends DefaultListModel
 {
   /**
    * 
@@ -22,7 +22,7 @@ public class LogdirListModel extends DefaultListModel
   private static final long serialVersionUID = -7898034061953387121L;
 
   /**
-   * Überschreibe original, damit die Liste den Namen darstellen kann, gibt lesbsaren Namen zurück
+   * Überschreibe Original, damit die Liste den Namen darstellen kann, gibt lesbsaren Namen zurück
    */
   @Override
   public Object getElementAt( int index )
@@ -36,11 +36,11 @@ public class LogdirListModel extends DefaultListModel
     {
       return( element[1] );
     }
-    if( element[2].equals( " " ) )
+    if( element[2].equals( "x" ) )
     {
-      return( String.format( "Nr %4s - %s", element[0], element[1] ) );
+      return( String.format( "Nr %4s - %s *", element[0], element[1] ) );
     }
-    return( String.format( "Nr %4s - %s *", element[0], element[1] ) );
+    return( String.format( "Nr %4s - %s", element[0], element[1] ) );
   }
 
   /**
@@ -55,19 +55,8 @@ public class LogdirListModel extends DefaultListModel
    * @param number
    * @param name
    * @param inDB
+   * @param dbId
    */
-  public void addLogentry( int number, String name, String inDB )
-  {
-    // Die Einträge in der Form:
-    // String[0] = Nummer
-    // String[1] = Lesbarer Name
-    // String[2] = Schon in der DB?
-    // String[3] = dbId wenn vorhanden
-    String[] element =
-    { String.format( "%03d", number ), name, inDB, "-1" };
-    super.add( 0, element );
-  }
-
   public void addLogentry( int number, String name, String inDB, int dbId )
   {
     // Die Einträge in der Form:

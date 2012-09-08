@@ -310,7 +310,11 @@ public class SPX42Config implements ISPX42Config
     // wenn das in der erlaubten Größe liegt, sonst EXCEPTION
     if( preset < 0 || preset >= prefs.size() )
     {
-      throw new IndexOutOfBoundsException( "not a preset number!" );
+      LOGGER.warning( "unable try to set GF preset to " + preset + ", set default preset instead..." );
+      gradientLow = 0x19;
+      gradientHigh = 0x55;
+      presetNumber = 2;
+      return;
     }
     // werte aus dem preset holen
     String presetStr = prefs.get( preset );

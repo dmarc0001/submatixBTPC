@@ -124,7 +124,7 @@ public class DeviceComboBoxModel extends DefaultComboBoxModel
    * 
    *         Stand: 08.09.2012
    * @param index
-   * @return
+   * @return Alias des Gerätes
    */
   public String getDeviceAliasAt( int index )
   {
@@ -155,7 +155,7 @@ public class DeviceComboBoxModel extends DefaultComboBoxModel
    * 
    *         Stand: 08.09.2012
    * @param index
-   * @return "*" für war Online
+   * @return War bei discover online ?
    */
   public boolean getWasOnlineAt( int index )
   {

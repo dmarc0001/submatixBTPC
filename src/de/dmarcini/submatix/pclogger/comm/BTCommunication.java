@@ -1093,11 +1093,14 @@ public class BTCommunication implements IBTCommunication
       ListIterator<String[]> lit = alData.listIterator();
       while( lit.hasNext() )
       {
+        // neuer Eintrag aus der Alias-Datenbank
         String[] entr = lit.next();
         if( entr[0].equals( devEntr ) )
         {
-          // War vorhanden, kann also ignoriert werden
+          // gefundenes Devicce war schon in der DB vorhanden, kann also ignoriert werden
           wasPresent = true;
+          entr[2] = "*";
+          lit.set( entr );
           break;
         }
       }
@@ -1108,6 +1111,7 @@ public class BTCommunication implements IBTCommunication
         String[] e = new String[2];
         e[0] = devEntr;
         e[1] = devEntr;
+        e[2] = "*";
         alData.add( e );
       }
     }
@@ -1145,7 +1149,7 @@ public class BTCommunication implements IBTCommunication
     else
     {
       // das geht nicht! Kann nicht herausfinden, mit wem ich verbinden soll!
-      LOGGER.log( Level.SEVERE, "device" + deviceName + "is not in list and not an alias. give up!" );
+      LOGGER.log( Level.SEVERE, "device <" + deviceName + "> is not in list. give up!" );
       this.deviceName = null;
       this.connectedDevice = null;
       if( aListener != null )

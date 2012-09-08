@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,7 +43,7 @@ import de.dmarcini.submatix.pclogger.utils.LogListCache.DataSave;
  * 
  *         Stand: 22.04.2012
  */
-public class spx42LoglistPanel extends JPanel implements ListSelectionListener, ActionListener
+public class spx42LoglistPanel extends JPanel implements ListSelectionListener
 {
   /**
    * 
@@ -96,7 +95,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
   private String                         timeMinutes;
   private JLabel                         diveNotesLabel;
   private JLabel                         diveNotesShowLabel;
-  private JButton                        testCacheButton;
 
   /**
    * Create the panel.
@@ -136,17 +134,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     isNextLogAnUpdate = false;
     nextDiveIdForUpdate = -1;
     isPanelInitiated = false;
-  }
-
-  @Override
-  public void actionPerformed( ActionEvent ev )
-  {
-    String cmd = ev.getActionCommand();
-    if( cmd.equals( "test_cache" ) )
-    {
-      LOGGER.severe( "manual test chache comand!" );
-      addLogDirFromCache();
-    }
   }
 
   /**
@@ -526,10 +513,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     diveNotesShowLabel.setForeground( new Color( 0, 128, 0 ) );
     diveNotesShowLabel.setBounds( 268, 275, 492, 14 );
     add( diveNotesShowLabel );
-    testCacheButton = new JButton( "TESTCACHE" );
-    testCacheButton.setBounds( 560, 216, 199, 23 );
-    testCacheButton.setActionCommand( "test_cache" );
-    add( testCacheButton );
     logfileCommLabel.setVisible( false );
   }
 
@@ -731,7 +714,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener, 
     readLogfilesFromSPXButton.addMouseMotionListener( mainCommGUI );
     logListField.addMouseMotionListener( mainCommGUI );
     logListField.addListSelectionListener( this );
-    testCacheButton.addActionListener( this );
   }
 
   /**

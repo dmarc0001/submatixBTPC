@@ -701,31 +701,49 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void connectSPX()
   {
+    int itemIndex = connectionPanel.deviceToConnectComboBox.getSelectedIndex();
     // Welche Schnittstelle?
-    if( connectionPanel.deviceToConnectComboBox.getSelectedIndex() == -1 )
+    if( itemIndex == -1 )
     {
       LOGGER.log( Level.WARNING, "no connection device selected!" );
       showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
       return;
     }
-    String deviceName = ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getDeviceIdAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
-    LOGGER.log( Level.FINE, "connect via device <" + deviceName + ">..." );
-    if( btComm.isConnected() )
+    //
+    // ist das Gerät als Online gefunden markiert?
+    //
+    if( ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getWasOnlineAt( itemIndex ) )
     {
-      // ist verbunden, was nun?
-      return;
+      // gerätenamen holen
+      String deviceName = ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getDeviceIdAt( itemIndex );
+      LOGGER.log( Level.FINE, "connect via device <" + deviceName + ">..." );
+      if( btComm.isConnected() )
+      {
+        // ist verbunden, was nun?
+        return;
+      }
+      else
+      {
+        // nicht verbunden, tu was!
+        try
+        {
+          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
+          wDial.setVisible( true );
+          btComm.connectDevice( deviceName );
+        }
+        catch( Exception ex )
+        {
+          showErrorDialog( ex.getLocalizedMessage() );
+          LOGGER.log( Level.SEVERE, "Exception: <" + ex.getMessage() + ">" );
+        }
+      }
     }
     else
     {
-      try
-      {
-        btComm.connectDevice( deviceName );
-      }
-      catch( Exception ex )
-      {
-        // TODO sinnvoll anzeigen
-        LOGGER.log( Level.SEVERE, "Exception: <" + ex.getMessage() + ">" );
-      }
+      String deviceName = ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getDeviceIdAt( itemIndex );
+      String deviceAlias = ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getDeviceAliasAt( itemIndex );
+      showErrorDialog( String.format( stringsBundle.getString( "MainCommGUI.errorDialog.deviceNotConnected" ), deviceName + "/" + deviceAlias ) );
+      LOGGER.warning( "the device <" + deviceName + "> was not online!" );
     }
   }
 
@@ -1309,8 +1327,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       if( btComm != null )
       {
-        wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
-        wDial.setVisible( true );
         waitForMessage = 0; // auf erst mal nix warten...
         connectSPX();
       }

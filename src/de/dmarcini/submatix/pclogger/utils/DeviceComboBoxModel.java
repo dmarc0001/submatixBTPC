@@ -4,8 +4,26 @@ import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
 
+/**
+ * 
+ * Objekt für die Device-Combobox
+ * 
+ * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+ * 
+ * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+ * 
+ *         Stand: 08.09.2012
+ * 
+ */
 public class DeviceComboBoxModel extends DefaultComboBoxModel
 {
+  //
+  // Daten sind in einem Vector<String[]> gesichert
+  // Jedes Element des Vectors elem ist
+  // elem[0] == device ID
+  // elem[1] == Device Alias
+  // elem[2] == Flag, ob Device im BT gefunden wurde
+  //
   /**
    * 
    */
@@ -58,11 +76,11 @@ public class DeviceComboBoxModel extends DefaultComboBoxModel
       return( new String( "" ) );
     }
     String[] value = ( String[] )super.getElementAt( index );
-    if( value.length < 2 )
+    if( value.length < 3 )
     {
       return( "" );
     }
-    return( value[1] );
+    return( value[1] + " " + value[2] );
   }
 
   /**
@@ -89,10 +107,114 @@ public class DeviceComboBoxModel extends DefaultComboBoxModel
       return( new String( "" ) );
     }
     value = ( String[] )super.getElementAt( index );
-    if( value.length < 2 )
+    if( value.length < 3 )
     {
       return( "" );
     }
     return( value[0] );
+  }
+
+  /**
+   * 
+   * Aliasname aus der Liste zurückgeben
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 08.09.2012
+   * @param index
+   * @return
+   */
+  public String getDeviceAliasAt( int index )
+  {
+    String[] value;
+    if( index > super.getSize() )
+    {
+      return( "" );
+    }
+    if( index <= -1 )
+    {
+      return( new String( "" ) );
+    }
+    value = ( String[] )super.getElementAt( index );
+    if( value.length < 3 )
+    {
+      return( "" );
+    }
+    return( value[1] );
+  }
+
+  /**
+   * 
+   * War das Device nach dem Discovering online?
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 08.09.2012
+   * @param index
+   * @return "*" für war Online
+   */
+  public boolean getWasOnlineAt( int index )
+  {
+    String[] value;
+    if( index > super.getSize() )
+    {
+      return( false );
+    }
+    if( index <= -1 )
+    {
+      return( false );
+    }
+    value = ( String[] )super.getElementAt( index );
+    if( value.length < 3 )
+    {
+      return( false );
+    }
+    if( value[2].equals( "*" ) )
+    {
+      return( true );
+    }
+    return( false );
+  }
+
+  /**
+   * 
+   * Setze den Onlinestatus des Gerätes
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 08.09.2012
+   * @param index
+   * @param wasOnline
+   */
+  public void setWasOnlineAt( int index, boolean wasOnline )
+  {
+    String[] value;
+    if( index > super.getSize() )
+    {
+      return;
+    }
+    if( index <= -1 )
+    {
+      return;
+    }
+    value = ( String[] )super.getElementAt( index );
+    if( value.length < 3 )
+    {
+      return;
+    }
+    if( wasOnline )
+    {
+      value[2] = "*";
+    }
+    else
+    {
+      value[2] = "";
+    }
   }
 }

@@ -748,11 +748,12 @@ public class LogDerbyDatabaseUtil
       rs = stat.executeQuery( sql );
       while( rs.next() )
       {
-        String[] entr = new String[2];
+        String[] entr = new String[3];
         entr[0] = rs.getString( 1 );
         entr[1] = rs.getString( 2 );
+        entr[2] = "";
         aliasData.add( entr );
-        LOGGER.log( Level.FINE, String.format( "Read:%s::%s", entr[0], entr[1] ) );
+        LOGGER.log( Level.FINE, String.format( "Read:%s::%s::%s", entr[0], entr[1], entr[2] ) );
       }
       rs.close();
       stat.close();

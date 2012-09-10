@@ -28,9 +28,11 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
@@ -38,6 +40,7 @@ import javax.swing.event.ChangeListener;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.GasComputeUnit;
+import de.dmarcini.submatix.pclogger.utils.GasPresetComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
@@ -197,12 +200,15 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
   public void actionPerformed( ActionEvent ev )
   {
     if( !isPanelInitiated || ignoreAction ) return;
+    String cmd = ev.getActionCommand();
     // /////////////////////////////////////////////////////////////////////////
     // Combobox
     if( ev.getSource() instanceof JComboBox )
     {
       JComboBox cb = ( JComboBox )ev.getSource();
-      if( ev.getActionCommand().equals( "set_ppomax" ) )
+      // //////////////////////////////////////////////////////////////////////
+      // die PPO-Max-Combobox
+      if( cmd.equals( "set_ppomax" ) )
       {
         try
         {
@@ -215,15 +221,160 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
           LOGGER.severe( ex.getLocalizedMessage() );
           ppOMax = 1.6D;
         }
+        return;
       }
-      else
+      // //////////////////////////////////////////////////////////////////////
+      // die Preset-Combobox
+      if( cmd.equals( "preset_changed" ) )
       {
-        LOGGER.warning( "unknown combobox action event <" + ev.getActionCommand() + ">" );
+        if( cb.getSelectedIndex() == -1 ) return;
+        int index = customPresetComboBox.getSelectedIndex();
+        String presetName = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getNameAt( index );
+        int dbId = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getDatabaseIdAt( index );
+        LOGGER.fine( "preset combobox changed to index <" + index + ">" );
+        LOGGER.fine( "entry has name <" + presetName + "> and dbId <" + dbId + ">" );
+        prepareCurentGasFromDb( dbId );
+        return;
       }
+      // //////////////////////////////////////////////////////////////////////
+      // die Preset-Combobox
+      if( cmd.equals( "comboBoxEdited" ) && ev.getSource().equals( customPresetComboBox ) )
+      {
+        LOGGER.fine( "combobox changed!" );
+        if( cb.getSelectedIndex() == -1 )
+        {
+          // ein NEUER Eintrag!
+          LOGGER.fine( "combobox changed: new entry!" );
+          String newPresetName = ( String )customPresetComboBox.getSelectedItem();
+          LOGGER.fine( "entry has propertys: name: <" + newPresetName + ">" );
+          // TODO:
+          if( JOptionPane.CANCEL_OPTION == showAskSaveBox( stringsBundle.getString( "spx42GasPresetEditPanel.showAskSaveBox.msg1" ) ) )
+          {
+            ignoreAction = true;
+            fillPresetComboBox();
+            ignoreAction = false;
+            return;
+          }
+          //
+          // sichere Neuen Preset in die DB
+          //
+          databaseUtil.saveNewPresetData( newPresetName, currGasList );
+          //
+          // Neu anzeigen
+          //
+          ignoreAction = true;
+          fillPresetComboBox();
+          ignoreAction = false;
+          return;
+        }
+        return;
+      }
+      // ansonsten...
+      LOGGER.warning( "unknown combobox action event <" + ev.getActionCommand() + ">" );
+    }
+    else if( ev.getSource() instanceof JButton )
+    {
+      //
+      // //////////////////////////////////////////////////////////////////////
+      // die Sichern-Button
+      if( cmd.equals( "write_gaslist_preset" ) )
+      {
+        LOGGER.fine( "write gaslist to db..." );
+        if( customPresetComboBox.getSelectedIndex() >= 0 )
+        {
+          // neuer Eintrag!
+          int index = customPresetComboBox.getSelectedIndex();
+          String presetName = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getNameAt( index );
+          int dbId = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getDatabaseIdAt( index );
+          LOGGER.fine( "entry has name <" + presetName + "> and dbId <" + dbId + ">" );
+          // TODO:
+          if( JOptionPane.CANCEL_OPTION == showAskSaveBox( stringsBundle.getString( "spx42GasPresetEditPanel.showAskSaveBox.msg2" ) ) )
+          {
+            return;
+          }
+          //
+          // Daten in die Db sichern
+          //
+          databaseUtil.updatePresetData( dbId, currGasList );
+          //
+          // Box neu anzeigen
+          //
+          ignoreAction = true;
+          fillPresetComboBox();
+          ignoreAction = false;
+          return;
+        }
+        return;
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // die DELETE-Button
+      if( cmd.equals( "delete_gaslist_preset" ) )
+      {
+        LOGGER.fine( "delete gaslist from db..." );
+        if( customPresetComboBox.getSelectedIndex() >= 0 )
+        {
+          // neuer Eintrag!
+          int index = customPresetComboBox.getSelectedIndex();
+          String presetName = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getNameAt( index );
+          int dbId = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getDatabaseIdAt( index );
+          LOGGER.fine( "entry has name <" + presetName + "> and dbId <" + dbId + ">" );
+          // TODO:
+          if( JOptionPane.CANCEL_OPTION == showAskDeleteBox( stringsBundle.getString( "spx42GasPresetEditPanel.showAskDeleteBox.msg1" ) ) )
+          {
+            return;
+          }
+          //
+          // Daten aus der DB löschen
+          //
+          //
+          // Box neu befüllen
+          //
+          ignoreAction = true;
+          fillPresetComboBox();
+          ignoreAction = false;
+          return;
+        }
+        return;
+      }
+      // ansonsten...
+      LOGGER.warning( "unknown button action event <" + ev.getActionCommand() + ">" );
     }
     else
     {
       LOGGER.warning( "unknown action event <" + ev.getActionCommand() + ">" );
+    }
+  }
+
+  /**
+   * 
+   * DAs aktuelle Gas einrichten
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 10.09.2012
+   * @param dbId
+   */
+  private void prepareCurentGasFromDb( int dbId )
+  {
+    SPX42GasList tempGasList = databaseUtil.getPresetForSetId( dbId );
+    if( !tempGasList.isInitialized() )
+    {
+      LOGGER.severe( "gaslist is not initialized! ABORT!" );
+      return;
+    }
+    currGasList = tempGasList;
+    //
+    // Gase initialisieren
+    //
+    for( int idx = 0; idx < currGasList.getGasCount(); idx++ )
+    {
+      ( heSpinnerMap.get( idx ) ).setValue( currGasList.getHEFromGas( idx ) );
+      ( o2SpinnerMap.get( idx ) ).setValue( currGasList.getO2FromGas( idx ) );
+      // changeHEFromGas( idx, currGasList.getHEFromGas( idx ) );
+      // changeO2FromGas( idx, currGasList.getO2FromGas( idx ) );
+      setDescriptionForGas( idx, currGasList.getO2FromGas( idx ), currGasList.getHEFromGas( idx ) );
     }
   }
 
@@ -855,7 +1006,8 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_borderGasLabel_07.gridy = 8;
     gasMatrixPanel.add( borderGasLabel_07, gbc_borderGasLabel_07 );
     customPresetComboBox = new JComboBox();
-    customPresetComboBox.setEnabled( false );
+    customPresetComboBox.setEditable( true );
+    customPresetComboBox.setActionCommand( "preset_changed" );
     writeGasPresetButton = new JButton( "WRITEPRESELECT" );
     writeGasPresetButton.setIcon( new ImageIcon( spx42GasPresetEditPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/31.png" ) ) );
     writeGasPresetButton.setForeground( new Color( 0, 100, 0 ) );
@@ -875,7 +1027,7 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     deleteSelectetPresetButton.setIcon( new ImageIcon( spx42GasPresetEditPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/173.png" ) ) );
     deleteSelectetPresetButton.setForeground( Color.RED );
     deleteSelectetPresetButton.setBackground( new Color( 255, 192, 203 ) );
-    deleteSelectetPresetButton.setActionCommand( "write_gaslist_preset" );
+    deleteSelectetPresetButton.setActionCommand( "delete_gaslist_preset" );
     GroupLayout groupLayout = new GroupLayout( this );
     groupLayout.setHorizontalGroup( groupLayout.createParallelGroup( Alignment.LEADING ).addGroup(
             groupLayout
@@ -885,16 +1037,18 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
                                     .createParallelGroup( Alignment.LEADING )
                                     .addGroup(
                                             groupLayout.createSequentialGroup().addContainerGap()
-                                                    .addComponent( customPresetComboBox, GroupLayout.PREFERRED_SIZE, 325, GroupLayout.PREFERRED_SIZE ).addGap( 88 )
-                                                    .addComponent( writeGasPresetButton, GroupLayout.PREFERRED_SIZE, 210, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                                                    .addComponent( customPresetComboBox, GroupLayout.PREFERRED_SIZE, 325, GroupLayout.PREFERRED_SIZE ).addGap( 78 )
+                                                    .addComponent( writeGasPresetButton, GroupLayout.PREFERRED_SIZE, 210, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED )
                                                     .addComponent( deleteSelectetPresetButton, GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE ) )
                                     .addGroup(
                                             groupLayout.createSequentialGroup().addGap( 10 )
                                                     .addComponent( gasMatrixPanel, GroupLayout.PREFERRED_SIZE, 773, GroupLayout.PREFERRED_SIZE ) )
                                     .addGroup(
                                             groupLayout.createSequentialGroup().addGap( 3 )
-                                                    .addComponent( salnityCheckBox, GroupLayout.PREFERRED_SIZE, 217, GroupLayout.PREFERRED_SIZE ).addGap( 6 )
-                                                    .addComponent( ppoMaxComboBox, GroupLayout.PREFERRED_SIZE, 92, GroupLayout.PREFERRED_SIZE ).addGap( 33 )
+                                                    .addComponent( salnityCheckBox, GroupLayout.PREFERRED_SIZE, 217, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED )
+                                                    .addComponent( ppoMaxComboBox, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
                                                     .addComponent( pressureUnitLabel, GroupLayout.PREFERRED_SIZE, 46, GroupLayout.PREFERRED_SIZE ) ) ).addGap( 13 ) ) );
     groupLayout.setVerticalGroup( groupLayout.createParallelGroup( Alignment.LEADING ).addGroup(
             groupLayout
@@ -908,8 +1062,8 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
                                                     .addGap( 10 )
                                                     .addGroup(
                                                             groupLayout.createParallelGroup( Alignment.BASELINE )
-                                                                    .addComponent( deleteSelectetPresetButton, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE )
-                                                                    .addComponent( writeGasPresetButton, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE ) ) )
+                                                                    .addComponent( writeGasPresetButton, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE )
+                                                                    .addComponent( deleteSelectetPresetButton, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE ) ) )
                                     .addGroup(
                                             groupLayout.createSequentialGroup().addContainerGap()
                                                     .addComponent( customPresetComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) ) )
@@ -919,9 +1073,8 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
                     .addGroup(
                             groupLayout
                                     .createParallelGroup( Alignment.LEADING )
-                                    .addComponent( salnityCheckBox )
                                     .addGroup(
-                                            groupLayout.createSequentialGroup().addGap( 4 )
+                                            groupLayout.createParallelGroup( Alignment.BASELINE ).addComponent( salnityCheckBox )
                                                     .addComponent( ppoMaxComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
                                     .addGroup( groupLayout.createSequentialGroup().addGap( 4 ).addComponent( pressureUnitLabel ) ) ) ) );
     setLayout( groupLayout );
@@ -982,10 +1135,37 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     initGasObjectMaps();
     setLanguageStrings( stringsBundle );
     setGasMatrixSpinner();
+    setAllDescriptionsForGas();
+    fillPresetComboBox();
     setGlobalChangeListener();
     isPanelInitiated = true;
-    setAllDescriptionsForGas();
     ignoreAction = false;
+  }
+
+  /**
+   * 
+   * Fülle die Preset-Combobox mit Daten aus der datenbank
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 10.09.2012 TODO
+   */
+  private void fillPresetComboBox()
+  {
+    // GasPresetComboBoxModel
+    if( databaseUtil == null ) return;
+    if( !databaseUtil.isOpenDB() )
+    {
+      LOGGER.severe( "database is not OPENED!" );
+      return;
+    }
+    //
+    // jetzt frag mal die DB nach den Daten
+    //
+    GasPresetComboBoxModel presetModel = new GasPresetComboBoxModel( databaseUtil.getPresets() );
+    customPresetComboBox.setModel( presetModel );
   }
 
   /**
@@ -1099,7 +1279,6 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
   {
     for( Component cp : gasMatrixPanel.getComponents() )
     {
-      // License State 0=Nitrox,1=Normoxic Trimix,2=Full Trimix
       // isses ein Spinner?
       if( cp instanceof JSpinner )
       {
@@ -1209,6 +1388,9 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     {
       salnityCheckBox.addMouseMotionListener( mListener );
     }
+    customPresetComboBox.addActionListener( this );
+    writeGasPresetButton.addActionListener( this );
+    deleteSelectetPresetButton.addActionListener( this );
   }
 
   /**
@@ -1466,5 +1648,69 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     // färbe dabei gleich die Zahlen ein
     setDescriptionForGas( gasNr, o2, he );
     ignoreAction = false;
+  }
+
+  /**
+   * 
+   * Frag mich ja/neun
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 10.09.2012
+   * @param msg
+   * @return
+   */
+  private int showAskSaveBox( String msg )
+  {
+    try
+    {
+      Object[] options =
+      { stringsBundle.getString( "spx42GasPresetEditPanel.showAskSaveBox.no" ), stringsBundle.getString( "spx42GasPresetEditPanel.showAskSaveBox.yes" ) };
+      return JOptionPane.showOptionDialog( this, msg, stringsBundle.getString( "spx42GasPresetEditPanel.showAskSaveBox.headline" ), JOptionPane.OK_CANCEL_OPTION,
+              JOptionPane.QUESTION_MESSAGE, null, options, options[1] );
+    }
+    catch( NullPointerException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      return JOptionPane.CANCEL_OPTION;
+    }
+    catch( MissingResourceException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      return JOptionPane.CANCEL_OPTION;
+    }
+    catch( ClassCastException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      return JOptionPane.CANCEL_OPTION;
+    }
+  }
+
+  private int showAskDeleteBox( String msg )
+  {
+    try
+    {
+      Object[] options =
+      { stringsBundle.getString( "spx42GasPresetEditPanel.showAskDeleteBox.no" ), stringsBundle.getString( "spx42GasPresetEditPanel.showAskDeleteBox.yes" ) };
+      return JOptionPane.showOptionDialog( this, msg, stringsBundle.getString( "spx42GasPresetEditPanel.showAskDeleteBox.headline" ), JOptionPane.OK_CANCEL_OPTION,
+              JOptionPane.QUESTION_MESSAGE, null, options, options[1] );
+    }
+    catch( NullPointerException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      return JOptionPane.CANCEL_OPTION;
+    }
+    catch( MissingResourceException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      return JOptionPane.CANCEL_OPTION;
+    }
+    catch( ClassCastException ex )
+    {
+      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      return JOptionPane.CANCEL_OPTION;
+    }
   }
 }

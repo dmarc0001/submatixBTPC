@@ -1987,7 +1987,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             // Mach mal alles in die Spinner rein
             if( gasConfigPanel.getHeSpinnerMap() == null ) return;
             if( gasConfigPanel.getO2SpinnerMap() == null ) return;
-            // if( gasConfigPanel.getGasLblMap() == null ) return;
             if( gasConfigPanel.getDiluent1Map() == null ) return;
             if( gasConfigPanel.getDiluent2Map() == null ) return;
             if( gasConfigPanel.getBailoutMap() == null ) return;

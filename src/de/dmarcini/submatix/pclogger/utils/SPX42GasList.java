@@ -172,6 +172,16 @@ public class SPX42GasList implements ISPX42GasList
     }
     this.he[number] = he;
     n2[number] = 100 - he - o2;
+    init[number] = true;
+    // vor dem Ende noch checken, ob nun alle Gase eingetragen sind
+    for( int i = 0; i < GASCOUNT; i++ )
+    {
+      if( init[i] == false )
+      {
+        return( true );
+      }
+    }
+    isInitialized = true;
     return true;
   }
 

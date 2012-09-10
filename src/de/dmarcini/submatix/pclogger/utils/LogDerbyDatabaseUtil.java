@@ -360,6 +360,88 @@ public class LogDerbyDatabaseUtil
     if( checkForTable( ProjectConst.D_TABLE_DIVEDETAIL ) ) _dropTable( ProjectConst.D_TABLE_DIVEDETAIL );
   }
 
+  private void _updateDatabaseToVersion5() throws SQLException
+  {
+    String sql;
+    Statement stat;
+    //
+    LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
+    // ////////////////////////////////////////////////////////////////////////
+    // Datentabellen ergänzen
+    //
+    stat = conn.createStatement();
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Versionstabelle updaten
+    // Versionsnummer reinschreiben
+    sql = String.format( "insert into %s ( %s ) values ( %d )", ProjectConst.V_DBVERSION, ProjectConst.V_VERSION, ProjectConst.DB_VERSION );
+    LOGGER.log( Level.FINE, String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
+    stat.execute( sql );
+    conn.commit();
+    // @formatter:on
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Tabelle für die Gaspresets
+    //@formatter:off
+    sql = String.format( 
+            "create table %s\n" +
+            " (\n" +
+            "  %s integer not null generated always as identity, \n" + 
+            "  %s varchar(64) not null\n" +
+            " )", 
+            ProjectConst.P_TABLE_PRESETS,
+            ProjectConst.P_DBID,
+            ProjectConst.P_SETNAME
+            );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
+    stat.execute( sql );
+    conn.commit();
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Tabelle für die Gaspreset Details
+    //@formatter:off
+    sql = String.format( 
+            "create table %s\n" +
+            " (\n" +
+            "  %s integer not null generated always as identity, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s integer not null, \n" + 
+            "  %s boolean, \n" + 
+            "  %s boolean, \n" + 
+            "  %s boolean \n" + 
+            " )", 
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_DBID,
+            ProjectConst.PD_SETID,
+            ProjectConst.PD_GASNR,
+            ProjectConst.PD_O2,
+            ProjectConst.PD_HE,
+            ProjectConst.PD_DILUENT1,
+            ProjectConst.PD_DILUENT2,
+            ProjectConst.PD_BAILOUT
+            );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    stat.execute( sql );
+    // Index fuer die Tabelle erzeugen
+    //@formatter:off
+    sql = String.format(
+            "create index idx_%s_%s on %s ( %s ASC)",
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_SETID,
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_SETID );
+    //@formatter:off     
+    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    stat.execute( sql );
+    conn.commit();
+    //
+    // eventuell noch mehr Tabellen
+    //
+    stat.close();
+    conn.commit();
+  }
+
   /**
    * 
    * Einen neuen Alias in die DB aufnehmen
@@ -632,88 +714,6 @@ public class LogDerbyDatabaseUtil
         conn = null;
         return( null );
     }
-  }
-
-  private void _updateDatabaseToVersion5() throws SQLException
-  {
-    String sql;
-    Statement stat;
-    //
-    LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
-    // ////////////////////////////////////////////////////////////////////////
-    // Datentabellen ergänzen
-    //
-    stat = conn.createStatement();
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Versionstabelle updaten
-    // Versionsnummer reinschreiben
-    sql = String.format( "insert into %s ( %s ) values ( %d )", ProjectConst.V_DBVERSION, ProjectConst.V_VERSION, ProjectConst.DB_VERSION );
-    LOGGER.log( Level.FINE, String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
-    stat.execute( sql );
-    conn.commit();
-    // @formatter:on
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Tabelle für die Gaspresets
-    //@formatter:off
-    sql = String.format( 
-            "create table %s\n" +
-            " (\n" +
-            "  %s integer not null generated always as identity, \n" + 
-            "  %s varchar(64) not null\n" +
-            " )", 
-            ProjectConst.P_TABLE_PRESETS,
-            ProjectConst.P_DBID,
-            ProjectConst.P_SETNAME
-            );
-    //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
-    stat.execute( sql );
-    conn.commit();
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Tabelle für die Gaspreset Details
-    //@formatter:off
-    sql = String.format( 
-            "create table %s\n" +
-            " (\n" +
-            "  %s integer not null generated always as identity, \n" + 
-            "  %s integer not null, \n" + 
-            "  %s integer not null, \n" + 
-            "  %s integer not null, \n" + 
-            "  %s integer not null, \n" + 
-            "  %s boolean, \n" + 
-            "  %s boolean, \n" + 
-            "  %s boolean \n" + 
-            " )", 
-            ProjectConst.PD_TABLE_PRESETDETAIL,
-            ProjectConst.PD_DBID,
-            ProjectConst.PD_SETID,
-            ProjectConst.PD_GASNR,
-            ProjectConst.PD_O2,
-            ProjectConst.PD_HE,
-            ProjectConst.PD_DILUENT1,
-            ProjectConst.PD_DILUENT2,
-            ProjectConst.PD_BAILOUT
-            );
-    //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
-    stat.execute( sql );
-    // Index fuer die Tabelle erzeugen
-    //@formatter:off
-    sql = String.format(
-            "create index idx_%s_%s on %s ( %s ASC)",
-            ProjectConst.PD_TABLE_PRESETDETAIL,
-            ProjectConst.PD_SETID,
-            ProjectConst.PD_TABLE_PRESETDETAIL,
-            ProjectConst.PD_SETID );
-    //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
-    stat.execute( sql );
-    conn.commit();
-    //
-    // eventuell noch mehr Tabellen
-    //
-    stat.close();
-    conn.commit();
   }
 
   /**
@@ -1265,6 +1265,93 @@ public class LogDerbyDatabaseUtil
 
   /**
    * 
+   * Kopfdaten als Strings für eine Id zurückgeben
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 05.09.2012
+   * @param dbId
+   * @return Array von Strings
+   */
+  public String[] getHeadDiveDataFromIdAsSTringLog( int dbId )
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    String[] diveHeadData = null;
+    //
+    LOGGER.log( Level.FINE, "read head data for spx dive number <" + dbId + "> from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format(
+            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d",
+            ProjectConst.H_DIVEID,
+            ProjectConst.H_DIVENUMBERONSPX,
+            ProjectConst.H_FILEONSPX,
+            ProjectConst.H_DEVICEID,
+            ProjectConst.H_STARTTIME,
+            ProjectConst.H_HADSEND,
+            ProjectConst.H_FIRSTTEMP,
+            ProjectConst.H_LOWTEMP,
+            ProjectConst.H_MAXDEPTH,
+            ProjectConst.H_SAMPLES,
+            ProjectConst.H_DIVELENGTH,
+            ProjectConst.H_UNITS,
+            ProjectConst.H_TABLE_DIVELOGS,
+            ProjectConst.H_DIVEID,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      if( rs.next() )
+      {
+        diveHeadData = new String[12];
+        // Daten kosolidieren
+        diveHeadData[0] = rs.getString( 1 );
+        diveHeadData[1] = rs.getString( 2 );
+        diveHeadData[2] = rs.getString( 3 );
+        diveHeadData[3] = rs.getString( 4 );
+        diveHeadData[4] = rs.getString( 5 );
+        diveHeadData[5] = rs.getString( 6 );
+        diveHeadData[6] = rs.getString( 7 );
+        diveHeadData[7] = rs.getString( 8 );
+        diveHeadData[8] = String.format( "%-3.1f", ( rs.getDouble( 9 ) / 10.0 ) ); // Tiefe
+        diveHeadData[9] = rs.getString( 10 );
+        // Minuten/Sekunden ausrechnen
+        int minutes = rs.getInt( 11 ) / 60;
+        int secounds = rs.getInt( 11 ) % 60;
+        diveHeadData[10] = String.format( "%d:%02d", minutes, secounds );
+        if( rs.getInt( 12 ) == ProjectConst.UNITS_IMPERIAL )
+        {
+          diveHeadData[11] = "IMPERIAL"; // Einheiten
+        }
+        else
+        {
+          diveHeadData[11] = "METRIC"; // Einheiten
+        }
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read head data for spx dive number <" + dbId + "> from DB...OK" );
+      return( diveHeadData );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
+  }
+
+  /**
+   * 
    * Gib Kopfdaten für einen Tauchgang zurück
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
@@ -1427,6 +1514,62 @@ public class LogDerbyDatabaseUtil
       LOGGER.log( Level.SEVERE, String.format( "fail to read pin for device %s (%s)", deviceName, ex.getLocalizedMessage() ) );
     }
     return( pin );
+  }
+
+  /**
+   * 
+   * Gib einen Vector mit Presets aus der Datenbank zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 10.09.2012
+   * @return Menge von DAten
+   */
+  public Vector<GasPresetComboObject> getPresets()
+  {
+    String sql;
+    Statement stat;
+    ResultSet rs;
+    Vector<GasPresetComboObject> presets = new Vector<GasPresetComboObject>();
+    GasPresetComboObject gasset = null;
+    //
+    LOGGER.log( Level.FINE, "read gas presets from DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return( null );
+    }
+    //@formatter:off
+    sql = String.format(
+            "select %s,%s from %s order by %s",
+            ProjectConst.P_DBID,
+            ProjectConst.P_SETNAME,
+            ProjectConst.P_TABLE_PRESETS,
+            ProjectConst.P_SETNAME
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      rs = stat.executeQuery( sql );
+      while( rs.next() )
+      {
+        gasset = new GasPresetComboObject();
+        gasset.dbId = rs.getInt( 1 );
+        gasset.presetName = rs.getString( 2 );
+        presets.add( gasset );
+      }
+      rs.close();
+      LOGGER.log( Level.FINE, "read gas presets from DB...OK" );
+      return( presets );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      return( null );
+    }
   }
 
   /**
@@ -1699,6 +1842,155 @@ public class LogDerbyDatabaseUtil
 
   /**
    * 
+   * Neuen Datensatz in die DB schreiben
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 10.09.2012
+   * @param newPresetName
+   * @param currGasList
+   */
+  public void saveNewPresetData( String newPresetName, SPX42GasList currGasList )
+  {
+    String sql;
+    Statement stat = null;
+    PreparedStatement prep = null;
+    ResultSet rs;
+    int setId = -1;
+    //
+    LOGGER.log( Level.FINE, "insert new gas preset in DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return;
+    }
+    //@formatter:off
+    sql = String.format(
+            "insert into %s ( %s ) values ( '%s' )",
+            ProjectConst.P_TABLE_PRESETS,
+            ProjectConst.P_SETNAME,
+            newPresetName
+           );
+    //@formatter:on
+    try
+    {
+      //
+      // datensatz anlegen, Datenbankid holen
+      stat = conn.createStatement();
+      stat.execute( sql, Statement.RETURN_GENERATED_KEYS );
+      rs = stat.getGeneratedKeys();
+      if( rs.next() )
+      {
+        setId = rs.getInt( 1 );
+      }
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "fatal error while insert: " + ex.getLocalizedMessage() );
+      try
+      {
+        conn.rollback();
+      }
+      catch( SQLException ex1 )
+      {
+        // Doppelfehler
+        ex1.printStackTrace();
+        System.exit( -1 );
+      }
+      return;
+    }
+    //
+    // Jetzt Gasliste in die DB schreiben
+    //
+    //@formatter:off
+    sql = String.format(
+            "insert into %s ( %s,%s,%s,%s,%s,%s,%s ) values ( ?,?,?,?,?,?,? )",
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_O2,
+            ProjectConst.PD_HE,
+            ProjectConst.PD_DILUENT1,
+            ProjectConst.PD_DILUENT2,
+            ProjectConst.PD_BAILOUT,
+            ProjectConst.PD_SETID,
+            ProjectConst.PD_GASNR
+           );
+    //@formatter:on
+    try
+    {
+      prep = conn.prepareStatement( sql );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't insert gas preset dataset! (" + ex.getLocalizedMessage() + ")" );
+      return;
+    }
+    // jetzt alle Sets in die DB
+    for( int idx = 0; idx < currGasList.getGasCount(); idx++ )
+    {
+      try
+      {
+        prep.setInt( 1, currGasList.getO2FromGas( idx ) );
+        prep.setInt( 2, currGasList.getN2FromGas( idx ) );
+        prep.setBoolean( 3, ( currGasList.diluent1 == idx ) );
+        prep.setBoolean( 4, ( currGasList.diluent2 == idx ) );
+        prep.setBoolean( 5, ( currGasList.bailout[idx] > 0 ) );
+        prep.setInt( 6, setId );
+        prep.setInt( 7, idx );
+        prep.addBatch();
+      }
+      catch( SQLException ex )
+      {
+        LOGGER.log( Level.SEVERE, "fatal error in sql prepare: " + ex.getLocalizedMessage() );
+        ex.printStackTrace();
+        if( aListener != null )
+        {
+          // die "das ging schief" Nachricht
+          ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "addBatch" );
+          aListener.actionPerformed( ev );
+        }
+        return;
+      }
+    }
+    //
+    // jetzt in die DB schreiben
+    //
+    try
+    {
+      prep.executeBatch();
+      prep.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      try
+      {
+        conn.rollback();
+      }
+      catch( SQLException ex1 )
+      {
+        // Doppelfehler...LogForDeviceDatabaseUtil Programm hart beenden!
+        LOGGER.log( Level.SEVERE, "fatal double error in batch execute: " + ex1.getLocalizedMessage() );
+        LOGGER.log( Level.SEVERE, "ABORT PROGRAM!!!!!!!!!" );
+        ex1.printStackTrace();
+        System.exit( -1 );
+      }
+      LOGGER.log( Level.SEVERE, "fatal error in batch execute: " + ex.getLocalizedMessage() );
+      ex.printStackTrace();
+      if( aListener != null )
+      {
+        // die "das ging schief" Nachricht
+        ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "executeBatch" );
+        aListener.actionPerformed( ev );
+      }
+      return;
+    }
+  }
+
+  /**
+   * 
    * Sichere Bemerkungen für einen Tauchgang
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
@@ -1858,6 +2150,161 @@ public class LogDerbyDatabaseUtil
       return( false );
     }
     return( true );
+  }
+
+  /**
+   * 
+   * Daten für einn vorhandenes Preset von Gasen sichern
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 10.09.2012
+   * @param dbId
+   * @param currGasList
+   */
+  public void updatePresetData( int dbId, SPX42GasList currGasList )
+  {
+    String sql;
+    PreparedStatement prep = null;
+    //
+    LOGGER.log( Level.FINE, "update gas presets in DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return;
+    }
+    //@formatter:off
+    sql = String.format(
+            "update %s set %s=?,%s=?,%s=?,%s=?,%s=? where %s=? and %s=?",
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_O2,
+            ProjectConst.PD_HE,
+            ProjectConst.PD_DILUENT1,
+            ProjectConst.PD_DILUENT2,
+            ProjectConst.PD_BAILOUT,
+            ProjectConst.PD_SETID,
+            ProjectConst.PD_GASNR
+           );
+    //@formatter:on
+    try
+    {
+      prep = conn.prepareStatement( sql );
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "Can't update gas preset dataset! (" + ex.getLocalizedMessage() + ")" );
+      return;
+    }
+    // jetzt alle Sets in die DB
+    for( int idx = 0; idx < currGasList.getGasCount(); idx++ )
+    {
+      try
+      {
+        prep.setInt( 1, currGasList.getO2FromGas( idx ) );
+        prep.setInt( 2, currGasList.getN2FromGas( idx ) );
+        prep.setBoolean( 3, ( currGasList.diluent1 == idx ) );
+        prep.setBoolean( 4, ( currGasList.diluent2 == idx ) );
+        prep.setBoolean( 5, ( currGasList.bailout[idx] > 0 ) );
+        prep.setInt( 6, dbId );
+        prep.setInt( 7, idx );
+        prep.addBatch();
+      }
+      catch( SQLException ex )
+      {
+        LOGGER.log( Level.SEVERE, "fatal error in sql prepare: " + ex.getLocalizedMessage() );
+        ex.printStackTrace();
+        if( aListener != null )
+        {
+          // die "das ging schief" Nachricht
+          ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "addBatch" );
+          aListener.actionPerformed( ev );
+        }
+        return;
+      }
+    }
+    // jetzt in die DB schreiben
+    try
+    {
+      prep.executeBatch();
+      prep.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      try
+      {
+        conn.rollback();
+      }
+      catch( SQLException ex1 )
+      {
+        // Doppelfehler...LogForDeviceDatabaseUtil Programm hart beenden!
+        LOGGER.log( Level.SEVERE, "fatal double error in batch execute: " + ex1.getLocalizedMessage() );
+        LOGGER.log( Level.SEVERE, "ABORT PROGRAM!!!!!!!!!" );
+        ex1.printStackTrace();
+        System.exit( -1 );
+      }
+      LOGGER.log( Level.SEVERE, "fatal error in batch execute: " + ex.getLocalizedMessage() );
+      ex.printStackTrace();
+      if( aListener != null )
+      {
+        // die "das ging schief" Nachricht
+        ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "executeBatch" );
+        aListener.actionPerformed( ev );
+      }
+      return;
+    }
+    LOGGER.log( Level.FINE, "update gas presets in DB..." );
+  }
+
+  /**
+   * 
+   * Daten mit neuem Namen und neuen Daten sichern
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 10.09.2012
+   * @param dbId
+   * @param newPresetName
+   * @param currGasList
+   */
+  public void updatePresetData( int dbId, String newPresetName, SPX42GasList currGasList )
+  {
+    String sql;
+    Statement stat = null;
+    //
+    LOGGER.log( Level.FINE, "update gas presets in DB..." );
+    if( conn == null )
+    {
+      LOGGER.log( Level.WARNING, "no databese connection..." );
+      return;
+    }
+    //@formatter:off
+    sql = String.format(
+            "update %s set %s=? where %s=?",
+            ProjectConst.P_TABLE_PRESETS,
+            ProjectConst.P_SETNAME,
+            newPresetName,
+            ProjectConst.P_DBID,
+            dbId
+           );
+    //@formatter:on
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      LOGGER.log( Level.SEVERE, "fatal error in execute: " + ex.getLocalizedMessage() );
+      return;
+    }
+    updatePresetData( dbId, currGasList );
   }
 
   /**
@@ -2183,87 +2630,60 @@ public class LogDerbyDatabaseUtil
 
   /**
    * 
-   * Kopfdaten als Strings für eine Id zurückgeben
+   * Gib ein Gascondi Objekt zurück für eine SetId
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 05.09.2012
-   * @param dbId
-   * @return Array von Strings
+   *         Stand: 10.09.2012
+   * @param setId
+   * @return
    */
-  public String[] getHeadDiveDataFromIdAsSTringLog( int dbId )
+  public SPX42GasList getPresetForSetId( int setId )
   {
-    String sql;
     Statement stat;
+    String sql;
     ResultSet rs;
-    String[] diveHeadData = null;
+    SPX42GasList gasList = new SPX42GasList( LOGGER );
     //
-    LOGGER.log( Level.FINE, "read head data for spx dive number <" + dbId + "> from DB..." );
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
+    LOGGER.fine( "read preselect for setid <" + setId + ">" );
     //@formatter:off
-    sql = String.format(
-            "select %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s from %s where %s=%d",
-            ProjectConst.H_DIVEID,
-            ProjectConst.H_DIVENUMBERONSPX,
-            ProjectConst.H_FILEONSPX,
-            ProjectConst.H_DEVICEID,
-            ProjectConst.H_STARTTIME,
-            ProjectConst.H_HADSEND,
-            ProjectConst.H_FIRSTTEMP,
-            ProjectConst.H_LOWTEMP,
-            ProjectConst.H_MAXDEPTH,
-            ProjectConst.H_SAMPLES,
-            ProjectConst.H_DIVELENGTH,
-            ProjectConst.H_UNITS,
-            ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DIVEID,
-            dbId
+    sql = String.format( 
+            "select %s,%s,%s,%s,%s,%s,%s from %s where %s=%s order by %s",
+            ProjectConst.PD_O2,
+            ProjectConst.PD_HE,
+            ProjectConst.PD_DILUENT1,
+            ProjectConst.PD_DILUENT2,
+            ProjectConst.PD_BAILOUT,
+            ProjectConst.PD_SETID,
+            ProjectConst.PD_GASNR,
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_SETID,
+            setId,
+            ProjectConst.PD_GASNR
            );
     //@formatter:on
     try
     {
       stat = conn.createStatement();
       rs = stat.executeQuery( sql );
-      if( rs.next() )
+      while( rs.next() )
       {
-        diveHeadData = new String[12];
-        // Daten kosolidieren
-        diveHeadData[0] = rs.getString( 1 );
-        diveHeadData[1] = rs.getString( 2 );
-        diveHeadData[2] = rs.getString( 3 );
-        diveHeadData[3] = rs.getString( 4 );
-        diveHeadData[4] = rs.getString( 5 );
-        diveHeadData[5] = rs.getString( 6 );
-        diveHeadData[6] = rs.getString( 7 );
-        diveHeadData[7] = rs.getString( 8 );
-        diveHeadData[8] = String.format( "%-3.1f", ( rs.getDouble( 9 ) / 10.0 ) ); // Tiefe
-        diveHeadData[9] = rs.getString( 10 );
-        // Minuten/Sekunden ausrechnen
-        int minutes = rs.getInt( 11 ) / 60;
-        int secounds = rs.getInt( 11 ) % 60;
-        diveHeadData[10] = String.format( "%d:%02d", minutes, secounds );
-        if( rs.getInt( 12 ) == ProjectConst.UNITS_IMPERIAL )
-        {
-          diveHeadData[11] = "IMPERIAL"; // Einheiten
-        }
-        else
-        {
-          diveHeadData[11] = "METRIC"; // Einheiten
-        }
+        int gasNr = rs.getInt( 7 );
+        gasList.setGas( gasNr, rs.getInt( 1 ), rs.getInt( 2 ) );
+        if( rs.getBoolean( 3 ) ) gasList.setDiluent1( gasNr );
+        if( rs.getBoolean( 4 ) ) gasList.setDiluent2( gasNr );
+        if( rs.getBoolean( 5 ) ) gasList.bailout[gasNr] = 1;
+        LOGGER.fine( "gas number <" + gasNr + "> read..." );
       }
       rs.close();
-      LOGGER.log( Level.FINE, "read head data for spx dive number <" + dbId + "> from DB...OK" );
-      return( diveHeadData );
+      stat.close();
+      return( gasList );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.log( Level.SEVERE, "Can't read preset (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }

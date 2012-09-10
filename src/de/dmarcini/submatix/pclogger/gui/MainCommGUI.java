@@ -81,20 +81,21 @@ import de.dmarcini.submatix.pclogger.utils.WriteConfig;
  */
 public class MainCommGUI extends JFrame implements ActionListener, MouseMotionListener, ChangeListener, ItemListener
 {  //
+  private enum programTabs {
+    TAB_CONNECT,
+    TAB_CONFIG,
+    TAB_GASLIST,
+    TAB_GASPRESET,
+    TAB_LOGREAD,
+    TAB_LOGGRAPH,
+    TAB_FILEMANAGER
+  }
   private static final long        serialVersionUID    = 3L;
   private final static int         VERY_CONSERVATIVE   = 0;
   private final static int         CONSERVATIVE        = 1;
   private final static int         MODERATE            = 2;
   private final static int         AGGRESSIVE          = 3;
-  private final static int         VERY_AGGRESSIVE     = 4;
-  private enum programTabs {
-    TAB_CONNECT,
-    TAB_CONFIG,
-    TAB_GASLIST,
-    TAB_LOGREAD,
-    TAB_LOGGRAPH,
-    TAB_FILEMANAGER
-  };
+  private final static int         VERY_AGGRESSIVE     = 4;                                            ;
   private int                      licenseState        = -1;
   private int                      customConfig        = -1;
   private LogDerbyDatabaseUtil     databaseUtil        = null;
@@ -106,6 +107,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private spx42ConnectPanel        connectionPanel;
   private spx42ConfigPanel         configPanel;
   private spx42GaslistEditPanel    gasConfigPanel;
+  private spx42GasPresetEditPanel  gasPresetPanel;
   private spx42LoglistPanel        logListPanel;
   private spx42LogGraphPanel       logGraphPanel;
   private spx42FileManagerPanel    fileManagerPanel;
@@ -916,6 +918,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     gasConfigPanel = new spx42GaslistEditPanel( LOGGER, progConfig );
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_GASLIST.ordinal(), true );
+    // GASPRESETPANEL
+    gasPresetPanel = new spx42GasPresetEditPanel( LOGGER, databaseUtil, progConfig );
+    tabbedPane.addTab( "PRESET", null, gasPresetPanel, null );
+    tabbedPane.setEnabledAt( programTabs.TAB_GASPRESET.ordinal(), true );
     // Loglisten Panel
     logListPanel = new spx42LoglistPanel( LOGGER, this, databaseUtil );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
@@ -2362,6 +2368,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       tabbedPane.setTitleAt( programTabs.TAB_GASLIST.ordinal(), stringsBundle.getString( "spx42GaslistEditPanel.title" ) );
       gasConfigPanel.setLanguageStrings( stringsBundle );
       // //////////////////////////////////////////////////////////////////////
+      // Tabbed Pane gaspreset
+      tabbedPane.setTitleAt( programTabs.TAB_GASPRESET.ordinal(), stringsBundle.getString( "spx42GasPresetEditPanel.title" ) );
+      gasPresetPanel.setLanguageStrings( stringsBundle );
+      // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane log
       tabbedPane.setTitleAt( programTabs.TAB_LOGREAD.ordinal(), stringsBundle.getString( "spx42LoglistPanel.title" ) );
       logListPanel.setLanguageStrings( stringsBundle );
@@ -2773,6 +2783,21 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           // Panel Daten freigeben
           gasConfigPanel.releasePanel();
+        }
+        //
+        // ist es das Gas Preset Panel?
+        //
+        if( tabIdx == programTabs.TAB_GASPRESET.ordinal() )
+        {
+          // Panel initialisieren
+          LOGGER.log( Level.FINE, "gas preset tab select, init gui..." );
+          gasPresetPanel.setMouseMoveListener( this );
+          gasPresetPanel.prepareGasslistPanel();
+        }
+        else
+        {
+          // Panel Daten freigeben
+          gasPresetPanel.releasePanel();
         }
       }
     }

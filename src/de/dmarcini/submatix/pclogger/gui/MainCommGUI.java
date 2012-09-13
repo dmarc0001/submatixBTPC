@@ -428,8 +428,18 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     catch( MissingResourceException ex )
     {
+      LOGGER.severe( "ERROR get resources <" + ex.getMessage() + "> try standart Strings..." );
       System.err.println( "ERROR get resources <" + ex.getMessage() + "> try standart Strings..." );
-      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages_en" );
+      try
+      {
+        programLocale = Locale.ENGLISH;
+        stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages_en" );
+      }
+      catch( Exception ex1 )
+      {
+        LOGGER.severe( "ERROR get resources <" + ex1.getMessage() + "> give up..." );
+        System.exit( -1 );
+      }
     }
     prepareDatabase();
     currentConfig.setLogger( LOGGER );

@@ -370,7 +370,8 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     databaseUtil.updateDeviceAliasConn( devName, devAlias );
     // Jetzt die Verbindungsbox neu einlesen, sonst gibte Chaos ;-)
     LOGGER.log( Level.FINE, "read combobox entrys again...." );
-    Vector<String[]> entrys = btComm.getNameArray( true );
+    btComm.refreshNameArray();
+    Vector<String[]> entrys = btComm.getNameArray();
     DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     deviceToConnectComboBox.setModel( portBoxModel );
   }

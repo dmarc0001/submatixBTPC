@@ -41,10 +41,9 @@ public interface IBTCommunication
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 26.04.2012
-   * @param aliasFromDB
-   * @return NAmen und Aliase
+   * @return Namen und Aliase
    */
-  public Vector<String[]> getNameArray( boolean aliasFromDB );
+  public Vector<String[]> getNameArray();
 
   public boolean isConnected();
 

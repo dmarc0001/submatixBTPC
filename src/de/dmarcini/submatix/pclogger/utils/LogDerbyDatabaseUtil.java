@@ -887,16 +887,17 @@ public class LogDerbyDatabaseUtil
       //
       // Gib her die Einträge, wenn welche vorhanden sind
       //
-      sql = String.format( "select %s,%s from %s order by %s", ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME );
+      sql = String.format( "select %s,%s,%s from %s order by %s", ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_PIN, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME );
       rs = stat.executeQuery( sql );
       while( rs.next() )
       {
-        String[] entr = new String[3];
-        entr[0] = rs.getString( 1 );
-        entr[1] = rs.getString( 2 );
+        String[] entr = new String[4];
+        entr[0] = rs.getString( 1 ); // Device-ID
+        entr[1] = rs.getString( 2 ); // Device Alias
         entr[2] = "";
+        entr[3] = rs.getString( 3 ); // PIN
         aliasData.add( entr );
-        LOGGER.log( Level.FINE, String.format( "Read:%s::%s::%s", entr[0], entr[1], entr[2] ) );
+        LOGGER.log( Level.FINE, String.format( "Read:%s::%s::%s::%s", entr[0], entr[1], entr[2], entr[3] ) );
       }
       rs.close();
       stat.close();
@@ -2085,7 +2086,7 @@ public class LogDerbyDatabaseUtil
     LOGGER.log( Level.FINE, "try to set pin for device..." );
     if( null == getAliasForNameConn( dev ) )
     {
-      LOGGER.log( Level.WARNING, "no Aliasname fpr Device..." );
+      LOGGER.log( Level.WARNING, "no Aliasname for Device..." );
       return( false );
     }
     // jetzt kann ich die PIN einbauen, wenn datensatz schon vorhanden
@@ -2154,7 +2155,7 @@ public class LogDerbyDatabaseUtil
 
   /**
    * 
-   * Daten für einn vorhandenes Preset von Gasen sichern
+   * Daten für ein vorhandenes Preset von Gasen sichern
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
@@ -2638,7 +2639,7 @@ public class LogDerbyDatabaseUtil
    * 
    *         Stand: 10.09.2012
    * @param setId
-   * @return
+   * @return Gasliste für Preset-Id oder null
    */
   public SPX42GasList getPresetForSetId( int setId )
   {

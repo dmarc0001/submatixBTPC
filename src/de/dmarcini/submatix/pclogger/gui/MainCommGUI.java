@@ -453,7 +453,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     // Listener setzen (braucht auch die Maps)
     setGlobalChangeListener();
-    Vector<String[]> entrys = btComm.getNameArray( false );
+    btComm.refreshNameArray();
+    Vector<String[]> entrys = btComm.getNameArray();
     DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
     initLanuageMenu( programLocale );
@@ -2191,7 +2192,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void refillPortComboBox()
   {
-    Vector<String[]> entrys = btComm.getNameArray( false );
+    Vector<String[]> entrys = btComm.getNameArray();
     DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
   }
@@ -2426,7 +2427,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
       return;
     }
-    deviceName = ( String )connectionPanel.deviceToConnectComboBox.getItemAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
+    deviceName = ( ( DeviceComboBoxModel )( connectionPanel.deviceToConnectComboBox.getModel() ) ).getDeviceIdAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
     icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) );
     pinString = ( String )JOptionPane.showInputDialog( this, stringsBundle.getString( "MainCommGUI.setPinDialog.text" ) + " <" + deviceName + ">",
             stringsBundle.getString( "MainCommGUI.setPinDialog.headline" ), JOptionPane.PLAIN_MESSAGE, icon, null, btComm.getPinForDevice( deviceName ) );

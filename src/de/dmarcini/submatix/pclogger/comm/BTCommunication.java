@@ -10,9 +10,7 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.ListIterator;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,10 +51,8 @@ public class BTCommunication implements IBTCommunication
   static final UUID                       UUID_SERIAL_DEVICE = new UUID( 0x1101 );
   public static final int             CONFIG_WRITE_KDO_COUNT = 4;
   public static final int              CONFIG_READ_KDO_COUNT = 7;
-  private final HashMap<String,String>           connectHash = new HashMap<String,String>();
-  private final HashMap<String,RemoteDevice>      deviceHash = new HashMap<String,RemoteDevice>();
-  private final HashMap<String,String>         devicePinHash = new HashMap<String,String>();
-  private final HashMap<String,String>       deviceAliasHash = new HashMap<String,String>();
+  // übersichtlicher machen mit Objekt für alle
+  private DeviceCache                            deviceCache = null;
   static Logger                                       LOGGER = null;
   private LogDerbyDatabaseUtil                        dbUtil = null;
   private boolean                                        log = false;
@@ -806,6 +802,7 @@ public class BTCommunication implements IBTCommunication
   {
     LOGGER = lg;
     this.dbUtil = dbUtil;
+    deviceCache = new DeviceCache( dbUtil );
     if( lg == null )
       log = false;
     else
@@ -819,24 +816,18 @@ public class BTCommunication implements IBTCommunication
       }
       catch( SQLException ex )
       {
-        // TODO Auto-generated catch block
+        LOGGER.severe( "error while construct bluethooth object: <" + ex.getLocalizedMessage() + ">" );
         ex.printStackTrace();
       }
       catch( ClassNotFoundException ex )
       {
-        // TODO Auto-generated catch block
+        LOGGER.severe( "error while construct bluethooth object: <" + ex.getLocalizedMessage() + ">" );
         ex.printStackTrace();
       }
     }
-    Vector<String[]> alData = dbUtil.getAliasDataConn();
-    // gibt es welche: eintragen
-    if( alData != null )
-    {
-      for( String[] pair : alData )
-      {
-        deviceAliasHash.put( pair[0], pair[1] );
-      }
-    }
+    //
+    // Den Cache aus der Datenbank erstbefüllen
+    deviceCache.initFromDb();
   }
 
   @Override
@@ -918,9 +909,6 @@ public class BTCommunication implements IBTCommunication
           discoverInProcess = false;
           return;
         }
-        // Serviceliste leeren
-        connectHash.clear();
-        deviceHash.clear();
         // suche nach Serial devices
         UUID serviceUUID = UUID_SERIAL_DEVICE;
         // Event Objet
@@ -929,7 +917,9 @@ public class BTCommunication implements IBTCommunication
         DiscoveryListener listener = new DiscoveryListener() {
           @Override
           public void deviceDiscovered( RemoteDevice btDevice, DeviceClass cod )
-          {}
+          {
+            LOGGER.fine( "device discovered: <" + btDevice.getBluetoothAddress() + ">" );
+          }
 
           @Override
           public void inquiryCompleted( int discType )
@@ -939,11 +929,15 @@ public class BTCommunication implements IBTCommunication
           public void servicesDiscovered( int transID, ServiceRecord[] servRecord )
           {
             if( log ) LOGGER.log( Level.FINE, "Services Discovered..." );
+            //
+            // Alle gefundenen Devices durchgehen
+            //
             for( int i = 0; i < servRecord.length; i++ )
             {
               String url = servRecord[i].getConnectionURL( ServiceRecord.AUTHENTICATE_NOENCRYPT, false );
               if( url == null )
               {
+                // ich will nur mit gültiger Verbindung
                 continue;
               }
               DataElement serviceName = servRecord[i].getAttributeValue( 0x0100 );
@@ -953,11 +947,21 @@ public class BTCommunication implements IBTCommunication
               {
                 String sName = ( ( String )serviceName.getValue() );
                 sName = sName.replaceAll( "[^A-Z0-9a-z]{2,}", "" );
-                if( log ) LOGGER.log( Level.FINE, "Device <" + devName + "> Service <" + sName + "> found <" + url + ">" );
-                // URL für die Anzeige speichern
-                connectHash.put( devName, url );
-                // das Gerät für die Anzeige speichern
-                deviceHash.put( devName, servRecord[i].getHostDevice() );
+                if( log ) LOGGER.log( Level.FINE, "Device <" + devName + "> Service <" + sName + "> found at <" + url + ">" );
+                // URL speichern
+                if( deviceCache.isDeviceThere( devName ) )
+                {
+                  if( log ) LOGGER.log( Level.FINE, "Device was in cache. update data..." );
+                  // gerät ist schon im Cache
+                  deviceCache.setConnectionString( devName, url );
+                  deviceCache.setRemoteDevice( devName, servRecord[i].getHostDevice() );
+                }
+                else
+                {
+                  if( log ) LOGGER.log( Level.FINE, "Device was not in cache. insert data..." );
+                  // Gerät ist noch nicht im Cache
+                  deviceCache.addDevice( devName, url, "0000", "A-" + devName, servRecord[i].getHostDevice() );
+                }
                 if( aListener != null )
                 {
                   ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTMESSAGE, devName );
@@ -1056,64 +1060,38 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
-  public Vector<String[]> getNameArray( boolean alFromDb )
+  public Vector<String[]> getNameArray()
   {
     Vector<String[]> alData = null;
     //
-    alData = dbUtil.getAliasDataConn();
+    // den Vector erzeugen
     //
-    // wenn aliase verändert wurden, neu einlesen
-    //
-    if( alFromDb )
+    alData = new Vector<String[]>();
+    if( deviceCache.isEmpty() )
     {
-      deviceAliasHash.clear();
-      // gibt es welche: eintragen
-      if( alData != null )
-      {
-        for( String[] pair : alData )
-        {
-          deviceAliasHash.put( pair[0], pair[1] );
-        }
-      }
+      return( alData );
     }
-    // devicehash noch zufügen?
-    // dazu alle Einträge aus der Datenbank mit den gefundenen Einträgen vergleichen
     //
-    Iterator<String> it = deviceHash.keySet().iterator();
-    // Alle Einträge aus dem deviceHash vergleichen,
-    // ob der schon in der Datenbank vorhanden war
+    // Vector füllen
+    //
+    Iterator<String> it = deviceCache.getDevicesIterator();
     while( it.hasNext() )
     {
-      // Einen DeviceHash eintrag bearbeiten (DeviceID)
-      String devEntr = it.next();
-      // Voreingestellt: Er war nicht in der DB
-      boolean wasPresent = false;
-      // ist nun der Devivename schon im Vector entalten?
-      // dazu mit allen Einträgen aus dem Vector vergleichen
-      ListIterator<String[]> lit = alData.listIterator();
-      while( lit.hasNext() )
+      // den Vector mit den Stringarrays für die Anzeige in der Combobox füllen
+      String dev = it.next();
+      String[] e = new String[4];
+      e[0] = dev;
+      e[1] = deviceCache.getAlias( dev );
+      if( deviceCache.getConnectionString( dev ) != null )
       {
-        // neuer Eintrag aus der Alias-Datenbank
-        String[] entr = lit.next();
-        if( entr[0].equals( devEntr ) )
-        {
-          // gefundenes Devicce war schon in der DB vorhanden, kann also ignoriert werden
-          wasPresent = true;
-          entr[2] = "*";
-          lit.set( entr );
-          break;
-        }
-      }
-      // War jetzt der Wert schon in der DB vorhanden
-      if( !wasPresent )
-      {
-        // war nicht vorhanden, also zufügen
-        String[] e = new String[2];
-        e[0] = devEntr;
-        e[1] = devEntr;
         e[2] = "*";
-        alData.add( e );
       }
+      else
+      {
+        e[2] = "";
+      }
+      e[3] = deviceCache.getPin( dev );
+      alData.add( e );
     }
     return( alData );
   }
@@ -1128,18 +1106,28 @@ public class BTCommunication implements IBTCommunication
   public void connectDevice( String devName ) throws Exception
   {
     String url = null;
-    String deviceAlias = null, devicePin = null;
+    String devicePin = null;
     //
+    LOGGER.fine( "try to connect device <" + devName + ">..." );
     this.deviceName = devName;
     this.connectedDevice = null;
     // suche die URL für die Verbindung
-    // hab ich hier direkt den Devicenamen erwischt?
-    if( connectHash.containsKey( deviceName ) && deviceHash.containsKey( deviceName ) )
+    if( deviceCache.isDeviceThere( devName ) )
     {
       LOGGER.log( Level.FINE, "device name found in list. can try to connect device..." );
       // Ich hab den Gerätenamen gefunden, kann verbinden
-      url = connectHash.get( deviceName );
-      this.connectedDevice = deviceHash.get( deviceName );
+      url = deviceCache.getConnectionString( devName );
+      if( url == null )
+      {
+        // keine url, kann man nix verbinden!
+        if( aListener != null )
+        {
+          ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+          aListener.actionPerformed( ex1 );
+        }
+        return;
+      }
+      this.connectedDevice = deviceCache.getRemoteDevice( devName );
       if( aListener != null )
       {
         ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTING, null );
@@ -1149,7 +1137,7 @@ public class BTCommunication implements IBTCommunication
     else
     {
       // das geht nicht! Kann nicht herausfinden, mit wem ich verbinden soll!
-      LOGGER.log( Level.SEVERE, "device <" + deviceName + "> is not in list. give up!" );
+      LOGGER.log( Level.SEVERE, "device <" + devName + "> is not in list. give up!" );
       this.deviceName = null;
       this.connectedDevice = null;
       if( aListener != null )
@@ -1162,7 +1150,7 @@ public class BTCommunication implements IBTCommunication
     // So, das Verbinden halt...
     try
     {
-      if( log ) LOGGER.log( Level.FINE, "Connect to Device <" + deviceName + ">" );
+      if( log ) LOGGER.log( Level.FINE, "Connect to Device <" + devName + ">" );
       // Verbinden....
       if( this.connectedDevice.isAuthenticated() )
       {
@@ -1176,28 +1164,27 @@ public class BTCommunication implements IBTCommunication
         // Versuch das mal zu machen
         if( log ) LOGGER.log( Level.INFO, "try autentificating..." );
         // versuche die PIN zu bekommen
-        if( devicePinHash.containsKey( deviceName ) )
-        {
-          devicePin = devicePinHash.get( deviceName );
-        }
-        else
-        {
-          devicePin = dbUtil.getPinForDeviceConn( deviceName );
-        }
+        devicePin = deviceCache.getPin( devName );
         if( devicePin != null )
         {
           // ich habe eine PIN in meinem Speicher
           if( log ) LOGGER.log( Level.INFO, "try autentificating whith pin <" + devicePin + ">" );
-          RemoteDeviceHelper.authenticate( this.connectedDevice, devicePinHash.get( deviceName ) );
+          RemoteDeviceHelper.authenticate( this.connectedDevice, devicePin );
           conn = ( StreamConnection )Connector.open( url );
           // Die Verbindung nun in die Alias Datenbank eintragen, wenn nicht schon vorhanden
-          deviceAlias = dbUtil.getAliasForNameConn( deviceName );
-          if( deviceAlias == null )
+          if( !deviceCache.isDeviceInDb( devName ) || !deviceCache.isDeviceSyncWithDb( devName ) )
           {
-            // gibts noch nicht => Eintragen
-            dbUtil.addAliasForNameConn( deviceName, "A-" + deviceName );
-            // wenn ich schon dabei bin, die PIN mit eintragen
-            dbUtil.setPinForDeviceConn( deviceName, devicePin );
+            if( !deviceCache.isDeviceInDb( devName ) )
+            {
+              dbUtil.addAliasForNameConn( devName, deviceCache.getAlias( devName ) );
+            }
+            else
+            {
+              dbUtil.updateDeviceAliasConn( devName, deviceCache.getAlias( devName ) );
+            }
+            dbUtil.setPinForDeviceConn( devName, devicePin );
+            deviceCache.setDeviceInDb( devName, true );
+            deviceCache.setDeviceSyncWithDb( devName, true );
           }
         }
         else
@@ -1211,7 +1198,7 @@ public class BTCommunication implements IBTCommunication
           {
             ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
             aListener.actionPerformed( ex1 );
-            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTAUTHREQEST, deviceName );
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTAUTHREQEST, devName );
             aListener.actionPerformed( ex );
           }
           // isConnected = false;
@@ -1411,9 +1398,6 @@ public class BTCommunication implements IBTCommunication
   public String getDeviceInfos()
   {
     // Mach aus den HashMaps einen String zum Wiedereinlesen
-    connectHash.toString();
-    deviceHash.toString();
-    devicePinHash.toString();
     return null;
   }
 
@@ -1422,20 +1406,25 @@ public class BTCommunication implements IBTCommunication
   {}
 
   @Override
-  public void setPinForDevice( String dev, String pin )
+  public void setPinForDevice( String devName, String pin )
   {
-    devicePinHash.put( dev, pin );
-    // wenn da noch was anderes stehen sollte...
-    // ansonsten passiert nix
-    dbUtil.setPinForDeviceConn( dev, pin );
+    deviceCache.setPin( devName, pin );
+    //
+    // ist das Device in der Datenbank aufgezeichnet?
+    //
+    if( deviceCache.isDeviceInDb( devName ) )
+    {
+      // Ja, in der Datenbank vorhanden, setze noch die PIN
+      dbUtil.setPinForDeviceConn( devName, pin );
+    }
   }
 
   @Override
   public String getPinForDevice( String dev )
   {
-    if( devicePinHash.containsKey( dev ) )
+    if( deviceCache.isDeviceThere( dev ) )
     {
-      return( devicePinHash.get( dev ) );
+      return( deviceCache.getPin( dev ) );
     }
     return( "0000" );
   }
@@ -1775,15 +1764,7 @@ public class BTCommunication implements IBTCommunication
           LOGGER.log( Level.WARNING, "deviceName is NULL!" );
           return( null );
         }
-        if( !deviceHash.containsKey( deviceName ) )
-        {
-          // Kein Eintrag im Hash!
-          LOGGER.log( Level.WARNING, "not deviceName in Hash" );
-          return( null );
-        }
-        // eintrag besorgen
-        LOGGER.log( Level.WARNING, "connected Device read from Hash" );
-        this.connectedDevice = deviceHash.get( deviceName );
+        this.connectedDevice = deviceCache.getRemoteDevice( deviceName );
       }
       // ich muss mal sehen, ob da ein Eintrag nun da ist
       if( this.connectedDevice != null )
@@ -1807,5 +1788,20 @@ public class BTCommunication implements IBTCommunication
       }
       this.writeToDevice( kdoString );
     }
+  }
+
+  /**
+   * 
+   * Den Cache von der DB ergänzen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 13.09.2012
+   */
+  public void refreshNameArray()
+  {
+    deviceCache.refreshFromDb();
   }
 }

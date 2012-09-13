@@ -21,7 +21,7 @@ public final class ProjectConst
   public static final String MANUFACTVERS               = "0.16beta";
   public static final String GENYEAR                    = "2012";
   public static final String GENMONTH                   = "10";
-  public static final String GENDAY                     = "08";
+  public static final String GENDAY                     = "13";
   
   // Datenbankversion
   public static int          DB_VERSION                 = 5;

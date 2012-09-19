@@ -28,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
@@ -391,6 +392,8 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   {
     setLayout( null );
     gasReadFromSPXButton = new JButton( "READ" );
+    gasReadFromSPXButton.setHorizontalAlignment( SwingConstants.LEFT );
+    gasReadFromSPXButton.setIconTextGap( 15 );
     gasReadFromSPXButton.setIcon( new ImageIcon( spx42GaslistEditPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Download.png" ) ) );
     gasReadFromSPXButton.setSize( new Dimension( 199, 60 ) );
     gasReadFromSPXButton.setPreferredSize( new Dimension( 180, 40 ) );
@@ -402,6 +405,8 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     gasReadFromSPXButton.setBounds( 10, 421, 199, 60 );
     add( gasReadFromSPXButton );
     gasWriteToSPXButton = new JButton( "WRITE" );
+    gasWriteToSPXButton.setIconTextGap( 15 );
+    gasWriteToSPXButton.setHorizontalAlignment( SwingConstants.LEFT );
     gasWriteToSPXButton.setIcon( new ImageIcon( spx42GaslistEditPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Upload.png" ) ) );
     gasWriteToSPXButton.setForeground( Color.RED );
     gasWriteToSPXButton.setBackground( new Color( 255, 192, 203 ) );

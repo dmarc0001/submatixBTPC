@@ -27,6 +27,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -536,7 +537,8 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     bottomButtonPanel.setPreferredSize( new Dimension( 10, 60 ) );
     add( bottomButtonPanel, BorderLayout.SOUTH );
     cancelButton = new JButton( "CANCEL" );
-    cancelButton.setIconTextGap( 40 );
+    cancelButton.setHorizontalAlignment( SwingConstants.LEFT );
+    cancelButton.setIconTextGap( 15 );
     cancelButton.setIcon( new ImageIcon( spx42FileManagerPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/quit.png" ) ) );
     cancelButton.setEnabled( false );
     cancelButton.setPreferredSize( new Dimension( 180, 40 ) );
@@ -548,7 +550,8 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     cancelButton.addMouseMotionListener( mListener );
     cancelButton.addActionListener( this );
     deleteButton = new JButton( "DELETE" );
-    deleteButton.setIconTextGap( 40 );
+    deleteButton.setHorizontalAlignment( SwingConstants.LEFT );
+    deleteButton.setIconTextGap( 15 );
     deleteButton.setIcon( new ImageIcon( spx42FileManagerPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/36.png" ) ) );
     deleteButton.setFont( new Font( "Tahoma", Font.BOLD, 12 ) );
     deleteButton.setEnabled( false );
@@ -561,7 +564,8 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     deleteButton.addMouseMotionListener( mListener );
     deleteButton.addActionListener( this );
     exportButton = new JButton( "EXPORT" );
-    exportButton.setIconTextGap( 40 );
+    exportButton.setHorizontalAlignment( SwingConstants.LEFT );
+    exportButton.setIconTextGap( 15 );
     exportButton.setIcon( new ImageIcon( spx42FileManagerPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Download.png" ) ) );
     exportButton.setPreferredSize( new Dimension( 180, 40 ) );
     exportButton.setMaximumSize( new Dimension( 160, 40 ) );

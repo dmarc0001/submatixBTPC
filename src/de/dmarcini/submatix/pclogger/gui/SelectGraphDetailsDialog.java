@@ -103,7 +103,7 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
       okButton.setBackground( new Color( 152, 251, 152 ) );
       okButton.setActionCommand( "commit" );
       okButton.addActionListener( this );
-      okButton.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.cancelButton.tooltiptext" ) );
+      okButton.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.okButton.tooltiptext" ) );
       GroupLayout gl_buttonPane = new GroupLayout( buttonPane );
       gl_buttonPane.setHorizontalGroup( gl_buttonPane.createParallelGroup( Alignment.TRAILING ).addGroup(
               Alignment.LEADING,

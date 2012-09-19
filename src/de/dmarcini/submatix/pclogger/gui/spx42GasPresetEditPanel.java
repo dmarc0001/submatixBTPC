@@ -34,6 +34,7 @@ import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -1009,6 +1010,8 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     customPresetComboBox.setEditable( true );
     customPresetComboBox.setActionCommand( "preset_changed" );
     writeGasPresetButton = new JButton( "WRITEPRESELECT" );
+    writeGasPresetButton.setIconTextGap( 15 );
+    writeGasPresetButton.setHorizontalAlignment( SwingConstants.LEFT );
     writeGasPresetButton.setIcon( new ImageIcon( spx42GasPresetEditPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/31.png" ) ) );
     writeGasPresetButton.setForeground( new Color( 0, 100, 0 ) );
     writeGasPresetButton.setBackground( new Color( 127, 255, 0 ) );
@@ -1024,6 +1027,8 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     ppoMaxComboBox.setSelectedIndex( 6 );
     pressureUnitLabel = new JLabel( "BAR" );
     deleteSelectetPresetButton = new JButton( "DELETEPRESELECT" );
+    deleteSelectetPresetButton.setIconTextGap( 15 );
+    deleteSelectetPresetButton.setHorizontalAlignment( SwingConstants.LEFT );
     deleteSelectetPresetButton.setIcon( new ImageIcon( spx42GasPresetEditPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/173.png" ) ) );
     deleteSelectetPresetButton.setForeground( Color.RED );
     deleteSelectetPresetButton.setBackground( new Color( 255, 192, 203 ) );

@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
@@ -20,6 +21,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -99,6 +101,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     this.progConfig = progConfig;
     this.LOGGER = LOGGER;
     initDialog();
+    JComponent.setDefaultLocale( Locale.getDefault() );
     setLanguageStrings( stringsBundle );
     databaseDirTextField.setText( progConfig.getDatabaseDir().getAbsolutePath() );
     logfileNameTextField.setText( progConfig.getLogFile().getAbsolutePath() );
@@ -231,6 +234,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     // Einen Dateiauswahldialog Creieren
     //
     fileChooser = new JFileChooser();
+    fileChooser.setLocale( Locale.getDefault() );
     fileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
     fileChooser.setDialogTitle( fileChooserExportDirTitle );
     fileChooser.setDialogType( JFileChooser.CUSTOM_DIALOG );
@@ -265,6 +269,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     // Einen Dateiauswahldialog Creieren
     //
     fileChooser = new JFileChooser();
+    fileChooser.setLocale( Locale.getDefault() );
     fileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
     fileChooser.setDialogTitle( fileChooserDirTitle );
     fileChooser.setDialogType( JFileChooser.CUSTOM_DIALOG );
@@ -299,6 +304,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     // Einen Dateiauswahldialog Creieren
     //
     fileChooser = new JFileChooser();
+    fileChooser.setLocale( Locale.getDefault() );
     fileChooser.setDialogTitle( fileChooserLogTitle );
     fileChooser.setDialogType( JFileChooser.CUSTOM_DIALOG );
     fileChooser.setApproveButtonToolTipText( approveLogButtonTooltip );
@@ -353,7 +359,9 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     getContentPane().add( contentPanel, BorderLayout.SOUTH );
     {
       btnCancel = new JButton( "CANCEL" );
-      btnCancel.setHorizontalTextPosition( SwingConstants.LEADING );
+      btnCancel.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/114.png" ) ) );
+      btnCancel.setHorizontalAlignment( SwingConstants.LEFT );
+      btnCancel.setIconTextGap( 15 );
       btnCancel.setPreferredSize( new Dimension( 180, 40 ) );
       btnCancel.setMaximumSize( new Dimension( 160, 40 ) );
       btnCancel.setMargin( new Insets( 2, 30, 2, 30 ) );
@@ -365,7 +373,9 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     }
     {
       btnOk = new JButton( "OK" );
-      btnOk.setHorizontalTextPosition( SwingConstants.LEADING );
+      btnOk.setIconTextGap( 15 );
+      btnOk.setHorizontalAlignment( SwingConstants.LEFT );
+      btnOk.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/31.png" ) ) );
       btnOk.setPreferredSize( new Dimension( 180, 40 ) );
       btnOk.setMaximumSize( new Dimension( 160, 40 ) );
       btnOk.setMargin( new Insets( 2, 30, 2, 30 ) );

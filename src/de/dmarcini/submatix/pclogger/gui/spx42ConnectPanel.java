@@ -102,6 +102,8 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     deviceToConnectComboBox.setMaximumSize( new Dimension( 500, 40 ) );
     deviceToConnectComboBox.setModel( new DeviceComboBoxModel() );
     connectButton = new JButton( "CONNECT" );
+    connectButton.setHorizontalAlignment( SwingConstants.LEFT );
+    connectButton.setIconTextGap( 15 );
     connectButton.setLocation( 347, 24 );
     connectButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/112-mono.png" ) ) );
     connectButton.setActionCommand( "connect" );
@@ -110,6 +112,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     connectButton.setSize( new Dimension( 295, 41 ) );
     connectButton.setMargin( new Insets( 2, 30, 2, 30 ) );
     connectBtRefreshButton = new JButton( "REFRESH" );
+    connectBtRefreshButton.setIconTextGap( 15 );
     connectBtRefreshButton.setBounds( 347, 83, 426, 39 );
     connectBtRefreshButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Refresh.png" ) ) );
     connectBtRefreshButton.setActionCommand( "refresh_bt_devices" );
@@ -119,10 +122,13 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener
     discoverProgressBar.setBackground( new Color( 240, 248, 255 ) );
     discoverProgressBar.setForeground( new Color( 176, 224, 230 ) );
     pinButton = new JButton( "PINBUTTON" );
+    pinButton.setHorizontalAlignment( SwingConstants.LEFT );
+    pinButton.setIconTextGap( 15 );
     pinButton.setBounds( 648, 24, 125, 41 );
     pinButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) ) );
     pinButton.setActionCommand( "set_pin_for_dev" );
     deviceAliasButton = new JButton( "ALIAS" );
+    deviceAliasButton.setIconTextGap( 15 );
     deviceAliasButton.setBounds( 347, 133, 426, 39 );
     deviceAliasButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/45.png" ) ) );
     deviceAliasButton.setActionCommand( "alias_bt_devices_on" );

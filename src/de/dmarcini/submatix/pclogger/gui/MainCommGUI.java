@@ -433,6 +433,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       try
       {
         programLocale = Locale.ENGLISH;
+        Locale.setDefault( programLocale );
         stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages_en" );
       }
       catch( Exception ex1 )
@@ -1463,7 +1464,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           }
           else
           {
-            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.gasNotLoadet.text" ) );
+            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.gasNotLoaded.text" ) );
           }
         }
       }
@@ -2224,7 +2225,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       ackuValue = ( float )( val / 100.0 );
       // Hauptfenster
       frmMainwindowtitle.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) + " "
-              + String.format( stringsBundle.getString( "MainCommGUI.ackuLabel.text" ), ackuValue ) );
+              + String.format( stringsBundle.getString( "MainCommGUI.akkuLabel.text" ), ackuValue ) );
       LOGGER.log( Level.FINE, String.format( "Acku value: %02.02f", ackuValue ) );
     }
   }

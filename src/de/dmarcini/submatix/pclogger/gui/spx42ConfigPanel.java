@@ -25,7 +25,7 @@ import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                                                                                                                                /**
+{                                                                                                                                  /**
    * 
    */
   private static final long serialVersionUID     = 1L;
@@ -125,6 +125,8 @@ public class spx42ConfigPanel extends JPanel
   private void initPanel()
   {
     readSPX42ConfigButton = new JButton( "READ" );
+    readSPX42ConfigButton.setHorizontalAlignment( SwingConstants.LEFT );
+    readSPX42ConfigButton.setIconTextGap( 15 );
     readSPX42ConfigButton.setBounds( 10, 432, 199, 60 );
     readSPX42ConfigButton.setIcon( new ImageIcon( spx42ConfigPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Download.png" ) ) );
     readSPX42ConfigButton.setForeground( new Color( 0, 100, 0 ) );
@@ -134,6 +136,8 @@ public class spx42ConfigPanel extends JPanel
     readSPX42ConfigButton.setMaximumSize( new Dimension( 160, 40 ) );
     readSPX42ConfigButton.setMargin( new Insets( 2, 30, 2, 30 ) );
     writeSPX42ConfigButton = new JButton( "WRITE" );
+    writeSPX42ConfigButton.setHorizontalAlignment( SwingConstants.LEFT );
+    writeSPX42ConfigButton.setIconTextGap( 15 );
     writeSPX42ConfigButton.setBounds( 548, 432, 217, 60 );
     writeSPX42ConfigButton.setIcon( new ImageIcon( spx42ConfigPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Upload.png" ) ) );
     writeSPX42ConfigButton.setForeground( new Color( 255, 0, 0 ) );

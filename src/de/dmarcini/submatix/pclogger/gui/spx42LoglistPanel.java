@@ -426,6 +426,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     logListField.setModel( new LogDirListModel() );
     logListScrollPane.setViewportView( logListField );
     readLogDirectoryButton = new JButton( "READDIR" );
+    readLogDirectoryButton.setHorizontalAlignment( SwingConstants.LEFT );
+    readLogDirectoryButton.setIconTextGap( 15 );
     readLogDirectoryButton.setIcon( new ImageIcon( spx42LoglistPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/109.png" ) ) );
     readLogDirectoryButton.setPreferredSize( new Dimension( 180, 40 ) );
     readLogDirectoryButton.setMaximumSize( new Dimension( 160, 40 ) );
@@ -436,6 +438,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     readLogDirectoryButton.setBounds( 560, 11, 199, 60 );
     add( readLogDirectoryButton );
     readLogfilesFromSPXButton = new JButton( "READLOGS" );
+    readLogfilesFromSPXButton.setIconTextGap( 15 );
+    readLogfilesFromSPXButton.setHorizontalAlignment( SwingConstants.LEFT );
     readLogfilesFromSPXButton.setIcon( new ImageIcon( spx42LoglistPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Down.png" ) ) );
     readLogfilesFromSPXButton.setPreferredSize( new Dimension( 180, 40 ) );
     readLogfilesFromSPXButton.setMaximumSize( new Dimension( 160, 40 ) );

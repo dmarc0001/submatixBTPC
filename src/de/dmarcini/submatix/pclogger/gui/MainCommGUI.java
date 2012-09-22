@@ -943,7 +943,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void exitProgram()
   {
+    // Ereignisse ignorieren!
     ignoreAction = true;
+    //
     if( databaseUtil != null )
     {
       if( databaseUtil.isOpenDB() )
@@ -985,7 +987,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
       }
     }
-    System.exit( 0 );
+    dispose();
+    System.exit( NORMAL );
   }
 
   /**

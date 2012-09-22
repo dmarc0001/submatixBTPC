@@ -74,6 +74,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private String                   diveLenLabelString;
   private String                   depthUnitName;
   private String                   tempUnitName;
+  private String                   pressureUnitName;
   private JPanel                   topPanel;
   private JPanel                   bottomPanel;
   private JComboBox                deviceComboBox;
@@ -279,11 +280,35 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       else if( y == LogDerbyDatabaseUtil.PPO2 || y == LogDerbyDatabaseUtil.PPO2_01 || y == LogDerbyDatabaseUtil.PPO2_02 || y == LogDerbyDatabaseUtil.PPO2_03 )
       {
         double fPpo2 = new Double( dataSet[y] / 1000.00 );
+        if( unitToConvert == ProjectConst.UNITS_IMPERIAL )
+        {
+          // metrisch -> imperial
+          // 1 bar = 14,504 psi
+          fPpo2 = fPpo2 * 14.504;
+        }
+        else if( unitToConvert == ProjectConst.UNITS_METRIC )
+        {
+          // imperial -> metrisch
+          // 1 psi = 0,0689 bar
+          fPpo2 = fPpo2 * 0.0689;
+        }
         series.add( secounds, fPpo2 );
       }
       else if( y == LogDerbyDatabaseUtil.SETPOINT )
       {
         double fSetPoint = new Double( dataSet[y] / 10.00 );
+        if( unitToConvert == ProjectConst.UNITS_IMPERIAL )
+        {
+          // metrisch -> imperial
+          // 1 bar = 14,504 psi
+          fSetPoint = fSetPoint * 14.504;
+        }
+        else if( unitToConvert == ProjectConst.UNITS_METRIC )
+        {
+          // imperial -> metrisch
+          // 1 psi = 0,0689 bar
+          fSetPoint = fSetPoint * 0.0689;
+        }
         series.add( secounds, fSetPoint );
       }
       else if( y == LogDerbyDatabaseUtil.TEMPERATURE )
@@ -409,7 +434,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    */
   private String[] getUnitsLabel( int progUnitSystem, int diveUnitSystem )
   {
-    String[] labels = new String[2];
+    String[] labels = new String[3];
     //
     // Bei UNITS_DEFAULT gehts nach diveUnitSystem
     if( progUnitSystem == ProjectConst.UNITS_DEFAULT )
@@ -419,12 +444,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         // also, ist der Tauchgang imperial geloggt
         labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
         labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
+        labels[2] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.pressure" );
       }
       else
       {
         // der tauhcgang ist metrisch geloggt.
         labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
         labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
+        labels[2] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.pressure" );
       }
     }
     else if( progUnitSystem == ProjectConst.UNITS_METRIC )
@@ -432,12 +459,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       // der User wünscht Metrische Anzeige
       labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
       labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
+      labels[2] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.pressure" );
     }
     else
     {
       // der User wünscht imperiale anzeige
       labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
       labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
+      labels[2] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.pressure" );
     }
     return( labels );
   }
@@ -495,7 +524,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     deviceComboBox.setModel( portBoxModel );
     if( !entrys.isEmpty() )
     {
-      // wen kein Gerät da ist, brauc ich nicht suchen
+      // wen kein Gerät da ist, brauch ich nicht suchen
       if( connDev != null )
       {
         // Alle Einträge testen
@@ -689,6 +718,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     String[] labels = getUnitsLabel( progUnitSystem, diveUnitSystem );
     depthUnitName = labels[0];
     tempUnitName = labels[1];
+    pressureUnitName = labels[2];
     //
     // entscheide ob etwas umgerechnet werden sollte
     //
@@ -770,7 +800,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Partialdruck einfügen
     // die Achse erst mal machen
-    final NumberAxis ppo2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2AxisTitle" ) );
+    final NumberAxis ppo2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2AxisTitle" ) + " " + pressureUnitName );
     final NumberAxis percentAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.inertgas" ) );
     //
     // wenn eine der Achsen dargesstellt werden muss, dann sollte die Achse auch in der Grafil da sein
@@ -779,7 +809,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     {
       ppo2Axis.setAutoRangeIncludesZero( false );
       ppo2Axis.setAutoRange( false );
-      ppo2Axis.setRange( 0.0, 3.5 );
+      if( progUnitSystem == ProjectConst.UNITS_METRIC )
+      {
+        ppo2Axis.setRange( 0.0, 3.5 );
+      }
+      else
+      {
+        ppo2Axis.setRange( 0.0, 3.5 * 14.504 );
+      }
       ppo2Axis.setLabelPaint( new Color( ProjectConst.GRAPH_PPO2ALL_ACOLOR ) );
       ppo2Axis.setTickLabelPaint( new Color( ProjectConst.GRAPH_PPO2ALL_ACOLOR ) );
       thePlot.setRangeAxis( GRAPH_PPO2ALL, ppo2Axis );

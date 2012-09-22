@@ -25,6 +25,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
@@ -47,54 +49,104 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
 {
   /**
    * 
+   * Lokale implizite Klasse zur Aufbewahrung der Logdir Daten
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.09.2012
    */
-  private static final long              serialVersionUID    = 1L;
-  protected Logger                       LOGGER              = null;
-  private ActionListener                 aListener           = null;
-  private final HashMap<Integer, String> logdirFiles         = new HashMap<Integer, String>();
-  private final HashMap<Integer, String> logdirReadable      = new HashMap<Integer, String>();
-  private boolean                        isPanelInitiated    = false;
-  private ResourceBundle                 stringsBundle       = null;
-  private static final Pattern           fieldPatternSem     = Pattern.compile( ";" );
-  private static final Pattern           fieldPatternDp      = Pattern.compile( ":" );
-  private static final Pattern           fieldPatternDot     = Pattern.compile( "\\." );
-  private static final Pattern           fieldPatternDtTm    = Pattern.compile( " - " );
-  private static final Pattern           fieldPattern0x09    = Pattern.compile( ProjectConst.LOGSELECTOR );
-  private boolean                        isDirectoryComplete = false;
-  private boolean                        isNextLogAnUpdate   = false;
-  private boolean                        shouldReadFromSpx   = true;
-  private int                            nextDiveIdForUpdate = -1;
-  private LogDerbyDatabaseUtil           databaseUtil        = null;
-  private String                         deviceToLog         = null;
-  private int                            currLogEntry        = -1;
-  private Vector<Integer[]>              logListForRecive    = null;
-  private int                            fileIndex           = -1;
-  private LogListCache                   logListCache        = null;
-  private JList                          logListField;
-  private JButton                        readLogDirectoryButton;
-  private JButton                        readLogfilesFromSPXButton;
-  private JScrollPane                    logListScrollPane;
-  private JLabel                         logListLabel;
-  private JLabel                         fileNameLabel;
-  private JLabel                         fileNameShowLabel;
-  private JLabel                         diveDateLabel;
-  private JLabel                         diveDateShowLabel;
-  private JLabel                         diveTimeLabel;
-  private JLabel                         diveTimeShowLabel;
-  private JLabel                         diveMaxDepthLabel;
-  private JLabel                         diveMaxDepthShowLabel;
-  private JLabel                         diveLengthLabel;
-  private JLabel                         diveLengthShowLabel;
-  private JLabel                         logfileCommLabel;
-  private JLabel                         diveLowTempLabel;
-  private JLabel                         diveLowTempShowLabel;
-  private String                         metricLength;
-  private String                         metricTemperature;
-  private String                         imperialLength;
-  private String                         imperialTemperature;
-  private String                         timeMinutes;
-  private JLabel                         diveNotesLabel;
-  private JLabel                         diveNotesShowLabel;
+  private class LogDirData
+  {
+    public String fileNameOnSPX = null;
+    @SuppressWarnings( "unused" )
+    public String readableName  = null;
+    public long   timeStamp     = 0;
+
+    /**
+     * 
+     * Privater (verbotener) Konstruktor
+     * 
+     * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+     * 
+     * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+     * 
+     *         Stand: 22.09.2012
+     */
+    @SuppressWarnings( "unused" )
+    private LogDirData()
+    {}
+
+    /**
+     * 
+     * Der Konstruktor mit Daten
+     * 
+     * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+     * 
+     * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+     * 
+     *         Stand: 22.09.2012
+     * @param fName
+     * @param rName
+     * @param tm
+     */
+    public LogDirData( final String fName, final String rName, final long tm )
+    {
+      fileNameOnSPX = fName;
+      readableName = rName;
+      timeStamp = tm;
+    }
+  }
+
+  /**
+   * 
+   */
+  private static final long                  serialVersionUID        = 1L;
+  protected Logger                           LOGGER                  = null;
+  private ActionListener                     aListener               = null;
+  private final HashMap<Integer, LogDirData> logDirDataHash          = new HashMap<Integer, LogDirData>();
+  private boolean                            isPanelInitiated        = false;
+  private ResourceBundle                     stringsBundle           = null;
+  private static final Pattern               fieldPatternSem         = Pattern.compile( ";" );
+  private static final Pattern               fieldPattern0x09        = Pattern.compile( ProjectConst.LOGSELECTOR );
+  private String                             timeFormatterStringDate = "dd.MM.yyyy";
+  private String                             timeFormatterStringTime = "HH:mm:ss";
+  private boolean                            isDirectoryComplete     = false;
+  private boolean                            isNextLogAnUpdate       = false;
+  private boolean                            shouldReadFromSpx       = true;
+  private int                                nextDiveIdForUpdate     = -1;
+  private LogDerbyDatabaseUtil               databaseUtil            = null;
+  private String                             deviceToLog             = null;
+  private int                                currLogEntry            = -1;
+  private Vector<Integer[]>                  logListForRecive        = null;
+  private int                                fileIndex               = -1;
+  private LogListCache                       logListCache            = null;
+  private JList                              logListField;
+  private JButton                            readLogDirectoryButton;
+  private JButton                            readLogfilesFromSPXButton;
+  private JScrollPane                        logListScrollPane;
+  private JLabel                             logListLabel;
+  private JLabel                             fileNameLabel;
+  private JLabel                             fileNameShowLabel;
+  private JLabel                             diveDateLabel;
+  private JLabel                             diveDateShowLabel;
+  private JLabel                             diveTimeLabel;
+  private JLabel                             diveTimeShowLabel;
+  private JLabel                             diveMaxDepthLabel;
+  private JLabel                             diveMaxDepthShowLabel;
+  private JLabel                             diveLengthLabel;
+  private JLabel                             diveLengthShowLabel;
+  private JLabel                             logfileCommLabel;
+  private JLabel                             diveLowTempLabel;
+  private JLabel                             diveLowTempShowLabel;
+  private String                             metricLength;
+  private String                             metricTemperature;
+  private String                             imperialLength;
+  private String                             imperialTemperature;
+  private String                             timeMinutes;
+  private JLabel                             diveNotesLabel;
+  private JLabel                             diveNotesShowLabel;
 
   /**
    * Create the panel.
@@ -123,10 +175,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   {
     this.LOGGER = LOGGER;
     this.aListener = al;
-    // initPanel();
     databaseUtil = ldb;
-    logdirFiles.clear();
-    logdirReadable.clear();
+    logDirDataHash.clear();
     isDirectoryComplete = false;
     deviceToLog = null;
     fileIndex = -1;
@@ -150,16 +200,17 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   public void addLogdirEntry( String entryMsg )
   {
-    // Message etwa so "Nummer;filename;readableName;maxNumber"
+    // Message etwa so "Nummer;filename;readableName;maxNumber;unixTimeStampString"
     String[] fields;
-    String fileName, readableName, wasSaved = " ";
+    String fileName, readableName, wasSaved = " ", timeStampStr;
     int numberOnSpx, max, dbId = -1;
+    long timeStamp = 0;
     //
     if( !isPanelInitiated ) return;
     //
     // Felder aufteilen
     fields = fieldPatternSem.split( entryMsg );
-    if( fields.length < 4 )
+    if( fields.length < 5 )
     {
       LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
       return;
@@ -178,6 +229,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     fileName = fields[1];
     // Der lesbare Teil
     readableName = fields[2];
+    // Timestamp in ms
+    timeStampStr = fields[4];
     // Alles ging gut....
     if( numberOnSpx == max )
     {
@@ -185,11 +238,19 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       shouldReadFromSpx = false;
       return;
     }
+    try
+    {
+      timeStamp = Long.parseLong( timeStampStr );
+    }
+    catch( NumberFormatException ex )
+    {
+      LOGGER.severe( "Numberformat Exception while scan timestamp for fileOnSPX: <" + ex.getLocalizedMessage() + ">" );
+      timeStamp = 0L;
+    }
     // Sichere die Dateiangabe
-    logdirFiles.put( numberOnSpx, fileName );
-    // Sichere Lesbares Format
-    logdirReadable.put( numberOnSpx, readableName );
-    // in die Liste einfügen
+    LogDirData ld = new LogDirData( fileName, readableName, timeStamp );
+    logDirDataHash.put( numberOnSpx, ld );
+    // schon in der Datenbank?
     if( databaseUtil != null )
     {
       dbId = databaseUtil.isLogSavedLog( fileName, deviceToLog );
@@ -198,9 +259,9 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         wasSaved = "x";
       }
     }
-    LOGGER.log( Level.FINE, "add to logdir number: <" + numberOnSpx + " " + wasSaved + "> name: <" + readableName + "> device: <" + deviceToLog + ">" );
+    LOGGER.log( Level.FINE, "add to logdir number: <" + numberOnSpx + "> " + wasSaved + " name: <" + readableName + "> device: <" + deviceToLog + ">" );
     ( ( LogDirListModel )logListField.getModel() ).addLogentry( numberOnSpx, readableName, wasSaved, dbId );
-    logListCache.addLogentry( numberOnSpx, readableName, fileName, dbId );
+    logListCache.addLogentry( numberOnSpx, readableName, fileName, dbId, timeStamp );
   }
 
   /**
@@ -231,7 +292,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     // Anzeigeliste löschen
     //
     listMod = new LogDirListModel();
-    // ( ( LogDirListModel )logListField.getModel() ).clear();
     //
     // alle Cacheinträge bearbeiten
     //
@@ -242,9 +302,9 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       // Eintrag holen...
       DataSave entry = iterator.next();
       // Sichere die Dateiangabe
-      logdirFiles.put( entry.numberOnSpx, entry.fileName );
-      // Sichere Lesbares Format
-      logdirReadable.put( entry.numberOnSpx, entry.readableName );
+      LogDirData ld = new LogDirData( entry.fileName, entry.readableName, entry.javaTimeStamp );
+      logDirDataHash.put( entry.numberOnSpx, ld );
+      // ist das schon in der Datenbank?
       if( databaseUtil != null )
       {
         dbId = databaseUtil.isLogSavedLog( entry.fileName, deviceToLog );
@@ -260,8 +320,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       // in die Liste einfügen
       LOGGER.log( Level.FINE, "add to logdir number: <" + entry.numberOnSpx + " " + wasSaved + "> name: <" + entry.readableName + "> device: <" + deviceToLog + ">" );
       listMod.addLogentry( entry.numberOnSpx, entry.readableName, wasSaved, dbId );
-      // ( ( LogDirListModel )logListField.getModel() ).addLogentry( entry.numberOnSpx, entry.readableName, wasSaved, dbId );
-      // validate();
     }
     // Lesen ist beendet ;-)
     logListField.setModel( listMod );
@@ -356,10 +414,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private void clearLogdirData( boolean clearCache )
   {
     if( !isPanelInitiated ) return;
-    // Dateinamen auf dem SPX
-    logdirFiles.clear();
-    // Nummerierung auf dem SPX
-    logdirReadable.clear();
+    // Datenhash leeren
+    logDirDataHash.clear();
     // Anzeigeliste
     ( ( LogDirListModel )logListField.getModel() ).clear();
     isDirectoryComplete = false;
@@ -435,7 +491,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     readLogDirectoryButton.setForeground( new Color( 0, 100, 0 ) );
     readLogDirectoryButton.setBackground( new Color( 152, 251, 152 ) );
     readLogDirectoryButton.setActionCommand( "read_logdir_from_spx" );
-    readLogDirectoryButton.setBounds( 560, 11, 199, 60 );
+    readLogDirectoryButton.setBounds( 505, 12, 254, 60 );
     add( readLogDirectoryButton );
     readLogfilesFromSPXButton = new JButton( "READLOGS" );
     readLogfilesFromSPXButton.setIconTextGap( 15 );
@@ -447,7 +503,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     readLogfilesFromSPXButton.setForeground( Color.BLUE );
     readLogfilesFromSPXButton.setBackground( new Color( 153, 255, 255 ) );
     readLogfilesFromSPXButton.setActionCommand( "read_logfile_from_spx" );
-    readLogfilesFromSPXButton.setBounds( 560, 83, 199, 60 );
+    readLogfilesFromSPXButton.setBounds( 505, 83, 254, 60 );
     add( readLogfilesFromSPXButton );
     logListLabel = new JLabel( "LOGLIST" );
     logListLabel.setLabelFor( logListScrollPane );
@@ -598,8 +654,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   public void prepareLogListPanel( String connDev )
   {
     initPanel();
-    logdirFiles.clear();
-    logdirReadable.clear();
+    logDirDataHash.clear();
     isDirectoryComplete = false;
     deviceToLog = connDev;
     fileIndex = -1;
@@ -655,8 +710,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   {
     isPanelInitiated = false;
     this.removeAll();
-    logdirFiles.clear();
-    logdirReadable.clear();
+    logDirDataHash.clear();
     deviceToLog = null;
     fileIndex = -1;
     currLogEntry = -1;
@@ -757,6 +811,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       imperialLength = stringsBundle.getString( "spx42LoglistPanel.unit.imperial.length" );
       imperialTemperature = stringsBundle.getString( "spx42LoglistPanel.unit.imperial.temperature" );
       timeMinutes = stringsBundle.getString( "spx42LoglistPanel.unit.minutes" );
+      timeFormatterStringDate = stringsBundle.getString( "MainCommGUI.timeFormatterStringDate" );
+      timeFormatterStringTime = stringsBundle.getString( "MainCommGUI.timeFormatterStringTime" );
     }
     catch( NullPointerException ex )
     {
@@ -811,11 +867,8 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   public void startTransfer( String fileNumberStr, int unitSystem )
   {
-    String fileName, diveDate, diveTime;
-    String[] fields;
-    DateTime dateTime;
-    int year, month, day, hour, minute, second;
     int diveId;
+    LogDirData ld = null;
     if( !isPanelInitiated ) return;
     //
     // Datenbank bereit für mich?
@@ -852,47 +905,9 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     else
     {
       // Kein Update....
-      // So, ich habe einen Index. Ich brauche für die Datenbank informationen
-      // Dateinamen, Geräteid
-      // bekomme ich aus dem hash logdirFiles
-      fileName = logdirFiles.get( fileIndex );
-      // Aus der Anzeige Datum und Zeitstring trennen
-      fields = fieldPatternDtTm.split( logdirReadable.get( fileIndex ) );
-      if( fields.length == 2 )
-      {
-        diveDate = fields[0];
-        diveTime = fields[1];
-      }
-      else
-      {
-        LOGGER.log( Level.SEVERE, "internal format error while decoding dive date and time from filename!" );
-        fileIndex = -1;
-        return;
-      }
-      // Jetzt die Zeitangaben parsen
-      try
-      {
-        // Datum splitten
-        fields = fieldPatternDot.split( diveDate );
-        year = Integer.parseInt( fields[2] );
-        month = Integer.parseInt( fields[1] );
-        day = Integer.parseInt( fields[0] );
-        // zeit splitten
-        fields = fieldPatternDp.split( diveTime );
-        hour = Integer.parseInt( fields[0] );
-        minute = Integer.parseInt( fields[1] );
-        second = Integer.parseInt( fields[2] );
-        // Zeit erzeugen
-        dateTime = new DateTime( year, month, day, hour, minute, second );
-      }
-      catch( NumberFormatException ex )
-      {
-        LOGGER.log( Level.SEVERE, "internal format error while decoding dive date and time!" );
-        fileIndex = -1;
-        return;
-      }
+      ld = logDirDataHash.get( fileIndex );
       // Ersten Eintrag für den Tauchgang machen
-      diveId = databaseUtil.writeNewDiveLog( deviceToLog, fileName, unitSystem, fileIndex, ( dateTime.getMillis() ) / 1000 );
+      diveId = databaseUtil.writeNewDiveLog( deviceToLog, ld.fileNameOnSPX, unitSystem, fileIndex, ( ld.timeStamp ) / 1000 );
       if( diveId < 0 )
       {
         fileIndex = -1;
@@ -908,7 +923,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   {
     // Wen die Selektion der Liste verändert wurde...
     int fIndex, spxNumber, dbId;
-    String[] fields;
     //
     if( ev.getSource().equals( logListField ) )
     {
@@ -929,21 +943,17 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         LOGGER.log(
                 Level.FINE,
                 String.format( "number on SPX: %d, DBID: %d, readable Name: %s, filename: %s", spxNumber, dbId,
-                        ( ( LogDirListModel )logListField.getModel() ).getLogNameAt( fIndex ), logdirFiles.get( spxNumber ) ) );
+                        ( ( LogDirListModel )logListField.getModel() ).getLogNameAt( fIndex ), logDirDataHash.get( spxNumber ).fileNameOnSPX ) );
         // erst mal die allgemeinen Daten des Dives anzeigen
-        fileNameShowLabel.setText( logdirFiles.get( spxNumber ) );
-        // Aus der Anzeige Datum und Zeitstring trennen
-        fields = fieldPatternDtTm.split( logdirReadable.get( spxNumber ) );
-        if( fields.length == 2 )
-        {
-          diveDateShowLabel.setText( fields[0] );
-          diveTimeShowLabel.setText( fields[1] );
-        }
-        else
-        {
-          diveDateShowLabel.setText( "??" );
-          diveTimeShowLabel.setText( "??" );
-        }
+        fileNameShowLabel.setText( logDirDataHash.get( spxNumber ).fileNameOnSPX );
+        // Zeitstempel für Datum und Zeitanzeige nutzen
+        DateTime dt = new DateTime( logDirDataHash.get( spxNumber ).timeStamp );
+        // Landesspezifische Formatierung
+        DateTimeFormatter fmtDate = DateTimeFormat.forPattern( timeFormatterStringDate );
+        DateTimeFormatter fmtTime = DateTimeFormat.forPattern( timeFormatterStringTime );
+        // setze Datum und Zeit
+        diveDateShowLabel.setText( dt.toString( fmtDate ) );
+        diveTimeShowLabel.setText( dt.toString( fmtTime ) );
         // Jetzt schau ich mal, ob da was in der Datenbank zu finden ist
         // Ja, der ist in der Datenbank erfasst!
         String[] headers = databaseUtil.getHeadDiveDataFromIdAsSTringLog( dbId );

@@ -423,8 +423,23 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     try
     {
-      programLocale = Locale.getDefault();
+      LOGGER.fine( "try get locale from system..." );
+      ResourceBundle.clearCache();
+      // programLocale = Locale.getDefault();
+      programLocale = Locale.FRENCH;
+      LOGGER.fine( String.format( "getLocale says: Display Language :<%s>, lang: <%s>", programLocale.getDisplayLanguage(), programLocale.getLanguage() ) );
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
+      if( stringsBundle.getLocale().equals( programLocale ) )
+      {
+        LOGGER.fine( "language accepted.." );
+      }
+      else
+      {
+        LOGGER.fine( "language fallback default..." );
+        programLocale = Locale.ENGLISH;
+        Locale.setDefault( programLocale );
+        stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
+      }
     }
     catch( MissingResourceException ex )
     {
@@ -432,6 +447,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       System.err.println( "ERROR get resources <" + ex.getMessage() + "> try standart Strings..." );
       try
       {
+        LOGGER.fine( "try get  default english locale from system..." );
         programLocale = Locale.ENGLISH;
         Locale.setDefault( programLocale );
         stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages_en" );
@@ -452,12 +468,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     catch( SQLException ex )
     {
+      LOGGER.severe( "SQL ERROR <" + ex.getMessage() + "> give up..." );
       System.err.println( "ERROR while create GUI: <" + ex.getLocalizedMessage() + ">" );
       ex.printStackTrace();
       System.exit( -1 );
     }
     catch( ClassNotFoundException ex )
     {
+      LOGGER.severe( "CLASS NOT FOUND EXCEPTION <" + ex.getMessage() + "> give up..." );
       System.err.println( "ERROR while create GUI: <" + ex.getLocalizedMessage() + ">" );
       ex.printStackTrace();
       System.exit( -1 );
@@ -468,6 +486,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     Vector<String[]> entrys = btComm.getNameArray();
     DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
+    //
     initLanuageMenu( programLocale );
     if( !DEBUG )
     {
@@ -484,6 +503,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     if( setLanguageStrings() < 1 )
     {
+      LOGGER.severe( "setLanguageStrings() faild. give up..." );
       System.exit( -1 );
     }
     waitForMessage = 0;
@@ -673,13 +693,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Zeige dem geneigten User eine Dialogbox, in welcher er entscheiden muss: Update oder überspringen
       Object[] options =
       { 
-        stringsBundle.getString( "MainCommGui.updateWarnDialog.updateButton" ),
-        stringsBundle.getString( "MainCommGui.updateWarnDialog.cancelButton" )
+        stringsBundle.getString( "MainCommGUI.updateWarnDialog.updateButton" ),
+        stringsBundle.getString( "MainCommGUI.updateWarnDialog.cancelButton" )
       };
       int retOption =  JOptionPane.showOptionDialog( 
               null, 
-              stringsBundle.getString( "MainCommGui.updateWarnDialog.messageUpdate" ), 
-              stringsBundle.getString( "MainCommGui.updateWarnDialog.headLine" ), 
+              stringsBundle.getString( "MainCommGUI.updateWarnDialog.messageUpdate" ), 
+              stringsBundle.getString( "MainCommGUI.updateWarnDialog.headLine" ), 
               JOptionPane.DEFAULT_OPTION, 
               JOptionPane.WARNING_MESSAGE, 
               null, 
@@ -825,7 +845,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // da sein, wio der SPX auch ist... (schwieriges Thema)
     DateTime tm = new DateTime( year, month, day, hour, minute, second );
     DateTimeFormatter fmt = DateTimeFormat.forPattern( timeFormatterString );
-    return( String.format( "%d;%s;%s;%d", number, fileName, tm.toString( fmt ), max ) );
+    return( String.format( "%d;%s;%s;%d;%d", number, fileName, tm.toString( fmt ), max, tm.getMillis() ) );
   }
 
   /**
@@ -1001,6 +1021,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     String cmd = null;
     try
     {
+      LOGGER.fine( "try init language menu..." );
       ignoreAction = true;
       // Lies die Resource aus
       rb = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.languages" );
@@ -1008,6 +1029,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       enu = rb.getKeys();
       try
       {
+        LOGGER.fine( "try init language menuitems..." );
         while( enu.hasMoreElements() )
         {
           JMenuItem menuItem = new JMenuItem();
@@ -1019,21 +1041,25 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           menuItem.addMouseMotionListener( this );
           mnLanguages.add( menuItem );
         }
+        LOGGER.fine( "try init language menuitems...done" );
       }
       catch( NullPointerException ex )
       {
+        LOGGER.severe( "NULL POINTER EXCEPTION <" + ex.getMessage() + ">" );
         statusTextField.setText( "ERROR set language strings" );
         System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
         System.exit( -1 );
       }
       catch( MissingResourceException ex )
       {
+        LOGGER.severe( "MISSING RESOURCE EXCEPTION <" + ex.getMessage() + ">" );
         statusTextField.setText( "ERROR set language strings" );
         System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
         System.exit( -1 );
       }
       catch( ClassCastException ex )
       {
+        LOGGER.severe( "CLASS CAST EXCEPTION <" + ex.getMessage() + ">" );
         statusTextField.setText( "ERROR set language strings" );
         System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
         System.exit( -1 );
@@ -1045,18 +1071,21 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     catch( NullPointerException ex )
     {
+      LOGGER.severe( "NULL POINTER EXCEPTION <" + ex.getMessage() + ">" );
       statusTextField.setText( "ERROR set language strings" );
       System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
       System.exit( -1 );
     }
     catch( MissingResourceException ex )
     {
+      LOGGER.severe( "MISSING RESOURCE EXCEPTION <" + ex.getMessage() + ">" );
       statusTextField.setText( "ERROR set language strings - the given key can be found" );
       System.out.println( "ERROR set language strings - the given key can be found <" + ex.getMessage() + "> ABORT!" );
       System.exit( -1 );
     }
     catch( ClassCastException ex )
     {
+      LOGGER.severe( "CLASS CAST EXCEPTION <" + ex.getMessage() + ">" );
       statusTextField.setText( "ERROR set language strings" );
       System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
       System.exit( -1 );
@@ -1065,6 +1094,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       ignoreAction = false;
     }
+    LOGGER.fine( "try init language menu...done" );
   }
 
   /**
@@ -1899,7 +1929,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         connectionPanel.refreshAliasTable();
         if( tabbedPane.getSelectedIndex() != programTabs.TAB_CONNECT.ordinal() )
         {
-          showWarnBox( stringsBundle.getString( "MainCommGui.warnDialog.connectionClosed" ) );
+          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.connectionClosed" ) );
         }
         if( tabbedPane.getSelectedIndex() != programTabs.TAB_LOGGRAPH.ordinal() )
         {
@@ -2332,12 +2362,15 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     // so, ignoriere mal alles....
     ignoreAction = true;
+    LOGGER.fine( "setLanguageStrings( ) START..." );
     try
     {
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
+      LOGGER.fine( "setLanguageStrings( ) get stringsBundle OK......" );
     }
     catch( MissingResourceException ex )
     {
+      LOGGER.severe( "setLanguageStrings( ) get stringsBundle ERROR! <" + ex.getMessage() + ">" );
       System.out.println( "ERROR get resources <" + ex.getMessage() + "> ABORT!" );
       return( -1 );
     }
@@ -2398,18 +2431,21 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     catch( NullPointerException ex )
     {
+      LOGGER.severe( "setLanguageStrings( ) NULLPOINTER EXCEPTION <" + ex.getMessage() + ">" );
       statusTextField.setText( "ERROR set language strings" );
       System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
       return( -1 );
     }
     catch( MissingResourceException ex )
     {
+      LOGGER.severe( "setLanguageStrings( ) MISSING RESOURCE EXCEPTION <" + ex.getMessage() + ">" );
       statusTextField.setText( "ERROR set language strings - the given key can be found" );
       System.out.println( "ERROR set language strings - the given key can be found <" + ex.getMessage() + "> ABORT!" );
       return( 0 );
     }
     catch( ClassCastException ex )
     {
+      LOGGER.severe( "setLanguageStrings( ) CLASS CAST EXCEPTION <" + ex.getMessage() + ">" );
       statusTextField.setText( "ERROR set language strings" );
       System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
       return( 0 );
@@ -2418,6 +2454,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       ignoreAction = false;
     }
+    LOGGER.fine( "setLanguageStrings( ) END." );
     return( 1 );
   }
 
@@ -2444,7 +2481,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             stringsBundle.getString( "MainCommGUI.setPinDialog.headline" ), JOptionPane.PLAIN_MESSAGE, icon, null, btComm.getPinForDevice( deviceName ) );
     if( pinString != null )
     {
-      btComm.setPinForDevice( deviceName, pinString );
+      btComm.setPinForDevice( deviceName, pinString.trim() );
     }
   }
 
@@ -2719,7 +2756,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           catch( Exception ex )
           {
             LOGGER.log( Level.SEVERE, "initGraph Exception: <" + ex.getLocalizedMessage() + ">" );
-            showErrorDialog( stringsBundle.getString( "MainCommGui.errorDialog.openGraphWindow" ) );
+            showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.openGraphWindow" ) );
             return;
           }
         }
@@ -2747,7 +2784,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           catch( Exception ex )
           {
             LOGGER.log( Level.SEVERE, "initData Exception: <" + ex.getLocalizedMessage() + ">" );
-            showErrorDialog( stringsBundle.getString( "MainCommGui.errorDialog.openExportWindow" ) );
+            showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.openExportWindow" ) );
             return;
           }
         }

@@ -28,10 +28,11 @@ public class LogListCache
    */
   public class DataSave
   {
-    public int    numberOnSpx  = 0;
-    public String readableName = null;
-    public String fileName     = null;
-    int           dbId         = 0;
+    public int    numberOnSpx   = 0;
+    public String readableName  = null;
+    public String fileName      = null;
+    public int    dbId          = 0;
+    public long   javaTimeStamp = 0;
 
     /**
      * 
@@ -50,13 +51,16 @@ public class LogListCache
      *          Dateiname auf dem SPX
      * @param id
      *          Datenbak-Id des Log
+     * @param tm
+     *          Timestamp des Logeintrages
      */
-    public DataSave( int num, String nam, String fn, int id )
+    public DataSave( int num, String nam, String fn, int id, long tm )
     {
       numberOnSpx = num;
       readableName = nam;
       fileName = fn;
       dbId = id;
+      javaTimeStamp = tm;
     }
   };
 
@@ -109,10 +113,12 @@ public class LogListCache
    *          Dateiname auf dem SPX
    * @param dbId
    *          Datenbank-Id in der DB für den Log
+   * @param tm
+   *          Timestamp des Logeintrages
    */
-  public void addLogentry( final int numberOnSpx, final String readableName, final String fileName, final int dbId )
+  public void addLogentry( final int numberOnSpx, final String readableName, final String fileName, final int dbId, final long tm )
   {
-    listCache.add( new DataSave( numberOnSpx, readableName, fileName, dbId ) );
+    listCache.add( new DataSave( numberOnSpx, readableName, fileName, dbId, tm ) );
   }
 
   /**

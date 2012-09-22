@@ -14,9 +14,12 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
 
+import org.joda.time.DateTime;
+
 public class PleaseWaitDialog extends JDialog
 {
   private static final long serialVersionUID    = 1L;
+  private DateTime          lastActive          = new DateTime();
   private String            titleString         = "TITLE";
   private final JPanel      contentPanel        = new JPanel();
   private String            messageString       = "WAIT";
@@ -24,6 +27,7 @@ public class PleaseWaitDialog extends JDialog
   private JProgressBar      progressBar;
   private JLabel            messageLabel;
   private JLabel            messageDetailLabel;
+  private long              timeOut             = 60 * 1000;
 
   /**
    * 
@@ -38,6 +42,7 @@ public class PleaseWaitDialog extends JDialog
   public PleaseWaitDialog()
   {
     constructDialog();
+    lastActive = new DateTime();
   }
 
   /**
@@ -54,6 +59,7 @@ public class PleaseWaitDialog extends JDialog
    */
   public PleaseWaitDialog( String title, String message )
   {
+    lastActive = new DateTime();
     titleString = title;
     messageString = message;
     messageDetailString = " ";
@@ -134,12 +140,13 @@ public class PleaseWaitDialog extends JDialog
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 16.04.2012 TODO
+   *         Stand: 16.04.2012
    */
   public void resetProgress()
   {
     int min = progressBar.getMinimum();
     progressBar.setValue( min );
+    lastActive = new DateTime();
   }
 
   /**
@@ -159,6 +166,7 @@ public class PleaseWaitDialog extends JDialog
     {
       progressBar.setValue( ++val );
     }
+    lastActive = new DateTime();
   }
 
   /**
@@ -185,6 +193,7 @@ public class PleaseWaitDialog extends JDialog
     }
     catch( NumberFormatException ex )
     {}
+    lastActive = new DateTime();
   }
 
   /**
@@ -204,6 +213,7 @@ public class PleaseWaitDialog extends JDialog
     {
       progressBar.setValue( in );
     }
+    lastActive = new DateTime();
   }
 
   /**
@@ -221,6 +231,7 @@ public class PleaseWaitDialog extends JDialog
   {
     messageString = msg;
     messageLabel.setText( msg );
+    lastActive = new DateTime();
   }
 
   /**
@@ -239,5 +250,56 @@ public class PleaseWaitDialog extends JDialog
   {
     messageDetailString = detail;
     messageDetailLabel.setText( detail );
+    lastActive = new DateTime();
+  }
+
+  /**
+   * 
+   * Gib Milisekunden seit dem letzten Ereignis zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.09.2012
+   * @return milisekunden seti dem letzten Ereignis
+   */
+  public long getTimeSinceLastEvent()
+  {
+    return( DateTime.now().getMillis() - lastActive.getMillis() );
+  }
+
+  /**
+   * 
+   * Setze einen Timeout
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.09.2012
+   * @param timeout
+   */
+  public void setTimeout( long timeout )
+  {
+    this.timeOut = timeout;
+  }
+
+  /**
+   * 
+   * Teste, ob der Timeout abgelaufen ist
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.09.2012
+   * @return
+   */
+  public boolean isTimeout()
+  {
+    if( timeOut == 0 || lastActive == null ) return( false );
+    if( DateTime.now().getMillis() - lastActive.getMillis() > timeOut ) return( true );
+    return( false );
   }
 }

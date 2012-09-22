@@ -18,10 +18,10 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "0.16beta";
+  public static final String MANUFACTVERS               = "0.17beta";
   public static final String GENYEAR                    = "2012";
-  public static final String GENMONTH                   = "10";
-  public static final String GENDAY                     = "13";
+  public static final String GENMONTH                   = "09";
+  public static final String GENDAY                     = "22";
   
   // Datenbankversion
   public static int          DB_VERSION                 = 5;
@@ -141,6 +141,7 @@ public final class ProjectConst
   public static final int    MESSAGE_PROCESS_NEXT       = ActionEvent.RESERVED_ID_MAX + 39;
   public static final int    MESSAGE_PROCESS_END        = ActionEvent.RESERVED_ID_MAX + 40;
   public static final int    MESSAGE_SYCSTAT_OFF        = ActionEvent.RESERVED_ID_MAX + 41;
+  public static final int    MESSAGE_TICK               = ActionEvent.RESERVED_ID_MAX + 42;
   
   // Interne Messages
   private static final int   INT_MESSAGE_OFFSET         = 100;

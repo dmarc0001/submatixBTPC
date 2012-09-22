@@ -751,7 +751,7 @@ public class BTCommunication implements IBTCommunication
     {
       this.running = true;
       int counter = 0;
-      while( this.running == true && isConnected )
+      while( this.running )
       {
         try
         {
@@ -761,8 +761,8 @@ public class BTCommunication implements IBTCommunication
         }
         catch( InterruptedException ex )
         {}
-        // aller 120 sekunden
-        if( isConnected && counter > 11 )
+        // aller 90 sekunden
+        if( isConnected && counter > 9 )
         {
           askForSPXAlive();
           counter = 0;
@@ -778,7 +778,7 @@ public class BTCommunication implements IBTCommunication
 
     /**
      * 
-     * Sol es möglich machen, den Task abzubrechen
+     * Soll es möglich machen, den Task abzubrechen
      * 
      * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
      * 
@@ -786,6 +786,7 @@ public class BTCommunication implements IBTCommunication
      * 
      *         Stand: 06.05.2012
      */
+    @SuppressWarnings( "unused" )
     public synchronized void doTeminate()
     {
       this.running = false;
@@ -811,6 +812,7 @@ public class BTCommunication implements IBTCommunication
   public BTCommunication( final Logger lg, final LogDerbyDatabaseUtil dbUtil )
   {
     LOGGER = lg;
+    LOGGER.fine( "bluethooth communication object create..." );
     this.dbUtil = dbUtil;
     deviceCache = new DeviceCache( dbUtil );
     if( lg == null )
@@ -838,6 +840,16 @@ public class BTCommunication implements IBTCommunication
     //
     // Den Cache aus der Datenbank erstbefüllen
     deviceCache.initFromDb();
+    //
+    // jetzt noch Tick starten und dabei ALIVE abfragen...
+    //
+    LOGGER.fine( "bluethooth communication object create...start ticker..." );
+    alive = new AliveTask();
+    Thread al = new Thread( alive );
+    al.setName( "bt_alive_task" );
+    al.setPriority( Thread.NORM_PRIORITY - 2 );
+    al.start();
+    LOGGER.fine( "bluethooth communication object create...OK" );
   }
 
   @Override
@@ -1239,14 +1251,6 @@ public class BTCommunication implements IBTCommunication
         ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTED, null );
         aListener.actionPerformed( ex );
       }
-      //
-      // jetzt noch Tick starten und dabei ALIVE abfragen...
-      //
-      alive = new AliveTask();
-      Thread al = new Thread( alive );
-      al.setName( "bt_alive_task" );
-      al.setPriority( Thread.NORM_PRIORITY - 2 );
-      al.start();
     }
     catch( BluetoothConnectionException ex )
     {
@@ -1315,10 +1319,6 @@ public class BTCommunication implements IBTCommunication
     {
       reader.doTeminate();
     }
-    if( alive != null )
-    {
-      alive.doTeminate();
-    }
     try
     {
       Thread.sleep( 500 );
@@ -1338,7 +1338,6 @@ public class BTCommunication implements IBTCommunication
     }
     writer = null;
     reader = null;
-    alive = null;
     conn = null;
   }
 

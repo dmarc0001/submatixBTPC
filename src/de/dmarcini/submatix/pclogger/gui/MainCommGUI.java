@@ -142,6 +142,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static File              logFile             = null;
   private static File              databaseDir         = null;
   private static boolean           DEBUG               = false;
+  private static String            optionLangCode      = null;
   private static final Pattern     fieldPatternDp      = Pattern.compile( ":" );
   private static final Pattern     fieldPatternUnderln = Pattern.compile( "[_.]" );
 
@@ -180,6 +181,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     if( cmd.hasOption( "databasedir" ) )
     {
       databaseDir = parseNewDatabaseDir( cmd.getOptionValue( "databasedir" ) );
+    }
+    if( cmd.hasOption( "langcode" ) )
+    {
+      // Der code ist immer zweistellig
+      if( ( cmd.getOptionValues( "langcode" )[0] ).length() == 2 )
+      {
+        optionLangCode = cmd.getOptionValues( "langcode" )[0];
+      }
     }
     //
     // Style bestimmen, wenn möglich
@@ -238,24 +247,33 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     // Optionenobjet anlegen
     Options options = new Options();
+    Option optLogLevel;
+    Option optBtCaching;
+    Option optLogFile;
+    Option optDebug;
+    Option optDatabaseDir;
+    Option optLangTwoLetter;
     //
     // Optionen für das Parsing anlegen und zu den Optionen zufügen
     //
     // Logleven festlegen
-    Option optLogLevel = new Option( "l", "loglevel", true, "set loglevel for program" );
+    optLogLevel = new Option( "l", "loglevel", true, "set loglevel for program" );
     options.addOption( optLogLevel );
     // Bluethooth Caching Abfrage
-    Option optBtCaching = new Option( "c", "cacheonstart", false, "read cached bt devices on start" );
+    optBtCaching = new Option( "c", "cacheonstart", false, "read cached bt devices on start" );
     options.addOption( optBtCaching );
     // Logfile abgefragt?
-    Option optLogFile = new Option( "f", "logfile", true, "set logfile, \"OFF\" set NO logfile" );
+    optLogFile = new Option( "f", "logfile", true, "set logfile, \"OFF\" set NO logfile" );
     options.addOption( optLogFile );
     // Debugging aktivieren
-    Option optDebug = new Option( "d", "debug", false, "set debugging for a lot of GUI effects" );
+    optDebug = new Option( "d", "debug", false, "set debugging for a lot of GUI effects" );
     options.addOption( optDebug );
     // Daternverzeichnis?
-    Option optDatabaseDir = new Option( "s", "databasedir", true, "set database directory" );
+    optDatabaseDir = new Option( "s", "databasedir", true, "set database directory" );
     options.addOption( optDatabaseDir );
+    // Landescode vorgeben?
+    optLangTwoLetter = new Option( "a", "langcode", true, "lowercase two-letter ISO-639 code" );
+    options.addOption( optLangTwoLetter );
     // Parser anlegen
     CommandLineParser cliParser = new BasicParser();
     // Argumente parsen!
@@ -423,10 +441,18 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     try
     {
-      LOGGER.fine( "try get locale from system..." );
       ResourceBundle.clearCache();
-      // programLocale = Locale.getDefault();
-      programLocale = Locale.FRENCH;
+      if( optionLangCode != null )
+      {
+        LOGGER.info( "try make locale from cmd options <" + optionLangCode + ">..." );
+        programLocale = new Locale( optionLangCode );
+      }
+      else
+      {
+        LOGGER.fine( "try get locale from system..." );
+        programLocale = Locale.getDefault();
+      }
+      // programLocale = Locale.FRENCH;
       LOGGER.fine( String.format( "getLocale says: Display Language :<%s>, lang: <%s>", programLocale.getDisplayLanguage(), programLocale.getLanguage() ) );
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
       if( stringsBundle.getLocale().equals( programLocale ) )

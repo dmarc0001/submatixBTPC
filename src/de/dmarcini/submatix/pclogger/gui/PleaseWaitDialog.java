@@ -294,7 +294,7 @@ public class PleaseWaitDialog extends JDialog
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 22.09.2012
-   * @return
+   * @return timeout abgelaufen?
    */
   public boolean isTimeout()
   {

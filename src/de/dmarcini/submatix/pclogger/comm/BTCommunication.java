@@ -750,18 +750,28 @@ public class BTCommunication implements IBTCommunication
     public void run()
     {
       this.running = true;
+      int counter = 0;
       while( this.running == true && isConnected )
       {
         try
         {
-          // 120 Sekunden schlafen gehen
-          Thread.sleep( 120000 );
+          // 10 Sekunden schlafen gehen
+          Thread.sleep( 10000 );
+          counter++;
         }
         catch( InterruptedException ex )
         {}
-        if( isConnected )
+        // aller 120 sekunden
+        if( isConnected && counter > 11 )
         {
           askForSPXAlive();
+          counter = 0;
+        }
+        // regelmaessig bescheid geben
+        if( aListener != null )
+        {
+          ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_TICK, "tick" );
+          aListener.actionPerformed( ev );
         }
       }
     }
@@ -1230,11 +1240,11 @@ public class BTCommunication implements IBTCommunication
         aListener.actionPerformed( ex );
       }
       //
-      // jetzt noch alle 30 Sekunden das ALIVE abfragen...
+      // jetzt noch Tick starten und dabei ALIVE abfragen...
       //
       alive = new AliveTask();
       Thread al = new Thread( alive );
-      al.setName( "bt_alive_taslk" );
+      al.setName( "bt_alive_task" );
       al.setPriority( Thread.NORM_PRIORITY - 2 );
       al.start();
     }

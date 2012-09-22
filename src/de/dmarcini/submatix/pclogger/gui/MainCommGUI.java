@@ -943,6 +943,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void exitProgram()
   {
+    ignoreAction = true;
     if( databaseUtil != null )
     {
       if( databaseUtil.isOpenDB() )

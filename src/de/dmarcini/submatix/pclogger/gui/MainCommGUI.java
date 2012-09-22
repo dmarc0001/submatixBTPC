@@ -13,6 +13,8 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -102,7 +104,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private int                      waitForMessage      = 0;
   //
   // @formatter:on
-  private JFrame                   frmMainwindowtitle;
+  private JFrame                   frmMainWindow;
   private JTabbedPane              tabbedPane;
   private spx42ConnectPanel        connectionPanel;
   private spx42ConfigPanel         configPanel;
@@ -145,6 +147,50 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static String            optionLangCode      = null;
   private static final Pattern     fieldPatternDp      = Pattern.compile( ":" );
   private static final Pattern     fieldPatternUnderln = Pattern.compile( "[_.]" );
+
+  /**
+   * 
+   * Eigene Klasse zum reagieren auf den Close-Button bei Windows
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.09.2012
+   */
+  private class MainWindowListener implements WindowListener
+  {
+    @Override
+    public void windowClosing( WindowEvent arg0 )
+    {
+      LOGGER.warning( "WINDOW CLOSING VIA CLOSEBUTTON..." );
+      exitProgram();
+    }
+
+    @Override
+    public void windowOpened( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowClosed( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowIconified( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowDeiconified( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowActivated( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowDeactivated( WindowEvent arg0 )
+    {}
+  }
 
   /**
    * Launch the application.
@@ -225,7 +271,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           // das Mainobjekt erzeugen
           //
           MainCommGUI window = new MainCommGUI();
-          window.frmMainwindowtitle.setVisible( true );
+          window.frmMainWindow.setVisible( true );
         }
         catch( Exception e )
         {
@@ -747,6 +793,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // datensatz anlegen
     wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.waitForReadDive" ) );
     wDial.setDetailMessage( String.format( stringsBundle.getString( "PleaseWaitDialog.readDiveNumber" ), logListEntry[0] ) );
+    wDial.setTimeout( 90 * 1000 );
     wDial.setVisible( true );
     // Sag dem SPX er soll alles schicken
     LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry[0] + ">" );
@@ -789,6 +836,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
           wDial.setVisible( true );
+          wDial.setTimeout( 90 * 1000 );
           btComm.connectDevice( deviceName );
         }
         catch( Exception ex )
@@ -947,22 +995,23 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void initializeGUI() throws SQLException, ClassNotFoundException
   {
-    frmMainwindowtitle = new JFrame();
-    frmMainwindowtitle.setFont( new Font( "Arial", Font.PLAIN, 12 ) );
-    frmMainwindowtitle.setSize( new Dimension( 810, 600 ) );
-    frmMainwindowtitle.setResizable( false );
-    frmMainwindowtitle.setIconImage( Toolkit.getDefaultToolkit().getImage( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/apple.png" ) ) );
-    frmMainwindowtitle.setTitle( "TITLE" );
-    frmMainwindowtitle.setBounds( 100, 100, 800, 600 );
-    frmMainwindowtitle.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-    frmMainwindowtitle.getContentPane().setLayout( new BorderLayout( 0, 0 ) );
+    frmMainWindow = new JFrame();
+    frmMainWindow.setFont( new Font( "Arial", Font.PLAIN, 12 ) );
+    frmMainWindow.setSize( new Dimension( 810, 600 ) );
+    frmMainWindow.setResizable( false );
+    frmMainWindow.setIconImage( Toolkit.getDefaultToolkit().getImage( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/apple.png" ) ) );
+    frmMainWindow.setTitle( "TITLE" );
+    frmMainWindow.setBounds( 100, 100, 800, 600 );
+    frmMainWindow.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+    frmMainWindow.getContentPane().setLayout( new BorderLayout( 0, 0 ) );
+    frmMainWindow.addWindowListener( new MainWindowListener() );
     statusTextField = new JTextField();
     statusTextField.setEditable( false );
     statusTextField.setText( "-" );
-    frmMainwindowtitle.getContentPane().add( statusTextField, BorderLayout.SOUTH );
+    frmMainWindow.getContentPane().add( statusTextField, BorderLayout.SOUTH );
     statusTextField.setColumns( 10 );
     tabbedPane = new JTabbedPane( JTabbedPane.TOP );
-    frmMainwindowtitle.getContentPane().add( tabbedPane, BorderLayout.CENTER );
+    frmMainWindow.getContentPane().add( tabbedPane, BorderLayout.CENTER );
     tabbedPane.addMouseMotionListener( this );
     // Connection Panel
     connectionPanel = new spx42ConnectPanel( LOGGER, databaseUtil, btComm );
@@ -994,7 +1043,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.setEnabledAt( programTabs.TAB_FILEMANAGER.ordinal(), true );
     // MENÜ
     JMenuBar menuBar = new JMenuBar();
-    frmMainwindowtitle.setJMenuBar( menuBar );
+    frmMainWindow.setJMenuBar( menuBar );
     mnFile = new JMenu( "FILE" );
     menuBar.add( mnFile );
     mntmExit = new JMenuItem( "EXIT" );
@@ -1425,6 +1474,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readSpxConfig" ) );
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
           wDial.setVisible( true );
+          wDial.setTimeout( 90 * 1000 );
           btComm.readConfigFromSPX42();
           // warte auf diese Nachricht....
           waitForMessage = ProjectConst.MESSAGE_SPXALIVE;
@@ -1489,6 +1539,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readGaslist" ) );
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
+          wDial.setTimeout( 90 * 1000 );
           wDial.setVisible( true );
           btComm.readGaslistFromSPX42();
         }
@@ -1509,6 +1560,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.writeGasList" ) );
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
+          wDial.setTimeout( 90 * 1000 );
           wDial.setVisible( true );
           btComm.writeGaslistToSPX42( currGasList, currentConfig.getFirmwareVersion() );
         }
@@ -1540,6 +1592,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             // ich gehe mal von den Längeneinheiten aus!
             // also Meter/Fuss
             wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
+            wDial.setTimeout( 90 * 1000 );
             wDial.setVisible( true );
             if( !currentConfig.isInitialized() )
             {
@@ -1788,6 +1841,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     //
     if( waitForMessage != 0 )
     {
+      // timer ereignis UND das Fenster ist offen
+      if( ( actionId == ProjectConst.MESSAGE_TICK ) && ( wDial != null ) )
+      {
+        // ist der Timeout um?
+        if( wDial.isTimeout() )
+        {
+          LOGGER.severe( "dialog window timeout is over!" );
+          wDial.dispose();
+          wDial = null;
+          showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.timeout" ) );
+          // den Merker auf null setzen!
+          waitForMessage = 0;
+        }
+      }
       if( waitForMessage == actionId )
       {
         // es ist die Nachricht, auf die ich waren soll
@@ -2206,6 +2273,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
                       // Sag dem SPX er soll alles schicken
                       wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
                       wDial.setVisible( true );
+                      wDial.setTimeout( 120 * 1000 );
                       btComm.readLogDirectoryFromSPX();
                     }
                   }
@@ -2244,6 +2312,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         logListPanel.removeFailedDataset();
         break;
       // /////////////////////////////////////////////////////////////////////////
+      // Der 10-Sekunden Ticker
+      case ProjectConst.MESSAGE_TICK:
+        if( DEBUG ) LOGGER.fine( "TICK!" );
+        break;
+      // /////////////////////////////////////////////////////////////////////////
       // Nichts traf zu....
       default:
         LOGGER.log( Level.WARNING, "unknown message recived!" );
@@ -2280,7 +2353,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       int val = Integer.parseInt( fields[1], 16 );
       ackuValue = ( float )( val / 100.0 );
       // Hauptfenster
-      frmMainwindowtitle.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) + " "
+      frmMainWindow.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) + " "
               + String.format( stringsBundle.getString( "MainCommGUI.akkuLabel.text" ), ackuValue ) );
       LOGGER.log( Level.FINE, String.format( "Acku value: %02.02f", ackuValue ) );
     }
@@ -2405,7 +2478,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       setStatus( "" );
       timeFormatterString = stringsBundle.getString( "MainCommGUI.timeFormatterString" );
       // Hauptfenster
-      frmMainwindowtitle.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) );
+      frmMainWindow.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) );
       // Menü
       mnFile.setText( stringsBundle.getString( "MainCommGUI.mnFile.text" ) );
       mnFile.setToolTipText( stringsBundle.getString( "MainCommGUI.mnFile.tooltiptext" ) );
@@ -2895,6 +2968,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.writeSpxConfig" ) );
     wDial.setMax( BTCommunication.CONFIG_WRITE_KDO_COUNT );
     wDial.resetProgress();
+    wDial.setTimeout( 90 * 1000 );
     wDial.setVisible( true );
     LOGGER.log( Level.INFO, "write config to SPX42..." );
     btComm.writeConfigToSPX( currentConfig );

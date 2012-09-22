@@ -94,12 +94,10 @@ public class GasComputeUnit
     if( salnity == true )
     {
       mod = ( pEnv - barOffset ) / barConstSaltWater;
-      // ( pEnv - barOffset ) * ( 10.0D * barConstSaltWater );
     }
     else
     {
       mod = ( pEnv - barOffset ) / barConstClearWater;
-      // ( pEnv - barOffset ) * ( 10.0D * barConstClearWater );
     }
     return( mod );
   }
@@ -157,10 +155,36 @@ public class GasComputeUnit
   {
     // Gegeben n2 in Prozent, ich will wissen, wie die equivalente Tiefe ist
     double p_env;
-    // Umgebungsdruck multipliziert mit quotioent aus Stickstoffanteil und Normal Luftanteil Sticksstoff
-    // das Ergebnis mal bar per Meter mal 10 ergibt die EAD
-    p_env = depth / 10.0D + barOffset;
-    double ead = ( ( p_env * n2 / 79.0D ) * 10.0D ) - 10.0D;
+    double p_air_n2;
+    double p_eq_n2;
+    double ead;
+    // Umgebungsdruck multipliziert mit quotient aus Stickstoffanteil und Normal Luftanteil Sticksstoff
+    if( salnity )
+    {
+      p_env = ( depth * barConstSaltWater ) + barOffset;
+      System.out.println( String.format( "Umgebungsdruck: %2.3f bar bei %2.3f Meter,  Salzwasser", p_env, depth ) );
+      // Partialdruck für Stickstoff bei Luft
+      p_air_n2 = p_env * 0.79D;
+      p_eq_n2 = ( p_air_n2 * n2 ) / 79;
+      ead = ( p_eq_n2 - barOffset ) / barConstSaltWater;
+    }
+    else
+    {
+      p_env = ( depth * barConstClearWater ) + barOffset;
+      System.out.println( String.format( "Umgebungsdruck: %2.3f bar bei %2.3f Meter,  Suesswasser", p_env, depth ) );
+      // Partialdruck für Stickstoff bei Luft
+      p_air_n2 = p_env * 0.79D;
+      System.out.println( String.format( "Partialdruck fuer Stickstoff LUFT: %2.3f bar,  Suesswasser", p_air_n2 ) );
+      // Partialdruck N2 für Stickstoffgehalt n2
+      p_eq_n2 = ( p_air_n2 * ( n2 / 100 ) ) / 0.79D;
+      System.out.println( String.format( "Partialdruck fuer Stickstoff bei <%d%%> N2 %2.3f bar,  Suesswasser", n2, p_eq_n2 ) );
+      // welcher umgebungsdruck währe das wenn N2 79% bei diesem Partialdruck
+      p_env = p_eq_n2 / n2;
+      System.out.println( String.format( "EQ Umgebungsdruck <%d%%> N2 %2.3f bar,  Suesswasser", n2, p_env ) );
+      // System.out.println( String.format( "Umgebungsdruck LUFT bei %d %% N2: %2.3f bar,  Suesswasser", n2, p_air_n2 ) );
+      ead = ( p_env - barOffset ) / barConstClearWater;
+      System.out.println( String.format( "EAD bei %d %% %2.1f m,  Suesswasser", n2, ead ) );
+    }
     return( ead );
   }
 

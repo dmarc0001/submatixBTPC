@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -32,6 +33,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
+import javax.swing.JTextArea;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
@@ -55,7 +57,7 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
   private final HashMap<Integer, JSpinner>  o2SpinnerMap        = new HashMap<Integer, JSpinner>();
   private final HashMap<Integer, JSpinner>  heSpinnerMap        = new HashMap<Integer, JSpinner>();
   private final HashMap<Integer, JLabel>    gasLblMap           = new HashMap<Integer, JLabel>();
-  private final HashMap<Integer, JLabel>    gasLblMap2          = new HashMap<Integer, JLabel>();
+  private final HashMap<Integer, JTextArea> gasLblMap2          = new HashMap<Integer, JTextArea>();
   private final HashMap<Integer, JCheckBox> bailoutMap          = new HashMap<Integer, JCheckBox>();
   private final HashMap<Integer, JCheckBox> diluent1Map         = new HashMap<Integer, JCheckBox>();
   private final HashMap<Integer, JCheckBox> diluent2Map         = new HashMap<Integer, JCheckBox>();
@@ -66,7 +68,8 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
   private ResourceBundle                    stringsBundle       = null;
   private SpxPcloggerProgramConfig          progConfig          = null;
   private String                            unitsString         = "metric";
-  private double                            ppOMax              = 1.6D;
+  private double                            bailoutPpOMax       = 1.6D;
+  private double                            diluentPpo          = 1.6D;
   private boolean                           salnity             = false;
   private MouseMotionListener               mListener           = null;
   private SPX42GasList                      currGasList         = null;
@@ -139,15 +142,20 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
   private JLabel                            pressureUnitLabel;
   private JComboBox                         ppoMaxComboBox;
   private JCheckBox                         salnityCheckBox;
-  private JLabel                            borderGasLabel_00;
-  private JLabel                            borderGasLabel_01;
-  private JLabel                            borderGasLabel_02;
-  private JLabel                            borderGasLabel_03;
-  private JLabel                            borderGasLabel_04;
-  private JLabel                            borderGasLabel_05;
-  private JLabel                            borderGasLabel_06;
-  private JLabel                            borderGasLabel_07;
   private JButton                           deleteSelectetPresetButton;
+  private JLabel                            bailoutPPOLabel;
+  private JLabel                            setpointLabel;
+  private JComboBox                         setpointComboBox;
+  private JLabel                            pressureUnitLabel2;
+  private JLabel                            propertiesLabel;
+  private JTextArea                         borderGasTextArea_00;
+  private JTextArea                         borderGasTextArea_01;
+  private JTextArea                         borderGasTextArea_02;
+  private JTextArea                         borderGasTextArea_03;
+  private JTextArea                         borderGasTextArea_04;
+  private JTextArea                         borderGasTextArea_05;
+  private JTextArea                         borderGasTextArea_06;
+  private JTextArea                         borderGasTextArea_07;
 
   /**
    * 
@@ -213,14 +221,14 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
       {
         try
         {
-          ppOMax = Double.parseDouble( ( String )( cb.getModel().getElementAt( cb.getSelectedIndex() ) ) );
-          LOGGER.fine( String.format( "ppoMax set to %2.2f", ppOMax ) );
+          bailoutPpOMax = Double.parseDouble( ( String )( cb.getModel().getElementAt( cb.getSelectedIndex() ) ) );
+          LOGGER.fine( String.format( "ppoMax set to %2.2f", bailoutPpOMax ) );
           setAllDescriptionsForGas();
         }
         catch( NumberFormatException ex )
         {
           LOGGER.severe( ex.getLocalizedMessage() );
-          ppOMax = 1.6D;
+          bailoutPpOMax = 1.6D;
         }
         return;
       }
@@ -418,15 +426,6 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gasLblMap.put( 6, gasNameLabel_06 );
     gasLblMap.put( 7, gasNameLabel_07 );
     //
-    gasLblMap2.put( 0, borderGasLabel_00 );
-    gasLblMap2.put( 1, borderGasLabel_01 );
-    gasLblMap2.put( 2, borderGasLabel_02 );
-    gasLblMap2.put( 3, borderGasLabel_03 );
-    gasLblMap2.put( 4, borderGasLabel_04 );
-    gasLblMap2.put( 5, borderGasLabel_05 );
-    gasLblMap2.put( 6, borderGasLabel_06 );
-    gasLblMap2.put( 7, borderGasLabel_07 );
-    //
     bailoutMap.put( 0, bailoutCheckbox_00 );
     bailoutMap.put( 1, bailoutCheckbox_01 );
     bailoutMap.put( 2, bailoutCheckbox_02 );
@@ -453,6 +452,15 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     diluent2Map.put( 5, diluent2Checkbox_05 );
     diluent2Map.put( 6, diluent2Checkbox_06 );
     diluent2Map.put( 7, diluent2Checkbox_07 );
+    //
+    gasLblMap2.put( 0, borderGasTextArea_00 );
+    gasLblMap2.put( 1, borderGasTextArea_01 );
+    gasLblMap2.put( 2, borderGasTextArea_02 );
+    gasLblMap2.put( 3, borderGasTextArea_03 );
+    gasLblMap2.put( 4, borderGasTextArea_04 );
+    gasLblMap2.put( 5, borderGasTextArea_05 );
+    gasLblMap2.put( 6, borderGasTextArea_06 );
+    gasLblMap2.put( 7, borderGasTextArea_07 );
   }
 
   /**
@@ -471,13 +479,13 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gasMatrixPanel.setBorder( new LineBorder( new Color( 0, 0, 0 ) ) );
     GridBagLayout gbl_gasMatrixPanel = new GridBagLayout();
     gbl_gasMatrixPanel.columnWidths = new int[]
-    { 23, 86, 0, 50, 0, 50, 0, 55, 55, 55, 60, 245, 0 };
+    { 23, 86, 0, 50, 0, 50, 0, 55, 55, 55, 90, 245, 0 };
     gbl_gasMatrixPanel.rowHeights = new int[]
     { 37, 40, 40, 40, 40, 40, 40, 40, 40, 0 };
     gbl_gasMatrixPanel.columnWeights = new double[]
-    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE };
     gbl_gasMatrixPanel.rowWeights = new double[]
-    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+    { 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, Double.MIN_VALUE };
     gasMatrixPanel.setLayout( gbl_gasMatrixPanel );
     JLabel label = new JLabel( "O2" );
     label.setFont( new Font( "Tahoma", Font.BOLD, 12 ) );
@@ -495,6 +503,14 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_label_1.gridx = 5;
     gbc_label_1.gridy = 0;
     gasMatrixPanel.add( label_1, gbc_label_1 );
+    propertiesLabel = new JLabel( "PROPERTIES" );
+    propertiesLabel.setFont( new Font( "Tahoma", Font.BOLD, 11 ) );
+    GridBagConstraints gbc_propertysLabel = new GridBagConstraints();
+    gbc_propertysLabel.anchor = GridBagConstraints.SOUTH;
+    gbc_propertysLabel.insets = new Insets( 0, 0, 5, 0 );
+    gbc_propertysLabel.gridx = 11;
+    gbc_propertysLabel.gridy = 0;
+    gasMatrixPanel.add( propertiesLabel, gbc_propertysLabel );
     gasLabel_00 = new JLabel( "GAS00" );
     GridBagConstraints gbc_gasLabel_00 = new GridBagConstraints();
     gbc_gasLabel_00.anchor = GridBagConstraints.WEST;
@@ -550,15 +566,19 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_gasNameLabel_00.gridx = 10;
     gbc_gasNameLabel_00.gridy = 1;
     gasMatrixPanel.add( gasNameLabel_00, gbc_gasNameLabel_00 );
-    borderGasLabel_00 = new JLabel( "-" );
-    borderGasLabel_00.setForeground( Color.BLUE );
-    borderGasLabel_00.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
-    GridBagConstraints gbc_borderGasLabel_00 = new GridBagConstraints();
-    gbc_borderGasLabel_00.anchor = GridBagConstraints.WEST;
-    gbc_borderGasLabel_00.insets = new Insets( 0, 0, 5, 0 );
-    gbc_borderGasLabel_00.gridx = 11;
-    gbc_borderGasLabel_00.gridy = 1;
-    gasMatrixPanel.add( borderGasLabel_00, gbc_borderGasLabel_00 );
+    borderGasTextArea_00 = new JTextArea();
+    borderGasTextArea_00.setForeground( new Color( 0, 0, 128 ) );
+    borderGasTextArea_00.setBorder( null );
+    borderGasTextArea_00.setBackground( SystemColor.control );
+    borderGasTextArea_00.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    borderGasTextArea_00.setText( "-" );
+    borderGasTextArea_00.setRows( 2 );
+    GridBagConstraints gbc_borderGasTextArea_00 = new GridBagConstraints();
+    gbc_borderGasTextArea_00.insets = new Insets( 0, 0, 5, 0 );
+    gbc_borderGasTextArea_00.fill = GridBagConstraints.HORIZONTAL;
+    gbc_borderGasTextArea_00.gridx = 11;
+    gbc_borderGasTextArea_00.gridy = 1;
+    gasMatrixPanel.add( borderGasTextArea_00, gbc_borderGasTextArea_00 );
     gasLabel_01 = new JLabel( "GAS01" );
     GridBagConstraints gbc_gasLabel_01 = new GridBagConstraints();
     gbc_gasLabel_01.anchor = GridBagConstraints.WEST;
@@ -614,15 +634,19 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_gasNameLabel_01.gridx = 10;
     gbc_gasNameLabel_01.gridy = 2;
     gasMatrixPanel.add( gasNameLabel_01, gbc_gasNameLabel_01 );
-    borderGasLabel_01 = new JLabel( "-" );
-    borderGasLabel_01.setForeground( Color.BLUE );
-    borderGasLabel_01.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
-    GridBagConstraints gbc_borderGasLabel_01 = new GridBagConstraints();
-    gbc_borderGasLabel_01.anchor = GridBagConstraints.WEST;
-    gbc_borderGasLabel_01.insets = new Insets( 0, 0, 5, 0 );
-    gbc_borderGasLabel_01.gridx = 11;
-    gbc_borderGasLabel_01.gridy = 2;
-    gasMatrixPanel.add( borderGasLabel_01, gbc_borderGasLabel_01 );
+    borderGasTextArea_01 = new JTextArea();
+    borderGasTextArea_01.setText( "-" );
+    borderGasTextArea_01.setForeground( new Color( 0, 0, 128 ) );
+    borderGasTextArea_01.setRows( 2 );
+    borderGasTextArea_01.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    borderGasTextArea_01.setBorder( null );
+    borderGasTextArea_01.setBackground( SystemColor.menu );
+    GridBagConstraints gbc_borderGasTextArea_01 = new GridBagConstraints();
+    gbc_borderGasTextArea_01.insets = new Insets( 0, 0, 5, 0 );
+    gbc_borderGasTextArea_01.fill = GridBagConstraints.BOTH;
+    gbc_borderGasTextArea_01.gridx = 11;
+    gbc_borderGasTextArea_01.gridy = 2;
+    gasMatrixPanel.add( borderGasTextArea_01, gbc_borderGasTextArea_01 );
     gasLabel_02 = new JLabel( "GAS02" );
     GridBagConstraints gbc_gasLabel_02 = new GridBagConstraints();
     gbc_gasLabel_02.anchor = GridBagConstraints.WEST;
@@ -678,15 +702,19 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_gasNameLabel_02.gridx = 10;
     gbc_gasNameLabel_02.gridy = 3;
     gasMatrixPanel.add( gasNameLabel_02, gbc_gasNameLabel_02 );
-    borderGasLabel_02 = new JLabel( "-" );
-    borderGasLabel_02.setForeground( Color.BLUE );
-    borderGasLabel_02.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
-    GridBagConstraints gbc_borderGasLabel_02 = new GridBagConstraints();
-    gbc_borderGasLabel_02.anchor = GridBagConstraints.WEST;
-    gbc_borderGasLabel_02.insets = new Insets( 0, 0, 5, 0 );
-    gbc_borderGasLabel_02.gridx = 11;
-    gbc_borderGasLabel_02.gridy = 3;
-    gasMatrixPanel.add( borderGasLabel_02, gbc_borderGasLabel_02 );
+    borderGasTextArea_02 = new JTextArea();
+    borderGasTextArea_02.setText( "-" );
+    borderGasTextArea_02.setForeground( new Color( 0, 0, 128 ) );
+    borderGasTextArea_02.setRows( 2 );
+    borderGasTextArea_02.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    borderGasTextArea_02.setBorder( null );
+    borderGasTextArea_02.setBackground( SystemColor.menu );
+    GridBagConstraints gbc_borderGasTextArea_02 = new GridBagConstraints();
+    gbc_borderGasTextArea_02.insets = new Insets( 0, 0, 5, 0 );
+    gbc_borderGasTextArea_02.fill = GridBagConstraints.BOTH;
+    gbc_borderGasTextArea_02.gridx = 11;
+    gbc_borderGasTextArea_02.gridy = 3;
+    gasMatrixPanel.add( borderGasTextArea_02, gbc_borderGasTextArea_02 );
     gasLabel_03 = new JLabel( "GAS03" );
     GridBagConstraints gbc_gasLabel_03 = new GridBagConstraints();
     gbc_gasLabel_03.anchor = GridBagConstraints.WEST;
@@ -742,15 +770,19 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_gasNameLabel_03.gridx = 10;
     gbc_gasNameLabel_03.gridy = 4;
     gasMatrixPanel.add( gasNameLabel_03, gbc_gasNameLabel_03 );
-    borderGasLabel_03 = new JLabel( "-" );
-    borderGasLabel_03.setForeground( Color.BLUE );
-    borderGasLabel_03.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
-    GridBagConstraints gbc_borderGasLabel_03 = new GridBagConstraints();
-    gbc_borderGasLabel_03.anchor = GridBagConstraints.WEST;
-    gbc_borderGasLabel_03.insets = new Insets( 0, 0, 5, 0 );
-    gbc_borderGasLabel_03.gridx = 11;
-    gbc_borderGasLabel_03.gridy = 4;
-    gasMatrixPanel.add( borderGasLabel_03, gbc_borderGasLabel_03 );
+    borderGasTextArea_03 = new JTextArea();
+    borderGasTextArea_03.setText( "-" );
+    borderGasTextArea_03.setForeground( new Color( 0, 0, 128 ) );
+    borderGasTextArea_03.setRows( 2 );
+    borderGasTextArea_03.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    borderGasTextArea_03.setBorder( null );
+    borderGasTextArea_03.setBackground( SystemColor.menu );
+    GridBagConstraints gbc_borderGasTextArea_03 = new GridBagConstraints();
+    gbc_borderGasTextArea_03.insets = new Insets( 0, 0, 5, 0 );
+    gbc_borderGasTextArea_03.fill = GridBagConstraints.BOTH;
+    gbc_borderGasTextArea_03.gridx = 11;
+    gbc_borderGasTextArea_03.gridy = 4;
+    gasMatrixPanel.add( borderGasTextArea_03, gbc_borderGasTextArea_03 );
     gasLabel_04 = new JLabel( "GAS04" );
     GridBagConstraints gbc_gasLabel_04 = new GridBagConstraints();
     gbc_gasLabel_04.anchor = GridBagConstraints.WEST;
@@ -806,15 +838,19 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_gasNameLabel_04.gridx = 10;
     gbc_gasNameLabel_04.gridy = 5;
     gasMatrixPanel.add( gasNameLabel_04, gbc_gasNameLabel_04 );
-    borderGasLabel_04 = new JLabel( "-" );
-    borderGasLabel_04.setForeground( Color.BLUE );
-    borderGasLabel_04.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
-    GridBagConstraints gbc_borderGasLabel_04 = new GridBagConstraints();
-    gbc_borderGasLabel_04.anchor = GridBagConstraints.WEST;
-    gbc_borderGasLabel_04.insets = new Insets( 0, 0, 5, 0 );
-    gbc_borderGasLabel_04.gridx = 11;
-    gbc_borderGasLabel_04.gridy = 5;
-    gasMatrixPanel.add( borderGasLabel_04, gbc_borderGasLabel_04 );
+    borderGasTextArea_04 = new JTextArea();
+    borderGasTextArea_04.setText( "-" );
+    borderGasTextArea_04.setForeground( new Color( 0, 0, 128 ) );
+    borderGasTextArea_04.setRows( 2 );
+    borderGasTextArea_04.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    borderGasTextArea_04.setBorder( null );
+    borderGasTextArea_04.setBackground( SystemColor.menu );
+    GridBagConstraints gbc_borderGasTextArea_04 = new GridBagConstraints();
+    gbc_borderGasTextArea_04.insets = new Insets( 0, 0, 5, 0 );
+    gbc_borderGasTextArea_04.fill = GridBagConstraints.BOTH;
+    gbc_borderGasTextArea_04.gridx = 11;
+    gbc_borderGasTextArea_04.gridy = 5;
+    gasMatrixPanel.add( borderGasTextArea_04, gbc_borderGasTextArea_04 );
     gasLabel_05 = new JLabel( "GAS05" );
     GridBagConstraints gbc_gasLabel_05 = new GridBagConstraints();
     gbc_gasLabel_05.anchor = GridBagConstraints.WEST;
@@ -870,15 +906,19 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_gasNameLabel_05.gridx = 10;
     gbc_gasNameLabel_05.gridy = 6;
     gasMatrixPanel.add( gasNameLabel_05, gbc_gasNameLabel_05 );
-    borderGasLabel_05 = new JLabel( "-" );
-    borderGasLabel_05.setForeground( Color.BLUE );
-    borderGasLabel_05.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
-    GridBagConstraints gbc_borderGasLabel_05 = new GridBagConstraints();
-    gbc_borderGasLabel_05.anchor = GridBagConstraints.WEST;
-    gbc_borderGasLabel_05.insets = new Insets( 0, 0, 5, 0 );
-    gbc_borderGasLabel_05.gridx = 11;
-    gbc_borderGasLabel_05.gridy = 6;
-    gasMatrixPanel.add( borderGasLabel_05, gbc_borderGasLabel_05 );
+    borderGasTextArea_05 = new JTextArea();
+    borderGasTextArea_05.setText( "-" );
+    borderGasTextArea_05.setForeground( new Color( 0, 0, 128 ) );
+    borderGasTextArea_05.setRows( 2 );
+    borderGasTextArea_05.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    borderGasTextArea_05.setBorder( null );
+    borderGasTextArea_05.setBackground( SystemColor.menu );
+    GridBagConstraints gbc_borderGasTextArea_05 = new GridBagConstraints();
+    gbc_borderGasTextArea_05.insets = new Insets( 0, 0, 5, 0 );
+    gbc_borderGasTextArea_05.fill = GridBagConstraints.BOTH;
+    gbc_borderGasTextArea_05.gridx = 11;
+    gbc_borderGasTextArea_05.gridy = 6;
+    gasMatrixPanel.add( borderGasTextArea_05, gbc_borderGasTextArea_05 );
     gasLabel_06 = new JLabel( "GAS06" );
     GridBagConstraints gbc_gasLabel_06 = new GridBagConstraints();
     gbc_gasLabel_06.anchor = GridBagConstraints.WEST;
@@ -934,15 +974,19 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_gasNameLabel_06.gridx = 10;
     gbc_gasNameLabel_06.gridy = 7;
     gasMatrixPanel.add( gasNameLabel_06, gbc_gasNameLabel_06 );
-    borderGasLabel_06 = new JLabel( "-" );
-    borderGasLabel_06.setForeground( Color.BLUE );
-    borderGasLabel_06.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
-    GridBagConstraints gbc_borderGasLabel_06 = new GridBagConstraints();
-    gbc_borderGasLabel_06.anchor = GridBagConstraints.WEST;
-    gbc_borderGasLabel_06.insets = new Insets( 0, 0, 5, 0 );
-    gbc_borderGasLabel_06.gridx = 11;
-    gbc_borderGasLabel_06.gridy = 7;
-    gasMatrixPanel.add( borderGasLabel_06, gbc_borderGasLabel_06 );
+    borderGasTextArea_06 = new JTextArea();
+    borderGasTextArea_06.setText( "-" );
+    borderGasTextArea_06.setForeground( new Color( 0, 0, 128 ) );
+    borderGasTextArea_06.setRows( 2 );
+    borderGasTextArea_06.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    borderGasTextArea_06.setBorder( null );
+    borderGasTextArea_06.setBackground( SystemColor.menu );
+    GridBagConstraints gbc_borderGasTextArea_06 = new GridBagConstraints();
+    gbc_borderGasTextArea_06.insets = new Insets( 0, 0, 5, 0 );
+    gbc_borderGasTextArea_06.fill = GridBagConstraints.BOTH;
+    gbc_borderGasTextArea_06.gridx = 11;
+    gbc_borderGasTextArea_06.gridy = 7;
+    gasMatrixPanel.add( borderGasTextArea_06, gbc_borderGasTextArea_06 );
     gasLabel_07 = new JLabel( "GAS07" );
     GridBagConstraints gbc_gasLabel_07 = new GridBagConstraints();
     gbc_gasLabel_07.anchor = GridBagConstraints.WEST;
@@ -998,14 +1042,6 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     gbc_gasNameLabel_07.gridx = 10;
     gbc_gasNameLabel_07.gridy = 8;
     gasMatrixPanel.add( gasNameLabel_07, gbc_gasNameLabel_07 );
-    borderGasLabel_07 = new JLabel( "-" );
-    borderGasLabel_07.setForeground( Color.BLUE );
-    borderGasLabel_07.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
-    GridBagConstraints gbc_borderGasLabel_07 = new GridBagConstraints();
-    gbc_borderGasLabel_07.anchor = GridBagConstraints.WEST;
-    gbc_borderGasLabel_07.gridx = 11;
-    gbc_borderGasLabel_07.gridy = 8;
-    gasMatrixPanel.add( borderGasLabel_07, gbc_borderGasLabel_07 );
     customPresetComboBox = new JComboBox();
     customPresetComboBox.setEditable( true );
     customPresetComboBox.setActionCommand( "preset_changed" );
@@ -1018,10 +1054,8 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     writeGasPresetButton.setActionCommand( "write_gaslist_preset" );
     salnityCheckBox = new JCheckBox( "SALNITY" );
     salnityCheckBox.setActionCommand( "check_salnity" );
-    salnityCheckBox.addItemListener( this );
     ppoMaxComboBox = new JComboBox();
     ppoMaxComboBox.setActionCommand( "set_ppomax" );
-    ppoMaxComboBox.addActionListener( this );
     ppoMaxComboBox.setModel( new DefaultComboBoxModel( new String[]
     { "1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6" } ) );
     ppoMaxComboBox.setSelectedIndex( 6 );
@@ -1033,6 +1067,14 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     deleteSelectetPresetButton.setForeground( Color.RED );
     deleteSelectetPresetButton.setBackground( new Color( 255, 192, 203 ) );
     deleteSelectetPresetButton.setActionCommand( "delete_gaslist_preset" );
+    bailoutPPOLabel = new JLabel( "BAILOUT" );
+    setpointLabel = new JLabel( "SETPOINT PPO" );
+    setpointComboBox = new JComboBox();
+    setpointComboBox.setActionCommand( "set_setpoint" );
+    setpointComboBox.setModel( new DefaultComboBoxModel( new String[]
+    { "1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6" } ) );
+    setpointComboBox.setSelectedIndex( 6 );
+    pressureUnitLabel2 = new JLabel( "BAR" );
     GroupLayout groupLayout = new GroupLayout( this );
     groupLayout.setHorizontalGroup( groupLayout.createParallelGroup( Alignment.LEADING ).addGroup(
             groupLayout
@@ -1050,11 +1092,33 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
                                             groupLayout.createSequentialGroup().addGap( 10 )
                                                     .addComponent( gasMatrixPanel, GroupLayout.PREFERRED_SIZE, 773, GroupLayout.PREFERRED_SIZE ) )
                                     .addGroup(
-                                            groupLayout.createSequentialGroup().addGap( 3 )
+                                            groupLayout
+                                                    .createSequentialGroup()
+                                                    .addGap( 3 )
                                                     .addComponent( salnityCheckBox, GroupLayout.PREFERRED_SIZE, 217, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.UNRELATED )
+                                                    .addGroup(
+                                                            groupLayout
+                                                                    .createParallelGroup( Alignment.TRAILING, false )
+                                                                    .addComponent( setpointLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+                                                                            Short.MAX_VALUE )
+                                                                    .addComponent( bailoutPPOLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 88, Short.MAX_VALUE ) )
                                                     .addPreferredGap( ComponentPlacement.RELATED )
-                                                    .addComponent( ppoMaxComboBox, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                                                    .addComponent( pressureUnitLabel, GroupLayout.PREFERRED_SIZE, 46, GroupLayout.PREFERRED_SIZE ) ) ).addGap( 13 ) ) );
+                                                    .addGroup(
+                                                            groupLayout
+                                                                    .createParallelGroup( Alignment.LEADING, false )
+                                                                    .addGroup(
+                                                                            groupLayout.createSequentialGroup()
+                                                                                    .addComponent( ppoMaxComboBox, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE )
+                                                                                    .addGap( 18 )
+                                                                                    .addComponent( pressureUnitLabel, GroupLayout.PREFERRED_SIZE, 46, GroupLayout.PREFERRED_SIZE ) )
+                                                                    .addGroup(
+                                                                            groupLayout
+                                                                                    .createSequentialGroup()
+                                                                                    .addComponent( setpointComboBox, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE )
+                                                                                    .addGap( 18 )
+                                                                                    .addComponent( pressureUnitLabel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+                                                                                            Short.MAX_VALUE ) ) ) ) ).addContainerGap( 13, Short.MAX_VALUE ) ) );
     groupLayout.setVerticalGroup( groupLayout.createParallelGroup( Alignment.LEADING ).addGroup(
             groupLayout
                     .createSequentialGroup()
@@ -1076,13 +1140,33 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
                     .addComponent( gasMatrixPanel, GroupLayout.PREFERRED_SIZE, 368, GroupLayout.PREFERRED_SIZE )
                     .addGap( 7 )
                     .addGroup(
+                            groupLayout.createParallelGroup( Alignment.LEADING )
+                                    .addGroup( groupLayout.createParallelGroup( Alignment.BASELINE ).addComponent( salnityCheckBox ).addComponent( bailoutPPOLabel ) )
+                                    .addComponent( ppoMaxComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                    .addGroup( groupLayout.createSequentialGroup().addGap( 3 ).addComponent( pressureUnitLabel ) ) )
+                    .addPreferredGap( ComponentPlacement.RELATED )
+                    .addGroup(
                             groupLayout
                                     .createParallelGroup( Alignment.LEADING )
+                                    .addComponent( setpointLabel )
                                     .addGroup(
-                                            groupLayout.createParallelGroup( Alignment.BASELINE ).addComponent( salnityCheckBox )
-                                                    .addComponent( ppoMaxComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
-                                    .addGroup( groupLayout.createSequentialGroup().addGap( 4 ).addComponent( pressureUnitLabel ) ) ) ) );
+                                            groupLayout.createParallelGroup( Alignment.BASELINE )
+                                                    .addComponent( setpointComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                                    .addComponent( pressureUnitLabel2 ) ) ).addContainerGap( 23, Short.MAX_VALUE ) ) );
+    borderGasTextArea_07 = new JTextArea();
+    borderGasTextArea_07.setText( "-" );
+    borderGasTextArea_07.setForeground( new Color( 0, 0, 128 ) );
+    borderGasTextArea_07.setRows( 2 );
+    borderGasTextArea_07.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+    borderGasTextArea_07.setBorder( null );
+    borderGasTextArea_07.setBackground( SystemColor.menu );
+    GridBagConstraints gbc_borderGasTextArea_07 = new GridBagConstraints();
+    gbc_borderGasTextArea_07.fill = GridBagConstraints.BOTH;
+    gbc_borderGasTextArea_07.gridx = 11;
+    gbc_borderGasTextArea_07.gridy = 8;
+    gasMatrixPanel.add( borderGasTextArea_07, gbc_borderGasTextArea_07 );
     setLayout( groupLayout );
+    diluent2ButtonGroup.clearSelection();
     isPanelInitiated = true;
   }
 
@@ -1107,6 +1191,55 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
       else
       {
         LOGGER.warning( "unknown checkbox item changed: <" + cb.getActionCommand() + "> <" + cb.isSelected() + ">" );
+      }
+    }
+    if( ev.getSource() instanceof JComboBox )
+    {
+      // nur der Eintrag nicht selektiert wurde
+      if( ev.getStateChange() != ItemEvent.SELECTED ) return;
+      // Mach eine Combobox daraus
+      JComboBox cb = ( JComboBox )ev.getSource();
+      String cmd = cb.getActionCommand();
+      //
+      // //////////////////////////////////////////////////////////////////////
+      // Bailout PPOMAX setzen
+      if( cmd.equals( "set_ppomax" ) )
+      {
+        //
+        // versuche den zahlenwert zu finden und aktualisiere
+        //
+        try
+        {
+          bailoutPpOMax = Double.parseDouble( ( String )cb.getSelectedItem() );
+          setAllDescriptionsForGas();
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.severe( ex.getLocalizedMessage() );
+        }
+        LOGGER.fine( "set bailout ppo-max to <" + cb.getSelectedItem() + ">" );
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // setpoint setzen
+      else if( cmd.equals( "set_setpoint" ) )
+      {
+        //
+        // versuche den zahlenwert zu finden und aktualisiere
+        //
+        try
+        {
+          diluentPpo = Double.parseDouble( ( String )cb.getSelectedItem() );
+          setAllDescriptionsForGas();
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.severe( ex.getLocalizedMessage() );
+        }
+        LOGGER.fine( "set setpoint to <" + cb.getSelectedItem() + ">" );
+      }
+      else
+      {
+        LOGGER.warning( "unknown combobox item changed: <" + cb.getActionCommand() + "> <" + cb.getSelectedItem() + ">" );
       }
     }
     else
@@ -1142,6 +1275,15 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     setGasMatrixSpinner();
     setAllDescriptionsForGas();
     fillPresetComboBox();
+    if( customPresetComboBox.getSelectedIndex() > -1 )
+    {
+      int index = customPresetComboBox.getSelectedIndex();
+      String presetName = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getNameAt( index );
+      int dbId = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getDatabaseIdAt( index );
+      LOGGER.fine( "preset combobox is index <" + index + ">" );
+      LOGGER.fine( "entry has name <" + presetName + "> and dbId <" + dbId + ">" );
+      prepareCurentGasFromDb( dbId );
+    }
     setGlobalChangeListener();
     isPanelInitiated = true;
     ignoreAction = false;
@@ -1155,7 +1297,7 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 10.09.2012 TODO
+   *         Stand: 10.09.2012
    */
   private void fillPresetComboBox()
   {
@@ -1171,6 +1313,10 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     //
     GasPresetComboBoxModel presetModel = new GasPresetComboBoxModel( databaseUtil.getPresets() );
     customPresetComboBox.setModel( presetModel );
+    if( presetModel.getSize() > 0 )
+    {
+      customPresetComboBox.setSelectedIndex( 0 );
+    }
   }
 
   /**
@@ -1249,24 +1395,32 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
    */
   private void setDescriptionForGas( int i, int o2, int he )
   {
-    double mod, ead;
+    double modB, eadB;
+    double eadD;
     int n2 = 100 - ( o2 + he );
     if( !isPanelInitiated ) return;
+    LOGGER.fine( String.format( "description for gas: o2: <%d>, n2: <%d>, he: <%d>", o2, n2, he ) );
     gasLblMap.get( i ).setText( GasComputeUnit.getNameForGas( o2, he ) );
     setGasColor( i, o2 );
     if( unitsString.equals( "metric" ) )
     {
       // MOD und EAD berechnen
-      mod = GasComputeUnit.getMODForGasMetric( o2, ppOMax, salnity );
-      ead = GasComputeUnit.getEADForGasMetric( n2, mod, salnity );
+      modB = GasComputeUnit.getMODForGasMetric( o2, bailoutPpOMax, salnity );
+      eadD = 0; // GasComputeUnit.getEADForGasMetric( o2, modB, salnity );
+      eadB = GasComputeUnit.getEADForGasMetric( n2, modB, salnity );
       // MOD und EAD in String umformen und in das richtige Label schreiben
-      gasLblMap2.get( i ).setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.mod-ead-label.metric" ), Math.round( mod ), Math.round( ead ) ) );
+      gasLblMap2.get( i ).setText(
+              String.format( stringsBundle.getString( "spx42GasPresetEditPanel.mod-ead-label.metric" ), Math.round( modB ), Math.round( eadB ), Math.round( modB ),
+                      Math.round( eadD ) ) );
     }
     else
     {
-      mod = GasComputeUnit.getMODForGasImperial( o2, ppOMax, salnity );
-      ead = GasComputeUnit.getEADForGasImperial( n2, mod, salnity );
-      gasLblMap2.get( i ).setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.mod-ead-label.imperial" ), Math.round( mod ), Math.round( ead ) ) );
+      modB = GasComputeUnit.getMODForGasImperial( o2, bailoutPpOMax, salnity );
+      eadD = 0; // GasComputeUnit.getEADForGasImperial( n2, modB, salnity );
+      eadB = GasComputeUnit.getEADForGasImperial( n2, modB, salnity );
+      gasLblMap2.get( i ).setText(
+              String.format( stringsBundle.getString( "spx42GasPresetEditPanel.mod-ead-label.imperial" ), Math.round( modB ), Math.round( eadB ), Math.round( modB ),
+                      Math.round( eadD ) ) );
     }
   }
 
@@ -1396,6 +1550,10 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     customPresetComboBox.addActionListener( this );
     writeGasPresetButton.addActionListener( this );
     deleteSelectetPresetButton.addActionListener( this );
+    salnityCheckBox.addItemListener( this );
+    // ppoMaxComboBox.addActionListener( this );
+    ppoMaxComboBox.addItemListener( this );
+    setpointComboBox.addItemListener( this );
   }
 
   /**
@@ -1456,11 +1614,16 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
       bailoutCheckbox_05.setText( gasLabelStr );
       bailoutCheckbox_06.setText( gasLabelStr );
       bailoutCheckbox_07.setText( gasLabelStr );
-      writeGasPresetButton.setText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.writeGasPresetButton.text" ) );
-      writeGasPresetButton.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.writeGasPresetButton.tooltiptext" ) );
+      writeGasPresetButton.setText( stringsBundle.getString( "spx42GasPresetEditPanel.writeGasPresetButton.text" ) );
+      writeGasPresetButton.setToolTipText( stringsBundle.getString( "spx42GasPresetEditPanel.writeGasPresetButton.tooltiptext" ) );
+      deleteSelectetPresetButton.setText( stringsBundle.getString( "spx42GasPresetEditPanel.deleteSelectetPresetButton.text" ) );
+      deleteSelectetPresetButton.setToolTipText( stringsBundle.getString( "spx42GasPresetEditPanel.deleteSelectetPresetButton.tooltiptext" ) );
       customPresetComboBox.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.customPresetComboBox.tooltiptext" ) );
       salnityCheckBox.setText( stringsBundle.getString( "spx42GaslistEditPanel.salnityCheckBox.text" ) );
       salnityCheckBox.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.salnityCheckBox.tooltiptext" ) );
+      bailoutPPOLabel.setText( stringsBundle.getString( "spx42GasPresetEditPanel.bailoutPPOLabel.text" ) );
+      setpointLabel.setText( stringsBundle.getString( "spx42GasPresetEditPanel.setpointLabel.text" ) );
+      propertiesLabel.setText( stringsBundle.getString( "spx42GasPresetEditPanel.propertiesLabel.text" ) );
       String[] pressureStrings = new String[7];
       // Voreinstellung für Einheiten auf dieser Seite
       if( progConfig.getUnitsProperty() == ProjectConst.UNITS_DEFAULT )
@@ -1490,7 +1653,10 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
         pressureStrings[6] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.6" );
         ppoMaxComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
         ppoMaxComboBox.setSelectedIndex( pressureStrings.length - 1 );
+        setpointComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
+        setpointComboBox.setSelectedIndex( pressureStrings.length - 1 );
         pressureUnitLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.metric" ) );
+        pressureUnitLabel2.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.metric" ) );
       }
       else
       {
@@ -1503,7 +1669,10 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
         pressureStrings[6] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.6" );
         ppoMaxComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
         ppoMaxComboBox.setSelectedIndex( pressureStrings.length - 1 );
+        setpointComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
+        setpointComboBox.setSelectedIndex( pressureStrings.length - 1 );
         pressureUnitLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.imperial" ) );
+        pressureUnitLabel2.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.imperial" ) );
       }
     }
     catch( NullPointerException ex )

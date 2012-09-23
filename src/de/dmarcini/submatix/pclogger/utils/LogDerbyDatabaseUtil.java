@@ -97,7 +97,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.V_DBVERSION,
             ProjectConst.V_VERSION
            );
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.V_DBVERSION ) );
+    LOGGER.fine( String.format( "create table: %s", ProjectConst.V_DBVERSION ) );
     stat.execute(sql);
     // Versionsnummer reinschreiben
     sql = String.format( 
@@ -106,7 +106,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.V_VERSION,
             ProjectConst.DB_VERSION
            );
-    LOGGER.log( Level.FINE, String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
+    LOGGER.fine( String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
     stat.execute(sql);
     conn.commit();
     //@formatter:on
@@ -122,7 +122,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.A_PIN
             );
     //@formatter:on
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.V_DBVERSION ) );
+    LOGGER.fine( String.format( "create table: %s", ProjectConst.V_DBVERSION ) );
     stat.execute( sql );
     conn.commit();
     //
@@ -162,7 +162,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.H_NOTES
             );
     //@formatter:on
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
+    LOGGER.fine( String.format( "create table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
     stat.execute( sql );
     conn.commit();
     // Indize fuer die Tabelle erzeugen
@@ -175,7 +175,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVENUMBERONSPX );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
+    LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
     stat.execute( sql );
     conn.commit();
     //
@@ -188,7 +188,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_STARTTIME );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
+    LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
     stat.execute( sql );
     conn.commit();
     // ////////////////////////////////////////////////////////////////////////
@@ -230,7 +230,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.D_PRESURE,
             ProjectConst.D_ACKU );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
+    LOGGER.fine( String.format( "create table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
     stat.execute( sql );
     conn.commit();
     // Index fuer die Tabelle erzeugen
@@ -242,7 +242,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.D_TABLE_DIVEDETAIL,
             ProjectConst.D_DIVEID );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
+    LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
     stat.execute( sql );
     // ////////////////////////////////////////////////////////////////////////
     // Die Tabelle für die Gaspresets
@@ -258,7 +258,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.P_SETNAME
             );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
+    LOGGER.fine( String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
     stat.execute( sql );
     conn.commit();
     // ////////////////////////////////////////////////////////////////////////
@@ -287,7 +287,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.PD_BAILOUT
             );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    LOGGER.fine( String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
     stat.execute( sql );
     // Index fuer die Tabelle erzeugen
     //@formatter:off
@@ -298,7 +298,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.PD_TABLE_PRESETDETAIL,
             ProjectConst.PD_SETID );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
     stat.execute( sql );
     conn.commit();
     //
@@ -329,7 +329,7 @@ public class LogDerbyDatabaseUtil
       stat = conn.createStatement();
       //@formatter:off
       sql = String.format("drop table %s", table );
-      LOGGER.log( Level.FINE, sql );
+      LOGGER.fine( sql );
       stat.execute(sql);
       stat.close();
       //@formatter:on
@@ -374,7 +374,7 @@ public class LogDerbyDatabaseUtil
     // Die Versionstabelle updaten
     // Versionsnummer reinschreiben
     sql = String.format( "insert into %s ( %s ) values ( %d )", ProjectConst.V_DBVERSION, ProjectConst.V_VERSION, ProjectConst.DB_VERSION );
-    LOGGER.log( Level.FINE, String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
+    LOGGER.fine( String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
     stat.execute( sql );
     conn.commit();
     // @formatter:on
@@ -392,7 +392,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.P_SETNAME
             );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
+    LOGGER.fine( String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
     stat.execute( sql );
     conn.commit();
     // ////////////////////////////////////////////////////////////////////////
@@ -421,7 +421,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.PD_BAILOUT
             );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    LOGGER.fine( String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
     stat.execute( sql );
     // Index fuer die Tabelle erzeugen
     //@formatter:off
@@ -432,7 +432,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.PD_TABLE_PRESETDETAIL,
             ProjectConst.PD_SETID );
     //@formatter:off     
-    LOGGER.log( Level.FINE, String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
+    LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
     stat.execute( sql );
     conn.commit();
     //
@@ -465,7 +465,7 @@ public class LogDerbyDatabaseUtil
       LOGGER.log( Level.WARNING, "no databese connection..." );
       return( false );
     }
-    LOGGER.log( Level.FINE, "try to add alias..." );
+    LOGGER.fine( "try to add alias..." );
     sql = String.format( "insert into %s (%s, %s) values ('%s', '%s')", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, dev, alias );
     try
     {
@@ -476,7 +476,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, String.format( "fail to insert device alias for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
+      LOGGER.severe( String.format( "fail to insert device alias for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
       return( false );
     }
     return( true );
@@ -497,7 +497,7 @@ public class LogDerbyDatabaseUtil
   public int allocateCacheLog( int diveId )
   {
     // immer eine neue anlegen, löscht durch garbage collector auch eventuell vorhandene alte Liste
-    LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">..." );
+    LOGGER.fine( "allocate new cache for update dive <" + diveId + ">..." );
     logDataList = new Vector<LogLineDataObject>();
     // aktuelle Id setzen
     currentDiveId = diveId;
@@ -505,7 +505,7 @@ public class LogDerbyDatabaseUtil
     {
       return( 1 );
     }
-    LOGGER.log( Level.FINE, "allocate new cache for update dive <" + diveId + ">...OK" );
+    LOGGER.fine( "allocate new cache for update dive <" + diveId + ">...OK" );
     return( 0 );
   }
 
@@ -526,16 +526,16 @@ public class LogDerbyDatabaseUtil
   {
     if( logDataList == null )
     {
-      LOGGER.log( Level.SEVERE, "no logDataList for caching allocated! ABORT" );
+      LOGGER.severe( "no logDataList for caching allocated! ABORT" );
       return( -1 );
     }
     if( currentDiveId == -1 || currentDiveId != diveId )
     {
-      LOGGER.log( Level.SEVERE, "diveid for this logline is not correct in this situation! ABORT" );
+      LOGGER.severe( "diveid for this logline is not correct in this situation! ABORT" );
       return( -1 );
     }
     logDataList.add( logLineObj );
-    LOGGER.log( Level.FINE, "line dataset cached..." );
+    LOGGER.fine( "line dataset cached..." );
     return( 1 );
   }
 
@@ -603,7 +603,7 @@ public class LogDerbyDatabaseUtil
    */
   public void closeDB()
   {
-    LOGGER.log( Level.FINE, "try close database..." );
+    LOGGER.fine( "try close database..." );
     if( conn != null )
     {
       try
@@ -611,18 +611,18 @@ public class LogDerbyDatabaseUtil
         if( !conn.isClosed() )
         {
           conn.commit();
-          LOGGER.log( Level.FINE, "close database..." );
+          LOGGER.fine( "close database..." );
           conn.close();
           conn = null;
         }
       }
       catch( SQLException ex )
       {
-        LOGGER.log( Level.SEVERE, "Can't close Database (" + ex.getLocalizedMessage() + ")" );
+        LOGGER.severe( "Can't close Database (" + ex.getLocalizedMessage() + ")" );
         return;
       }
     }
-    LOGGER.log( Level.FINE, "close database...OK" );
+    LOGGER.fine( "close database...OK" );
   }
 
   /**
@@ -769,7 +769,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
       ex.printStackTrace();
     }
     //
@@ -795,7 +795,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
       ex.printStackTrace();
     }
   }
@@ -843,7 +843,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
       ex.printStackTrace();
     }
     currentDiveId = -1;
@@ -880,7 +880,7 @@ public class LogDerbyDatabaseUtil
     }
     try
     {
-      LOGGER.log( Level.FINE, "try to read aliases..." );
+      LOGGER.fine( "try to read aliases..." );
       stat = conn.createStatement();
       // Erzeuge das Array für die Tabelle
       aliasData = new Vector<String[]>();
@@ -897,7 +897,7 @@ public class LogDerbyDatabaseUtil
         entr[2] = "";
         entr[3] = rs.getString( 3 ); // PIN
         aliasData.add( entr );
-        LOGGER.log( Level.FINE, String.format( "Read:%s::%s::%s::%s", entr[0], entr[1], entr[2], entr[3] ) );
+        LOGGER.fine( String.format( "Read:%s::%s::%s::%s", entr[0], entr[1], entr[2], entr[3] ) );
       }
       rs.close();
       stat.close();
@@ -905,7 +905,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, String.format( "fail to read device alias for devices (%s)", ex.getLocalizedMessage() ) );
+      LOGGER.severe( String.format( "fail to read device alias for devices (%s)", ex.getLocalizedMessage() ) );
     }
     return( null );
   }
@@ -934,7 +934,7 @@ public class LogDerbyDatabaseUtil
       LOGGER.log( Level.WARNING, "no databese connection..." );
       return( null );
     }
-    LOGGER.log( Level.FINE, "try to read aliases..." );
+    LOGGER.fine( "try to read aliases..." );
     sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, devName );
     try
     {
@@ -943,15 +943,15 @@ public class LogDerbyDatabaseUtil
       if( rs.next() )
       {
         aliasName = rs.getString( 1 );
-        LOGGER.log( Level.FINE, String.format( "Alias for device %s : %s", devName, aliasName ) );
+        LOGGER.fine( String.format( "Alias for device %s : %s", devName, aliasName ) );
       }
       rs.close();
       stat.close();
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, String.format( "fail to read device alias for device %s (%s)", devName, ex.getLocalizedMessage() ) );
-      LOGGER.log( Level.SEVERE, sql );
+      LOGGER.severe( String.format( "fail to read device alias for device %s (%s)", devName, ex.getLocalizedMessage() ) );
+      LOGGER.severe( sql );
     }
     return( aliasName );
   }
@@ -977,7 +977,7 @@ public class LogDerbyDatabaseUtil
     //
     // baue einen String mit dbId für die Datenbank
     //
-    LOGGER.log( Level.FINE, "read device id from db for <" + dbId + ">" );
+    LOGGER.fine( "read device id from db for <" + dbId + ">" );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1004,7 +1004,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read deviceId from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read deviceId from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
@@ -1029,7 +1029,7 @@ public class LogDerbyDatabaseUtil
     Vector<Integer[]> diveData = new Vector<Integer[]>();
     //
     diveData.clear();
-    LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB..." );
+    LOGGER.fine( "read logdata for dbId <" + dbId + "> from DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1081,12 +1081,12 @@ public class LogDerbyDatabaseUtil
         diveData.add( resultSet );
       }
       rs.close();
-      LOGGER.log( Level.FINE, "read logdata for dbId <" + dbId + "> from DB...OK" );
+      LOGGER.fine( "read logdata for dbId <" + dbId + "> from DB...OK" );
       return( diveData );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read dive data from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read dive data from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
@@ -1110,7 +1110,7 @@ public class LogDerbyDatabaseUtil
     ResultSet rs;
     Vector<String[]> results = new Vector<String[]>();
     //
-    LOGGER.log( Level.FINE, "read divelist for device <" + device + "> from DB..." );
+    LOGGER.fine( "read divelist for device <" + device + "> from DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1141,14 +1141,14 @@ public class LogDerbyDatabaseUtil
         resultSet[2] = rs.getString( 3 ); // Anfangszeit
         // ab in den vector
         results.add( resultSet );
-        LOGGER.log( Level.FINE, String.format( "database read dive nr <%s>", rs.getString( 1 ) ) );
+        LOGGER.fine( String.format( "database read dive nr <%s>", rs.getString( 1 ) ) );
       }
       rs.close();
       return( results );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
@@ -1208,7 +1208,7 @@ public class LogDerbyDatabaseUtil
         dbIdString += String.format( ", %d", dbId );
       }
     }
-    LOGGER.log( Level.FINE, "read gaslist for dive(s) <" + dbIdString + ">" );
+    LOGGER.fine( "read gaslist for dive(s) <" + dbIdString + ">" );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1259,7 +1259,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read gaslist list from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read gaslist list from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
@@ -1283,7 +1283,7 @@ public class LogDerbyDatabaseUtil
     ResultSet rs;
     String[] diveHeadData = null;
     //
-    LOGGER.log( Level.FINE, "read head data for spx dive number <" + dbId + "> from DB..." );
+    LOGGER.fine( "read head data for spx dive number <" + dbId + "> from DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1341,12 +1341,12 @@ public class LogDerbyDatabaseUtil
         }
       }
       rs.close();
-      LOGGER.log( Level.FINE, "read head data for spx dive number <" + dbId + "> from DB...OK" );
+      LOGGER.fine( "read head data for spx dive number <" + dbId + "> from DB...OK" );
       return( diveHeadData );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
@@ -1370,7 +1370,7 @@ public class LogDerbyDatabaseUtil
     ResultSet rs;
     int[] diveHeadData;
     //
-    LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB..." );
+    LOGGER.fine( "read head data for database id <" + dbId + "> from DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1408,12 +1408,12 @@ public class LogDerbyDatabaseUtil
         diveHeadData[6] = rs.getInt( 7 ); // units
       }
       rs.close();
-      LOGGER.log( Level.FINE, "read head data for database id <" + dbId + "> from DB...OK" );
+      LOGGER.fine( "read head data for database id <" + dbId + "> from DB...OK" );
       return( diveHeadData );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
@@ -1437,7 +1437,7 @@ public class LogDerbyDatabaseUtil
     ResultSet rs;
     String notesForDive = null;
     //
-    LOGGER.log( Level.FINE, "read notes for dive <" + dbId + "> from DB..." );
+    LOGGER.fine( "read notes for dive <" + dbId + "> from DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1466,7 +1466,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read notes from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read notes from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
@@ -1496,7 +1496,7 @@ public class LogDerbyDatabaseUtil
       LOGGER.log( Level.WARNING, "no databese connection..." );
       return( null );
     }
-    LOGGER.log( Level.FINE, "try to read pin for device..." );
+    LOGGER.fine( "try to read pin for device..." );
     sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_PIN, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, deviceName );
     try
     {
@@ -1505,14 +1505,14 @@ public class LogDerbyDatabaseUtil
       if( rs.next() )
       {
         pin = rs.getString( 1 );
-        LOGGER.log( Level.FINE, String.format( "pin for device %s : %s", deviceName, pin ) );
+        LOGGER.fine( String.format( "pin for device %s : %s", deviceName, pin ) );
       }
       rs.close();
       stat.close();
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, String.format( "fail to read pin for device %s (%s)", deviceName, ex.getLocalizedMessage() ) );
+      LOGGER.severe( String.format( "fail to read pin for device %s (%s)", deviceName, ex.getLocalizedMessage() ) );
     }
     return( pin );
   }
@@ -1536,7 +1536,7 @@ public class LogDerbyDatabaseUtil
     Vector<GasPresetComboObject> presets = new Vector<GasPresetComboObject>();
     GasPresetComboObject gasset = null;
     //
-    LOGGER.log( Level.FINE, "read gas presets from DB..." );
+    LOGGER.fine( "read gas presets from DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1563,12 +1563,12 @@ public class LogDerbyDatabaseUtil
         presets.add( gasset );
       }
       rs.close();
-      LOGGER.log( Level.FINE, "read gas presets from DB...OK" );
+      LOGGER.fine( "read gas presets from DB...OK" );
       return( presets );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
@@ -1595,7 +1595,7 @@ public class LogDerbyDatabaseUtil
     ResultSet rs;
     int dbId = -1;
     //
-    LOGGER.log( Level.FINE, "was log <" + filename + "> always saved?" );
+    LOGGER.fine( "was log <" + filename + "> always saved?" );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1618,19 +1618,19 @@ public class LogDerbyDatabaseUtil
       rs = stat.executeQuery( sql );
       if( rs.next() )
       {
-        LOGGER.log( Level.FINE, String.format( "file <%s> was saved.", filename ) );
+        LOGGER.fine( String.format( "file <%s> was saved.", filename ) );
         dbId = rs.getInt( 1 );
         rs.close();
         stat.close();
         return( dbId );
       }
-      LOGGER.log( Level.FINE, "log <" + filename + "> was not saved." );
+      LOGGER.fine( "log <" + filename + "> was not saved." );
       rs.close();
       stat.close();
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't select from database! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't select from database! (" + ex.getLocalizedMessage() + ")" );
       return( -1 );
     }
     return( -1 );
@@ -1659,7 +1659,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, String.format( "fail to check database ist opened (%s))", ex.getLocalizedMessage() ) );
+      LOGGER.severe( String.format( "fail to check database ist opened (%s))", ex.getLocalizedMessage() ) );
     }
     return( false );
   }
@@ -1682,7 +1682,7 @@ public class LogDerbyDatabaseUtil
     ResultSet rs;
     int version = 0;
     //
-    LOGGER.log( Level.FINE, "read database version..." );
+    LOGGER.fine( "read database version..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1721,14 +1721,14 @@ public class LogDerbyDatabaseUtil
       if( rs.next() )
       {
         version = rs.getInt( 1 );
-        LOGGER.log( Level.FINE, String.format( "database read version:%d", version ) );
+        LOGGER.fine( String.format( "database read version:%d", version ) );
         rs.close();
         return( version );
       }
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read dbversion (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read dbversion (" + ex.getLocalizedMessage() + ")" );
       return( 0 );
     }
     return( 0 );
@@ -1753,7 +1753,7 @@ public class LogDerbyDatabaseUtil
     String[] results;
     Vector<String> sammel = new Vector<String>();
     //
-    LOGGER.log( Level.FINE, "read devices from DB..." );
+    LOGGER.fine( "read devices from DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1773,7 +1773,7 @@ public class LogDerbyDatabaseUtil
       while( rs.next() )
       {
         sammel.add( rs.getString( 1 ) );
-        LOGGER.log( Level.FINE, String.format( "database read device <%s>", rs.getString( 1 ) ) );
+        LOGGER.fine( String.format( "database read device <%s>", rs.getString( 1 ) ) );
       }
       rs.close();
       // stelle die Liste der Geräte zusammen!
@@ -1783,7 +1783,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }
@@ -1810,7 +1810,7 @@ public class LogDerbyDatabaseUtil
       // das war nix...
       return( 0 );
     }
-    LOGGER.log( Level.FINE, "remove logdatedata for dive (update) <" + diveId + ">..." );
+    LOGGER.fine( "remove logdatedata for dive (update) <" + diveId + ">..." );
     //
     // entferne Logdatenfür ID
     //
@@ -1830,11 +1830,11 @@ public class LogDerbyDatabaseUtil
       stat = conn.createStatement();
       stat.execute( sql );
       stat.close();
-      LOGGER.log( Level.FINE, "remove logdatedata for dive (update) <" + diveId + ">...OK" );
+      LOGGER.fine( "remove logdatedata for dive (update) <" + diveId + ">...OK" );
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
       ex.printStackTrace();
       return 0;
     }
@@ -1861,7 +1861,7 @@ public class LogDerbyDatabaseUtil
     ResultSet rs;
     int setId = -1;
     //
-    LOGGER.log( Level.FINE, "insert new gas preset in DB..." );
+    LOGGER.fine( "insert new gas preset in DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -1890,7 +1890,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "fatal error while insert: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "fatal error while insert: " + ex.getLocalizedMessage() );
       try
       {
         conn.rollback();
@@ -1925,7 +1925,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't insert gas preset dataset! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't insert gas preset dataset! (" + ex.getLocalizedMessage() + ")" );
       return;
     }
     // jetzt alle Sets in die DB
@@ -1944,7 +1944,7 @@ public class LogDerbyDatabaseUtil
       }
       catch( SQLException ex )
       {
-        LOGGER.log( Level.SEVERE, "fatal error in sql prepare: " + ex.getLocalizedMessage() );
+        LOGGER.severe( "fatal error in sql prepare: " + ex.getLocalizedMessage() );
         ex.printStackTrace();
         if( aListener != null )
         {
@@ -1973,12 +1973,12 @@ public class LogDerbyDatabaseUtil
       catch( SQLException ex1 )
       {
         // Doppelfehler...LogForDeviceDatabaseUtil Programm hart beenden!
-        LOGGER.log( Level.SEVERE, "fatal double error in batch execute: " + ex1.getLocalizedMessage() );
-        LOGGER.log( Level.SEVERE, "ABORT PROGRAM!!!!!!!!!" );
+        LOGGER.severe( "fatal double error in batch execute: " + ex1.getLocalizedMessage() );
+        LOGGER.severe( "ABORT PROGRAM!!!!!!!!!" );
         ex1.printStackTrace();
         System.exit( -1 );
       }
-      LOGGER.log( Level.SEVERE, "fatal error in batch execute: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "fatal error in batch execute: " + ex.getLocalizedMessage() );
       ex.printStackTrace();
       if( aListener != null )
       {
@@ -2009,7 +2009,7 @@ public class LogDerbyDatabaseUtil
     Statement stat;
     boolean rs;
     //
-    LOGGER.log( Level.FINE, "update notes for dive dbid: " + dbId + "..." );
+    LOGGER.fine( "update notes for dive dbid: " + dbId + "..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -2038,7 +2038,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't update dbversion (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't update dbversion (" + ex.getLocalizedMessage() + ")" );
       return( -1 );
     }
     return( dbId );
@@ -2083,7 +2083,7 @@ public class LogDerbyDatabaseUtil
       LOGGER.log( Level.WARNING, "no databese connection..." );
       return( false );
     }
-    LOGGER.log( Level.FINE, "try to set pin for device..." );
+    LOGGER.fine( "try to set pin for device..." );
     if( null == getAliasForNameConn( dev ) )
     {
       LOGGER.log( Level.WARNING, "no Aliasname for Device..." );
@@ -2100,7 +2100,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, String.format( "fail to update pin for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
+      LOGGER.severe( String.format( "fail to update pin for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
       return( false );
     }
     return( true );
@@ -2124,7 +2124,7 @@ public class LogDerbyDatabaseUtil
     String sql;
     Statement stat;
     //
-    LOGGER.log( Level.FINE, "try to update alias..." );
+    LOGGER.fine( "try to update alias..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "try to update alias even if database is not created! ABORT!" );
@@ -2140,14 +2140,14 @@ public class LogDerbyDatabaseUtil
       // Ok, Datenbank da und geöffnet!
       stat = conn.createStatement();
       sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, devAlias, ProjectConst.A_DEVNAME, devName );
-      LOGGER.log( Level.FINE, String.format( "update device alias <%s> to <%s>", devName, devAlias ) );
+      LOGGER.fine( String.format( "update device alias <%s> to <%s>", devName, devAlias ) );
       stat.execute( sql );
       stat.close();
       conn.commit();
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, String.format( "fail to update device alias for device <%s> (%s)", devName, ex.getLocalizedMessage() ) );
+      LOGGER.severe( String.format( "fail to update device alias for device <%s> (%s)", devName, ex.getLocalizedMessage() ) );
       return( false );
     }
     return( true );
@@ -2170,7 +2170,7 @@ public class LogDerbyDatabaseUtil
     String sql;
     PreparedStatement prep = null;
     //
-    LOGGER.log( Level.FINE, "update gas presets in DB..." );
+    LOGGER.fine( "update gas presets in DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -2195,7 +2195,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't update gas preset dataset! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't update gas preset dataset! (" + ex.getLocalizedMessage() + ")" );
       return;
     }
     // jetzt alle Sets in die DB
@@ -2214,7 +2214,7 @@ public class LogDerbyDatabaseUtil
       }
       catch( SQLException ex )
       {
-        LOGGER.log( Level.SEVERE, "fatal error in sql prepare: " + ex.getLocalizedMessage() );
+        LOGGER.severe( "fatal error in sql prepare: " + ex.getLocalizedMessage() );
         ex.printStackTrace();
         if( aListener != null )
         {
@@ -2241,12 +2241,12 @@ public class LogDerbyDatabaseUtil
       catch( SQLException ex1 )
       {
         // Doppelfehler...LogForDeviceDatabaseUtil Programm hart beenden!
-        LOGGER.log( Level.SEVERE, "fatal double error in batch execute: " + ex1.getLocalizedMessage() );
-        LOGGER.log( Level.SEVERE, "ABORT PROGRAM!!!!!!!!!" );
+        LOGGER.severe( "fatal double error in batch execute: " + ex1.getLocalizedMessage() );
+        LOGGER.severe( "ABORT PROGRAM!!!!!!!!!" );
         ex1.printStackTrace();
         System.exit( -1 );
       }
-      LOGGER.log( Level.SEVERE, "fatal error in batch execute: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "fatal error in batch execute: " + ex.getLocalizedMessage() );
       ex.printStackTrace();
       if( aListener != null )
       {
@@ -2256,7 +2256,7 @@ public class LogDerbyDatabaseUtil
       }
       return;
     }
-    LOGGER.log( Level.FINE, "update gas presets in DB..." );
+    LOGGER.fine( "update gas presets in DB..." );
   }
 
   /**
@@ -2277,7 +2277,7 @@ public class LogDerbyDatabaseUtil
     String sql;
     Statement stat = null;
     //
-    LOGGER.log( Level.FINE, "update gas presets in DB..." );
+    LOGGER.fine( "update gas presets in DB..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
@@ -2302,7 +2302,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "fatal error in execute: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "fatal error in execute: " + ex.getLocalizedMessage() );
       return;
     }
     updatePresetData( dbId, currGasList );
@@ -2326,12 +2326,12 @@ public class LogDerbyDatabaseUtil
     //
     if( logDataList == null )
     {
-      LOGGER.log( Level.SEVERE, "no logDataList for write to databasde allocated! ABORT" );
+      LOGGER.severe( "no logDataList for write to databasde allocated! ABORT" );
       return( -1 );
     }
     if( currentDiveId == -1 || currentDiveId != diveId )
     {
-      LOGGER.log( Level.SEVERE, "diveid for this chache is not correct in this situation! ABORT" );
+      LOGGER.severe( "diveid for this chache is not correct in this situation! ABORT" );
       return( -1 );
     }
     // Thread dafür aufbauen
@@ -2343,11 +2343,14 @@ public class LogDerbyDatabaseUtil
         Statement stat = null;
         String sql;
         LogLineDataObject logLineObj;
+        ResultSet rs = null;
         double markAirtemp = -999.99; // merke mir die Lufttemperatur (erster Wert der Temp => Luft...)
         double markLowestTemp = 100.0; // Merke mir die tiefste Temperatur
         long markMaxDepth = 0; // merke mir die Maximaltiefe
         long markSamples = 0;
         long markDiveLength = 0;
+        //
+        LOGGER.fine( "thread to write data in database is running..." );
         //
         //@formatter:off
          sql = String.format( 
@@ -2382,7 +2385,7 @@ public class LogDerbyDatabaseUtil
          }
          catch( SQLException ex )
          {
-           LOGGER.log( Level.SEVERE, "fatal error : " + ex.getLocalizedMessage() );
+           LOGGER.severe( "fatal error : " + ex.getLocalizedMessage() );
            ex.printStackTrace();
            if( aListener != null )
            {
@@ -2414,10 +2417,11 @@ public class LogDerbyDatabaseUtil
              prep.setInt( 11, logLineObj.zeroTime );
              prep.setInt( 12, logLineObj.nextStep );
              prep.addBatch();
+             prep.executeBatch();
            }
            catch( SQLException ex )
            {
-             LOGGER.log( Level.SEVERE, "fatal error in sql prepare: " + ex.getLocalizedMessage() );
+             LOGGER.severe( "fatal error in sql prepare: " + ex.getLocalizedMessage() );
              ex.printStackTrace();
              if( aListener != null )
              {
@@ -2439,22 +2443,22 @@ public class LogDerbyDatabaseUtil
              // Der erste Wert ist mal die Lufttemperatur (geschätzt)
              markAirtemp = logLineObj.temperature;
            }
-           // Tiefste Temperatur
-           if( markLowestTemp > logLineObj.temperature )
-           {
-             // ja, die Temperatur war tiefer
-             markLowestTemp = logLineObj.temperature;
-           }
-           // Maximale Tiefe
-           if( markMaxDepth < logLineObj.depth )
-           {
-             // setze die größere Tiefe
-             markMaxDepth = logLineObj.depth;
-           }
+           
+//           // Tiefste Temperatur
+//           if( markLowestTemp > logLineObj.temperature )
+//           {
+//             // ja, die Temperatur war tiefer
+//             markLowestTemp = logLineObj.temperature;
+//           }
+//           // Maximale Tiefe
+//           if( markMaxDepth < logLineObj.depth )
+//           {
+//             // setze die größere Tiefe
+//             markMaxDepth = logLineObj.depth;
+//           }
          }
          try
          {
-           prep.executeBatch();
            prep.close();
            conn.commit();
          }
@@ -2467,12 +2471,12 @@ public class LogDerbyDatabaseUtil
             catch( SQLException ex1 )
             {
               //Doppelfehler...LogForDeviceDatabaseUtil Programm hart beenden!
-              LOGGER.log( Level.SEVERE, "fatal double error in batch execute: " + ex1.getLocalizedMessage() );
-              LOGGER.log( Level.SEVERE, "ABORT PROGRAM!!!!!!!!!" );
+              LOGGER.severe( "fatal double error in batch execute: " + ex1.getLocalizedMessage() );
+              LOGGER.severe( "ABORT PROGRAM!!!!!!!!!" );
               ex1.printStackTrace();
               System.exit( -1 );
             }
-           LOGGER.log( Level.SEVERE, "fatal error in batch execute: " + ex.getLocalizedMessage() );
+           LOGGER.severe( "fatal error in batch execute: " + ex.getLocalizedMessage() );
            ex.printStackTrace();
            if( aListener != null )
            {
@@ -2484,14 +2488,47 @@ public class LogDerbyDatabaseUtil
            logDataList = null;
            return;
          }
-         LOGGER.log( Level.FINE, "writed cache dataset to database." );
+         LOGGER.fine( "cache was writing to database." );
          // aufräumen!
          logDataList.clear();
          logDataList = null;
          // 
          // Statistische Daten in der DB updaten
          //
+         LOGGER.fine( "make statistics..." );
          //@formatter:off
+         sql = String.format( 
+                 Locale.ENGLISH,
+                 "select max(%s),min(%s)\n" + 
+                 " from %s where %s=%d",
+                 ProjectConst.D_DEPTH,
+                 ProjectConst.D_TEMPERATURE,
+                 ProjectConst.D_TABLE_DIVEDETAIL,
+                 ProjectConst.D_DIVEID,
+                 diveId
+                  );
+         //@formatter:on
+        try
+        {
+          stat = conn.createStatement();
+          rs = stat.executeQuery( sql );
+          if( rs.next() )
+          {
+            // Daten kosolidieren
+            markMaxDepth = rs.getLong( 1 );
+            markLowestTemp = rs.getDouble( 2 );
+          }
+          rs.close();
+        }
+        catch( SQLException ex )
+        {
+          LOGGER.severe( "Can't make dive statistic from db! (" + ex.getLocalizedMessage() + ")" );
+          return;
+        }
+        //
+        // Statistik in die Datenbank eintragen
+        LOGGER.fine( "update statistics in database..." );
+        //@formatter:off
          sql = String.format( 
                  Locale.ENGLISH,
                  "update %s \n" +
@@ -2516,11 +2553,12 @@ public class LogDerbyDatabaseUtil
            stat = conn.createStatement();
            stat.execute( sql );
            stat.close();
+           conn.commit();
          }
          catch( SQLException ex )
          {
-           LOGGER.log( Level.SEVERE, "fatal error in data update: " + ex.getLocalizedMessage() );
-           LOGGER.log( Level.FINE, "SQL:" + sql );
+           LOGGER.severe( "fatal error in data update: " + ex.getLocalizedMessage() );
+           LOGGER.fine( "SQL:" + sql );
            ex.printStackTrace();
            if( aListener != null )
            {
@@ -2538,9 +2576,11 @@ public class LogDerbyDatabaseUtil
            ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_SUCCESS, null );
            aListener.actionPerformed( ev );
          }
+         LOGGER.fine(  "thread to write data in database is OK: ending..." );
          return;
        };
     };
+    LOGGER.fine(  "start thread to write data in database..." );
     writeDb.start();
     return 0;
   }
@@ -2568,19 +2608,19 @@ public class LogDerbyDatabaseUtil
     ResultSet rs;
     int generatedKey;
     //
-    LOGGER.log( Level.FINE, "create new diving entry..." );
+    LOGGER.fine( "create new diving entry..." );
     if( conn == null )
     {
       LOGGER.log( Level.WARNING, "no databese connection..." );
       return( -1 );
     }
-    // immer eine neue anlegen, löscht durch garbage collector auch eventuell vorhandene alte Liste
+    // immer eine neue anlegen (einen Cache), löscht durch garbage collector auch eventuell vorhandene alte Liste
     logDataList = new Vector<LogLineDataObject>();
     //
     try
     {
       stat = conn.createStatement();
-      LOGGER.log( Level.FINE, "insert new dataset into database..." );
+      LOGGER.fine( "insert new dataset into database..." );
       //@formatter:off
       sql = String.format( 
               "insert into %s ( %s,%s,%s,%s,%s ) values ( '%s','%s', %d, %d, %d )",
@@ -2597,7 +2637,7 @@ public class LogDerbyDatabaseUtil
               startTime
              );
       //@formatter:on
-      LOGGER.log( Level.FINE, "write database... " );
+      LOGGER.fine( "write database... " );
       stat.execute( sql );
       conn.commit();
       //@formatter:off
@@ -2607,7 +2647,7 @@ public class LogDerbyDatabaseUtil
               ProjectConst.H_TABLE_DIVELOGS
              );
       //@formatter:on
-      LOGGER.log( Level.FINE, "read generated key... " );
+      LOGGER.fine( "read generated key... " );
       rs = stat.executeQuery( sql );
       if( rs.next() )
       {
@@ -2624,7 +2664,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't insert into database! (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't insert into database! (" + ex.getLocalizedMessage() + ")" );
       return( -1 );
     }
   }
@@ -2684,7 +2724,7 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
-      LOGGER.log( Level.SEVERE, "Can't read preset (" + ex.getLocalizedMessage() + ")" );
+      LOGGER.severe( "Can't read preset (" + ex.getLocalizedMessage() + ")" );
       return( null );
     }
   }

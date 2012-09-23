@@ -20,7 +20,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -149,6 +151,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private String                             timeMinutes;
   private JLabel                             diveNotesLabel;
   private JLabel                             diveNotesShowLabel;
+  private JTextArea                          tipTextArea;
 
   /**
    * Create the panel.
@@ -579,7 +582,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     remarksLabel = new JLabel( "SAVINGLABEL" );
     remarksLabel.setForeground( new Color( 210, 105, 30 ) );
     remarksLabel.setFont( new Font( "Tahoma", Font.ITALIC, 12 ) );
-    remarksLabel.setBounds( 267, 472, 492, 14 );
+    remarksLabel.setBounds( 267, 300, 492, 14 );
     add( remarksLabel );
     diveLowTempLabel = new JLabel( "DIVELOWTEMP" );
     diveLowTempLabel.setForeground( new Color( 128, 128, 128 ) );
@@ -597,6 +600,16 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveNotesShowLabel.setForeground( new Color( 0, 128, 0 ) );
     diveNotesShowLabel.setBounds( 268, 275, 492, 14 );
     add( diveNotesShowLabel );
+    tipTextArea = new JTextArea();
+    tipTextArea.setEditable( false );
+    tipTextArea.setWrapStyleWord( true );
+    tipTextArea.setLineWrap( true );
+    tipTextArea.setBackground( UIManager.getColor( "Label.background" ) );
+    tipTextArea.setForeground( new Color( 0, 0, 255 ) );
+    tipTextArea.setFont( new Font( "Tahoma", Font.ITALIC, 12 ) );
+    tipTextArea.setText( "TIPTEXT" );
+    tipTextArea.setBounds( 267, 426, 492, 60 );
+    add( tipTextArea );
     remarksLabel.setVisible( true );
   }
 
@@ -839,6 +852,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       timeMinutes = stringsBundle.getString( "spx42LoglistPanel.unit.minutes" );
       timeFormatterStringDate = stringsBundle.getString( "MainCommGUI.timeFormatterStringDate" );
       timeFormatterStringTime = stringsBundle.getString( "MainCommGUI.timeFormatterStringTime" );
+      tipTextArea.setText( stringsBundle.getString( "spx42LoglistPanel.tipTextArea.text" ) );
     }
     catch( NullPointerException ex )
     {

@@ -61,6 +61,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   private JButton                        cancelButton;
   private JButton                        deleteButton;
   private JButton                        exportButton;
+  private JLabel                         tipLabel;
 
   public spx42FileManagerPanel( Logger LOGGER, MouseMotionListener mListener, LogDerbyDatabaseUtil sqliteDbUtil, SpxPcloggerProgramConfig progConfig )
   {
@@ -525,13 +526,20 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     deviceComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     deviceComboBox.setActionCommand( "change_device_to_display" );
     deviceComboBox.addMouseMotionListener( mListener );
+    tipLabel = new JLabel( "TIP" );
+    tipLabel.setHorizontalAlignment( SwingConstants.CENTER );
+    tipLabel.setForeground( new Color( 105, 105, 105 ) );
+    tipLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
     GroupLayout gl_topComboBoxPanel = new GroupLayout( topComboBoxPanel );
     gl_topComboBoxPanel.setHorizontalGroup( gl_topComboBoxPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_topComboBoxPanel.createSequentialGroup().addGap( 36 ).addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, 277, GroupLayout.PREFERRED_SIZE ).addGap( 483 ) ) );
-    gl_topComboBoxPanel.setVerticalGroup( gl_topComboBoxPanel.createParallelGroup( Alignment.LEADING )
+            gl_topComboBoxPanel.createSequentialGroup().addGap( 36 ).addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, 277, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( tipLabel, GroupLayout.PREFERRED_SIZE, 423, GroupLayout.PREFERRED_SIZE ).addGap( 42 ) ) );
+    gl_topComboBoxPanel.setVerticalGroup( gl_topComboBoxPanel
+            .createParallelGroup( Alignment.LEADING )
             .addGroup(
                     gl_topComboBoxPanel.createSequentialGroup().addGap( 5 )
-                            .addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) ) );
+                            .addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
+            .addGroup( Alignment.TRAILING, gl_topComboBoxPanel.createSequentialGroup().addContainerGap( 26, Short.MAX_VALUE ).addComponent( tipLabel ) ) );
     topComboBoxPanel.setLayout( gl_topComboBoxPanel );
     JPanel bottomButtonPanel = new JPanel();
     bottomButtonPanel.setPreferredSize( new Dimension( 10, 60 ) );
@@ -602,6 +610,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     gl_dataListPanel.setVerticalGroup( gl_dataListPanel.createParallelGroup( Alignment.TRAILING ).addGroup( Alignment.LEADING,
             gl_dataListPanel.createSequentialGroup().addContainerGap().addComponent( contentScrollPane, GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE ).addContainerGap() ) );
     dataViewTable = new JTable();
+    tipLabel.setLabelFor( dataViewTable );
     dataViewTable.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
     dataViewTable.getSelectionModel().addListSelectionListener( this );
     dataViewTable.addMouseMotionListener( mListener );
@@ -658,6 +667,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       deleteButton.setToolTipText( stringsBundle.getString( "fileManagerPanel.deleteButton.tooltiptext" ) );
       exportButton.setText( stringsBundle.getString( "fileManagerPanel.exportButton.text" ) );
       exportButton.setToolTipText( stringsBundle.getString( "fileManagerPanel.exportButton.tooltiptext" ) );
+      tipLabel.setText( stringsBundle.getString( "fileManagerPanel.tipLabel.text" ) );
       // jetzt die Box neu befüllen, mit Trick 17...
       releaseLists();
       deviceComboBox.setSelectedIndex( -1 );

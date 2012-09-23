@@ -25,10 +25,6 @@ public class GasPresetComboBoxModel extends DefaultComboBoxModel
   public GasPresetComboBoxModel( Vector<GasPresetComboObject> presetEntrys )
   {
     super( presetEntrys );
-    // GasPresetComboObject newObj = new GasPresetComboObject();
-    // newObj.presetName = "--";
-    // newObj.dbId = -1;
-    // presetEntrys.insertElementAt( newObj, 0 );
   }
 
   /**

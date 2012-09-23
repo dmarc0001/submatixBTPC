@@ -86,7 +86,7 @@ public class GasPresetComboBoxModel extends DefaultComboBoxModel
   {
     if( elem instanceof GasPresetComboObject )
     {
-      super.addElement( elem );
+      super.insertElementAt( elem, index );
     }
   }
 }

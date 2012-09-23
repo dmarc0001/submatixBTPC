@@ -15,6 +15,7 @@ import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.ButtonGroup;
@@ -24,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
@@ -33,6 +35,10 @@ import javax.swing.border.LineBorder;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.GasComputeUnit;
+import de.dmarcini.submatix.pclogger.utils.GasPresetComboBoxModel;
+import de.dmarcini.submatix.pclogger.utils.GasPresetComboObject;
+import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 //@formatter:off
@@ -48,17 +54,18 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   private final HashMap<Integer, JCheckBox> bailoutMap         = new HashMap<Integer, JCheckBox>();
   private final HashMap<Integer, JCheckBox> diluent1Map        = new HashMap<Integer, JCheckBox>();
   private final HashMap<Integer, JCheckBox> diluent2Map        = new HashMap<Integer, JCheckBox>();
-  private Logger                           LOGGER              = null;
-  private int                              licenseState        = -1;
-  private int                              customConfig        = -1;
-  private boolean                          isPanelInitiated    = false;
-  private ResourceBundle                   stringsBundle       = null;
-  private MainCommGUI                      mainCommGUI         = null;
-  private boolean                          isElementsGasMatrixEnabled = false;
-  private SpxPcloggerProgramConfig         progConfig          = null;
-  private String                           unitsString         = "metric";
-  private double                           ppOMax              = 1.6D;
-  private boolean                          salnity             = false;
+  private LogDerbyDatabaseUtil              databaseUtil        = null;
+  private Logger                            LOGGER              = null;
+  private int                               licenseState        = ProjectConst.SPX_LICENSE_NOT_SET;
+  private int                               customConfig        = -1;
+  private boolean                           isPanelInitiated    = false;
+  private ResourceBundle                    stringsBundle       = null;
+  private MainCommGUI                       mainCommGUI         = null;
+  private boolean                           isElementsGasMatrixEnabled = false;
+  private SpxPcloggerProgramConfig          progConfig          = null;
+  private String                            unitsString         = "metric";
+  private double                            ppOMax              = 1.6D;
+  private boolean                           salnity             = false;
   // @formatter:on
   /**
    * 
@@ -169,9 +176,10 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
    * 
    *         Stand: 21.04.2012
    * @param logger
+   * @param databaseUtil
    * @param progConfig
    */
-  public spx42GaslistEditPanel( Logger logger, final SpxPcloggerProgramConfig progConfig )
+  public spx42GaslistEditPanel( Logger logger, final LogDerbyDatabaseUtil databaseUtil, final SpxPcloggerProgramConfig progConfig )
   {
     if( logger == null )
     {
@@ -179,9 +187,8 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     }
     this.LOGGER = logger;
     this.progConfig = progConfig;
+    this.databaseUtil = databaseUtil;
     isPanelInitiated = false;
-    // initPanel();
-    // initGasObjectMaps();
   }
 
   @Override
@@ -211,10 +218,79 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
         LOGGER.warning( "unknown combobox action event <" + ev.getActionCommand() + ">" );
       }
     }
+    // /////////////////////////////////////////////////////////////////////////
+    // Button
+    else if( ev.getSource() instanceof JButton )
+    {
+      // es war ein Button
+      // mach was daraus
+      JButton bt = ( JButton )ev.getSource();
+      String cmd = bt.getActionCommand();
+      // ///////////////////////////////////////////////////////////////////////
+      // Gas als Preset schreiben
+      if( cmd.equals( "write_gas_preset" ) )
+      {
+        // ist es ein update oder solls ein neues Teil werden
+        if( ( customPresetComboBox.getSelectedIndex() == 0 ) || ( customPresetComboBox.getSelectedIndex() == -1 ) )
+        {
+          // auf jeden Fall NEU
+          LOGGER.fine( "create a new gas preset..." );
+          showPresetSaveEditForm( "NEW", -1 );
+          fillPresetComboBox();
+        }
+        else
+        {
+          LOGGER.fine( "update an exist gas preset..." );
+          GasPresetComboBoxModel cbm = ( GasPresetComboBoxModel )customPresetComboBox.getModel();
+          int idx = customPresetComboBox.getSelectedIndex();
+          // ein Update machen
+          showPresetSaveEditForm( cbm.getNameAt( idx ), cbm.getDatabaseIdAt( idx ) );
+          fillPresetComboBox();
+          customPresetComboBox.setSelectedIndex( idx );
+        }
+      }
+      else if( cmd.equals( "read_gaslist" ) )
+      {
+        // will vom SPX lesen, dann muss die combobox aber auf Index "0"
+        customPresetComboBox.setSelectedIndex( 0 );
+      }
+      else
+      {
+        LOGGER.warning( "unknown button action event <" + ev.getActionCommand() + ">" );
+      }
+    }
     else
     {
       LOGGER.warning( "unknown action event <" + ev.getActionCommand() + ">" );
     }
+  }
+
+  /**
+   * 
+   * Fülle die Preset-Combobox mit Dten aus der Datenbank
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 23.09.2012
+   */
+  private void fillPresetComboBox()
+  {
+    // GasPresetComboBoxModel
+    if( databaseUtil == null ) return;
+    if( !databaseUtil.isOpenDB() )
+    {
+      LOGGER.severe( "database is not OPENED!" );
+      return;
+    }
+    //
+    // jetzt frag mal die DB nach den Daten
+    //
+    GasPresetComboBoxModel presetModel = new GasPresetComboBoxModel( databaseUtil.getPresets() );
+    presetModel.insertElementAt( new GasPresetComboObject( "SPX42 - current", -1 ), 0 );
+    customPresetComboBox.setModel( presetModel );
+    customPresetComboBox.setSelectedIndex( 0 );
   }
 
   /**
@@ -955,13 +1031,14 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     gbc_borderGasLabel_07.gridy = 8;
     gasMatrixPanel.add( borderGasLabel_07, gbc_borderGasLabel_07 );
     customPresetComboBox = new JComboBox();
+    customPresetComboBox.setActionCommand( "preset_changed" );
     customPresetComboBox.setEnabled( false );
     customPresetComboBox.setBounds( 573, 421, 210, 20 );
     add( customPresetComboBox );
     writeGasPresetButton = new JButton( "WRITEPRESELECT" );
     writeGasPresetButton.setForeground( Color.RED );
     writeGasPresetButton.setBackground( new Color( 255, 192, 203 ) );
-    writeGasPresetButton.setActionCommand( "write_gaslist_preset" );
+    writeGasPresetButton.setActionCommand( "write_gas_preset" );
     writeGasPresetButton.setBounds( 573, 448, 210, 33 );
     add( writeGasPresetButton );
     licenseStatusLabel = new JLabel( "LICENSE" );
@@ -970,11 +1047,9 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     salnityCheckBox = new JCheckBox( "SALNITY" );
     salnityCheckBox.setBounds( 346, 386, 217, 23 );
     salnityCheckBox.setActionCommand( "check_salnity" );
-    salnityCheckBox.addItemListener( this );
     add( salnityCheckBox );
     ppoMaxComboBox = new JComboBox();
     ppoMaxComboBox.setActionCommand( "set_ppomax" );
-    ppoMaxComboBox.addActionListener( this );
     ppoMaxComboBox.setModel( new DefaultComboBoxModel( new String[]
     { "1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6" } ) );
     ppoMaxComboBox.setSelectedIndex( 6 );
@@ -1008,9 +1083,93 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
         LOGGER.warning( "unknown checkbox item changed: <" + cb.getActionCommand() + "> <" + cb.isSelected() + ">" );
       }
     }
+    else if( ev.getSource() instanceof JComboBox )
+    {
+      if( ev.getStateChange() != ItemEvent.SELECTED ) return;
+      JComboBox cb = ( JComboBox )ev.getSource();
+      String cmd = cb.getActionCommand();
+      // //////////////////////////////////////////////////////////////////////
+      // die Preset-Combobox
+      if( cmd.equals( "preset_changed" ) )
+      {
+        if( cb.getSelectedIndex() == -1 ) return;
+        int index = customPresetComboBox.getSelectedIndex();
+        String presetName = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getNameAt( index );
+        int dbId = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getDatabaseIdAt( index );
+        LOGGER.fine( "preset combobox changed to index <" + index + ">" );
+        LOGGER.fine( "entry has name <" + presetName + "> and dbId <" + dbId + ">" );
+        prepareCurentGasFromDb( dbId );
+        return;
+      }
+    }
     else
     {
       LOGGER.warning( "unknown item changed!" );
+    }
+  }
+
+  /**
+   * 
+   * Lade aktuelle Gasliste von der Datenbank
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 23.09.2012
+   * @param dbId
+   */
+  private void prepareCurentGasFromDb( int dbId )
+  {
+    SPX42GasList tempGasList = databaseUtil.getPresetForSetId( dbId );
+    if( !tempGasList.isInitialized() )
+    {
+      LOGGER.severe( "gaslist is not initialized! ABORT!" );
+      return;
+    }
+    //
+    // Checke, ob die Gasliste zu der Lizenz passt
+    //
+    if( licenseState == ProjectConst.SPX_LICENSE_NOT_SET || licenseState == ProjectConst.SPX_LICENSE_NITROX )
+    {
+      // alle gase auf he==0 und o2 >= 21 checken
+      for( int idx = 0; idx < tempGasList.getGasCount(); idx++ )
+      {
+        if( tempGasList.getHEFromGas( idx ) > 0 )
+        {
+          showNoLicenseBox( stringsBundle.getString( "spx42GaslistEditPanel.showNoLicenseBox.nottx" ) );
+          customPresetComboBox.setSelectedIndex( 0 );
+          return;
+        }
+        if( tempGasList.getO2FromGas( idx ) < 21 )
+        {
+          showNoLicenseBox( stringsBundle.getString( "spx42GaslistEditPanel.showNoLicenseBox.nohypoox" ) );
+          customPresetComboBox.setSelectedIndex( 0 );
+          return;
+        }
+      }
+    }
+    else if( licenseState == ProjectConst.SPX_LICENSE_NORMOXICTX )
+    {
+      // alle gase auf o2 >= 18 checken
+      for( int idx = 0; idx < tempGasList.getGasCount(); idx++ )
+      {
+        if( tempGasList.getO2FromGas( idx ) < 18 )
+        {
+          showNoLicenseBox( stringsBundle.getString( "spx42GaslistEditPanel.showNoLicenseBox.nohypoox" ) );
+          customPresetComboBox.setSelectedIndex( 0 );
+          return;
+        }
+      }
+    }
+    // currGasList = tempGasList;
+    //
+    // Gase initialisieren
+    //
+    for( int idx = 0; idx < tempGasList.getGasCount(); idx++ )
+    {
+      ( heSpinnerMap.get( idx ) ).setValue( tempGasList.getHEFromGas( idx ) );
+      ( o2SpinnerMap.get( idx ) ).setValue( tempGasList.getO2FromGas( idx ) );
     }
   }
 
@@ -1031,6 +1190,7 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     setAllGasPanelsEnabled( isElementsGasMatrixEnabled );
     setLanguageStrings( stringsBundle );
     setLicenseLabel( stringsBundle );
+    fillPresetComboBox();
     setGlobalChangeListener( mainCommGUI );
   }
 
@@ -1059,25 +1219,6 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
 
   /**
    * 
-   * Alle Gaseinstellungsdinger de/aktivieren
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 22.04.2012
-   * @param en
-   *          enabled?
-   */
-  public void setAllGasPanelsEnabled( boolean en )
-  {
-    setElementsGasMatrixPanelEnabled( en );
-    // momentan IMMER disabled
-    setGasPresetObjectsEnabled( false );
-  }
-
-  /**
-   * 
    * Alle Beschreibungen neu setzen
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
@@ -1097,6 +1238,25 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
       he = ( Integer )heSpinnerMap.get( i ).getValue();
       setDescriptionForGas( i, o2, he );
     }
+  }
+
+  /**
+   * 
+   * Alle Gaseinstellungsdinger de/aktivieren
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.04.2012
+   * @param en
+   *          enabled?
+   */
+  public void setAllGasPanelsEnabled( boolean en )
+  {
+    setElementsGasMatrixPanelEnabled( en );
+    // momentan IMMER disabled
+    setGasPresetObjectsEnabled( false );
   }
 
   /**
@@ -1161,7 +1321,7 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
         // welcher Lizenzstatus
         // ////////////////////////////////////////////////////////////////////
         // Ist es NITROX?
-        if( licenseState < 1 )
+        if( licenseState <= ProjectConst.SPX_LICENSE_NITROX )
         {
           // issen einer von den Helium-Teilen
           for( Integer idx : heSpinnerMap.keySet() )
@@ -1187,7 +1347,7 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
         }
         // ////////////////////////////////////////////////////////////////////
         // ist es Normoxic Trimix?
-        if( licenseState == 1 )
+        if( licenseState == ProjectConst.SPX_LICENSE_NORMOXICTX )
         {
           // issen einer von den Helium-Teilen / Normoxic Trimix enabled
           for( Integer idx : heSpinnerMap.keySet() )
@@ -1214,7 +1374,7 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
         }
         // ////////////////////////////////////////////////////////////////////
         // ist es FULL Trimix
-        else if( licenseState == 2 )
+        else if( licenseState == ProjectConst.SPX_LICENSE_FULLTX )
         {
           // Normoxic Trimix
           // issen einer von den Helium-Teilen
@@ -1248,6 +1408,8 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     }
     gasMatrixPanel.setEnabled( en );
     gasWriteToSPXButton.setEnabled( en );
+    customPresetComboBox.setEnabled( en );
+    writeGasPresetButton.setEnabled( en );
   }
 
   /**
@@ -1349,15 +1511,24 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
       cb.setActionCommand( String.format( "diluent2:%d", idx ) );
     }
     //
-    gasReadFromSPXButton.setActionCommand( "read_gaslist" );
+    gasReadFromSPXButton.addActionListener( this );
     gasReadFromSPXButton.addActionListener( mainCommGUI );
     gasReadFromSPXButton.addMouseMotionListener( mainCommGUI );
     //
-    gasWriteToSPXButton.setActionCommand( "write_gaslist" );
     gasWriteToSPXButton.addActionListener( mainCommGUI );
     gasWriteToSPXButton.addMouseMotionListener( mainCommGUI );
     //
     salnityCheckBox.addMouseMotionListener( mainCommGUI );
+    salnityCheckBox.addItemListener( this );
+    //
+    ppoMaxComboBox.addActionListener( this );
+    ppoMaxComboBox.addMouseMotionListener( mainCommGUI );
+    //
+    customPresetComboBox.addItemListener( this );
+    customPresetComboBox.addMouseMotionListener( mainCommGUI );
+    //
+    writeGasPresetButton.addActionListener( this );
+    writeGasPresetButton.addMouseMotionListener( mainCommGUI );
   }
 
   public int setLanguageStrings( ResourceBundle stringsBundle )
@@ -1459,6 +1630,7 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
         ppoMaxComboBox.setSelectedIndex( pressureStrings.length - 1 );
         pressureUnitLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.imperial" ) );
       }
+      ppoMaxComboBox.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.ppoMaxComboBox.tooltiptext" ) );
       setLicenseLabel( stringsBundle );
     }
     catch( NullPointerException ex )
@@ -1496,14 +1668,14 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     String licString;
     switch ( licenseState )
     {
-      case -1:
+      case ProjectConst.SPX_LICENSE_NOT_SET:
         // nicht konfiguriert
         licString = " ";
-      case 0:
+      case ProjectConst.SPX_LICENSE_NITROX:
         // Nitrox
         licString = stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.licenseLabel.nitrox.text" );
         break;
-      case 1:
+      case ProjectConst.SPX_LICENSE_NORMOXICTX:
         licString = stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.licenseLabel.normoxic.text" );
         break;
       default:
@@ -1541,5 +1713,99 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   {
     licenseState = lic;
     customConfig = cust;
+  }
+
+  /**
+   * 
+   * Dialogbox anzeigen, die mitteilt, daß die Lizenz nicht ausreicht
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 23.09.2012
+   * @param string
+   */
+  private void showNoLicenseBox( String msg )
+  {
+    ImageIcon icon = null;
+    try
+    {
+      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Terminate.png" ) );
+      JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "spx42GaslistEditPanel.showNoLicenseBox.headline" ), JOptionPane.INFORMATION_MESSAGE, icon );
+    }
+    catch( NullPointerException ex )
+    {
+      LOGGER.severe( "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( MissingResourceException ex )
+    {
+      LOGGER.severe( "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( ClassCastException ex )
+    {
+      LOGGER.severe( "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+  }
+
+  /**
+   * 
+   * Zeige eine Dialogbox zum eingeben eines Namens für das Preset
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 23.09.2012
+   * @param dbId
+   *          Id des Presets oder -1
+   * @param oldName
+   *          der Name des Presets
+   */
+  private void showPresetSaveEditForm( String oldName, int dbId )
+  {
+    GasPresetNameDialog edDial = null;
+    SPX42GasList currGasList = null;
+    //
+    // vorbereitung...
+    //
+    if( mainCommGUI == null ) return;
+    currGasList = mainCommGUI.getCurrGasList();
+    if( !currGasList.isInitialized() ) return;
+    //
+    edDial = new GasPresetNameDialog( stringsBundle );
+    edDial.setName( oldName );
+    if( edDial.showModal() )
+    {
+      if( dbId == -1 )
+      {
+        LOGGER.log( Level.INFO, "save NEW Preset in database..." );
+        // das wird ein neues Preset
+        databaseUtil.saveNewPresetData( edDial.getName(), currGasList );
+      }
+      else
+      {
+        LOGGER.log( Level.INFO, "save Preset in database..." );
+        // Wurde der Name auch verändert?
+        if( oldName.equals( edDial.getName() ) )
+        {
+          // nein, Name bleibt gleich
+          databaseUtil.updatePresetData( dbId, currGasList );
+        }
+        else
+        {
+          // Name auch verändern
+          databaseUtil.updatePresetData( dbId, edDial.getName(), currGasList );
+        }
+      }
+      edDial.dispose();
+    }
+    else
+    {
+      edDial.dispose();
+    }
   }
 }

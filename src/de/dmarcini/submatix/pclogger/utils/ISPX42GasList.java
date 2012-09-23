@@ -28,5 +28,7 @@ public interface ISPX42GasList
 
   public boolean isInitialized();
 
+  public void setInitialized();
+
   public int getGasCount();
 }

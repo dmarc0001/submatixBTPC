@@ -93,6 +93,151 @@ public class SPX42GasList implements ISPX42GasList
   }
 
   @Override
+  public int getBailout( int number )
+  {
+    if( number >= GASCOUNT )
+    {
+      return 0;
+    }
+    if( bailout[number] > 0 )
+    {
+      return( bailout[number] );
+    }
+    return( 0 );
+  }
+
+  @Override
+  public int getCurrGas( int number )
+  {
+    if( number < GASCOUNT || currgas != number )
+    {
+      return( 0 );
+    }
+    return( 1 );
+  }
+
+  @Override
+  public int getDiluent2()
+  {
+    return( diluent2 );
+  }
+
+  @Override
+  public int getDiulent1()
+  {
+    return( diluent1 );
+  }
+
+  @Override
+  public int getGasCount()
+  {
+    return( GASCOUNT );
+  }
+
+  @Override
+  public int getHEFromGas( int number )
+  {
+    if( number >= GASCOUNT )
+    {
+      return( 0 );
+    }
+    return( he[number] );
+  }
+
+  @Override
+  public int getN2FromGas( int number )
+  {
+    if( number >= GASCOUNT )
+    {
+      return( 0 );
+    }
+    return( n2[number] );
+  }
+
+  @Override
+  public int getO2FromGas( int number )
+  {
+    if( number >= GASCOUNT )
+    {
+      return( 0 );
+    }
+    return( 100 - he[number] - n2[number] );
+  }
+
+  @Override
+  public boolean isInitialized()
+  {
+    return( isInitialized );
+  }
+
+  @Override
+  public boolean setBailout( int number, boolean toSet )
+  {
+    if( number >= GASCOUNT )
+    {
+      return false;
+    }
+    if( toSet )
+    {
+      bailout[number] = 3;
+    }
+    else
+    {
+      bailout[number] = 0;
+    }
+    return( true );
+  }
+
+  @Override
+  public boolean setDiluent1( int number )
+  {
+    if( number >= GASCOUNT )
+    {
+      return false;
+    }
+    diluent1 = number;
+    return( true );
+  }
+
+  @Override
+  public boolean setDiluent2( int number )
+  {
+    if( number >= GASCOUNT )
+    {
+      return false;
+    }
+    diluent2 = number;
+    return( true );
+  }
+
+  @Override
+  public boolean setGas( int number, int o2, int he )
+  {
+    if( ( o2 + he ) > 100 )
+    {
+      if( log ) LOGGER.log( Level.SEVERE, "setGas(): o2 + he > 100% ! Not success!" );
+      return( false );
+    }
+    if( number >= GASCOUNT )
+    {
+      return false;
+    }
+    this.he[number] = he;
+    n2[number] = 100 - he - o2;
+    init[number] = true;
+    // vor dem Ende noch checken, ob nun alle Gase eingetragen sind
+    for( int i = 0; i < GASCOUNT; i++ )
+    {
+      if( init[i] == false )
+      {
+        return( true );
+      }
+    }
+    isInitialized = true;
+    return true;
+  }
+
+  @Override
   public boolean setGas( String fromSpx )
   {
     // Kommando SPX_GET_SETUP_GASLIST ~39
@@ -153,147 +298,8 @@ public class SPX42GasList implements ISPX42GasList
   }
 
   @Override
-  public boolean isInitialized()
+  public void setInitialized()
   {
-    return( isInitialized );
-  }
-
-  @Override
-  public boolean setGas( int number, int o2, int he )
-  {
-    if( ( o2 + he ) > 100 )
-    {
-      if( log ) LOGGER.log( Level.SEVERE, "setGas(): o2 + he > 100% ! Not success!" );
-      return( false );
-    }
-    if( number >= GASCOUNT )
-    {
-      return false;
-    }
-    this.he[number] = he;
-    n2[number] = 100 - he - o2;
-    init[number] = true;
-    // vor dem Ende noch checken, ob nun alle Gase eingetragen sind
-    for( int i = 0; i < GASCOUNT; i++ )
-    {
-      if( init[i] == false )
-      {
-        return( true );
-      }
-    }
     isInitialized = true;
-    return true;
-  }
-
-  @Override
-  public int getO2FromGas( int number )
-  {
-    if( number >= GASCOUNT )
-    {
-      return( 0 );
-    }
-    return( 100 - he[number] - n2[number] );
-  }
-
-  @Override
-  public int getHEFromGas( int number )
-  {
-    if( number >= GASCOUNT )
-    {
-      return( 0 );
-    }
-    return( he[number] );
-  }
-
-  @Override
-  public int getN2FromGas( int number )
-  {
-    if( number >= GASCOUNT )
-    {
-      return( 0 );
-    }
-    return( n2[number] );
-  }
-
-  @Override
-  public boolean setDiluent1( int number )
-  {
-    if( number >= GASCOUNT )
-    {
-      return false;
-    }
-    diluent1 = number;
-    return( true );
-  }
-
-  @Override
-  public boolean setDiluent2( int number )
-  {
-    if( number >= GASCOUNT )
-    {
-      return false;
-    }
-    diluent2 = number;
-    return( true );
-  }
-
-  @Override
-  public boolean setBailout( int number, boolean toSet )
-  {
-    if( number >= GASCOUNT )
-    {
-      return false;
-    }
-    if( toSet )
-    {
-      bailout[number] = 3;
-    }
-    else
-    {
-      bailout[number] = 0;
-    }
-    return( true );
-  }
-
-  @Override
-  public int getDiulent1()
-  {
-    return( diluent1 );
-  }
-
-  @Override
-  public int getDiluent2()
-  {
-    return( diluent2 );
-  }
-
-  @Override
-  public int getBailout( int number )
-  {
-    if( number >= GASCOUNT )
-    {
-      return 0;
-    }
-    if( bailout[number] > 0 )
-    {
-      return( bailout[number] );
-    }
-    return( 0 );
-  }
-
-  @Override
-  public int getGasCount()
-  {
-    return( GASCOUNT );
-  }
-
-  @Override
-  public int getCurrGas( int number )
-  {
-    if( number < GASCOUNT || currgas != number )
-    {
-      return( 0 );
-    }
-    return( 1 );
   }
 }

@@ -2718,6 +2718,7 @@ public class LogDerbyDatabaseUtil
       }
       rs.close();
       stat.close();
+      gasList.setInitialized();
       return( gasList );
     }
     catch( SQLException ex )

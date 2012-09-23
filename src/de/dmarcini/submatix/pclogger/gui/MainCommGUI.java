@@ -83,6 +83,49 @@ import de.dmarcini.submatix.pclogger.utils.WriteConfig;
  */
 public class MainCommGUI extends JFrame implements ActionListener, MouseMotionListener, ChangeListener, ItemListener
 {  //
+  /**
+   * 
+   * Eigene Klasse zum reagieren auf den Close-Button bei Windows
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 22.09.2012
+   */
+  private class MainWindowListener implements WindowListener
+  {
+    @Override
+    public void windowActivated( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowClosed( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowClosing( WindowEvent arg0 )
+    {
+      LOGGER.warning( "WINDOW CLOSING VIA CLOSEBUTTON..." );
+      exitProgram();
+    }
+
+    @Override
+    public void windowDeactivated( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowDeiconified( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowIconified( WindowEvent arg0 )
+    {}
+
+    @Override
+    public void windowOpened( WindowEvent arg0 )
+    {}
+  }
   private enum programTabs {
     TAB_CONNECT,
     TAB_CONFIG,
@@ -96,8 +139,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private final static int         VERY_CONSERVATIVE   = 0;
   private final static int         CONSERVATIVE        = 1;
   private final static int         MODERATE            = 2;
-  private final static int         AGGRESSIVE          = 3;
-  private final static int         VERY_AGGRESSIVE     = 4;                                            ;
+  private final static int         AGGRESSIVE          = 3;                                            ;
+  private final static int         VERY_AGGRESSIVE     = 4;
   private int                      licenseState        = -1;
   private int                      customConfig        = -1;
   private LogDerbyDatabaseUtil     databaseUtil        = null;
@@ -147,50 +190,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private static String            optionLangCode      = null;
   private static final Pattern     fieldPatternDp      = Pattern.compile( ":" );
   private static final Pattern     fieldPatternUnderln = Pattern.compile( "[_.]" );
-
-  /**
-   * 
-   * Eigene Klasse zum reagieren auf den Close-Button bei Windows
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 22.09.2012
-   */
-  private class MainWindowListener implements WindowListener
-  {
-    @Override
-    public void windowClosing( WindowEvent arg0 )
-    {
-      LOGGER.warning( "WINDOW CLOSING VIA CLOSEBUTTON..." );
-      exitProgram();
-    }
-
-    @Override
-    public void windowOpened( WindowEvent arg0 )
-    {}
-
-    @Override
-    public void windowClosed( WindowEvent arg0 )
-    {}
-
-    @Override
-    public void windowIconified( WindowEvent arg0 )
-    {}
-
-    @Override
-    public void windowDeiconified( WindowEvent arg0 )
-    {}
-
-    @Override
-    public void windowActivated( WindowEvent arg0 )
-    {}
-
-    @Override
-    public void windowDeactivated( WindowEvent arg0 )
-    {}
-  }
 
   /**
    * Launch the application.
@@ -989,6 +988,22 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     dispose();
     System.exit( NORMAL );
+  }
+
+  /**
+   * 
+   * Gib mal die aktuelle Gasliste zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 23.09.2012
+   * @return TODO
+   */
+  public SPX42GasList getCurrGasList()
+  {
+    return( currGasList );
   }
 
   /**

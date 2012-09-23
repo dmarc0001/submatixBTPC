@@ -35,6 +35,12 @@ public final class ProjectConst
   public static final int    FW_2_6_7_7V                = 0;
   public static final int    FW_2_7V                    = 1;
   
+  // Lizenzstati des SPX42
+  public static final int SPX_LICENSE_NOT_SET           = -1;
+  public static final int SPX_LICENSE_NITROX            =  0;
+  public static final int SPX_LICENSE_NORMOXICTX        =  1;
+  public static final int SPX_LICENSE_FULLTX            =  2;
+  
   // Verzeichnis für Datenbanken
   public static final String DEFAULTDATADIR             = "database";
   public static final String DEFAULTEXPORTDIR           = "export";

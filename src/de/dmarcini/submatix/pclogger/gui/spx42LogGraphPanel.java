@@ -66,8 +66,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private ResourceBundle           stringsBundle     = null;
   private ChartPanel               chartPanel        = null;
   private SpxPcloggerProgramConfig progConfig        = null;
-  private int                      progUnitSystem    = ProjectConst.UNITS_DEFAULT;
-  private int                      diveUnitSystem    = ProjectConst.UNITS_DEFAULT;
+  private int                      showingUnitSystem = ProjectConst.UNITS_DEFAULT;
+  private int                      savedUnitSystem   = ProjectConst.UNITS_DEFAULT;
   private int                      showingDbIdForDiveWasShowing;
   private String                   maxDepthLabelString;
   private String                   coldestLabelString;
@@ -428,15 +428,15 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 02.08.2012
-   * @param progUnitSystem
-   * @param diveUnitSystem
+   * @param showingUnitSystem
+   * @param savedUnitSystem
    * @return Strings für tiefe und temperatur
    */
   private String[] getUnitsLabel( int progUnitSystem, int diveUnitSystem )
   {
     String[] labels = new String[3];
     //
-    // Bei UNITS_DEFAULT gehts nach diveUnitSystem
+    // Bei UNITS_DEFAULT gehts nach savedUnitSystem
     if( progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       if( diveUnitSystem == ProjectConst.UNITS_IMPERIAL )
@@ -654,14 +654,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     XYDataset depthDataSet;
     LOGGER.fine( "create depth dataset" );
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    if( showingUnitSystem == savedUnitSystem || showingUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
               LogDerbyDatabaseUtil.DEPTH );
     }
     else
     {
-      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, progUnitSystem, 0,
+      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, showingUnitSystem, 0,
               LogDerbyDatabaseUtil.DEPTH );
     }
     final NumberAxis depthAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) + " " + depthUnitName );
@@ -712,17 +712,17 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     headData = databaseUtil.getHeadDiveDataFromIdLog( dbId );
     notesLabel.setText( databaseUtil.getNotesForIdLog( dbId ) );
-    progUnitSystem = progConfig.getUnitsProperty();
-    diveUnitSystem = headData[6];
+    showingUnitSystem = progConfig.getUnitsProperty();
+    savedUnitSystem = headData[6];
     // jetzt die Strings für Masseinheiten holen
-    String[] labels = getUnitsLabel( progUnitSystem, diveUnitSystem );
+    String[] labels = getUnitsLabel( showingUnitSystem, savedUnitSystem );
     depthUnitName = labels[0];
     tempUnitName = labels[1];
     pressureUnitName = labels[2];
     //
     // entscheide ob etwas umgerechnet werden sollte
     //
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    if( showingUnitSystem == savedUnitSystem || showingUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       // nein, alles schick
       maxDepthValueLabel.setText( String.format( maxDepthLabelString, ( headData[3] / 10.0 ), depthUnitName ) );
@@ -731,7 +731,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     else
     {
       // umrechnen!
-      if( progUnitSystem == ProjectConst.UNITS_IMPERIAL )
+      if( showingUnitSystem == ProjectConst.UNITS_IMPERIAL )
       {
         // metrisch-> imperial konvertieren
         // 1 foot == 30,48 cm == 0.3048 Meter
@@ -809,13 +809,28 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     {
       ppo2Axis.setAutoRangeIncludesZero( false );
       ppo2Axis.setAutoRange( false );
-      if( progUnitSystem == ProjectConst.UNITS_METRIC )
+      //
+      // wie skaliere ich die Achse?
+      //
+      if( showingUnitSystem == ProjectConst.UNITS_DEFAULT )
+      {
+        // so wie gespeichert
+        if( savedUnitSystem == ProjectConst.UNITS_METRIC )
+        {
+          ppo2Axis.setRange( 0.0, 3.5 );
+        }
+        else
+        {
+          ppo2Axis.setRange( 0.0, ( 3.5 * 14.504 ) );
+        }
+      }
+      else if( showingUnitSystem == ProjectConst.UNITS_METRIC )
       {
         ppo2Axis.setRange( 0.0, 3.5 );
       }
       else
       {
-        ppo2Axis.setRange( 0.0, 3.5 * 14.504 );
+        ppo2Axis.setRange( 0.0, ( 3.5 * 14.504 ) );
       }
       ppo2Axis.setLabelPaint( new Color( ProjectConst.GRAPH_PPO2ALL_ACOLOR ) );
       ppo2Axis.setTickLabelPaint( new Color( ProjectConst.GRAPH_PPO2ALL_ACOLOR ) );
@@ -908,13 +923,13 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     final XYLineAndShapeRenderer setpointRenderer = new XYLineAndShapeRenderer( true, true );
     if( 0 == gasName.indexOf( "he" ) )
     {
-      percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogDerbyDatabaseUtil.HEPERCENT );
+      percentDataSet = createXYDataset( gasName, diveList, showingUnitSystem, 0, LogDerbyDatabaseUtil.HEPERCENT );
       graphPos = GRAPH_HE;
       lRenderColor = ProjectConst.GRAPH_HE_RCOLOR;
     }
     else
     {
-      percentDataSet = createXYDataset( gasName, diveList, progUnitSystem, 0, LogDerbyDatabaseUtil.N2PERCENT );
+      percentDataSet = createXYDataset( gasName, diveList, showingUnitSystem, 0, LogDerbyDatabaseUtil.N2PERCENT );
       graphPos = GRAPH_N2;
       lRenderColor = ProjectConst.GRAPH_N2_RCOLOR;
     }
@@ -1013,13 +1028,13 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         posForGraph = GRAPH_PPO2_01;
         posColor = ProjectConst.GRAPH_PPO2_01_RCOLOR;
     }
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    if( showingUnitSystem == savedUnitSystem || showingUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       ppo2DataSet = createXYDataset( title, diveList, ProjectConst.UNITS_DEFAULT, 0, indexForCreate );
     }
     else
     {
-      ppo2DataSet = createXYDataset( title, diveList, progUnitSystem, 0, indexForCreate );
+      ppo2DataSet = createXYDataset( title, diveList, showingUnitSystem, 0, indexForCreate );
     }
     final XYLineAndShapeRenderer ppo2Renderer = new XYLineAndShapeRenderer( true, true );
     // die Achse sollte schon erstellt sein
@@ -1048,14 +1063,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     XYDataset setPointDataSet;
     //
     LOGGER.fine( "create setpoint dataset" );
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    if( showingUnitSystem == savedUnitSystem || showingUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
               LogDerbyDatabaseUtil.SETPOINT );
     }
     else
     {
-      setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, progUnitSystem, 0, LogDerbyDatabaseUtil.SETPOINT );
+      setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, showingUnitSystem, 0, LogDerbyDatabaseUtil.SETPOINT );
     }
     // final NumberAxis setpoint2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointAxisTitle" ) );
     final XYLineAndShapeRenderer setpointRenderer = new XYLineAndShapeRenderer( true, true );
@@ -1088,7 +1103,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     Color renderColor = new Color( ProjectConst.GRAPH_TEMPERATURE_RCOLOR );
     //
     LOGGER.fine( "create temp dataset" );
-    if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
+    if( showingUnitSystem == savedUnitSystem || showingUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       // Keine Änderung norwendig!
       tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
@@ -1097,7 +1112,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     else
     {
       // bitte konvertiere die Einheiten ins gewünschte Format!
-      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, progUnitSystem, 0, LogDerbyDatabaseUtil.TEMPERATURE );
+      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, showingUnitSystem, 0, LogDerbyDatabaseUtil.TEMPERATURE );
     }
     final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
     final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + labels[1] );

@@ -95,7 +95,7 @@ public class BTCommunication implements IBTCommunication
     public void run()
     {
       // solange was auszugeben ist, mach ich das...
-      if( log ) LOGGER.log( Level.FINE, "start writer thread..." );
+      if( log ) LOGGER.fine( "start writer thread..." );
       writeList.clear();
       this.running = true;
       while( this.running == true )
@@ -103,7 +103,7 @@ public class BTCommunication implements IBTCommunication
         // syncronisiete Methode aufrufen, damit wait und notify machbar sind
         wtSync();
       }
-      if( log ) LOGGER.log( Level.FINE, "stop writer thread..." );
+      if( log ) LOGGER.fine( "stop writer thread..." );
       isConnected = false;
       try
       {
@@ -249,7 +249,7 @@ public class BTCommunication implements IBTCommunication
       int start, end, lstart, lend;
       boolean logCmd, normalCmd;
       // solange was auszugeben ist, mach ich das...
-      if( log ) LOGGER.log( Level.FINE, "start reader thread..." );
+      if( log ) LOGGER.fine( "start reader thread..." );
       this.running = true;
       while( this.running == true )
       {
@@ -260,7 +260,7 @@ public class BTCommunication implements IBTCommunication
           {
             // Verbindung beendet/verloren
             isConnected = false;
-            if( log ) LOGGER.log( Level.SEVERE, "reader connection lost..." );
+            if( log ) LOGGER.severe( "reader connection lost..." );
             if( aListener != null )
             {
               ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
@@ -275,7 +275,7 @@ public class BTCommunication implements IBTCommunication
         {
           // IO Fehler
           isConnected = false;
-          if( log ) LOGGER.log( Level.SEVERE, "reader connection lost (" + ex.getLocalizedMessage() + ")..." );
+          if( log ) LOGGER.severe( "reader connection lost (" + ex.getLocalizedMessage() + ")..." );
           if( aListener != null )
           {
             ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
@@ -291,7 +291,7 @@ public class BTCommunication implements IBTCommunication
         if( ( mInStrBuffer.capacity() + readMessage.length() ) > ProjectConst.MAXINBUFFER )
         {
           isConnected = false;
-          if( log ) LOGGER.log( Level.SEVERE, "INPUT BUFFER OVERFLOW!" );
+          if( log ) LOGGER.severe( "INPUT BUFFER OVERFLOW!" );
           if( aListener != null )
           {
             ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
@@ -380,7 +380,7 @@ public class BTCommunication implements IBTCommunication
         {}
       }
       isConnected = false;
-      if( log ) LOGGER.log( Level.FINE, "stop reader thread..." );
+      if( log ) LOGGER.fine( "stop reader thread..." );
     }
 
     /**
@@ -400,13 +400,13 @@ public class BTCommunication implements IBTCommunication
     {
       String readMessage;
       int lstart, lend;
-      if( log ) LOGGER.log( Level.FINE, "execLogentryCmd..." );
+      if( log ) LOGGER.fine( "execLogentryCmd..." );
       lstart = mInStrBuffer.indexOf( ProjectConst.STX );
       lend = mInStrBuffer.indexOf( ProjectConst.ETX );
       if( lstart > -1 && lend > lstart )
       {
         // ups, hier ist ein "normales" Kommando verpackt
-        if( log ) LOGGER.log( Level.FINE, "oops, normalCmd found.... change to execNormalCmd..." );
+        if( log ) LOGGER.fine( "oops, normalCmd found.... change to execNormalCmd..." );
         isLogentryMode = false;
         execNormalCmd( lstart, lend, mInStrBuffer );
         return;
@@ -427,7 +427,7 @@ public class BTCommunication implements IBTCommunication
       mInStrBuffer = mInStrBuffer.delete( 0, end );
       readMessage = readMessage.replaceAll( ProjectConst.FILLERCHAR, "" );
       // Sende an aufrufende Activity
-      if( log ) LOGGER.log( Level.FINE, "Logline Recived <" + readMessage + ">" );
+      if( log ) LOGGER.finer( "Logline Recived <" + readMessage.substring( 10 ).replaceAll( "\t", " " ) + "...>" );
       if( aListener != null )
       {
         ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_LINE, readMessage, System.currentTimeMillis() / 100, 0 );
@@ -453,7 +453,7 @@ public class BTCommunication implements IBTCommunication
       String readMessage;
       String[] fields;
       int command;
-      if( log ) LOGGER.log( Level.FINE, "execNormalCmd..." );
+      if( log ) LOGGER.fine( "execNormalCmd..." );
       // muss der anfang weg?
       if( start > 0 )
       {
@@ -468,7 +468,7 @@ public class BTCommunication implements IBTCommunication
       readMessage = mInStrBuffer.substring( 1, end );
       // lösche das schon mal raus...
       mInStrBuffer = mInStrBuffer.delete( 0, end + 1 );
-      if( log ) LOGGER.log( Level.FINE, "normal Message Recived <" + readMessage + ">" );
+      if( log ) LOGGER.fine( "normal Message Recived <" + readMessage + ">" );
       // Trenne die Parameter voneinander, fields[0] ist dann das Kommando
       fields = fieldPatternDp.split( readMessage );
       //
@@ -482,7 +482,7 @@ public class BTCommunication implements IBTCommunication
           ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DIRENTRY_END, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
           aListener.actionPerformed( ex );
         }
-        if( log ) LOGGER.log( Level.FINE, "Logentry list final recived." );
+        if( log ) LOGGER.fine( "Logentry list final recived." );
         return;
       }
       //
@@ -495,7 +495,7 @@ public class BTCommunication implements IBTCommunication
       }
       catch( NumberFormatException ex )
       {
-        LOGGER.log( Level.SEVERE, "Convert String to Int (" + ex.getLocalizedMessage() + ")" );
+        LOGGER.severe( "Convert String to Int (" + ex.getLocalizedMessage() + ")" );
         return;
       }
       // bekomme heraus, welcher Art die ankommende Message ist
@@ -508,7 +508,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_MANUFACTURER_READ, new String( fields[1] ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "SPX Devicename recived! <" + fields[1] + ">" );
+          if( log ) LOGGER.fine( "SPX Devicename recived! <" + fields[1] + ">" );
           break;
         case ProjectConst.SPX_ALIVE:
           // Ackuspannung übertragen
@@ -517,7 +517,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SPXALIVE, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "SPX is Alive, Acku value recived." );
+          if( log ) LOGGER.fine( "SPX is Alive, Acku value recived." );
           break;
         case ProjectConst.SPX_APPLICATION_ID:
           // Sende Nachricht Firmwareversion empfangen!
@@ -526,7 +526,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_FWVERSION_READ, new String( fields[1] ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "Application ID (Firmware Version)  recived! <" + fields[1] + ">" );
+          if( log ) LOGGER.fine( "Application ID (Firmware Version)  recived! <" + fields[1] + ">" );
           break;
         case ProjectConst.SPX_SERIAL_NUMBER:
           // Sende Nachricht Seriennummer empfangen!
@@ -535,30 +535,30 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SERIAL_READ, new String( fields[1] ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "Serial Number recived! <" + fields[1] + ">" );
+          if( log ) LOGGER.fine( "Serial Number recived! <" + fields[1] + ">" );
           break;
         case ProjectConst.SPX_SET_SETUP_DEKO:
           // Quittung für Setze DECO
-          if( log ) LOGGER.log( Level.FINE, "Response for set deco <" + readMessage + "> was recived." );
+          if( log ) LOGGER.fine( "Response for set deco <" + readMessage + "> was recived." );
           //
           // TODO: readDecoPrefs();
           //
           break;
         case ProjectConst.SPX_SET_SETUP_SETPOINT:
           // Quittung für Setzen der Auto-Setpointeinstelungen
-          if( log ) LOGGER.log( Level.FINE, "SPX_SET_SETUP_SETPOINT Acknoweledge recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "SPX_SET_SETUP_SETPOINT Acknoweledge recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_SET_SETUP_DISPLAYSETTINGS:
           // Quittung für Setzen der Displayeinstellungen
-          if( log ) LOGGER.log( Level.FINE, "SET_SETUP_DISPLAYSETTINGS Acknoweledge recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "SET_SETUP_DISPLAYSETTINGS Acknoweledge recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_SET_SETUP_UNITS:
           // Quittung für Setzen der Einheiten
-          if( log ) LOGGER.log( Level.FINE, "SPX_SET_SETUP_UNITS Acknoweledge recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "SPX_SET_SETUP_UNITS Acknoweledge recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_SET_SETUP_INDIVIDUAL:
           // Quittung für Individualeinstellungen
-          if( log ) LOGGER.log( Level.FINE, "SPX_SET_SETUP_INDIVIDUAL Acknoweledge recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "SPX_SET_SETUP_INDIVIDUAL Acknoweledge recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_GET_SETUP_DEKO:
           // Kommando DEC liefert zurück:
@@ -572,7 +572,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DECO_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "DECO_EINST recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "DECO_EINST recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_GET_SETUP_SETPOINT:
           // Kommando GET_SETUP_SETPOINT liefert
@@ -584,7 +584,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SETPOINT_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_SETPOINT recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "GET_SETUP_SETPOINT recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_GET_SETUP_DISPLAYSETTINGS:
           // Kommando GET_SETUP_DISPLAYSETTINGS liefert
@@ -596,7 +596,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DISPLAY_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_DISPLAYSETTINGS recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "GET_SETUP_DISPLAYSETTINGS recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_GET_SETUP_UNITS:
           // Kommando GET_SETUP_UNITS
@@ -609,7 +609,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_UNITS_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_UNITS recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "GET_SETUP_UNITS recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_GET_SETUP_INDIVIDUAL:
           // Kommando GET_SETUP_INDIVIDUAL liefert
@@ -624,7 +624,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_INDIVID_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_INDIVIDUAL recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "GET_SETUP_INDIVIDUAL recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_GET_SETUP_GASLIST:
           // Kommando GET_SETUP_GASLIST
@@ -640,7 +640,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_GAS_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "GET_SETUP_GASLIST recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "GET_SETUP_GASLIST recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_SET_SETUP_GASLIST:
           // Besaetigung fuer Gas setzen bekommen
@@ -649,7 +649,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_GAS_WRITTEN, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "SET_SETUP_GASLIST recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "SET_SETUP_GASLIST recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_GET_LOG_INDEX:
           // Ein Logbuch Verzeichniseintrag gefunden
@@ -658,7 +658,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_DIRENTRY_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "SPX_GET_LOG_INDEX recived!" );
+          if( log ) LOGGER.fine( "SPX_GET_LOG_INDEX recived!" );
           break;
         case ProjectConst.SPX_GET_LOG_NUMBER_SE:
           if( 0 == fields[1].indexOf( "1" ) )
@@ -669,7 +669,7 @@ public class BTCommunication implements IBTCommunication
               ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_START, new String( fields[2] ), System.currentTimeMillis() / 100, 0 );
               aListener.actionPerformed( ex );
             }
-            if( log ) LOGGER.log( Level.FINE, "Logfile transmission started..." );
+            if( log ) LOGGER.fine( "Logfile transmission started..." );
             isLogentryMode = true;
           }
           else if( 0 == fields[1].indexOf( "0" ) )
@@ -681,7 +681,7 @@ public class BTCommunication implements IBTCommunication
                 ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LOGENTRY_STOP, new String( fields[2] ), System.currentTimeMillis() / 100, 0 );
                 aListener.actionPerformed( ex );
               }
-              if( log ) LOGGER.log( Level.FINE, "Logfile transmission finished." );
+              if( log ) LOGGER.fine( "Logfile transmission finished." );
               isLogentryMode = false;
             }
           }
@@ -693,7 +693,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_SYCSTAT_OFF, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "SPX42 switch syncmode OFF! Connection will failure!" );
+          if( log ) LOGGER.fine( "SPX42 switch syncmode OFF! Connection will failure!" );
           break;
         case ProjectConst.SPX_LICENSE_STATE:
           // LICENSE_STATE gefunden
@@ -702,7 +702,7 @@ public class BTCommunication implements IBTCommunication
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_LICENSE_STATE_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
             aListener.actionPerformed( ex );
           }
-          if( log ) LOGGER.log( Level.FINE, "LICENSE_STATE recived <" + readMessage + ">" );
+          if( log ) LOGGER.fine( "LICENSE_STATE recived <" + readMessage + ">" );
           break;
         default:
           if( log ) LOGGER.log( Level.WARNING, "unknown Messagetype recived <" + readMessage + ">" );
@@ -893,21 +893,21 @@ public class BTCommunication implements IBTCommunication
       public void run()
       {
         // Discovery starten
-        if( log ) LOGGER.log( Level.FINE, "start discover für Bluethooth devices..." );
+        if( log ) LOGGER.fine( "start discover für Bluethooth devices..." );
         try
         {
           if( cached )
           {
-            if( log ) LOGGER.log( Level.FINE, "read cached..." );
+            if( log ) LOGGER.fine( "read cached..." );
             if( !RemoteDeviceDiscovery.readCached() )
             {
-              if( log ) LOGGER.log( Level.FINE, "read cached failed, try normal discovering..." );
+              if( log ) LOGGER.fine( "read cached failed, try normal discovering..." );
               RemoteDeviceDiscovery.doDiscover();
             }
           }
           else
           {
-            if( log ) LOGGER.log( Level.FINE, "none read cached, try normal discovering..." );
+            if( log ) LOGGER.fine( "none read cached, try normal discovering..." );
             RemoteDeviceDiscovery.doDiscover();
           }
         }
@@ -950,7 +950,7 @@ public class BTCommunication implements IBTCommunication
           @Override
           public void servicesDiscovered( int transID, ServiceRecord[] servRecord )
           {
-            if( log ) LOGGER.log( Level.FINE, "Services Discovered..." );
+            if( log ) LOGGER.fine( "Services Discovered..." );
             //
             // Alle gefundenen Devices durchgehen
             //
@@ -969,18 +969,18 @@ public class BTCommunication implements IBTCommunication
               {
                 String sName = ( ( String )serviceName.getValue() );
                 sName = sName.replaceAll( "[^A-Z0-9a-z]{2,}", "" );
-                if( log ) LOGGER.log( Level.FINE, "Device <" + devName + "> Service <" + sName + "> found at <" + url + ">" );
+                if( log ) LOGGER.fine( "Device <" + devName + "> Service <" + sName + "> found at <" + url + ">" );
                 // URL speichern
                 if( deviceCache.isDeviceThere( devName ) )
                 {
-                  if( log ) LOGGER.log( Level.FINE, "Device was in cache. update data..." );
+                  if( log ) LOGGER.fine( "Device was in cache. update data..." );
                   // gerät ist schon im Cache
                   deviceCache.setConnectionString( devName, url );
                   deviceCache.setRemoteDevice( devName, servRecord[i].getHostDevice() );
                 }
                 else
                 {
-                  if( log ) LOGGER.log( Level.FINE, "Device was not in cache. insert data..." );
+                  if( log ) LOGGER.fine( "Device was not in cache. insert data..." );
                   // Gerät ist noch nicht im Cache
                   deviceCache.addDevice( devName, url, "0000", "A-" + devName, servRecord[i].getHostDevice() );
                 }
@@ -992,7 +992,7 @@ public class BTCommunication implements IBTCommunication
               }
               else
               {
-                if( log ) LOGGER.log( Level.FINE, "Service found, URL: <" + url + "> IGNORE!" );
+                if( log ) LOGGER.fine( "Service found, URL: <" + url + "> IGNORE!" );
               }
             }
           }
@@ -1000,7 +1000,7 @@ public class BTCommunication implements IBTCommunication
           @Override
           public void serviceSearchCompleted( int transID, int respCode )
           {
-            if( log ) LOGGER.log( Level.FINE, "service search completed!" );
+            if( log ) LOGGER.fine( "service search completed!" );
             synchronized( serviceSearchCompletedEvent )
             {
               serviceSearchCompletedEvent.notifyAll();
@@ -1021,7 +1021,7 @@ public class BTCommunication implements IBTCommunication
           {
             try
             {
-              if( log ) LOGGER.log( Level.FINE, "search services on " + btDevice.getBluetoothAddress() + " " + btDevice.getFriendlyName( false ) );
+              if( log ) LOGGER.fine( "search services on " + btDevice.getBluetoothAddress() + " " + btDevice.getFriendlyName( false ) );
               LocalDevice.getLocalDevice().getDiscoveryAgent().searchServices( attrIDs, searchUuidSet, btDevice, listener );
               serviceSearchCompletedEvent.wait();
             }
@@ -1064,7 +1064,7 @@ public class BTCommunication implements IBTCommunication
           ex = new ActionEvent( this, ProjectConst.MESSAGE_BTMESSAGE, "OK" );
           aListener.actionPerformed( ex );
         }
-        if( log ) LOGGER.log( Level.FINE, "Bluethooth Discovering OK" );
+        if( log ) LOGGER.fine( "Bluethooth Discovering OK" );
         discoverInProcess = false;
       }
     };
@@ -1136,7 +1136,7 @@ public class BTCommunication implements IBTCommunication
     // suche die URL für die Verbindung
     if( deviceCache.isDeviceThere( devName ) )
     {
-      LOGGER.log( Level.FINE, "device name found in list. can try to connect device..." );
+      LOGGER.fine( "device name found in list. can try to connect device..." );
       // Ich hab den Gerätenamen gefunden, kann verbinden
       url = deviceCache.getConnectionString( devName );
       if( url == null )
@@ -1159,7 +1159,7 @@ public class BTCommunication implements IBTCommunication
     else
     {
       // das geht nicht! Kann nicht herausfinden, mit wem ich verbinden soll!
-      LOGGER.log( Level.SEVERE, "device <" + devName + "> is not in list. give up!" );
+      LOGGER.severe( "device <" + devName + "> is not in list. give up!" );
       this.deviceName = null;
       this.connectedDevice = null;
       if( aListener != null )
@@ -1172,7 +1172,7 @@ public class BTCommunication implements IBTCommunication
     // So, das Verbinden halt...
     try
     {
-      if( log ) LOGGER.log( Level.FINE, "Connect to Device <" + devName + ">" );
+      if( log ) LOGGER.fine( "Connect to Device <" + devName + ">" );
       // Verbinden....
       if( this.connectedDevice.isAuthenticated() )
       {
@@ -1256,7 +1256,7 @@ public class BTCommunication implements IBTCommunication
     {
       isConnected = false;
       this.connectedDevice = null;
-      if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <" + ex.getLocalizedMessage() + ">" );
+      if( log ) LOGGER.severe( "BTConnectionException <" + ex.getLocalizedMessage() + ">" );
       if( aListener != null )
       {
         ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
@@ -1266,36 +1266,34 @@ public class BTCommunication implements IBTCommunication
       switch ( status )
       {
         case BluetoothConnectionException.UNKNOWN_PSM:
-          if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection to the server failed because no service for the given PSM was registered>" );
+          if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed because no service for the given PSM was registered>" );
           break;
         case BluetoothConnectionException.SECURITY_BLOCK:
           if( log )
-            LOGGER.log( Level.SEVERE,
-                    "BTConnectionException <the connection failed because the security settings on the local device or the remote device were incompatible with the request>" );
+            LOGGER.severe( "BTConnectionException <the connection failed because the security settings on the local device or the remote device were incompatible with the request>" );
           break;
         case BluetoothConnectionException.NO_RESOURCES:
-          if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection failed due to a lack of resources either on the local device or on the remote device>" );
+          if( log ) LOGGER.severe( "BTConnectionException <the connection failed due to a lack of resources either on the local device or on the remote device>" );
           break;
         case BluetoothConnectionException.FAILED_NOINFO:
-          if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection to the server failed due to unknown reasons.>" );
+          if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed due to unknown reasons.>" );
           break;
         case BluetoothConnectionException.TIMEOUT:
-          if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <the connection to the server failed due to a timeout>" );
+          if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed due to a timeout>" );
           break;
         case BluetoothConnectionException.UNACCEPTABLE_PARAMS:
           if( log )
-            LOGGER.log( Level.SEVERE,
-                    "BTConnectionException <the connection failed because the configuration parameters provided were not acceptable to either the remote device or the local device>" );
+            LOGGER.severe( "BTConnectionException <the connection failed because the configuration parameters provided were not acceptable to either the remote device or the local device>" );
           break;
         default:
-          if( log ) LOGGER.log( Level.SEVERE, "BTConnectionException <unknown>" );
+          if( log ) LOGGER.severe( "BTConnectionException <unknown>" );
       }
     }
     catch( Exception ex )
     {
       isConnected = false;
       this.connectedDevice = null;
-      if( log ) LOGGER.log( Level.SEVERE, "Exception <" + ex.getLocalizedMessage() + ">" );
+      if( log ) LOGGER.severe( "Exception <" + ex.getLocalizedMessage() + ">" );
       if( aListener != null )
       {
         ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
@@ -1380,7 +1378,7 @@ public class BTCommunication implements IBTCommunication
             ProjectConst.SPX_ALIVE, ProjectConst.ETX );
     if( log )
     {
-      LOGGER.log( Level.FINE, "readConfigFromSPX()...send <" + kdoString + ">" );
+      LOGGER.fine( "readConfigFromSPX()...send <" + kdoString + ">" );
     }
     this.writeToDevice( kdoString );
   }
@@ -1445,7 +1443,7 @@ public class BTCommunication implements IBTCommunication
     //
     if( !config.isInitialized() )
     {
-      if( log ) LOGGER.log( Level.SEVERE, "config was not initialized! CANCEL!" );
+      if( log ) LOGGER.severe( "config was not initialized! CANCEL!" );
       return;
     }
     if( ProjectConst.FIRMWARE_2_6_7_7V.equals( config.getFirmwareVersion() ) || ProjectConst.FIRMWARE_2_7V.equals( config.getFirmwareVersion() ) )
@@ -1470,7 +1468,7 @@ public class BTCommunication implements IBTCommunication
           }
           else
           {
-            if( log ) LOGGER.log( Level.SEVERE, "Firmware not supportet! CANCEL!" );
+            if( log ) LOGGER.severe( "Firmware not supportet! CANCEL!" );
             return;
           }
           //
@@ -1501,7 +1499,7 @@ public class BTCommunication implements IBTCommunication
                       config.getDynGradientsEnable(), config.getLastStop() );
               break;
           }
-          if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+          if( log ) LOGGER.fine( "Send <" + command + ">" );
           writeSPXMsgToDevice( command );
           // gib Bescheid
           if( aListener != null )
@@ -1517,7 +1515,7 @@ public class BTCommunication implements IBTCommunication
           // Display setzen
           if( log ) LOGGER.log( Level.INFO, "write display propertys" );
           command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_DISPLAYSETTINGS, config.getDisplayBrightness(), config.getDisplayOrientation() );
-          if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+          if( log ) LOGGER.fine( "Send <" + command + ">" );
           writeSPXMsgToDevice( command );
           // gib Bescheid
           if( aListener != null )
@@ -1533,7 +1531,7 @@ public class BTCommunication implements IBTCommunication
           // UW= 0->Salzwasser 1->Süßwasser
           if( log ) LOGGER.log( Level.INFO, "write units propertys" );
           command = String.format( "~%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_UNITS, config.getUnitTemperature(), config.getUnitDepth(), config.getUnitSalnity() );
-          if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+          if( log ) LOGGER.fine( "Send <" + command + ">" );
           writeSPXMsgToDevice( command );
           // gib Bescheid
           if( aListener != null )
@@ -1560,7 +1558,7 @@ public class BTCommunication implements IBTCommunication
               command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getAutoSetpoint(), config.getMaxSetpoint() );
               break;
           }
-          if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+          if( log ) LOGGER.fine( "Send <" + command + ">" );
           writeSPXMsgToDevice( command );
           // gib Bescheid
           if( aListener != null )
@@ -1581,7 +1579,7 @@ public class BTCommunication implements IBTCommunication
             if( log ) LOGGER.log( Level.INFO, "write individual propertys" );
             command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_INDIVIDUAL, config.getSensorsOn(), config.getPscrModeOn(), config.getSensorsCount(),
                     config.getSoundOn(), config.getLogInterval() );
-            if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+            if( log ) LOGGER.fine( "Send <" + command + ">" );
             writeSPXMsgToDevice( command );
             // gib Bescheid
             if( aListener != null )
@@ -1604,7 +1602,7 @@ public class BTCommunication implements IBTCommunication
     }
     else
     {
-      if( log ) LOGGER.log( Level.SEVERE, "write for this firmware version not confirmed! CANCEL!" );
+      if( log ) LOGGER.severe( "write for this firmware version not confirmed! CANCEL!" );
     }
   }
 
@@ -1615,7 +1613,7 @@ public class BTCommunication implements IBTCommunication
     kdoString = String.format( "%s~%x%s", ProjectConst.STX, ProjectConst.SPX_GET_SETUP_GASLIST, ProjectConst.ETX );
     if( log )
     {
-      LOGGER.log( Level.FINE, "readGaslistFromSPX42()...send <" + kdoString + ">" );
+      LOGGER.fine( "readGaslistFromSPX42()...send <" + kdoString + ">" );
     }
     this.writeToDevice( kdoString );
   }
@@ -1627,7 +1625,7 @@ public class BTCommunication implements IBTCommunication
     //
     if( !gList.isInitialized() )
     {
-      if( log ) LOGGER.log( Level.SEVERE, "config was not initialized! CANCEL!" );
+      if( log ) LOGGER.severe( "config was not initialized! CANCEL!" );
       return;
     }
     if( ProjectConst.FIRMWARE_2_6_7_7V.equals( spxVersion ) || ProjectConst.FIRMWARE_2_7V.equals( spxVersion ) )
@@ -1656,7 +1654,7 @@ public class BTCommunication implements IBTCommunication
           }
           else
           {
-            if( log ) LOGGER.log( Level.SEVERE, "Firmware not supportet! CANCEL!" );
+            if( log ) LOGGER.severe( "Firmware not supportet! CANCEL!" );
             return;
           }
           //
@@ -1718,7 +1716,7 @@ public class BTCommunication implements IBTCommunication
                 break;
             }
             //
-            if( log ) LOGGER.log( Level.FINE, "Send <" + command + ">" );
+            if( log ) LOGGER.fine( "Send <" + command + ">" );
             writeSPXMsgToDevice( command );
             // gib Bescheid
             if( aListener != null )
@@ -1741,7 +1739,7 @@ public class BTCommunication implements IBTCommunication
     }
     else
     {
-      if( log ) LOGGER.log( Level.SEVERE, "write for this firmware version not confirmed! CANCEL!" );
+      if( log ) LOGGER.severe( "write for this firmware version not confirmed! CANCEL!" );
     }
   }
 
@@ -1752,7 +1750,7 @@ public class BTCommunication implements IBTCommunication
     kdoString = String.format( "%s~%x%s", ProjectConst.STX, ProjectConst.SPX_GET_LOG_INDEX, ProjectConst.ETX );
     if( log )
     {
-      LOGGER.log( Level.FINE, "readLogDirectoryFromSPX()...send <" + kdoString + ">" );
+      LOGGER.fine( "readLogDirectoryFromSPX()...send <" + kdoString + ">" );
     }
     this.writeToDevice( kdoString );
   }
@@ -1793,7 +1791,7 @@ public class BTCommunication implements IBTCommunication
       String kdoString = String.format( "%s~%x:%x%s", ProjectConst.STX, ProjectConst.SPX_GET_LOG_NUMBER, logNumber, ProjectConst.ETX );
       if( log )
       {
-        LOGGER.log( Level.FINE, "readLogDetailFromSPX()...send <" + kdoString + ">" );
+        LOGGER.fine( "readLogDetailFromSPX()...send <" + kdoString + ">" );
       }
       this.writeToDevice( kdoString );
     }

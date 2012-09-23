@@ -1557,9 +1557,7 @@ public class LogDerbyDatabaseUtil
       rs = stat.executeQuery( sql );
       while( rs.next() )
       {
-        gasset = new GasPresetComboObject();
-        gasset.dbId = rs.getInt( 1 );
-        gasset.presetName = rs.getString( 2 );
+        gasset = new GasPresetComboObject( rs.getString( 2 ), rs.getInt( 1 ) );
         presets.add( gasset );
       }
       rs.close();

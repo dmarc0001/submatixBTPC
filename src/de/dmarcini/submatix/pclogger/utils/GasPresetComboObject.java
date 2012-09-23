@@ -7,4 +7,10 @@ public class GasPresetComboObject
    */
   public String presetName = "";
   public int    dbId       = -1;
+
+  public GasPresetComboObject( String name, int id )
+  {
+    presetName = name;
+    dbId = id;
+  }
 }

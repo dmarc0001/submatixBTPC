@@ -104,7 +104,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   public spx42LogGraphPanel( Logger LOGGER, final LogDerbyDatabaseUtil _dbUtil, SpxPcloggerProgramConfig progConfig )
   {
     this.LOGGER = LOGGER;
-    LOGGER.log( Level.FINE, "constructor..." );
+    LOGGER.fine( "constructor..." );
     this.databaseUtil = _dbUtil;
     this.progConfig = progConfig;
     initPanel();
@@ -128,7 +128,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       // Anzeigebutton?
       if( cmd.equals( "show_log_graph" ) )
       {
-        LOGGER.log( Level.FINE, "show log graph initiated." );
+        LOGGER.fine( "show log graph initiated." );
         // welches Device ?
         if( deviceComboBox.getSelectedIndex() < 0 )
         {
@@ -146,7 +146,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         dbId = ( ( LogListComboBoxModel )diveSelectComboBox.getModel() ).getDatabaseIdAt( diveSelectComboBox.getSelectedIndex() );
         if( dbId < 0 )
         {
-          LOGGER.log( Level.SEVERE, "can't find database id for dive." );
+          LOGGER.severe( "can't find database id for dive." );
           return;
         }
         makeGraphForLog( dbId, device );
@@ -154,11 +154,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       }
       if( cmd.equals( "set_detail_for_show_graph" ) )
       {
-        LOGGER.log( Level.FINE, "select details for log selected." );
+        LOGGER.fine( "select details for log selected." );
         SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog( stringsBundle, progConfig );
         if( sgd.showModal() )
         {
-          LOGGER.log( Level.FINE, "dialog returned 'true' => change propertys..." );
+          LOGGER.fine( "dialog returned 'true' => change propertys..." );
           computeGraphButton.doClick();
         }
       }
@@ -169,7 +169,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
           LOGGER.log( Level.WARNING, "it was not showing a dive! do nothing!" );
           return;
         }
-        LOGGER.log( Level.FINE, "edit a note for this dive..." );
+        LOGGER.fine( "edit a note for this dive..." );
         showNotesEditForm( showingDbIdForDiveWasShowing );
       }
       else
@@ -190,7 +190,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         if( srcBox.getModel() instanceof DeviceComboBoxModel )
         {
           entry = ( ( DeviceComboBoxModel )srcBox.getModel() ).getDeviceIdAt( srcBox.getSelectedIndex() );
-          LOGGER.log( Level.FINE, "device <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
+          LOGGER.fine( "device <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
           fillDiveComboBox( entry );
         }
       }
@@ -199,7 +199,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       else if( cmd.equals( "change_dive_to_display" ) )
       {
         entry = ( String )srcBox.getSelectedItem();
-        LOGGER.log( Level.FINE, "dive <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
+        LOGGER.fine( "dive <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
         // fillDiveComboBox( entry );
       }
       else
@@ -361,10 +361,10 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     device = cDevice;
     if( device != null )
     {
-      LOGGER.log( Level.FINE, "search dive list for device <" + device + ">..." );
+      LOGGER.fine( "search dive list for device <" + device + ">..." );
       releaseGraph();
       // Eine Liste der Dives lesen
-      LOGGER.log( Level.FINE, "read dive list for device from DB..." );
+      LOGGER.fine( "read dive list for device from DB..." );
       Vector<String[]> entrys = databaseUtil.getDiveListForDeviceLog( device );
       if( entrys.size() < 1 )
       {
@@ -397,7 +397,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         }
         catch( NumberFormatException ex )
         {
-          LOGGER.log( Level.SEVERE, "Number format exception (value=<" + origSet[1] + ">: <" + ex.getLocalizedMessage() + ">" );
+          LOGGER.severe( "Number format exception (value=<" + origSet[1] + ">: <" + ex.getLocalizedMessage() + ">" );
           elem[1] = "error";
         }
         diveEntrys.add( elem );
@@ -415,7 +415,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     }
     else
     {
-      LOGGER.log( Level.FINE, "no device found...." );
+      LOGGER.fine( "no device found...." );
     }
   }
 
@@ -491,11 +491,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     releaseGraph();
     if( connDev == null )
     {
-      LOGGER.log( Level.FINE, "init graphic objects whitout active Device" );
+      LOGGER.fine( "init graphic objects whitout active Device" );
     }
     else
     {
-      LOGGER.log( Level.FINE, "init graphic objects Device <" + connDev + ">..." );
+      LOGGER.fine( "init graphic objects Device <" + connDev + ">..." );
     }
     //
     // Ist überhaupt eine Datenbank zum Auslesen vorhanden?
@@ -534,7 +534,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
           if( entr[0].equals( connDev ) )
           {
             deviceComboBox.setSelectedIndex( index );
-            LOGGER.log( Level.FINE, "device found and set as index für combobox..." );
+            LOGGER.fine( "device found and set as index für combobox..." );
             break;
           }
           index++;
@@ -653,7 +653,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private void makeDepthGraph( Vector<Integer[]> diveList, XYPlot thePlot )
   {
     XYDataset depthDataSet;
-    LOGGER.log( Level.FINE, "create depth dataset" );
+    LOGGER.fine( "create depth dataset" );
     if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
@@ -701,7 +701,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Daten eines TG lesen
     //
-    LOGGER.log( Level.FINE, "read dive log from DB..." );
+    LOGGER.fine( "read dive log from DB..." );
     diveList = databaseUtil.getDiveDataFromIdLog( dbId );
     if( diveList == null || diveList.isEmpty() )
     {
@@ -752,7 +752,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // einen Plot machen (Grundlage des Diagramms)
     //
-    LOGGER.log( Level.FINE, "create graph..." );
+    LOGGER.fine( "create graph..." );
     thePlot = new XYPlot();
     //
     // Eigenschaften definieren
@@ -882,7 +882,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     makeDepthGraph( diveList, thePlot );
     //
     showingDbIdForDiveWasShowing = dbId;
-    LOGGER.log( Level.FINE, "create graph...OK" );
+    LOGGER.fine( "create graph...OK" );
   }
 
   /**
@@ -904,7 +904,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     int graphPos;
     int lRenderColor;
     //
-    LOGGER.log( Level.FINE, "create percent dataset (" + gasName + ")" );
+    LOGGER.fine( "create percent dataset (" + gasName + ")" );
     final XYLineAndShapeRenderer setpointRenderer = new XYLineAndShapeRenderer( true, true );
     if( 0 == gasName.indexOf( "he" ) )
     {
@@ -943,7 +943,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     XYDataset nullTimeDataSet;
     //
-    LOGGER.log( Level.FINE, "create nulltime dataset" );
+    LOGGER.fine( "create nulltime dataset" );
     nullTimeDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.nulltimeScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
             LogDerbyDatabaseUtil.NULLTIME );
     final XYLineAndShapeRenderer lineNullTimeRenderer = new XYLineAndShapeRenderer( true, true );
@@ -980,7 +980,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     int posColor;
     String title;
     //
-    LOGGER.log( Level.FINE, "create Sensor <" + sensor + "> dataset" );
+    LOGGER.fine( "create Sensor <" + sensor + "> dataset" );
     // Titel schon mal...
     title = String.format( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2SensorScalaTitle" ), sensor );
     //
@@ -1047,7 +1047,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     XYDataset setPointDataSet;
     //
-    LOGGER.log( Level.FINE, "create setpoint dataset" );
+    LOGGER.fine( "create setpoint dataset" );
     if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
@@ -1087,7 +1087,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     Color axisColor = new Color( ProjectConst.GRAPH_TEMPERATURE_ACOLOR );
     Color renderColor = new Color( ProjectConst.GRAPH_TEMPERATURE_RCOLOR );
     //
-    LOGGER.log( Level.FINE, "create temp dataset" );
+    LOGGER.fine( "create temp dataset" );
     if( progUnitSystem == diveUnitSystem || progUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       // Keine Änderung norwendig!
@@ -1126,7 +1126,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    */
   public void releaseGraph()
   {
-    LOGGER.log( Level.FINE, "release graphic objects..." );
+    LOGGER.fine( "release graphic objects..." );
     showingDbIdForDiveWasShowing = -1;
     if( chartPanel != null )
     {
@@ -1227,7 +1227,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         if( notesLabel.getText().equals( edDial.getNotes() ) )
         {
           // hier hat sich nix geändert, ENTE
-          LOGGER.log( Level.FINE, "not a change in note, ignoring..." );
+          LOGGER.fine( "not a change in note, ignoring..." );
           return;
         }
       }
@@ -1237,7 +1237,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       // jetzt ab in die Datenbank damit!
       if( -1 == databaseUtil.saveNoteForIdLog( dbId, notesLabel.getText() ) )
       {
-        LOGGER.log( Level.SEVERE, "can't update notes for dive!" );
+        LOGGER.severe( "can't update notes for dive!" );
       }
     }
     else
@@ -1263,17 +1263,17 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     }
     catch( NullPointerException ex )
     {
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
     catch( MissingResourceException ex )
     {
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
     catch( ClassCastException ex )
     {
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
   }

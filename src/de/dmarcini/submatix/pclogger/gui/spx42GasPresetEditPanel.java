@@ -1762,11 +1762,11 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
       // Sauerstoff verringern!
       o2 = 100 - he;
       ( o2SpinnerMap.get( gasNr ) ).setValue( o2 );
-      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
+      LOGGER.fine( String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
     }
     else
     {
-      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
+      LOGGER.fine( String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
     }
     currGasList.setGas( gasNr, o2, he );
     setDescriptionForGas( gasNr, o2, he );
@@ -1811,11 +1811,11 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
       // Helium verringern!
       he = 100 - o2;
       ( heSpinnerMap.get( gasNr ) ).setValue( he );
-      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
+      LOGGER.fine( String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
     }
     else
     {
-      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
+      LOGGER.fine( String.format( "change oxygen in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
     }
     currGasList.setGas( gasNr, o2, he );
     // erzeuge und setze noch den Gasnamen
@@ -1847,17 +1847,17 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     }
     catch( NullPointerException ex )
     {
-      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
       return JOptionPane.CANCEL_OPTION;
     }
     catch( MissingResourceException ex )
     {
-      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
       return JOptionPane.CANCEL_OPTION;
     }
     catch( ClassCastException ex )
     {
-      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
       return JOptionPane.CANCEL_OPTION;
     }
   }
@@ -1873,17 +1873,17 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     }
     catch( NullPointerException ex )
     {
-      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
       return JOptionPane.CANCEL_OPTION;
     }
     catch( MissingResourceException ex )
     {
-      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
       return JOptionPane.CANCEL_OPTION;
     }
     catch( ClassCastException ex )
     {
-      LOGGER.log( Level.SEVERE, "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
       return JOptionPane.CANCEL_OPTION;
     }
   }

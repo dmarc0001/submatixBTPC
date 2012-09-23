@@ -480,10 +480,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       if( false == progConfig.getDatabaseDir().mkdirs() )
       {
-        LOGGER.log( Level.SEVERE, "can't create data directory <" + progConfig.getDatabaseDir().getAbsolutePath() + ">" );
+        LOGGER.severe( "can't create data directory <" + progConfig.getDatabaseDir().getAbsolutePath() + ">" );
         System.exit( -1 );
       }
-      LOGGER.log( Level.FINE, "created data directory <" + progConfig.getDatabaseDir().getAbsolutePath() + ">" );
+      LOGGER.fine( "created data directory <" + progConfig.getDatabaseDir().getAbsolutePath() + ">" );
     }
     try
     {
@@ -655,11 +655,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Sauerstoff verringern!
       o2 = 100 - he;
       ( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ).setValue( o2 );
-      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
+      LOGGER.fine( String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
     }
     else
     {
-      LOGGER.log( Level.FINE, String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
+      LOGGER.fine( String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
     }
     currGasList.setGas( gasNr, o2, he );
     gasConfigPanel.setDescriptionForGas( gasNr, o2, he );
@@ -703,11 +703,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Helium verringern!
       he = 100 - o2;
       ( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ).setValue( he );
-      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
+      LOGGER.fine( String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
     }
     else
     {
-      LOGGER.log( Level.FINE, String.format( "change oxygen in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
+      LOGGER.fine( String.format( "change oxygen in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
     }
     currGasList.setGas( gasNr, o2, he );
     // erzeuge und setze noch den Gasnamen
@@ -796,7 +796,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     wDial.setTimeout( 90 * 1000 );
     wDial.setVisible( true );
     // Sag dem SPX er soll alles schicken
-    LOGGER.log( Level.FINE, "send command to spx: send logfile number <" + logListEntry[0] + ">" );
+    LOGGER.fine( "send command to spx: send logfile number <" + logListEntry[0] + ">" );
     btComm.readLogDetailFromSPX( logListEntry[0] );
     return( 1 );
   }
@@ -823,7 +823,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       // gerätenamen holen
       String deviceName = ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getDeviceIdAt( itemIndex );
-      LOGGER.log( Level.FINE, "connect via device <" + deviceName + ">..." );
+      LOGGER.fine( "connect via device <" + deviceName + ">..." );
       if( btComm.isConnected() )
       {
         // ist verbunden, was nun?
@@ -842,7 +842,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         catch( Exception ex )
         {
           showErrorDialog( ex.getLocalizedMessage() );
-          LOGGER.log( Level.SEVERE, "Exception: <" + ex.getMessage() + ">" );
+          LOGGER.severe( "Exception: <" + ex.getMessage() + ">" );
         }
       }
     }
@@ -879,7 +879,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     fields = fieldPatternDp.split( entryMsg );
     if( fields.length < 4 )
     {
-      LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
+      LOGGER.severe( "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
       return( null );
     }
     // Wandel die Nummerierung in Integer um
@@ -890,7 +890,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     catch( NumberFormatException ex )
     {
-      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
       return( null );
     }
     fileName = fields[2];
@@ -910,7 +910,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     catch( NumberFormatException ex )
     {
-      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
       return( null );
     }
     // So, die Angaben des SPX sind immer im Localtime-Format
@@ -931,7 +931,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     if( btComm.isConnected() )
     {
-      LOGGER.log( Level.FINE, "disconnect SPX42..." );
+      LOGGER.fine( "disconnect SPX42..." );
       btComm.disconnectDevice();
     }
   }
@@ -1034,7 +1034,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "PRESET", null, gasPresetPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_GASPRESET.ordinal(), true );
     // Loglisten Panel
-    logListPanel = new spx42LoglistPanel( LOGGER, this, databaseUtil );
+    logListPanel = new spx42LoglistPanel( LOGGER, progConfig, this, databaseUtil );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_LOGREAD.ordinal(), true );
     // Grafik Panel
@@ -1193,35 +1193,35 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Dynamische Gradienten?
       if( cmd.equals( "dyn_gradients_on" ) )
       {
-        LOGGER.log( Level.FINE, "dynamic gradients <" + cb.isSelected() + ">" );
+        LOGGER.fine( "dynamic gradients <" + cb.isSelected() + ">" );
         currentConfig.setDynGradientsEnable( cb.isSelected() );
       }
       // //////////////////////////////////////////////////////////////////////
       // Deepstops
       else if( cmd.equals( "deepstops_on" ) )
       {
-        LOGGER.log( Level.FINE, "depstops <" + cb.isSelected() + ">" );
+        LOGGER.fine( "depstops <" + cb.isSelected() + ">" );
         currentConfig.setDeepStopEnable( cb.isSelected() );
       }
       // //////////////////////////////////////////////////////////////////////
       // Passive Semiclose Rebreather Mode?
       else if( cmd.equals( "individuals_pscr_on" ) )
       {
-        LOGGER.log( Level.FINE, "pscr mode  <" + cb.isSelected() + ">" );
+        LOGGER.fine( "pscr mode  <" + cb.isSelected() + ">" );
         currentConfig.setPscrModeEnabled( cb.isSelected() );
       }
       // //////////////////////////////////////////////////////////////////////
       // Sensor warning on/off
       else if( cmd.equals( "individual_sensors_on" ) )
       {
-        LOGGER.log( Level.FINE, "sensors on  <" + cb.isSelected() + ">" );
+        LOGGER.fine( "sensors on  <" + cb.isSelected() + ">" );
         currentConfig.setSensorsEnabled( cb.isSelected() );
       }
       // //////////////////////////////////////////////////////////////////////
       // Warnungen an/aus
       else if( cmd.equals( "individuals_warnings_on" ) )
       {
-        LOGGER.log( Level.FINE, "warnings on  <" + cb.isSelected() + ">" );
+        LOGGER.fine( "warnings on  <" + cb.isSelected() + ">" );
         currentConfig.setSountEnabled( cb.isSelected() );
       }
       // //////////////////////////////////////////////////////////////////////
@@ -1232,12 +1232,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         try
         {
           int idx = Integer.parseInt( fields[1] );
-          LOGGER.log( Level.FINE, String.format( "Bailout %s changed.", cmd ) );
+          LOGGER.fine( String.format( "Bailout %s changed.", cmd ) );
           currGasList.setBailout( idx, cb.isSelected() );
         }
         catch( NumberFormatException ex )
         {
-          LOGGER.log( Level.SEVERE, "Exception while recive bailout checkbox event: " + ex.getLocalizedMessage() );
+          LOGGER.severe( "Exception while recive bailout checkbox event: " + ex.getLocalizedMessage() );
         }
       }
       // //////////////////////////////////////////////////////////////////////
@@ -1248,7 +1248,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         try
         {
           int idx = Integer.parseInt( fields[1] );
-          LOGGER.log( Level.FINE, String.format( "Diluent 1  to %d changed.", idx ) );
+          LOGGER.fine( String.format( "Diluent 1  to %d changed.", idx ) );
           if( cb.isSelected() )
           {
             currGasList.setDiluent1( idx );
@@ -1256,7 +1256,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         catch( NumberFormatException ex )
         {
-          LOGGER.log( Level.SEVERE, "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
+          LOGGER.severe( "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
         }
       }
       // //////////////////////////////////////////////////////////////////////
@@ -1267,7 +1267,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         try
         {
           int idx = Integer.parseInt( fields[1] );
-          LOGGER.log( Level.FINE, String.format( "Diluent 2  to %d changed.", idx ) );
+          LOGGER.fine( String.format( "Diluent 2  to %d changed.", idx ) );
           if( cb.isSelected() )
           {
             currGasList.setDiluent2( idx );
@@ -1275,7 +1275,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         catch( NumberFormatException ex )
         {
-          LOGGER.log( Level.SEVERE, "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
+          LOGGER.severe( "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
         }
       }
       else
@@ -1413,7 +1413,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     databaseUtil = new LogDerbyDatabaseUtil( LOGGER, progConfig.getDatabaseDir(), this );
     if( databaseUtil == null )
     {
-      LOGGER.log( Level.SEVERE, "can connect to database drivers!" );
+      LOGGER.severe( "can connect to database drivers!" );
       System.exit( -1 );
     }
     // öffne die Datenbank
@@ -1675,14 +1675,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         return;
       }
       entry = ( String )srcBox.getItemAt( srcBox.getSelectedIndex() );
-      LOGGER.log( Level.FINE, "select port <" + entry + ">..." );
+      LOGGER.fine( "select port <" + entry + ">..." );
     }
     // /////////////////////////////////////////////////////////////////////////
     // Letzter Decostop auf 3 oder 6 Meter
     else if( cmd.equals( "deco_last_stop" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "deco last stop <" + entry + ">..." );
+      LOGGER.fine( "deco last stop <" + entry + ">..." );
       currentConfig.setLastStop( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1690,7 +1690,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "deco_gradient_preset" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "gradient preset <" + entry + ">, Index: <" + srcBox.getSelectedIndex() + ">..." );
+      LOGGER.fine( "gradient preset <" + entry + ">, Index: <" + srcBox.getSelectedIndex() + ">..." );
       currentConfig.setDecoGfPreset( srcBox.getSelectedIndex() );
       // Spinner setzen
       setGradientSpinnersAfterPreset( srcBox.getSelectedIndex() );
@@ -1700,7 +1700,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "set_autosetpoint" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "autosetpoint preset <" + entry + ">..." );
+      LOGGER.fine( "autosetpoint preset <" + entry + ">..." );
       currentConfig.setAutoSetpoint( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1708,7 +1708,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "set_highsetpoint" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "hightsetpoint <" + entry + ">..." );
+      LOGGER.fine( "hightsetpoint <" + entry + ">..." );
       currentConfig.setMaxSetpoint( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1716,7 +1716,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "set_disp_brightness" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "brightness <" + entry + ">..." );
+      LOGGER.fine( "brightness <" + entry + ">..." );
       currentConfig.setDisplayBrithtness( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1724,7 +1724,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "set_display_orientation" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "orientation <" + entry + ">..." );
+      LOGGER.fine( "orientation <" + entry + ">..." );
       currentConfig.setDisplayOrientation( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1732,7 +1732,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "set_temperature_unit" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "temperature unit <" + entry + ">..." );
+      LOGGER.fine( "temperature unit <" + entry + ">..." );
       currentConfig.setUnitTemperature( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1740,7 +1740,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "set_depth_unit" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "depth unit <" + entry + ">..." );
+      LOGGER.fine( "depth unit <" + entry + ">..." );
       currentConfig.setUnitDepth( srcBox.getSelectedIndex() );
       configPanel.setUnitDepth( srcBox.getSelectedIndex() );
     }
@@ -1749,7 +1749,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "set_salnity" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "salnity <" + entry + ">..." );
+      LOGGER.fine( "salnity <" + entry + ">..." );
       currentConfig.setUnitSalnyty( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1757,7 +1757,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "set_loginterval" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "loginterval <" + entry + ">..." );
+      LOGGER.fine( "loginterval <" + entry + ">..." );
       currentConfig.setLogInterval( srcBox.getSelectedIndex() );
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1765,7 +1765,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "set_sensorwarnings" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
-      LOGGER.log( Level.FINE, "sensorwarnings <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
+      LOGGER.fine( "sensorwarnings <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
       currentConfig.setSensorsCount( srcBox.getSelectedIndex() );
     }
     else
@@ -1796,14 +1796,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // Info Box anzeigen
     else if( cmd.equals( "info" ) )
     {
-      LOGGER.log( Level.FINE, "Call INFO-Dialog..." );
+      LOGGER.fine( "Call INFO-Dialog..." );
       showInfoDialog();
     }
     // /////////////////////////////////////////////////////////////////////////
     // Hilfe Box anzeigen
     else if( cmd.equals( "help" ) )
     {
-      LOGGER.log( Level.FINE, "Call HELP-Dialog..." );
+      LOGGER.fine( "Call HELP-Dialog..." );
       showHelpForm();
     }
     // /////////////////////////////////////////////////////////////////////////
@@ -1817,7 +1817,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.startsWith( "lang_" ) )
     {
       // welche Sprache hättens denn gern?
-      LOGGER.log( Level.FINE, "Change Language..." );
+      LOGGER.fine( "Change Language..." );
       String lang = cmd.replace( "lang_", "" );
       LOGGER.log( Level.INFO, "change language to <" + lang + ">" );
       changeProgramLanguage( lang );
@@ -1876,13 +1876,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // /////////////////////////////////////////////////////////////////////////
     // Hab was gelesen!
       case ProjectConst.MESSAGE_READ:
-        LOGGER.log( Level.FINE, "READ Command!" );
+        LOGGER.fine( "READ Command!" );
         // soll den reader Thread und die GUI nicht blockieren
         // daher nur in die Liste schmeissen (die ist thread-sicher)
         if( ( !cmd.isEmpty() ) && ( !cmd.equals( "\n" ) ) )
         {
           messagesList.add( cmd );
-          LOGGER.log( Level.FINE, "RECIVED: <" + cmd + ">" );
+          LOGGER.fine( "RECIVED: <" + cmd + ">" );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -2053,7 +2053,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // /////////////////////////////////////////////////////////////////////////
       // Kein Gerät zum Verbinden gefunden!
       case ProjectConst.MESSAGE_BTNODEVCONN:
-        LOGGER.log( Level.SEVERE, "no device found..." );
+        LOGGER.severe( "no device found..." );
         showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
         setElementsConnected( false );
         break;
@@ -2181,12 +2181,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht Gase wurden erfolgreich geschrieben
       case ProjectConst.MESSAGE_GAS_WRITTEN:
-        LOGGER.log( Level.FINE, "gas written to SPX..." );
+        LOGGER.fine( "gas written to SPX..." );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht ein Logbuch Verzeichniseintrag wurde gelesen
       case ProjectConst.MESSAGE_DIRENTRY_READ:
-        LOGGER.log( Level.FINE, "logdir entry recived..." );
+        LOGGER.fine( "logdir entry recived..." );
         String decodet = decodeLogDirEntry( cmd );
         if( decodet != null )
         {
@@ -2213,32 +2213,32 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht: Start einer Logdatenübermittling
       case ProjectConst.MESSAGE_LOGENTRY_START:
-        LOGGER.log( Level.FINE, "start transfer logentry <" + cmd + ">..." );
+        LOGGER.fine( "start transfer logentry <" + cmd + ">..." );
         logListPanel.startTransfer( cmd, currentConfig.getUnitSystem() );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht: Logzeile übertragen
       case ProjectConst.MESSAGE_LOGENTRY_LINE:
-        LOGGER.log( Level.FINE, "recive one log line from SPX..." );
+        LOGGER.fine( "recive one log line from SPX..." );
         logListPanel.addLogLineFromSPX( cmd );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht: Logzeile übertragen
       case ProjectConst.MESSAGE_LOGENTRY_STOP:
-        LOGGER.log( Level.FINE, "logfile transfer done..." );
+        LOGGER.fine( "logfile transfer done..." );
         // Ab auf die Platte ind die DB damit!
         logListPanel.writeCacheToDatabase();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht: Logdirectory aus Cache neu aufbauen
       case ProjectConst.MESSAGE_LOGDIRFROMCACHE:
-        LOGGER.log( Level.FINE, "log directory from cache rebuilding..." );
+        LOGGER.fine( "log directory from cache rebuilding..." );
         logListPanel.addLogDirFromCache();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht: Daten gesichert....
       case ProjectConst.MESSAGE_DB_SUCCESS:
-        LOGGER.log( Level.FINE, "loglist transfer success..." );
+        LOGGER.fine( "loglist transfer success..." );
         // dann kann das fenster ja wech!
         if( wDial != null )
         {
@@ -2298,7 +2298,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // /////////////////////////////////////////////////////////////////////////
       // Nachricht: Datenbankfehler....
       case ProjectConst.MESSAGE_DB_FAIL:
-        LOGGER.log( Level.FINE, "loglist transfer failed..." );
+        LOGGER.fine( "loglist transfer failed..." );
         // dann kann das fenster ja wech!
         if( wDial != null )
         {
@@ -2348,7 +2348,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void setAckuValue( String vl )
   {
-    LOGGER.log( Level.FINE, "Value: <" + vl + ">" );
+    LOGGER.fine( "Value: <" + vl + ">" );
     double ackuValue = 0.0;
     Pattern fieldPatternDp = Pattern.compile( ":" );
     String[] fields = fieldPatternDp.split( vl );
@@ -2359,7 +2359,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Hauptfenster
       frmMainWindow.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) + " "
               + String.format( stringsBundle.getString( "MainCommGUI.akkuLabel.text" ), ackuValue ) );
-      LOGGER.log( Level.FINE, String.format( "Acku value: %02.02f", ackuValue ) );
+      LOGGER.fine( String.format( "Acku value: %02.02f", ackuValue ) );
     }
   }
 
@@ -2451,7 +2451,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         configPanel.setDecoGradientenSpinner();
         configPanel.setDecoGradientenPreset( selectedIndex );
         ignoreAction = false;
-        LOGGER.log( Level.FINE, "spinner corrected for preset." );
+        LOGGER.fine( "spinner corrected for preset." );
         break;
     }
   }
@@ -2625,19 +2625,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     catch( NullPointerException ex )
     {
       statusTextField.setText( "ERROR showErrorBox" );
-      LOGGER.log( Level.SEVERE, "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
       return;
     }
     catch( MissingResourceException ex )
     {
       statusTextField.setText( "ERROR showErrorBox" );
-      LOGGER.log( Level.SEVERE, "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
       return;
     }
     catch( ClassCastException ex )
     {
       statusTextField.setText( "ERROR showErrorBox" );
-      LOGGER.log( Level.SEVERE, "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showErrorBox <" + ex.getMessage() + "> ABORT!" );
       return;
     }
   }
@@ -2672,19 +2672,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     catch( NullPointerException ex )
     {
       statusTextField.setText( "ERROR showInfoDialog" );
-      LOGGER.log( Level.SEVERE, "ERROR showInfoDialog <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showInfoDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
     catch( MissingResourceException ex )
     {
       statusTextField.setText( "ERROR showInfoDialog" );
-      LOGGER.log( Level.SEVERE, "ERROR showInfoDialog <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showInfoDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
     catch( ClassCastException ex )
     {
       statusTextField.setText( "ERROR showInfoDialog" );
-      LOGGER.log( Level.SEVERE, "ERROR showInfoDialog <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showInfoDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
   }
@@ -2709,12 +2709,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         return;
       }
     }
-    LOGGER.log( Level.FINE, "create an show propertys dialog..." );
+    LOGGER.fine( "create an show propertys dialog..." );
     ProgramProperetysDialog pDial = new ProgramProperetysDialog( stringsBundle, progConfig, LOGGER );
     // pDial.setVisible( true );
     if( pDial.showModal() )
     {
-      LOGGER.log( Level.FINE, "dialog whith OK closed...." );
+      LOGGER.fine( "dialog whith OK closed...." );
       // progConfig = pDial.getProcConfig();
       if( progConfig.isWasChanged() )
       {
@@ -2727,14 +2727,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         pDial.dispose();
         exitProgram();
       }
-      LOGGER.log( Level.FINE, "dialog whith OK closed NO Changes...." );
+      LOGGER.fine( "dialog whith OK closed NO Changes...." );
     }
     else
     {
-      LOGGER.log( Level.FINE, "dialog canceled...." );
+      LOGGER.fine( "dialog canceled...." );
     }
     pDial.dispose();
-    LOGGER.log( Level.FINE, "dialog disposed..." );
+    LOGGER.fine( "dialog disposed..." );
   }
 
   /**
@@ -2755,19 +2755,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     catch( NullPointerException ex )
     {
       statusTextField.setText( "ERROR showWarnDialog" );
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
     catch( MissingResourceException ex )
     {
       statusTextField.setText( "ERROR showWarnDialog" );
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
     catch( ClassCastException ex )
     {
       statusTextField.setText( "ERROR showWarnDialog" );
-      LOGGER.log( Level.SEVERE, "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      LOGGER.severe( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
   }
@@ -2789,7 +2789,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         // wert für High ändern
         currValue = ( Integer )currSpinner.getValue();
-        LOGGER.log( Level.FINE, String.format( "change decoGradientHighSpinner <%d/%x>...", currValue, currValue ) );
+        LOGGER.fine( String.format( "change decoGradientHighSpinner <%d/%x>...", currValue, currValue ) );
         currentConfig.setDecoGfHigh( currValue );
         setDecoComboAfterSpinnerChange();
       }
@@ -2799,7 +2799,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         // Wert für LOW ändern
         currValue = ( Integer )currSpinner.getValue();
-        LOGGER.log( Level.FINE, String.format( "change decoGradientLowSpinner <%d/%x>...", currValue, currValue ) );
+        LOGGER.fine( String.format( "change decoGradientLowSpinner <%d/%x>...", currValue, currValue ) );
         currentConfig.setDecoGfLow( currValue );
         setDecoComboAfterSpinnerChange();
       }
@@ -2839,13 +2839,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       if( tabbedPane.equals( ev.getSource() ) )
       {
         int tabIdx = tabbedPane.getSelectedIndex();
-        LOGGER.log( Level.FINE, String.format( "tabbedPane changed to %02d!", tabIdx ) );
+        LOGGER.fine( String.format( "tabbedPane changed to %02d!", tabIdx ) );
         //
         // ist es das Grafikpanel?
         //
         if( tabIdx == programTabs.TAB_LOGGRAPH.ordinal() )
         {
-          LOGGER.log( Level.FINE, "graph tab select, init grapic..." );
+          LOGGER.fine( "graph tab select, init grapic..." );
           String connDev = null;
           if( btComm != null )
           {
@@ -2858,7 +2858,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           }
           catch( Exception ex )
           {
-            LOGGER.log( Level.SEVERE, "initGraph Exception: <" + ex.getLocalizedMessage() + ">" );
+            LOGGER.severe( "initGraph Exception: <" + ex.getLocalizedMessage() + ">" );
             showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.openGraphWindow" ) );
             return;
           }
@@ -2873,7 +2873,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         //
         if( tabIdx == programTabs.TAB_FILEMANAGER.ordinal() )
         {
-          LOGGER.log( Level.FINE, "export/import tab select, init db..." );
+          LOGGER.fine( "export/import tab select, init db..." );
           String connDev = null;
           if( btComm != null )
           {
@@ -2886,7 +2886,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           }
           catch( Exception ex )
           {
-            LOGGER.log( Level.SEVERE, "initData Exception: <" + ex.getLocalizedMessage() + ">" );
+            LOGGER.severe( "initData Exception: <" + ex.getLocalizedMessage() + ">" );
             showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.openExportWindow" ) );
             return;
           }
@@ -2896,7 +2896,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         //
         if( tabIdx == programTabs.TAB_CONFIG.ordinal() )
         {
-          LOGGER.log( Level.FINE, "config tab select, init gui..." );
+          LOGGER.fine( "config tab select, init gui..." );
           configPanel.prepareConfigPanel( currentConfig );
         }
         else
@@ -2910,7 +2910,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( tabIdx == programTabs.TAB_LOGREAD.ordinal() )
         {
           // Panel initialisieren
-          LOGGER.log( Level.FINE, "logreader tab select, init gui..." );
+          LOGGER.fine( "logreader tab select, init gui..." );
           String connDev = null;
           if( btComm != null )
           {
@@ -2928,7 +2928,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( tabIdx == programTabs.TAB_GASLIST.ordinal() )
         {
           // Panel initialisieren
-          LOGGER.log( Level.FINE, "gaslist tab select, init gui..." );
+          LOGGER.fine( "gaslist tab select, init gui..." );
           gasConfigPanel.prepareGasslistPanel();
         }
         else
@@ -2942,7 +2942,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         if( tabIdx == programTabs.TAB_GASPRESET.ordinal() )
         {
           // Panel initialisieren
-          LOGGER.log( Level.FINE, "gas preset tab select, init gui..." );
+          LOGGER.fine( "gas preset tab select, init gui..." );
           gasPresetPanel.setMouseMoveListener( this );
           gasPresetPanel.prepareGasslistPanel();
         }

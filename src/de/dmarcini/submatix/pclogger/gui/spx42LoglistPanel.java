@@ -34,6 +34,7 @@ import de.dmarcini.submatix.pclogger.utils.LogDirListModel;
 import de.dmarcini.submatix.pclogger.utils.LogLineDataObject;
 import de.dmarcini.submatix.pclogger.utils.LogListCache;
 import de.dmarcini.submatix.pclogger.utils.LogListCache.DataSave;
+import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 /**
  * 
@@ -104,6 +105,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   private static final long                  serialVersionUID        = 1L;
   protected Logger                           LOGGER                  = null;
+  private SpxPcloggerProgramConfig           progConfig              = null;
   private ActionListener                     aListener               = null;
   private final HashMap<Integer, LogDirData> logDirDataHash          = new HashMap<Integer, LogDirData>();
   private boolean                            isPanelInitiated        = false;
@@ -137,7 +139,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private JLabel                             diveMaxDepthShowLabel;
   private JLabel                             diveLengthLabel;
   private JLabel                             diveLengthShowLabel;
-  private JLabel                             logfileCommLabel;
+  private JLabel                             remarksLabel;
   private JLabel                             diveLowTempLabel;
   private JLabel                             diveLowTempShowLabel;
   private String                             metricLength;
@@ -168,13 +170,15 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    * 
    *         Stand: 05.05.2012
    * @param LOGGER
+   * @param progConfig
    * @param al
    * @param ldb
    */
-  public spx42LoglistPanel( Logger LOGGER, ActionListener al, LogDerbyDatabaseUtil ldb )
+  public spx42LoglistPanel( Logger LOGGER, SpxPcloggerProgramConfig progConfig, ActionListener al, LogDerbyDatabaseUtil ldb )
   {
     this.LOGGER = LOGGER;
     this.aListener = al;
+    this.progConfig = progConfig;
     databaseUtil = ldb;
     logDirDataHash.clear();
     isDirectoryComplete = false;
@@ -212,7 +216,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     fields = fieldPatternSem.split( entryMsg );
     if( fields.length < 5 )
     {
-      LOGGER.log( Level.SEVERE, "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
+      LOGGER.severe( "recived message for logdir has lower than 4 fields. It is wrong! Abort!" );
       return;
     }
     // Wandel die Nummerierung in Integer um
@@ -223,7 +227,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     }
     catch( NumberFormatException ex )
     {
-      LOGGER.log( Level.SEVERE, "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
+      LOGGER.severe( "Fail to convert Hex to int: " + ex.getLocalizedMessage() );
       return;
     }
     fileName = fields[1];
@@ -259,7 +263,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         wasSaved = "x";
       }
     }
-    LOGGER.log( Level.FINE, "add to logdir number: <" + numberOnSpx + "> " + wasSaved + " name: <" + readableName + "> device: <" + deviceToLog + ">" );
+    LOGGER.fine( "add to logdir number: <" + numberOnSpx + "> " + wasSaved + " name: <" + readableName + "> device: <" + deviceToLog + ">" );
     ( ( LogDirListModel )logListField.getModel() ).addLogentry( numberOnSpx, readableName, wasSaved, dbId );
     logListCache.addLogentry( numberOnSpx, readableName, fileName, dbId, timeStamp );
   }
@@ -280,7 +284,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     if( !isPanelInitiated ) return;
     if( logListCache == null ) return;
     if( deviceToLog == null ) return;
-    LOGGER.log( Level.FINE, "read logdir from cache..." );
+    LOGGER.fine( "read logdir from cache..." );
     // beginne mit leeren Datenhashes
     clearLogdirData( false );
     // hole mal die Liste
@@ -318,7 +322,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         }
       }
       // in die Liste einfügen
-      LOGGER.log( Level.FINE, "add to logdir number: <" + entry.numberOnSpx + " " + wasSaved + "> name: <" + entry.readableName + "> device: <" + deviceToLog + ">" );
+      LOGGER.fine( "add to logdir number: <" + entry.numberOnSpx + " " + wasSaved + "> name: <" + entry.readableName + "> device: <" + deviceToLog + ">" );
       listMod.addLogentry( entry.numberOnSpx, entry.readableName, wasSaved, dbId );
     }
     // Lesen ist beendet ;-)
@@ -326,7 +330,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     logListField.clearSelection();
     logListField.validate();
     isDirectoryComplete = true;
-    LOGGER.log( Level.FINE, "read logdir from cache...OK" );
+    LOGGER.fine( "read logdir from cache...OK" );
   }
 
   /**
@@ -350,10 +354,17 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     //
     if( fileIndex == -1 || currLogEntry < 0 )
     {
-      LOGGER.log( Level.SEVERE, "not opened a file for reading via startTransfer()! ABORT" );
+      LOGGER.severe( "not opened a file for reading via startTransfer()! ABORT" );
       return( -1 );
     }
-    LOGGER.log( Level.FINE, "LINE: <" + logLine + ">..." );
+    if( LOGGER.getLevel() == Level.FINER )
+    {
+      LOGGER.finer( "LINE: <" + logLine.substring( 10 ).replaceAll( "\t", " " ) + "...>..." );
+    }
+    else
+    {
+      LOGGER.fine( "Read Line...." );
+    }
     // teile die Logline in Felder auf
     fields = fieldPattern0x09.split( logLine );
     try
@@ -376,7 +387,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     }
     catch( NumberFormatException ex )
     {
-      LOGGER.log( Level.SEVERE, "error in converting numbers <" + ex.getLocalizedMessage() + ">" );
+      LOGGER.severe( "error in converting numbers <" + ex.getLocalizedMessage() + ">" );
       return( -1 );
     }
     databaseUtil.appendLogToCacheLog( currLogEntry, lineData );
@@ -425,8 +436,19 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       logListCache = new LogListCache();
       shouldReadFromSpx = true;
     }
+    clearLabels();
+  }
+
+  private void clearLabels()
+  {
+    fileNameLabel.setText( "-" );
     diveDateShowLabel.setText( "-" );
     diveTimeShowLabel.setText( "-" );
+    diveMaxDepthShowLabel.setText( "-" );
+    diveLengthShowLabel.setText( "-" );
+    diveLowTempShowLabel.setText( "-" );
+    diveNotesShowLabel.setText( "-" );
+    remarksLabel.setText( " " );
   }
 
   /**
@@ -554,9 +576,11 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveLengthShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveLengthShowLabel.setBounds( 268, 196, 282, 14 );
     add( diveLengthShowLabel );
-    logfileCommLabel = new JLabel( "SAVINGLABEL" );
-    logfileCommLabel.setBounds( 267, 472, 492, 14 );
-    add( logfileCommLabel );
+    remarksLabel = new JLabel( "SAVINGLABEL" );
+    remarksLabel.setForeground( new Color( 210, 105, 30 ) );
+    remarksLabel.setFont( new Font( "Tahoma", Font.ITALIC, 12 ) );
+    remarksLabel.setBounds( 267, 472, 492, 14 );
+    add( remarksLabel );
     diveLowTempLabel = new JLabel( "DIVELOWTEMP" );
     diveLowTempLabel.setForeground( new Color( 128, 128, 128 ) );
     diveLowTempLabel.setBounds( 268, 220, 282, 14 );
@@ -573,7 +597,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveNotesShowLabel.setForeground( new Color( 0, 128, 0 ) );
     diveNotesShowLabel.setBounds( 268, 275, 492, 14 );
     add( diveNotesShowLabel );
-    logfileCommLabel.setVisible( false );
+    remarksLabel.setVisible( true );
   }
 
   /**
@@ -613,11 +637,11 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       return( 0 );
     }
     if( !isPanelInitiated ) return( -1 );
-    LOGGER.log( Level.FINE, "prepare to download logdata..." );
+    LOGGER.fine( "prepare to download logdata..." );
     //
     // Ok, das sieht so aus, als könne es losgehen
     //
-    LOGGER.log( Level.FINE, "test for selected logentrys..." );
+    LOGGER.fine( "test for selected logentrys..." );
     logSelected = logListField.getSelectedIndices();
     if( logSelected.length > 0 )
     {
@@ -631,8 +655,9 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         lEntry[0] = ( ( LogDirListModel )logListField.getModel() ).getLognumberAt( logSelected[idx] );
         lEntry[1] = ( ( LogDirListModel )logListField.getModel() ).istInDb( logSelected[idx] ) ? 1 : 0;
         logListForRecive.add( lEntry );
-        LOGGER.log( Level.FINE, "select dive number <" + logSelected[idx] + "> for download..." );
+        LOGGER.fine( "select dive number <" + logSelected[idx] + "> for download..." );
       }
+      LOGGER.fine( "prepare to download logdata...OK" );
       return( logListForRecive.size() );
     }
     // Es ist nichts markiert
@@ -661,6 +686,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     currLogEntry = -1;
     isNextLogAnUpdate = false;
     nextDiveIdForUpdate = -1;
+    remarksLabel.setText( " " );
     isPanelInitiated = true;
     setLanguageStrings( stringsBundle );
     setGlobalChangeListener( ( MainCommGUI )aListener );
@@ -692,7 +718,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     deviceToLog = device;
     // ich soll direkt vom SPX lesen!
     clearLogdirData( true );
-    LOGGER.log( Level.FINE, "prepare to read logdir..." );
+    LOGGER.fine( "prepare to read logdir..." );
     return( true );
   }
 
@@ -873,9 +899,10 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     //
     // Datenbank bereit für mich?
     //
+    LOGGER.fine( "start transfer for file on SPX with number <" + fileNumberStr + ">..." );
     if( databaseUtil == null )
     {
-      LOGGER.log( Level.SEVERE, "logDatabaseUtil not allocated!" );
+      LOGGER.severe( "logDatabaseUtil not allocated!" );
       fileIndex = -1;
       return;
     }
@@ -886,7 +913,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     }
     catch( NumberFormatException ex )
     {
-      LOGGER.log( Level.SEVERE, "wrong filenumber in String: <" + ex.getLocalizedMessage() + ">" );
+      LOGGER.severe( "wrong filenumber in String: <" + ex.getLocalizedMessage() + ">" );
       fileIndex = -1;
       return;
     }
@@ -912,26 +939,28 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
       {
         fileIndex = -1;
         currLogEntry = -1;
+        LOGGER.severe( "dive id for this function was smaller then 0! ABORT" );
         return;
       }
       currLogEntry = diveId;
     }
+    LOGGER.fine( "start transfer for file on SPX with number <" + fileNumberStr + ">...OK" );
   }
 
   @Override
   public void valueChanged( ListSelectionEvent ev )
   {
     // Wen die Selektion der Liste verändert wurde...
-    int fIndex, spxNumber, dbId;
+    int fIndex, spxNumber, dbId, savedUnits;
     //
     if( ev.getSource().equals( logListField ) )
     {
       if( !ev.getValueIsAdjusting() )
       {
         // Das Ende der Serie, jetzt guck ich mal nach der ersten markierten...
-        LOGGER.log( Level.FINE, "ist last or once change..." );
+        LOGGER.fine( "ist last or once change..." );
         fIndex = logListField.getSelectedIndex();
-        LOGGER.log( Level.FINE, String.format( "first selected Index: %d ", fIndex ) );
+        LOGGER.fine( String.format( "first selected Index: %d ", fIndex ) );
         spxNumber = ( ( LogDirListModel )logListField.getModel() ).getLognumberAt( fIndex );
         if( spxNumber == -1 )
         {
@@ -960,19 +989,78 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
         if( headers != null )
         {
           diveNotesShowLabel.setText( databaseUtil.getNotesForIdLog( dbId ) );
+          // Was war gespeichert?
           if( headers[11].equals( "METRIC" ) )
           {
-            // Maximale Tiefe anzeigen
-            diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], metricLength ) );
-            // kälteste Temperatur anzeigen
-            diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], metricTemperature ) );
+            savedUnits = ProjectConst.UNITS_METRIC;
           }
           else
           {
-            // Maximale Tiefe anzeigen
-            diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], imperialLength ) );
-            // kälteste Temperatur anzeigen
-            diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], imperialTemperature ) );
+            savedUnits = ProjectConst.UNITS_IMPERIAL;
+          }
+          if( ( progConfig.getUnitsProperty() == ProjectConst.UNITS_DEFAULT ) || progConfig.getUnitsProperty() == savedUnits )
+          {
+            //
+            // alles wie gespeichert anzeigen
+            //
+            if( savedUnits == ProjectConst.UNITS_METRIC )
+            {
+              // Maximale Tiefe anzeigen
+              diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], metricLength ) );
+              // kälteste Temperatur anzeigen
+              diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], metricTemperature ) );
+            }
+            else
+            {
+              // Maximale Tiefe anzeigen
+              diveMaxDepthShowLabel.setText( String.format( "%s %s", headers[8], imperialLength ) );
+              // kälteste Temperatur anzeigen
+              diveLowTempShowLabel.setText( String.format( "%s %s", headers[7], imperialTemperature ) );
+            }
+            remarksLabel.setText( " " );
+          }
+          else
+          {
+            //
+            // hier wird es schwierig == umrechnen
+            //
+            try
+            {
+              double depth = Double.parseDouble( headers[8].trim() );
+              double temp = Double.parseDouble( headers[7].trim() );
+              if( savedUnits == ProjectConst.UNITS_METRIC )
+              {
+                // Maximale Tiefe anzeigen
+                // imperial -> metrisch
+                // 1 foot == 30,48 cm == 0.3048 Meter
+                diveMaxDepthShowLabel.setText( String.format( "%2.1f %s", ( depth / 0.3048 ), imperialLength ) );
+                // kälteste Temperatur anzeigen
+                // imperial -> metrisch
+                // t °C = (9⁄5 t + 32) °F
+                diveLowTempShowLabel.setText( String.format( "%d %s", Math.round( ( ( 9.0 / 5.0 ) * temp ) + 32.0 ), imperialTemperature ) );
+              }
+              else
+              {
+                // Maximale Tiefe anzeigen
+                // metrisch-> imperial konvertieren
+                // 1 foot == 30,48 cm == 0.3048 Meter
+                diveMaxDepthShowLabel.setText( String.format( "%2.1f %s", ( depth * 0.3048 ), metricLength ) );
+                // kälteste Temperatur anzeigen
+                // metrisch-> imperial konvertieren
+                // t °F = 5⁄9 (t − 32) °C
+                diveLowTempShowLabel.setText( String.format( "%d %s", Math.round( ( 5.0 / 9.0 ) * ( temp - 32 ) ), metricTemperature ) );
+              }
+              remarksLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.remarksLabel.computed" ) );
+            }
+            catch( NumberFormatException ex )
+            {
+              LOGGER.severe( "NumberFormatException while compute temperature/depth for showing: <" + ex.getLocalizedMessage() + ">" );
+              diveMaxDepthShowLabel.setText( "-" );
+              diveLengthShowLabel.setText( "-" );
+              diveLowTempShowLabel.setText( "-" );
+              diveNotesShowLabel.setText( "-" );
+              remarksLabel.setText( " " );
+            }
           }
           // Länge des Tauchgangs anzeigen
           diveLengthShowLabel.setText( String.format( "%s %s", headers[10], timeMinutes ) );
@@ -983,6 +1071,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
           diveLengthShowLabel.setText( "-" );
           diveLowTempShowLabel.setText( "-" );
           diveNotesShowLabel.setText( "-" );
+          remarksLabel.setText( " " );
         }
       }
     }
@@ -1001,6 +1090,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    */
   public int writeCacheToDatabase()
   {
+    LOGGER.fine( "write to Database...." );
     int ret = databaseUtil.writeLogToDatabaseLog( currLogEntry );
     currLogEntry = -1;
     return( ret );

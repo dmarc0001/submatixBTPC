@@ -154,36 +154,15 @@ public class GasComputeUnit
   public static double getEADForGasMetric( final int n2, final double depth, final boolean salnity )
   {
     // Gegeben n2 in Prozent, ich will wissen, wie die equivalente Tiefe ist
-    double p_env;
-    double p_air_n2;
-    double p_eq_n2;
     double ead;
-    // Umgebungsdruck multipliziert mit quotient aus Stickstoffanteil und Normal Luftanteil Sticksstoff
+    double n2d = n2 / 100.0D;
     if( salnity )
     {
-      p_env = ( depth * barConstSaltWater ) + barOffset;
-      System.out.println( String.format( "Umgebungsdruck: %2.3f bar bei %2.3f Meter,  Salzwasser", p_env, depth ) );
-      // Partialdruck für Stickstoff bei Luft
-      p_air_n2 = p_env * 0.79D;
-      p_eq_n2 = ( p_air_n2 * n2 ) / 79;
-      ead = ( p_eq_n2 - barOffset ) / barConstSaltWater;
+      ead = ( ( ( n2d / .79D ) * ( barOffset + ( depth * barConstClearWater ) ) ) - 1D ) * 10.0D;
     }
     else
     {
-      p_env = ( depth * barConstClearWater ) + barOffset;
-      System.out.println( String.format( "Umgebungsdruck: %2.3f bar bei %2.3f Meter,  Suesswasser", p_env, depth ) );
-      // Partialdruck für Stickstoff bei Luft
-      p_air_n2 = p_env * 0.79D;
-      System.out.println( String.format( "Partialdruck fuer Stickstoff LUFT: %2.3f bar,  Suesswasser", p_air_n2 ) );
-      // Partialdruck N2 für Stickstoffgehalt n2
-      p_eq_n2 = ( p_air_n2 * ( n2 / 100 ) ) / 0.79D;
-      System.out.println( String.format( "Partialdruck fuer Stickstoff bei <%d%%> N2 %2.3f bar,  Suesswasser", n2, p_eq_n2 ) );
-      // welcher umgebungsdruck währe das wenn N2 79% bei diesem Partialdruck
-      p_env = p_eq_n2 / n2;
-      System.out.println( String.format( "EQ Umgebungsdruck <%d%%> N2 %2.3f bar,  Suesswasser", n2, p_env ) );
-      // System.out.println( String.format( "Umgebungsdruck LUFT bei %d %% N2: %2.3f bar,  Suesswasser", n2, p_air_n2 ) );
-      ead = ( p_env - barOffset ) / barConstClearWater;
-      System.out.println( String.format( "EAD bei %d %% %2.1f m,  Suesswasser", n2, ead ) );
+      ead = ( ( ( n2d / .79D ) * ( barOffset + ( depth * barConstSaltWater ) ) ) - 1D ) * 10.0D;
     }
     return( ead );
   }
@@ -206,17 +185,49 @@ public class GasComputeUnit
   {
     // Gegeben n2 in Prozent, ich will wissen, wie die equivalente Tiefe ist
     double ead;
+    double n2d = n2 / 100D;
     // The equivalent air depth can be calculated for depths in feet as follows:
     // EAD = (Depth + 33) × Fraction of N2 / 0.79 − 33
     if( salnity )
     {
-      ead = ( ( depth + 33.071D ) * ( n2 / 0.79 ) ) - 33.071D;
+      ead = ( ( depth + 33.071D ) * ( n2d / 0.79 ) ) - 33.071D;
     }
     else
     {
       // clearwater
-      ead = ( ( depth + 33.8995D ) * ( n2 / 0.79 ) ) - 33.8995D;
+      ead = ( ( depth + 33.8995D ) * ( n2d / 0.79 ) ) - 33.8995D;
     }
     return( ead );
   }
+  
+  /**
+   * 
+   * EAD unter Berücksichtigung des Setpoint bei bekanntem Gas
+   *
+   * Project: SubmatixBTForPC
+   * Package: de.dmarcini.submatix.pclogger.utils
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   * Stand: 23.09.2012
+   * @param n2
+   * @param depth
+   * @param salnity
+   * @return ead
+   */
+  public static double getEADForDilMetric( final int n2, final double depth, final boolean salnity )
+  {
+    // Gegeben n2 in Prozent, ich will wissen, wie die equivalente Tiefe ist
+    double ead;
+    double n2d = n2 / 100.0D;
+    if( salnity )
+    {
+      ead = ( ( ( n2d / .79D ) * ( barOffset + ( depth * barConstClearWater ) ) ) - 1D ) * 10.0D;
+    }
+    else
+    {
+      ead = ( ( ( n2d / .79D ) * ( barOffset + ( depth * barConstSaltWater ) ) ) - 1D ) * 10.0D;
+    }
+    return( ead );
+  }
+  
 }

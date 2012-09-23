@@ -1439,7 +1439,7 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     {
       // MOD und EAD berechnen
       modB = GasComputeUnit.getMODForGasMetric( o2, bailoutPpOMax, salnity );
-      eadD = 0; // GasComputeUnit.getEADForGasMetric( o2, modB, salnity );
+      eadD = GasComputeUnit.getEADForDilMetric( o2, he, diluentPpo, modB, salnity );
       eadB = GasComputeUnit.getEADForGasMetric( n2, modB, salnity );
       // MOD und EAD in String umformen und in das richtige Label schreiben
       gasLblMap2.get( i ).setText(

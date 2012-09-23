@@ -1548,7 +1548,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.P_DBID,
             ProjectConst.P_SETNAME,
             ProjectConst.P_TABLE_PRESETS,
-            ProjectConst.P_SETNAME
+            ProjectConst.P_DBID
            );
     //@formatter:on
     try
@@ -1934,7 +1934,7 @@ public class LogDerbyDatabaseUtil
       try
       {
         prep.setInt( 1, currGasList.getO2FromGas( idx ) );
-        prep.setInt( 2, currGasList.getN2FromGas( idx ) );
+        prep.setInt( 2, currGasList.getHEFromGas( idx ) );
         prep.setBoolean( 3, ( currGasList.diluent1 == idx ) );
         prep.setBoolean( 4, ( currGasList.diluent2 == idx ) );
         prep.setBoolean( 5, ( currGasList.bailout[idx] > 0 ) );
@@ -2204,7 +2204,7 @@ public class LogDerbyDatabaseUtil
       try
       {
         prep.setInt( 1, currGasList.getO2FromGas( idx ) );
-        prep.setInt( 2, currGasList.getN2FromGas( idx ) );
+        prep.setInt( 2, currGasList.getHEFromGas( idx ) );
         prep.setBoolean( 3, ( currGasList.diluent1 == idx ) );
         prep.setBoolean( 4, ( currGasList.diluent2 == idx ) );
         prep.setBoolean( 5, ( currGasList.bailout[idx] > 0 ) );

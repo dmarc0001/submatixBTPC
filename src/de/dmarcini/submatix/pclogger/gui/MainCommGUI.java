@@ -1026,7 +1026,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "CONFIG", null, configPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_CONFIG.ordinal(), true );
     // GASPANEL
-    gasConfigPanel = new spx42GaslistEditPanel( LOGGER, progConfig );
+    gasConfigPanel = new spx42GaslistEditPanel( LOGGER, databaseUtil, progConfig );
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_GASLIST.ordinal(), true );
     // GASPRESETPANEL

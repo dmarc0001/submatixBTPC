@@ -99,6 +99,7 @@ public class GasComputeUnit
     {
       mod = ( pEnv - barOffset ) / barConstClearWater;
     }
+    if( mod < 0 ) return( 0 );
     return( mod );
   }
 
@@ -131,6 +132,7 @@ public class GasComputeUnit
     {
       mod = ( pEnv - psiOffset ) / psiConstClearWater;
     }
+    if( mod < 0 ) return( 0 );
     return( mod );
   }
 
@@ -164,6 +166,7 @@ public class GasComputeUnit
     {
       ead = ( ( ( n2d / .79D ) * ( barOffset + ( depth * barConstSaltWater ) ) ) - 1D ) * 10.0D;
     }
+    if( ead < 0 ) return( 0 );
     return( ead );
   }
 
@@ -197,37 +200,77 @@ public class GasComputeUnit
       // clearwater
       ead = ( ( depth + 33.8995D ) * ( n2d / 0.79 ) ) - 33.8995D;
     }
+    if( ead < 0 ) return( 0 );
     return( ead );
   }
-  
+
   /**
    * 
    * EAD unter Berücksichtigung des Setpoint bei bekanntem Gas
-   *
-   * Project: SubmatixBTForPC
-   * Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   * Stand: 23.09.2012
-   * @param n2
+   *         Stand: 23.09.2012
+   * @param he
+   *          Helium im Diluent
+   * @param o2
+   *          Sauerstoff im Diluent
+   * @param ppo2
+   *          Setpoint
    * @param depth
+   *          tiefe in Metern
    * @param salnity
-   * @return ead
+   *          Salzwasser oder nciht
+   * @return ead Equivalente Lufttiefe
    */
-  public static double getEADForDilMetric( final int n2, final double depth, final boolean salnity )
+  public static double getEADForDilMetric( final int o2, final int he, final double ppo2, final double depth, final boolean salnity )
   {
     // Gegeben n2 in Prozent, ich will wissen, wie die equivalente Tiefe ist
-    double ead;
-    double n2d = n2 / 100.0D;
+    double ead, o2Result, pEnv;
+    double restgas;
+    double n2FromRest, n2ForEAD;
+    //
+    // wieviel Prozent vom Restgas fällt auf die Bestandteile?
+    //
+    restgas = 100D - o2;
+    n2FromRest = ( restgas * ( 100 - he - o2 ) ) / 100D;
+    //
+    // Umgebungsdruck
+    //
     if( salnity )
     {
-      ead = ( ( ( n2d / .79D ) * ( barOffset + ( depth * barConstClearWater ) ) ) - 1D ) * 10.0D;
+      pEnv = depth * barConstSaltWater;
     }
     else
     {
-      ead = ( ( ( n2d / .79D ) * ( barOffset + ( depth * barConstSaltWater ) ) ) - 1D ) * 10.0D;
+      pEnv = depth * barConstClearWater;
     }
+    // Sauerstoff im Diluent
+    // o2Dil = ( o2 / 100D );
+    //
+    // wieviel Sauerstoff braucht es für den Setpoint?
+    //
+    o2Result = ( ppo2 * 100.0D ) / pEnv;
+    //
+    // wie hoch ist dann der Anteil vom Restgas?
+    //
+    restgas = 100D - o2Result;
+    //
+    // dann ist also restgas Prozent aufgeteilt in N2 und he
+    // und Stickstoff in Prozenten läßt sich jetzt ausrechnen
+    //
+    n2ForEAD = ( ( restgas / 100D ) * n2FromRest ) / 100D;
+    if( salnity )
+    {
+      ead = ( ( ( n2ForEAD / .79D ) * ( barOffset + ( depth * barConstClearWater ) ) ) - 1D ) * 10.0D;
+    }
+    else
+    {
+      ead = ( ( ( n2ForEAD / .79D ) * ( barOffset + ( depth * barConstSaltWater ) ) ) - 1D ) * 10.0D;
+    }
+    if( ead < 0 ) return( 0 );
     return( ead );
   }
-  
 }

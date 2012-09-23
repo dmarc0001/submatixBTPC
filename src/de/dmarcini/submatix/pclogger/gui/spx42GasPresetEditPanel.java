@@ -1449,7 +1449,7 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     else
     {
       modB = GasComputeUnit.getMODForGasImperial( o2, bailoutPpOMax, salnity );
-      eadD = 0; // GasComputeUnit.getEADForGasImperial( n2, modB, salnity );
+      eadD = GasComputeUnit.getEADForDilImperial( o2, he, diluentPpo, modB, salnity );
       eadB = GasComputeUnit.getEADForGasImperial( n2, modB, salnity );
       gasLblMap2.get( i ).setText(
               String.format( stringsBundle.getString( "spx42GasPresetEditPanel.mod-ead-label.imperial" ), Math.round( modB ), Math.round( eadB ), Math.round( modB ),

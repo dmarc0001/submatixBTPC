@@ -252,11 +252,13 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
         LOGGER.fine( "combobox changed!" );
         if( cb.getSelectedIndex() == -1 )
         {
+          //
           // ein NEUER Eintrag!
+          //
           LOGGER.fine( "combobox changed: new entry!" );
           String newPresetName = ( String )customPresetComboBox.getSelectedItem();
           LOGGER.fine( "entry has propertys: name: <" + newPresetName + ">" );
-          // TODO:
+          // Frag nach....
           if( JOptionPane.CANCEL_OPTION == showAskSaveBox( stringsBundle.getString( "spx42GasPresetEditPanel.showAskSaveBox.msg1" ) ) )
           {
             ignoreAction = true;
@@ -274,7 +276,24 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
           ignoreAction = true;
           fillPresetComboBox();
           ignoreAction = false;
+          if( customPresetComboBox.getModel().getSize() > 0 )
+          {
+            // versuche den letzen Eintrag anzuzeigen
+            customPresetComboBox.setSelectedIndex( customPresetComboBox.getModel().getSize() - 1 );
+          }
+          // TODO: Neuen Eintrag selektieren
           return;
+        }
+        else
+        {
+          //
+          // Eintrag schon vorhanden, update machen
+          //
+          int index = customPresetComboBox.getSelectedIndex();
+          String presetName = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getNameAt( index );
+          int dbId = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getDatabaseIdAt( index );
+          LOGGER.fine( "entry has name <" + presetName + "> and dbId <" + dbId + ">" );
+          updateGasPreset( presetName, dbId, index );
         }
         return;
       }
@@ -291,27 +310,14 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
         LOGGER.fine( "write gaslist to db..." );
         if( customPresetComboBox.getSelectedIndex() >= 0 )
         {
-          // neuer Eintrag!
+          //
+          // Schon existierender Eintrag? Update!
+          //
           int index = customPresetComboBox.getSelectedIndex();
           String presetName = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getNameAt( index );
           int dbId = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getDatabaseIdAt( index );
           LOGGER.fine( "entry has name <" + presetName + "> and dbId <" + dbId + ">" );
-          // TODO:
-          if( JOptionPane.CANCEL_OPTION == showAskSaveBox( stringsBundle.getString( "spx42GasPresetEditPanel.showAskSaveBox.msg2" ) ) )
-          {
-            return;
-          }
-          //
-          // Daten in die Db sichern
-          //
-          databaseUtil.updatePresetData( dbId, currGasList );
-          //
-          // Box neu anzeigen
-          //
-          ignoreAction = true;
-          fillPresetComboBox();
-          ignoreAction = false;
-          return;
+          updateGasPreset( presetName, dbId, index );
         }
         return;
       }
@@ -352,6 +358,38 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     {
       LOGGER.warning( "unknown action event <" + ev.getActionCommand() + ">" );
     }
+  }
+
+  /**
+   * 
+   * Gasliste aktualisieren
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 23.09.2012
+   * @param presetName
+   * @param dbId
+   */
+  private void updateGasPreset( String presetName, int dbId, int index )
+  {
+    if( JOptionPane.CANCEL_OPTION == showAskSaveBox( stringsBundle.getString( "spx42GasPresetEditPanel.showAskSaveBox.msg2" ) ) )
+    {
+      return;
+    }
+    //
+    // Daten in die Db sichern
+    //
+    databaseUtil.updatePresetData( dbId, currGasList );
+    //
+    // Box neu anzeigen
+    //
+    ignoreAction = true;
+    fillPresetComboBox();
+    ignoreAction = false;
+    customPresetComboBox.setSelectedIndex( index );
+    return;
   }
 
   /**
@@ -1273,14 +1311,13 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     initGasObjectMaps();
     setLanguageStrings( stringsBundle );
     setGasMatrixSpinner();
-    setAllDescriptionsForGas();
     fillPresetComboBox();
-    if( customPresetComboBox.getSelectedIndex() > -1 )
+    setAllDescriptionsForGas();
+    if( customPresetComboBox.getModel().getSize() > 0 )
     {
-      int index = customPresetComboBox.getSelectedIndex();
-      String presetName = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getNameAt( index );
-      int dbId = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getDatabaseIdAt( index );
-      LOGGER.fine( "preset combobox is index <" + index + ">" );
+      customPresetComboBox.setSelectedIndex( 0 );
+      String presetName = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getNameAt( 0 );
+      int dbId = ( ( GasPresetComboBoxModel )customPresetComboBox.getModel() ).getDatabaseIdAt( 0 );
       LOGGER.fine( "entry has name <" + presetName + "> and dbId <" + dbId + ">" );
       prepareCurentGasFromDb( dbId );
     }
@@ -1313,10 +1350,6 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     //
     GasPresetComboBoxModel presetModel = new GasPresetComboBoxModel( databaseUtil.getPresets() );
     customPresetComboBox.setModel( presetModel );
-    if( presetModel.getSize() > 0 )
-    {
-      customPresetComboBox.setSelectedIndex( 0 );
-    }
   }
 
   /**
@@ -1862,6 +1895,18 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
     }
   }
 
+  /**
+   * 
+   * Anfrage: Soll(en) dieser/diese Daten gelöscht werden?
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 23.09.2012
+   * @param msg
+   * @return
+   */
   private int showAskDeleteBox( String msg )
   {
     try

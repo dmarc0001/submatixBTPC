@@ -341,6 +341,7 @@ public class spx42GasPresetEditPanel extends JPanel implements ItemListener, Act
           //
           // Daten aus der DB löschen
           //
+          databaseUtil.deleteGasPreset( dbId );
           //
           // Box neu befüllen
           //

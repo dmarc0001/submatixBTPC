@@ -2727,4 +2727,82 @@ public class LogDerbyDatabaseUtil
       return( null );
     }
   }
+
+  /**
+   * 
+   * Gas Preset entfernen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 23.09.2012
+   * @param dbId
+   */
+  public void deleteGasPreset( int dbId )
+  {
+    String sql;
+    Statement stat;
+    //
+    //
+    // entferne Daten
+    //
+    //@formatter:off
+    sql = String.format( 
+            "delete from %s\n" +
+            " where %s=%d"
+            ,
+            ProjectConst.P_TABLE_PRESETS,
+            ProjectConst.P_DBID,
+            dbId
+            );
+    //@formatter:on 
+    //
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+    }
+    catch( SQLException ex )
+    {
+      try
+      {
+        conn.rollback();
+      }
+      catch( SQLException ex1 )
+      {}
+      LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      ex.printStackTrace();
+    }
+    //@formatter:off
+    sql = String.format( 
+            "delete from %s\n" +
+            " where %s=%d"
+            ,
+            ProjectConst.PD_TABLE_PRESETDETAIL,
+            ProjectConst.PD_SETID,
+            dbId
+            );
+    //@formatter:on 
+    //
+    try
+    {
+      stat = conn.createStatement();
+      stat.execute( sql );
+      stat.close();
+      conn.commit();
+    }
+    catch( SQLException ex )
+    {
+      try
+      {
+        conn.rollback();
+      }
+      catch( SQLException ex1 )
+      {}
+      LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
+      ex.printStackTrace();
+    }
+  }
 }

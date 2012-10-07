@@ -47,6 +47,7 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
   private boolean           ignoreAction     = false;
   private String            unitsString      = "metric";
   private double            ppOMax           = 1.6D;
+  private double            ppOSetpoint      = 1.0D;
   private boolean           salnity          = false;
   //
   private JPanel            contentPanel;
@@ -60,6 +61,12 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
   private JLabel            diluentGasValsLabel;
   private JCheckBox         salnityCheckBox;
   private JLabel            gasDescriptionLabel;
+  private JLabel            advisedDepthLabel;
+  private JSpinner          advisedDepthSpinner;
+  private JLabel            advisedDepthUnitLabel;
+  private JLabel            advisedDepthEadLabel;
+  private JComboBox         setpointComboBox;
+  private JLabel            pressureUnitLabel2;
 
   @SuppressWarnings( "unused" )
   private GasComputeDialog()
@@ -85,8 +92,9 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     LOGGER = logger;
     this.stringsBundle = stringsBundle;
     this.unitsString = unitsString;
-    ignoreAction = false;
+    ignoreAction = true;
     initDialog();
+    ignoreAction = false;
     oxygenSpinner.setValue( 21 );
     heliumSpinner.setValue( 0 );
     nitrogenSpinner.setValue( 79 );
@@ -126,6 +134,21 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
           ppOMax = 1.6D;
         }
       }
+      else if( ev.getActionCommand().equals( "set_setpoint" ) )
+      {
+        try
+        {
+          ppOSetpoint = Double.parseDouble( ( String )( cb.getModel().getElementAt( cb.getSelectedIndex() ) ) );
+          LOGGER.fine( String.format( "ppoSetpoint set to %2.2f", ppOSetpoint ) );
+          // Gas neu berechnen und zeigen
+          changeAdvisedDepthSpinner();
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.severe( ex.getLocalizedMessage() );
+          ppOMax = 1.6D;
+        }
+      }
       else
       {
         LOGGER.warning( "unknown combobox action event <" + ev.getActionCommand() + ">" );
@@ -134,6 +157,38 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     else
     {
       LOGGER.fine( "unknown command <" + ev.getActionCommand() + ">" );
+    }
+  }
+
+  /**
+   * 
+   * Wurde der Spinner für die Anvisierte Tiefe geändert, mach was
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.10.2012
+   * 
+   */
+  private void changeAdvisedDepthSpinner()
+  {
+    // if( ignoreAction ) return;
+    double ead;
+    int o2 = ( Integer )oxygenSpinner.getValue();
+    int he = ( Integer )heliumSpinner.getValue();
+    int adDepth = ( Integer )advisedDepthSpinner.getValue();
+    LOGGER.fine( "advised depth changed to <" + adDepth + ">..." );
+    ead = GasComputeUnit.getEADForDilMetric( o2, he, ppOSetpoint, new Double( adDepth ), salnity );
+    if( unitsString.equals( "metric" ) )
+    {
+      LOGGER.fine( "EAD on depth <" + adDepth + "> is <" + Math.round( ead ) + "> m" );
+      advisedDepthEadLabel.setText( String.format( stringsBundle.getString( "GasComputeDialog.fordepthcompute.eadString.metric" ), Math.round( ead ) ) );
+    }
+    else
+    {
+      LOGGER.fine( "EAD on depth <" + adDepth + "> is <" + Math.round( ead ) + "> ft" );
+      advisedDepthEadLabel.setText( String.format( stringsBundle.getString( "GasComputeDialog.fordepthcompute.eadString.imperial" ), Math.round( ead ) ) );
     }
   }
 
@@ -189,6 +244,7 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     heliumSpinner.setValue( he );
     nitrogenSpinner.setValue( n2 );
     setDescriptionForGas( o2, he );
+    changeAdvisedDepthSpinner();
     ignoreAction = false;
   }
 
@@ -233,6 +289,7 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     heliumSpinner.setValue( he );
     nitrogenSpinner.setValue( n2 );
     setDescriptionForGas( o2, he );
+    changeAdvisedDepthSpinner();
     ignoreAction = false;
   }
 
@@ -254,7 +311,7 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     setTitle( stringsBundle.getString( "GasComputeDialog.title" ) );
     setIconImage( Toolkit.getDefaultToolkit().getImage( GasComputeDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/calcColor.png" ) ) );
     contentPanel = new JPanel();
-    setBounds( 100, 100, 545, 442 );
+    setBounds( 100, 100, 545, 378 );
     getContentPane().setLayout( new BorderLayout() );
     contentPanel.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
     getContentPane().add( contentPanel, BorderLayout.CENTER );
@@ -263,10 +320,20 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     JPanel panel_1 = new JPanel();
     panel_1.setBorder( new TitledBorder( UIManager.getBorder( "TitledBorder.border" ), stringsBundle.getString( "GasComputeDialog.computed.title" ), TitledBorder.CENTER,
             TitledBorder.TOP, null, new Color( 0, 0, 128 ) ) );
+    JPanel panel_2 = new JPanel();
+    panel_2.setBorder( new TitledBorder( UIManager.getBorder( "TitledBorder.border" ), stringsBundle.getString( "GasComputeDialog.fordepthcompute.title" ), TitledBorder.CENTER,
+            TitledBorder.TOP, null, new Color( 0, 100, 0 ) ) );
     GroupLayout gl_contentPanel = new GroupLayout( contentPanel );
     gl_contentPanel.setHorizontalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
-            gl_contentPanel.createSequentialGroup().addComponent( panel, GroupLayout.PREFERRED_SIZE, 252, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                    .addComponent( panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+            gl_contentPanel
+                    .createSequentialGroup()
+                    .addGroup(
+                            gl_contentPanel
+                                    .createParallelGroup( Alignment.LEADING )
+                                    .addGroup(
+                                            gl_contentPanel.createSequentialGroup().addComponent( panel, GroupLayout.PREFERRED_SIZE, 252, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                                                    .addComponent( panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
+                                    .addComponent( panel_2, GroupLayout.PREFERRED_SIZE, 526, GroupLayout.PREFERRED_SIZE ) )
                     .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) ) );
     gl_contentPanel.setVerticalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_contentPanel
@@ -274,7 +341,57 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
                     .addGroup(
                             gl_contentPanel.createParallelGroup( Alignment.BASELINE ).addComponent( panel, GroupLayout.PREFERRED_SIZE, 146, GroupLayout.PREFERRED_SIZE )
                                     .addComponent( panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
-                    .addContainerGap( 178, Short.MAX_VALUE ) ) );
+                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( panel_2, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE )
+                    .addContainerGap( 70, Short.MAX_VALUE ) ) );
+    advisedDepthSpinner = new JSpinner();
+    advisedDepthLabel = new JLabel( stringsBundle.getString( "GasComputeDialog.fordepthcompute.advisedDepth" ) );
+    advisedDepthLabel.setHorizontalAlignment( SwingConstants.RIGHT );
+    advisedDepthUnitLabel = new JLabel( "-" );
+    advisedDepthEadLabel = new JLabel( "-" );
+    advisedDepthEadLabel.setForeground( new Color( 0, 0, 139 ) );
+    advisedDepthEadLabel.setHorizontalAlignment( SwingConstants.CENTER );
+    setpointComboBox = new JComboBox();
+    setpointComboBox.setToolTipText( ( String )null );
+    setpointComboBox.setFont( new Font( "Segoe UI", Font.PLAIN, 11 ) );
+    setpointComboBox.setActionCommand( "set_setpoint" );
+    pressureUnitLabel2 = new JLabel( "BAR" );
+    GroupLayout gl_panel_2 = new GroupLayout( panel_2 );
+    gl_panel_2.setHorizontalGroup( gl_panel_2.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_panel_2
+                    .createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(
+                            gl_panel_2
+                                    .createParallelGroup( Alignment.LEADING )
+                                    .addComponent( advisedDepthEadLabel, GroupLayout.DEFAULT_SIZE, 490, Short.MAX_VALUE )
+                                    .addGroup(
+                                            gl_panel_2.createSequentialGroup().addComponent( advisedDepthLabel, GroupLayout.PREFERRED_SIZE, 128, GroupLayout.PREFERRED_SIZE )
+                                                    .addGap( 18 ).addComponent( advisedDepthSpinner, GroupLayout.PREFERRED_SIZE, 56, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED )
+                                                    .addComponent( advisedDepthUnitLabel, GroupLayout.PREFERRED_SIZE, 44, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED )
+                                                    .addComponent( setpointComboBox, GroupLayout.PREFERRED_SIZE, 169, GroupLayout.PREFERRED_SIZE ).addGap( 12 )
+                                                    .addComponent( pressureUnitLabel2, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE ) ) ).addContainerGap() ) );
+    gl_panel_2.setVerticalGroup( gl_panel_2.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_panel_2
+                    .createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(
+                            gl_panel_2
+                                    .createParallelGroup( Alignment.TRAILING )
+                                    .addGroup(
+                                            gl_panel_2.createParallelGroup( Alignment.BASELINE ).addComponent( advisedDepthLabel )
+                                                    .addComponent( advisedDepthSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                                    .addComponent( advisedDepthUnitLabel ) )
+                                    .addGroup(
+                                            gl_panel_2
+                                                    .createParallelGroup( Alignment.LEADING )
+                                                    .addComponent( setpointComboBox, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE )
+                                                    .addGroup(
+                                                            gl_panel_2.createSequentialGroup().addGap( 2 )
+                                                                    .addComponent( pressureUnitLabel2, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ) ) ) )
+                    .addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( advisedDepthEadLabel ).addContainerGap( 14, Short.MAX_VALUE ) ) );
+    panel_2.setLayout( gl_panel_2 );
     JLabel label_6 = new JLabel( "Bailout:" );
     bailoutGasValsLabel = new JLabel( "GASVALUES" );
     partialPressureComboBox = new JComboBox();
@@ -286,7 +403,6 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     diluentGasValsLabel = new JLabel( "GASVALUES" );
     salnityCheckBox = new JCheckBox( stringsBundle.getString( "spx42GaslistEditPanel.salnityCheckBox.text" ) );
     salnityCheckBox.setFont( new Font( "Segoe UI", Font.PLAIN, 11 ) );
-    salnityCheckBox.addItemListener( this );
     salnityCheckBox.setActionCommand( "check_salnity" );
     salnityCheckBox.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.salnityCheckBox.tooltiptext" ) );
     GroupLayout gl_panel_1 = new GroupLayout( panel_1 );
@@ -325,14 +441,11 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     label_2.setHorizontalAlignment( SwingConstants.RIGHT );
     oxygenSpinner = new JSpinner();
     oxygenSpinner.setModel( new SpinnerNumberModel( 21, 1, 100, 1 ) );
-    oxygenSpinner.addChangeListener( this );
     heliumSpinner = new JSpinner();
     heliumSpinner.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
-    heliumSpinner.addChangeListener( this );
     nitrogenSpinner = new JSpinner();
     nitrogenSpinner.setEnabled( false );
     nitrogenSpinner.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
-    nitrogenSpinner.addChangeListener( this );
     JLabel label_3 = new JLabel( "%" );
     JLabel label_4 = new JLabel( "%" );
     JLabel label_5 = new JLabel( "%" );
@@ -392,7 +505,6 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
         buttonClose.setForeground( new Color( 0, 0, 205 ) );
         buttonClose.setBackground( new Color( 192, 192, 192 ) );
         buttonClose.setActionCommand( "close" );
-        buttonClose.addActionListener( this );
       }
       gasDescriptionLabel = new JLabel( "AIR" );
       gasDescriptionLabel.setHorizontalAlignment( SwingConstants.CENTER );
@@ -411,6 +523,8 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
                       .addContainerGap() ) );
       buttonPane.setLayout( gl_buttonPane );
     }
+    // der Spinner sollte noch ein Modell bekommen
+    advisedDepthSpinner.setModel( new SpinnerNumberModel( 10, 1, 2500, 1 ) );
     //
     // jetz hab ich eine gewünschte Einheiteneinstellung für die Berechnungen
     //
@@ -424,9 +538,9 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
       pressureStrings[4] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.4" );
       pressureStrings[5] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.5" );
       pressureStrings[6] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.6" );
-      partialPressureComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
-      partialPressureComboBox.setSelectedIndex( pressureStrings.length - 1 );
       pressureUnitLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.metric" ) );
+      pressureUnitLabel2.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.metric" ) );
+      advisedDepthUnitLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.depthUnitLabel.metric" ) );
     }
     else
     {
@@ -437,11 +551,23 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
       pressureStrings[4] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.4" );
       pressureStrings[5] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.5" );
       pressureStrings[6] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.6" );
-      partialPressureComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
-      partialPressureComboBox.setSelectedIndex( pressureStrings.length - 1 );
       pressureUnitLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.imperial" ) );
+      pressureUnitLabel2.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.imperial" ) );
+      advisedDepthUnitLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.depthUnitLabel.imperial" ) );
     }
+    partialPressureComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
+    partialPressureComboBox.setSelectedIndex( pressureStrings.length - 1 );
+    setpointComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
+    setpointComboBox.setSelectedIndex( pressureStrings.length - 1 );
+    //
     partialPressureComboBox.addActionListener( this );
+    setpointComboBox.addActionListener( this );
+    advisedDepthSpinner.addChangeListener( this );
+    salnityCheckBox.addItemListener( this );
+    oxygenSpinner.addChangeListener( this );
+    heliumSpinner.addChangeListener( this );
+    nitrogenSpinner.addChangeListener( this );
+    buttonClose.addActionListener( this );
   }
 
   @Override
@@ -476,6 +602,18 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     }
   }
 
+  /**
+   * 
+   * Setze alle Beschreibungen und Farben für die Gase
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.10.2012
+   * @param o2
+   * @param he
+   */
   public void setDescriptionForGas( int o2, int he )
   {
     double bailoutMOD, bailoutEAD, diluentEAD;
@@ -520,6 +658,7 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
       diluentEAD = GasComputeUnit.getEADForDilImperial( o2, he, ppOMax, bailoutMOD, salnity );
       diluentGasValsLabel.setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.ead-on-mod-label.imperial" ), Math.round( diluentEAD ) ) );
     }
+    advisedDepthSpinner.setValue( ( int )Math.round( bailoutMOD ) );
   }
 
   /**
@@ -570,6 +709,12 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
       else if( currSpinner.equals( nitrogenSpinner ) )
       {
         LOGGER.warning( "change nitrogenSpinner...(inform programmer, it should NOT do)" );
+        return;
+      }
+      else if( currSpinner.equals( advisedDepthSpinner ) )
+      {
+        LOGGER.fine( "advised depth changed..." );
+        changeAdvisedDepthSpinner();
         return;
       }
       LOGGER.log( Level.WARNING, "unknown spinner recived!" );

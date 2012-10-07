@@ -3,6 +3,7 @@
  */
 package de.dmarcini.submatix.pclogger.res;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 
 //@formatter:off
@@ -104,6 +105,11 @@ public final class ProjectConst
   public static final int TIMEFORMAT_ISO                = 1;  // ISO Date = 'YYYY-MM-DD hh:mm:ss'
   public static final int TIMEFORMAT_DE                 = 2;
   public static final int TIMEFORMAT_EN                 = 2;  //EnglishDate ='MM/DD/YYYY hh:mm:ss';
+  
+  // Farben der Gase
+  public static final Color GASNAMECOLOR_NORMAL         = new Color( 0x000088 );
+  public static final Color GASNAMECOLOR_DANGEROUS      = Color.red;
+  public static final Color GASNAMECOLOR_NONORMOXIC     = Color.MAGENTA;
   
   // Message Bezeichnungen
   public static final int    MESSAGE_NONE               = ActionEvent.RESERVED_ID_MAX + 1;

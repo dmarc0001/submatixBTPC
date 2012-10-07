@@ -17,8 +17,8 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
  */
 public class BuildVersion
 {
-  private final long buildNumber = 1393L;
-  private final long buildDate = 1348424743852L;
+  private final long buildNumber = 1394L;
+  private final long buildDate = 1348424875954L;
 
   /**
    * Gib die Buildnummer zurück

@@ -1,0 +1,578 @@
+package de.dmarcini.submatix.pclogger.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JSpinner.NumberEditor;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import de.dmarcini.submatix.pclogger.res.ProjectConst;
+import de.dmarcini.submatix.pclogger.utils.GasComputeUnit;
+
+public class GasComputeDialog extends JDialog implements ActionListener, ChangeListener, ItemListener
+{
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1744972231275930537L;
+  private Logger            LOGGER           = null;
+  private ResourceBundle    stringsBundle    = null;
+  private boolean           ignoreAction     = false;
+  private String            unitsString      = "metric";
+  private double            ppOMax           = 1.6D;
+  private boolean           salnity          = false;
+  //
+  private JPanel            contentPanel;
+  private JButton           buttonClose;
+  private JSpinner          oxygenSpinner;
+  private JSpinner          heliumSpinner;
+  private JSpinner          nitrogenSpinner;
+  private JComboBox         partialPressureComboBox;
+  private JLabel            pressureUnitLabel;
+  private JLabel            bailoutGasValsLabel;
+  private JLabel            diluentGasValsLabel;
+  private JCheckBox         salnityCheckBox;
+  private JLabel            gasDescriptionLabel;
+
+  @SuppressWarnings( "unused" )
+  private GasComputeDialog()
+  {
+    initDialog();
+  };
+
+  /**
+   * 
+   * Der Konstruktor
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.10.2012
+   * @param logger
+   * @param stringsBundle
+   * @param unitsString
+   */
+  public GasComputeDialog( Logger logger, ResourceBundle stringsBundle, String unitsString )
+  {
+    LOGGER = logger;
+    this.stringsBundle = stringsBundle;
+    this.unitsString = unitsString;
+    ignoreAction = false;
+    initDialog();
+    oxygenSpinner.setValue( 21 );
+    heliumSpinner.setValue( 0 );
+    nitrogenSpinner.setValue( 79 );
+    setDescriptionForGas( 21, 0 );
+  }
+
+  @Override
+  public void actionPerformed( ActionEvent ev )
+  {
+    if( ev.getSource() instanceof JButton )
+    {
+      String cmd = ev.getActionCommand();
+      // /////////////////////////////////////////////////////////////////////////
+      // Abbrechen
+      if( cmd.equals( "close" ) )
+      {
+        LOGGER.fine( "Close Dialog." );
+        setVisible( false );
+        return;
+      }
+    }
+    else if( ev.getSource() instanceof JComboBox )
+    {
+      JComboBox cb = ( JComboBox )ev.getSource();
+      if( ev.getActionCommand().equals( "set_ppomax" ) )
+      {
+        try
+        {
+          ppOMax = Double.parseDouble( ( String )( cb.getModel().getElementAt( cb.getSelectedIndex() ) ) );
+          LOGGER.fine( String.format( "ppoMax set to %2.2f", ppOMax ) );
+          // Gas neu berechnen und zeigen
+          setDescriptionForGas( ( Integer )oxygenSpinner.getValue(), ( Integer )heliumSpinner.getValue() );
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.severe( ex.getLocalizedMessage() );
+          ppOMax = 1.6D;
+        }
+      }
+      else
+      {
+        LOGGER.warning( "unknown combobox action event <" + ev.getActionCommand() + ">" );
+      }
+    }
+    else
+    {
+      LOGGER.fine( "unknown command <" + ev.getActionCommand() + ">" );
+    }
+  }
+
+  /**
+   * 
+   * Verändere Helium...
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.10.2012
+   * 
+   */
+  private void changeHeSpinner()
+  {
+    int o2 = ( Integer )oxygenSpinner.getValue();
+    int he = ( Integer )heliumSpinner.getValue();
+    int n2 = ( Integer )nitrogenSpinner.getValue();
+    //
+    ignoreAction = true;
+    //
+    // Wenn Helium größer als 99%
+    // muß ich eingreifen
+    //
+    if( he > 99 )
+    {
+      o2 = 1;
+      he = 99;
+      n2 = 0;
+    }
+    //
+    // Stickstoff soll berechnet werden, Sauerstoff gleich bleiben
+    //
+    if( he + o2 <= 100 )
+    {
+      // ich muß den Stickstoff berechnen
+      n2 = 100 - ( he + o2 );
+      LOGGER.fine( "compute nitrogen....<" + n2 + "> %" );
+    }
+    else
+    {
+      // das geht nicht, ich müßte je den Sauerstoff verringern!
+      // also werde ich den Heliumanteil anpassen
+      n2 = 0;
+      he = 100 - o2;
+      LOGGER.warning( "helium to high! to expand heluim must reduce oxigen first!" );
+    }
+    //
+    // jetzt zurückschreiben
+    //
+    oxygenSpinner.setValue( o2 );
+    heliumSpinner.setValue( he );
+    nitrogenSpinner.setValue( n2 );
+    setDescriptionForGas( o2, he );
+    ignoreAction = false;
+  }
+
+  /**
+   * 
+   * Verändere den Sauerstoff
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.10.2012
+   */
+  private void changeO2Spinner()
+  {
+    int o2 = ( Integer )oxygenSpinner.getValue();
+    int he = ( Integer )heliumSpinner.getValue();
+    int n2 = ( Integer )nitrogenSpinner.getValue();
+    //
+    ignoreAction = true;
+    //
+    // Stickstoff soll berechnet werden, Helium gleich bleiben
+    //
+    if( he + o2 <= 100 )
+    {
+      // ich muß den Stickstoff berechnen
+      n2 = 100 - ( he + o2 );
+      LOGGER.fine( "compute nitrogen....<" + n2 + "> %" );
+    }
+    else
+    {
+      // das geht nicht, ich müßte je den Sauerstoff verringern!
+      // also werde ich den Heliumanteil anpassen
+      n2 = 0;
+      he = 100 - o2;
+      LOGGER.warning( "oxygen to high! to expand oxygen must reduce helium first!" );
+    }
+    //
+    // jetzt zurückschreiben
+    //
+    oxygenSpinner.setValue( o2 );
+    heliumSpinner.setValue( he );
+    nitrogenSpinner.setValue( n2 );
+    setDescriptionForGas( o2, he );
+    ignoreAction = false;
+  }
+
+  /**
+   * 
+   * Initialisiere den Dialog
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.10.2012
+   * @param stringsBundle
+   * 
+   */
+  private void initDialog()
+  {
+    setResizable( false );
+    setTitle( stringsBundle.getString( "GasComputeDialog.title" ) );
+    setIconImage( Toolkit.getDefaultToolkit().getImage( GasComputeDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/calcColor.png" ) ) );
+    contentPanel = new JPanel();
+    setBounds( 100, 100, 545, 442 );
+    getContentPane().setLayout( new BorderLayout() );
+    contentPanel.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
+    getContentPane().add( contentPanel, BorderLayout.CENTER );
+    JPanel panel = new JPanel();
+    panel.setBorder( new TitledBorder( null, stringsBundle.getString( "GasComputeDialog.gasdef.title" ), TitledBorder.CENTER, TitledBorder.TOP, null, new Color( 0, 0, 128 ) ) );
+    JPanel panel_1 = new JPanel();
+    panel_1.setBorder( new TitledBorder( UIManager.getBorder( "TitledBorder.border" ), stringsBundle.getString( "GasComputeDialog.computed.title" ), TitledBorder.CENTER,
+            TitledBorder.TOP, null, new Color( 0, 0, 128 ) ) );
+    GroupLayout gl_contentPanel = new GroupLayout( contentPanel );
+    gl_contentPanel.setHorizontalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_contentPanel.createSequentialGroup().addComponent( panel, GroupLayout.PREFERRED_SIZE, 252, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) ) );
+    gl_contentPanel.setVerticalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_contentPanel
+                    .createSequentialGroup()
+                    .addGroup(
+                            gl_contentPanel.createParallelGroup( Alignment.BASELINE ).addComponent( panel, GroupLayout.PREFERRED_SIZE, 146, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( panel_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
+                    .addContainerGap( 178, Short.MAX_VALUE ) ) );
+    JLabel label_6 = new JLabel( "Bailout:" );
+    bailoutGasValsLabel = new JLabel( "GASVALUES" );
+    partialPressureComboBox = new JComboBox();
+    partialPressureComboBox.setFont( new Font( "Segoe UI", Font.PLAIN, 11 ) );
+    partialPressureComboBox.setActionCommand( "set_ppomax" );
+    partialPressureComboBox.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.customPresetComboBox.tooltiptext" ) );
+    pressureUnitLabel = new JLabel( "BAR" );
+    JLabel lblDiluent = new JLabel( "Diluent EAD by MOD:" );
+    diluentGasValsLabel = new JLabel( "GASVALUES" );
+    salnityCheckBox = new JCheckBox( stringsBundle.getString( "spx42GaslistEditPanel.salnityCheckBox.text" ) );
+    salnityCheckBox.setFont( new Font( "Segoe UI", Font.PLAIN, 11 ) );
+    salnityCheckBox.addItemListener( this );
+    salnityCheckBox.setActionCommand( "check_salnity" );
+    salnityCheckBox.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.salnityCheckBox.tooltiptext" ) );
+    GroupLayout gl_panel_1 = new GroupLayout( panel_1 );
+    gl_panel_1.setHorizontalGroup( gl_panel_1.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_panel_1
+                    .createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(
+                            gl_panel_1
+                                    .createParallelGroup( Alignment.LEADING )
+                                    .addComponent( salnityCheckBox, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                    .addGroup(
+                                            gl_panel_1.createSequentialGroup().addComponent( partialPressureComboBox, GroupLayout.PREFERRED_SIZE, 169, GroupLayout.PREFERRED_SIZE )
+                                                    .addGap( 12 ).addComponent( pressureUnitLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE ) )
+                                    .addComponent( label_6, GroupLayout.PREFERRED_SIZE, 224, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( bailoutGasValsLabel, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( lblDiluent, GroupLayout.PREFERRED_SIZE, 218, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( diluentGasValsLabel, GroupLayout.PREFERRED_SIZE, 218, GroupLayout.PREFERRED_SIZE ) ).addContainerGap() ) );
+    gl_panel_1.setVerticalGroup( gl_panel_1.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_panel_1
+                    .createSequentialGroup()
+                    .addGroup(
+                            gl_panel_1.createParallelGroup( Alignment.BASELINE ).addComponent( pressureUnitLabel )
+                                    .addComponent( partialPressureComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
+                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( salnityCheckBox ).addPreferredGap( ComponentPlacement.RELATED )
+                    .addComponent( label_6, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ).addPreferredGap( ComponentPlacement.RELATED )
+                    .addComponent( bailoutGasValsLabel, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ).addPreferredGap( ComponentPlacement.RELATED )
+                    .addComponent( lblDiluent, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ).addPreferredGap( ComponentPlacement.RELATED )
+                    .addComponent( diluentGasValsLabel, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ).addContainerGap( 15, Short.MAX_VALUE ) ) );
+    panel_1.setLayout( gl_panel_1 );
+    JLabel label = new JLabel( stringsBundle.getString( "GasComputeDialog.gasdef.oxygen" ) );
+    label.setHorizontalAlignment( SwingConstants.RIGHT );
+    JLabel label_1 = new JLabel( stringsBundle.getString( "GasComputeDialog.gasdef.helium" ) );
+    label_1.setHorizontalAlignment( SwingConstants.RIGHT );
+    JLabel label_2 = new JLabel( stringsBundle.getString( "GasComputeDialog.gasdef.nitrogen" ) );
+    label_2.setHorizontalAlignment( SwingConstants.RIGHT );
+    oxygenSpinner = new JSpinner();
+    oxygenSpinner.setModel( new SpinnerNumberModel( 21, 1, 100, 1 ) );
+    oxygenSpinner.addChangeListener( this );
+    heliumSpinner = new JSpinner();
+    heliumSpinner.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    heliumSpinner.addChangeListener( this );
+    nitrogenSpinner = new JSpinner();
+    nitrogenSpinner.setEnabled( false );
+    nitrogenSpinner.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+    nitrogenSpinner.addChangeListener( this );
+    JLabel label_3 = new JLabel( "%" );
+    JLabel label_4 = new JLabel( "%" );
+    JLabel label_5 = new JLabel( "%" );
+    GroupLayout gl_panel = new GroupLayout( panel );
+    gl_panel.setHorizontalGroup( gl_panel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_panel.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(
+                            gl_panel.createParallelGroup( Alignment.LEADING ).addComponent( label, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( label_1, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( label_2, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE ) )
+                    .addGap( 33 )
+                    .addGroup(
+                            gl_panel.createParallelGroup( Alignment.LEADING )
+                                    .addGroup(
+                                            gl_panel.createSequentialGroup().addPreferredGap( ComponentPlacement.RELATED )
+                                                    .addComponent( nitrogenSpinner, GroupLayout.PREFERRED_SIZE, 56, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED )
+                                                    .addComponent( label_5, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE ) )
+                                    .addGroup(
+                                            gl_panel.createSequentialGroup().addComponent( heliumSpinner, GroupLayout.PREFERRED_SIZE, 56, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED )
+                                                    .addComponent( label_4, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE ) )
+                                    .addGroup(
+                                            gl_panel.createSequentialGroup().addComponent( oxygenSpinner, GroupLayout.PREFERRED_SIZE, 56, GroupLayout.PREFERRED_SIZE )
+                                                    .addPreferredGap( ComponentPlacement.RELATED ).addComponent( label_3 ) ) ).addContainerGap( 13, Short.MAX_VALUE ) ) );
+    gl_panel.setVerticalGroup( gl_panel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_panel.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(
+                            gl_panel.createParallelGroup( Alignment.BASELINE ).addComponent( label )
+                                    .addComponent( oxygenSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ).addComponent( label_3 ) )
+                    .addGap( 18 )
+                    .addGroup(
+                            gl_panel.createParallelGroup( Alignment.BASELINE ).addComponent( label_1 )
+                                    .addComponent( heliumSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( label_4, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ) )
+                    .addGroup(
+                            gl_panel.createParallelGroup( Alignment.LEADING )
+                                    .addGroup( gl_panel.createSequentialGroup().addGap( 29 ).addComponent( label_5, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ) )
+                                    .addGroup(
+                                            gl_panel.createSequentialGroup()
+                                                    .addGap( 18 )
+                                                    .addGroup(
+                                                            gl_panel.createParallelGroup( Alignment.BASELINE )
+                                                                    .addComponent( nitrogenSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+                                                                            GroupLayout.PREFERRED_SIZE ).addComponent( label_2 ) ) ) ).addContainerGap( 21, Short.MAX_VALUE ) ) );
+    panel.setLayout( gl_panel );
+    contentPanel.setLayout( gl_contentPanel );
+    {
+      JPanel buttonPane = new JPanel();
+      getContentPane().add( buttonPane, BorderLayout.SOUTH );
+      {
+        buttonClose = new JButton( stringsBundle.getString( "GasComputeDialog.buttonClose.text" ) );
+        buttonClose.setRolloverIcon( new ImageIcon( GasComputeDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/quit.png" ) ) );
+        buttonClose.setIcon( new ImageIcon( GasComputeDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/quitBw.png" ) ) );
+        buttonClose.setForeground( new Color( 0, 0, 205 ) );
+        buttonClose.setBackground( new Color( 192, 192, 192 ) );
+        buttonClose.setActionCommand( "close" );
+        buttonClose.addActionListener( this );
+      }
+      gasDescriptionLabel = new JLabel( "AIR" );
+      gasDescriptionLabel.setHorizontalAlignment( SwingConstants.CENTER );
+      gasDescriptionLabel.setFont( new Font( "Segoe UI Semibold", Font.BOLD, 14 ) );
+      GroupLayout gl_buttonPane = new GroupLayout( buttonPane );
+      gl_buttonPane.setHorizontalGroup( gl_buttonPane.createParallelGroup( Alignment.LEADING ).addGroup(
+              gl_buttonPane.createSequentialGroup().addContainerGap().addComponent( gasDescriptionLabel, GroupLayout.PREFERRED_SIZE, 276, GroupLayout.PREFERRED_SIZE ).addGap( 116 )
+                      .addComponent( buttonClose ).addContainerGap() ) );
+      gl_buttonPane.setVerticalGroup( gl_buttonPane.createParallelGroup( Alignment.LEADING ).addGroup(
+              gl_buttonPane
+                      .createSequentialGroup()
+                      .addGap( 5 )
+                      .addGroup(
+                              gl_buttonPane.createParallelGroup( Alignment.BASELINE )
+                                      .addComponent( gasDescriptionLabel, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE ).addComponent( buttonClose ) )
+                      .addContainerGap() ) );
+      buttonPane.setLayout( gl_buttonPane );
+    }
+    //
+    // jetz hab ich eine gewünschte Einheiteneinstellung für die Berechnungen
+    //
+    String[] pressureStrings = new String[7];
+    if( unitsString.equals( "metric" ) )
+    {
+      pressureStrings[0] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.0" );
+      pressureStrings[1] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.1" );
+      pressureStrings[2] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.2" );
+      pressureStrings[3] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.3" );
+      pressureStrings[4] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.4" );
+      pressureStrings[5] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.5" );
+      pressureStrings[6] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.metric.6" );
+      partialPressureComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
+      partialPressureComboBox.setSelectedIndex( pressureStrings.length - 1 );
+      pressureUnitLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.metric" ) );
+    }
+    else
+    {
+      pressureStrings[0] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.0" );
+      pressureStrings[1] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.1" );
+      pressureStrings[2] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.2" );
+      pressureStrings[3] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.3" );
+      pressureStrings[4] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.4" );
+      pressureStrings[5] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.5" );
+      pressureStrings[6] = stringsBundle.getString( "spx42GaslistEditPanel.pressures.imperial.6" );
+      partialPressureComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
+      partialPressureComboBox.setSelectedIndex( pressureStrings.length - 1 );
+      pressureUnitLabel.setText( stringsBundle.getString( "spx42GaslistEditPanel.pressureUnitLabel.imperial" ) );
+    }
+    partialPressureComboBox.addActionListener( this );
+  }
+
+  @Override
+  public void itemStateChanged( ItemEvent ev )
+  {
+    if( ignoreAction ) return;
+    // ////////////////////////////////////////////////////////////////////////
+    // Checkbox Event?
+    if( ev.getSource() instanceof JCheckBox )
+    {
+      JCheckBox cb = ( JCheckBox )ev.getItemSelectable();
+      String cmd = cb.getActionCommand();
+      // //////////////////////////////////////////////////////////////////////
+      // Salzwasser?
+      if( cmd.equals( "check_salnity" ) )
+      {
+        LOGGER.fine( "salnity <" + cb.isSelected() + ">" );
+        salnity = cb.isSelected();
+        // Gas neu berechnen und zeigen
+        setDescriptionForGas( ( Integer )oxygenSpinner.getValue(), ( Integer )heliumSpinner.getValue() );
+      }
+      else
+      {
+        LOGGER.warning( "unknown checkbox command <" + cmd + "> recived." );
+        return;
+      }
+    }
+    else
+    {
+      LOGGER.warning( "unknown element for itemStateChanged recived." );
+      return;
+    }
+  }
+
+  public void setDescriptionForGas( int o2, int he )
+  {
+    double bailoutMOD, bailoutEAD, diluentEAD;
+    int n2 = 100 - ( o2 + he );
+    //
+    // Gas noch einfärben
+    //
+    if( o2 < 14 )
+    {
+      gasDescriptionLabel.setForeground( ProjectConst.GASNAMECOLOR_DANGEROUS );
+      ( ( NumberEditor )( oxygenSpinner.getEditor() ) ).getTextField().setForeground( ProjectConst.GASNAMECOLOR_DANGEROUS );
+    }
+    else if( o2 < 21 )
+    {
+      gasDescriptionLabel.setForeground( ProjectConst.GASNAMECOLOR_NONORMOXIC );
+      ( ( NumberEditor )( oxygenSpinner.getEditor() ) ).getTextField().setForeground( ProjectConst.GASNAMECOLOR_NONORMOXIC );
+    }
+    else
+    {
+      gasDescriptionLabel.setForeground( ProjectConst.GASNAMECOLOR_NORMAL );
+      ( ( NumberEditor )( oxygenSpinner.getEditor() ) ).getTextField().setForeground( ProjectConst.GASNAMECOLOR_NORMAL );
+    }
+    //
+    // jetzt den namen des gases errechnen
+    //
+    gasDescriptionLabel.setText( GasComputeUnit.getNameForGas( o2, he ) );
+    if( unitsString.equals( "metric" ) )
+    {
+      // MOD und EAD berechnen
+      bailoutMOD = GasComputeUnit.getMODForGasMetric( o2, ppOMax, salnity );
+      bailoutEAD = GasComputeUnit.getEADForGasMetric( n2, bailoutMOD, salnity );
+      // MOD und EAD in String umformen und in das richtige Label schreiben
+      bailoutGasValsLabel.setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.mod-ead-label.metric" ), Math.round( bailoutMOD ), Math.round( bailoutEAD ) ) );
+      diluentEAD = GasComputeUnit.getEADForDilMetric( o2, he, ppOMax, bailoutMOD, salnity );
+      diluentGasValsLabel.setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.ead-on-mod-label.metric" ), Math.round( diluentEAD ) ) );
+    }
+    else
+    {
+      bailoutMOD = GasComputeUnit.getMODForGasImperial( o2, ppOMax, salnity );
+      bailoutEAD = GasComputeUnit.getEADForGasImperial( n2, bailoutMOD, salnity );
+      bailoutGasValsLabel.setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.mod-ead-label.imperial" ), Math.round( bailoutMOD ), Math.round( bailoutEAD ) ) );
+      diluentEAD = GasComputeUnit.getEADForDilImperial( o2, he, ppOMax, bailoutMOD, salnity );
+      diluentGasValsLabel.setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.ead-on-mod-label.imperial" ), Math.round( diluentEAD ) ) );
+    }
+  }
+
+  /**
+   * 
+   * Zeige den Dialog Modal an!
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.10.2012
+   * @return OK
+   */
+  public boolean showModal()
+  {
+    setModalityType( ModalityType.APPLICATION_MODAL );
+    setModalExclusionType( ModalExclusionType.APPLICATION_EXCLUDE );
+    setModal( true );
+    setAlwaysOnTop( true );
+    setVisible( true );
+    return( true );
+  }
+
+  @Override
+  public void stateChanged( ChangeEvent ev )
+  {
+    JSpinner currSpinner;
+    if( ignoreAction ) return;
+    // //////////////////////////////////////////////////////////////////////
+    // war es ein spinner?
+    if( ev.getSource() instanceof JSpinner )
+    {
+      currSpinner = ( JSpinner )ev.getSource();
+      // //////////////////////////////////////////////////////////////////////
+      // Ja aber welcher?
+      if( currSpinner.equals( oxygenSpinner ) )
+      {
+        LOGGER.fine( "change oxygenSpinner..." );
+        changeO2Spinner();
+        return;
+      }
+      else if( currSpinner.equals( heliumSpinner ) )
+      {
+        LOGGER.fine( "change heliumSpinner..." );
+        changeHeSpinner();
+        return;
+      }
+      else if( currSpinner.equals( nitrogenSpinner ) )
+      {
+        LOGGER.warning( "change nitrogenSpinner...(inform programmer, it should NOT do)" );
+        return;
+      }
+      LOGGER.log( Level.WARNING, "unknown spinner recived!" );
+    }
+  }
+}

@@ -130,7 +130,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     TAB_CONNECT,
     TAB_CONFIG,
     TAB_GASLIST,
-    TAB_GASPRESET,
     TAB_LOGREAD,
     TAB_LOGGRAPH,
     TAB_FILEMANAGER
@@ -152,7 +151,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private spx42ConnectPanel        connectionPanel;
   private spx42ConfigPanel         configPanel;
   private spx42GaslistEditPanel    gasConfigPanel;
-  private spx42GasPresetEditPanel  gasPresetPanel;
   private spx42LoglistPanel        logListPanel;
   private spx42LogGraphPanel       logGraphPanel;
   private spx42FileManagerPanel    fileManagerPanel;
@@ -165,7 +163,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private JMenuItem                mntmInfo;
   private JTextField               statusTextField;
   private JMenuItem                mntmOptions;
-  // private final static int CUSTOMIZED = 5;
   private static ResourceBundle    stringsBundle       = null;
   private Locale                   programLocale       = null;
   private String                   timeFormatterString = "yyyy-MM-dd - hh:mm:ss";
@@ -178,7 +175,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private final ArrayList<String>  messagesList        = new ArrayList<String>();
   private final SPX42Config        currentConfig       = new SPX42Config();
   private SPX42Config              savedConfig         = null;
-  private SPX42GasList             currGasList         = null;
   private SpxPcloggerProgramConfig progConfig          = null;
   private PleaseWaitDialog         wDial               = null;
   private boolean                  ignoreAction        = false;
@@ -562,7 +558,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     if( !DEBUG )
     {
       configPanel.setAllConfigPanlelsEnabled( false );
-      gasConfigPanel.setAllGasPanelsEnabled( false );
       logListPanel.setAllLogPanelsEnabled( false );
       setElementsConnected( false );
     }
@@ -615,104 +610,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       processComboBoxActions( ev );
       return;
     }
-  }
-
-  /**
-   * Ändere Heliumanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
-   * @param gasNr
-   *          welches Gas denn
-   * @param he
-   *          Heliumanteil
-   */
-  private void changeHEFromGas( int gasNr, int he )
-  {
-    int o2;
-    o2 = currGasList.getO2FromGas( gasNr );
-    ignoreAction = true;
-    if( gasConfigPanel.getHeSpinnerMap() == null ) return;
-    if( gasConfigPanel.getO2SpinnerMap() == null ) return;
-    if( he < 0 )
-    {
-      he = 0;
-      ( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ).setValue( 0 );
-    }
-    else if( he > 100 )
-    {
-      // Mehr als 100% geht nicht!
-      // ungesundes Zeug!
-      o2 = 0;
-      he = 100;
-      ( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ).setValue( he );
-      ( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ).setValue( o2 );
-      LOGGER.log( Level.WARNING, String.format( "change helium (max) in Gas %d Value: <%d/0x%02x>...", gasNr, he, he ) );
-    }
-    else if( ( o2 + he ) > 100 )
-    {
-      // Auch hier geht nicht mehr als 100%
-      // Sauerstoff verringern!
-      o2 = 100 - he;
-      ( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ).setValue( o2 );
-      LOGGER.fine( String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
-    }
-    else
-    {
-      LOGGER.fine( String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
-    }
-    currGasList.setGas( gasNr, o2, he );
-    gasConfigPanel.setDescriptionForGas( gasNr, o2, he );
-    ignoreAction = false;
-  }
-
-  /**
-   * Ändere Sauerstoffanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
-   * @param gasNr
-   *          welches Gas
-   * @param o2
-   *          Sauerstoffanteil
-   */
-  private void changeO2FromGas( int gasNr, int o2 )
-  {
-    int he;
-    he = currGasList.getHEFromGas( gasNr );
-    ignoreAction = true;
-    if( gasConfigPanel.getHeSpinnerMap() == null ) return;
-    if( gasConfigPanel.getO2SpinnerMap() == null ) return;
-    if( o2 < 0 )
-    {
-      // das Zeut ist dann auch ungesund!
-      o2 = 0;
-      ( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ).setValue( 0 );
-    }
-    else if( o2 > 100 )
-    {
-      // Mehr als 100% geht nicht!
-      o2 = 100;
-      he = 0;
-      ( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ).setValue( he );
-      ( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ).setValue( o2 );
-      LOGGER.log( Level.WARNING, String.format( "change oxygen (max) in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
-    }
-    else if( ( o2 + he ) > 100 )
-    {
-      // Auch hier geht nicht mehr als 100%
-      // Helium verringern!
-      he = 100 - o2;
-      ( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ).setValue( he );
-      LOGGER.fine( String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
-    }
-    else
-    {
-      LOGGER.fine( String.format( "change oxygen in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
-    }
-    currGasList.setGas( gasNr, o2, he );
-    // erzeuge und setze noch den Gasnamen
-    // färbe dabei gleich die Zahlen ein
-    gasConfigPanel.setDescriptionForGas( gasNr, o2, he );
-    ignoreAction = false;
   }
 
   /**
@@ -991,22 +888,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * 
-   * Gib mal die aktuelle Gasliste zurück
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 23.09.2012
-   * @return TODO
-   */
-  public SPX42GasList getCurrGasList()
-  {
-    return( currGasList );
-  }
-
-  /**
    * Initialize the contents of the frame.
    * 
    * @throws ClassNotFoundException
@@ -1044,10 +925,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     gasConfigPanel = new spx42GaslistEditPanel( LOGGER, databaseUtil, progConfig );
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_GASLIST.ordinal(), true );
-    // GASPRESETPANEL
-    gasPresetPanel = new spx42GasPresetEditPanel( LOGGER, databaseUtil, progConfig );
-    tabbedPane.addTab( "PRESET", null, gasPresetPanel, null );
-    tabbedPane.setEnabledAt( programTabs.TAB_GASPRESET.ordinal(), true );
     // Loglisten Panel
     logListPanel = new spx42LoglistPanel( LOGGER, progConfig, this, databaseUtil );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
@@ -1238,60 +1115,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         LOGGER.fine( "warnings on  <" + cb.isSelected() + ">" );
         currentConfig.setSountEnabled( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Bailout checkbox für ein Gas?
-      else if( cmd.startsWith( "bailout:" ) )
-      {
-        String[] fields = fieldPatternDp.split( cmd );
-        try
-        {
-          int idx = Integer.parseInt( fields[1] );
-          LOGGER.fine( String.format( "Bailout %s changed.", cmd ) );
-          currGasList.setBailout( idx, cb.isSelected() );
-        }
-        catch( NumberFormatException ex )
-        {
-          LOGGER.severe( "Exception while recive bailout checkbox event: " + ex.getLocalizedMessage() );
-        }
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Diluent 1 für ein Gsas setzen?
-      else if( cmd.startsWith( "diluent1:" ) )
-      {
-        String[] fields = fieldPatternDp.split( cmd );
-        try
-        {
-          int idx = Integer.parseInt( fields[1] );
-          LOGGER.fine( String.format( "Diluent 1  to %d changed.", idx ) );
-          if( cb.isSelected() )
-          {
-            currGasList.setDiluent1( idx );
-          }
-        }
-        catch( NumberFormatException ex )
-        {
-          LOGGER.severe( "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
-        }
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Diluent 2 für ein Gsas setzen?
-      else if( cmd.startsWith( "diluent2:" ) )
-      {
-        String[] fields = fieldPatternDp.split( cmd );
-        try
-        {
-          int idx = Integer.parseInt( fields[1] );
-          LOGGER.fine( String.format( "Diluent 2  to %d changed.", idx ) );
-          if( cb.isSelected() )
-          {
-            currGasList.setDiluent2( idx );
-          }
-        }
-        catch( NumberFormatException ex )
-        {
-          LOGGER.severe( "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
-        }
       }
       else
       {
@@ -1573,6 +1396,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     else if( cmd.equals( "write_gaslist" ) )
     {
       LOGGER.log( Level.INFO, "call write gaslist to device..." );
+      SPX42GasList currGasList = gasConfigPanel.getCurrGasList();
+      if( currGasList == null )
+      {
+        LOGGER.warning( "Not gaslist in gaseditPanle created!" );
+        return;
+      }
       if( btComm != null )
       {
         if( btComm.isConnected() && currGasList.isInitialized() )
@@ -2023,6 +1852,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         btComm.askForFirmwareVersion();
         connectionPanel.setAliasesEditable( false );
         connectionPanel.refreshAliasTable();
+        gasConfigPanel.setPanelOnlineMode( true );
         // ware, bis die Nachricht FWVERSION_READ kommt, um das wartefenster zu schliessen
         waitForMessage = ProjectConst.MESSAGE_FWVERSION_READ;
         break;
@@ -2037,7 +1867,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         setElementsConnected( false );
         configPanel.setAllConfigPanlelsEnabled( false );
-        gasConfigPanel.setElementsGasMatrixPanelEnabled( false );
+        gasConfigPanel.setPanelOnlineMode( false );
         connectionPanel.refreshAliasTable();
         if( tabbedPane.getSelectedIndex() != programTabs.TAB_CONNECT.ordinal() )
         {
@@ -2131,10 +1961,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Nachricht über den Empfang einer Gaseinstellung
       case ProjectConst.MESSAGE_GAS_READ:
         // Gibts schon ein GasListObjekt
+        SPX42GasList currGasList = gasConfigPanel.getCurrGasList();
         if( currGasList == null )
         {
-          // erzeuge eines!
-          currGasList = new SPX42GasList( LOGGER );
+          LOGGER.warning( "not alloacated gaslist in gasEdotPanel yet!" );
+          return;
         }
         // läßt sich das Teil parsen?
         if( currGasList.setGas( cmd ) )
@@ -2143,40 +1974,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           if( currGasList.isInitialized() )
           {
             // wenn die Gaskiste initialisiert ist
-            gasConfigPanel.setElementsGasMatrixPanelEnabled( true );
-            // Mach mal alles in die Spinner rein
-            if( gasConfigPanel.getHeSpinnerMap() == null ) return;
-            if( gasConfigPanel.getO2SpinnerMap() == null ) return;
-            if( gasConfigPanel.getDiluent1Map() == null ) return;
-            if( gasConfigPanel.getDiluent2Map() == null ) return;
-            if( gasConfigPanel.getBailoutMap() == null ) return;
-            ignoreAction = true;
-            for( int i = 0; i < currGasList.getGasCount(); i++ )
-            {
-              ( gasConfigPanel.getHeSpinnerMap().get( i ) ).setValue( currGasList.getHEFromGas( i ) );
-              ( gasConfigPanel.getO2SpinnerMap().get( i ) ).setValue( currGasList.getO2FromGas( i ) );
-              gasConfigPanel.setDescriptionForGas( i, currGasList.getO2FromGas( i ), currGasList.getHEFromGas( i ) );
-              // ist dieses Gas Diluent 1?
-              if( currGasList.getDiulent1() == i )
-              {
-                ( gasConfigPanel.getDiluent1Map().get( i ) ).setSelected( true );
-              }
-              // ist dieses Gas Diluent 2?
-              if( currGasList.getDiluent2() == i )
-              {
-                ( gasConfigPanel.getDiluent2Map().get( i ) ).setSelected( true );
-              }
-              // Status als Bailoutgas?
-              if( currGasList.getBailout( i ) == 3 )
-              {
-                ( gasConfigPanel.getBailoutMap().get( i ) ).setSelected( true );
-              }
-              else
-              {
-                ( gasConfigPanel.getBailoutMap().get( i ) ).setSelected( false );
-              }
-            }
-            ignoreAction = false;
+            gasConfigPanel.initGasesFromCurrent();
             // dann kann das fenster ja wech!
             if( wDial != null )
             {
@@ -2402,7 +2200,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     connectionPanel.setElementsConnected( active );
     tabbedPane.setEnabledAt( programTabs.TAB_CONFIG.ordinal(), active );
-    tabbedPane.setEnabledAt( programTabs.TAB_GASLIST.ordinal(), active );
+    // tabbedPane.setEnabledAt( programTabs.TAB_GASLIST.ordinal(), active );
     tabbedPane.setEnabledAt( programTabs.TAB_LOGREAD.ordinal(), active );
     if( !active )
     {
@@ -2530,10 +2328,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Tabbed Pane gas
       tabbedPane.setTitleAt( programTabs.TAB_GASLIST.ordinal(), stringsBundle.getString( "spx42GaslistEditPanel.title" ) );
       gasConfigPanel.setLanguageStrings( stringsBundle );
-      // //////////////////////////////////////////////////////////////////////
-      // Tabbed Pane gaspreset
-      tabbedPane.setTitleAt( programTabs.TAB_GASPRESET.ordinal(), stringsBundle.getString( "spx42GasPresetEditPanel.title" ) );
-      gasPresetPanel.setLanguageStrings( stringsBundle );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane log
       tabbedPane.setTitleAt( programTabs.TAB_LOGREAD.ordinal(), stringsBundle.getString( "spx42LoglistPanel.title" ) );
@@ -2820,29 +2614,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
       else
       {
-        // //////////////////////////////////////////////////////////////////////
-        // Nix gefunden, also versuch mal die Listen durch
-        if( gasConfigPanel.getHeSpinnerMap() == null ) return;
-        if( gasConfigPanel.getO2SpinnerMap() == null ) return;
-        for( int gasNr = 0; gasNr < currGasList.getGasCount(); gasNr++ )
-        {
-          if( currSpinner.equals( gasConfigPanel.getO2SpinnerMap().get( gasNr ) ) )
-          {
-            // O2 Spinner betätigt
-            // Gas <gasNr> Sauerstoffanteil ändern
-            currValue = ( Integer )currSpinner.getValue();
-            changeO2FromGas( gasNr, currValue );
-            return;
-          }
-          else if( currSpinner.equals( gasConfigPanel.getHeSpinnerMap().get( gasNr ) ) )
-          {
-            // Heliumspinner betätigt
-            // Gas <gasNr> Heliumanteil ändern
-            currValue = ( Integer )currSpinner.getValue();
-            changeHEFromGas( gasNr, currValue );
-            return;
-          }
-        }
         LOGGER.log( Level.WARNING, "unknown spinner recived!" );
       }
     }
@@ -2950,21 +2721,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           // Panel Daten freigeben
           gasConfigPanel.releasePanel();
-        }
-        //
-        // ist es das Gas Preset Panel?
-        //
-        if( tabIdx == programTabs.TAB_GASPRESET.ordinal() )
-        {
-          // Panel initialisieren
-          LOGGER.fine( "gas preset tab select, init gui..." );
-          gasPresetPanel.setMouseMoveListener( this );
-          gasPresetPanel.prepareGasslistPanel();
-        }
-        else
-        {
-          // Panel Daten freigeben
-          gasPresetPanel.releasePanel();
         }
       }
     }

@@ -17,6 +17,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
@@ -32,6 +33,8 @@ import javax.swing.JSpinner.NumberEditor;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.GasComputeUnit;
@@ -42,35 +45,39 @@ import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 //@formatter:off
-public class spx42GaslistEditPanel extends JPanel implements ItemListener, ActionListener
+public class spx42GaslistEditPanel extends JPanel implements ItemListener, ActionListener, ChangeListener
 {  //
-  private static Color                      gasNameNormalColor = new Color( 0x000088 );
-  private static Color                      gasDangerousColor  = Color.red;
-  private static Color                      gasNoNormOxicColor = Color.MAGENTA;
-  private final HashMap<Integer, JSpinner>  o2SpinnerMap       = new HashMap<Integer, JSpinner>();
-  private final HashMap<Integer, JSpinner>  heSpinnerMap       = new HashMap<Integer, JSpinner>();
-  private final HashMap<Integer, JLabel>    gasLblMap          = new HashMap<Integer, JLabel>();
+  private static Color                      gasNameNormalColor  = new Color( 0x000088 );
+  private static Color                      gasDangerousColor   = Color.red;
+  private static Color                      gasNoNormOxicColor  = Color.MAGENTA;
+  private final HashMap<Integer, JSpinner>  o2SpinnerMap        = new HashMap<Integer, JSpinner>();
+  private final HashMap<Integer, JSpinner>  heSpinnerMap        = new HashMap<Integer, JSpinner>();
+  private final HashMap<Integer, JLabel>    gasLblMap           = new HashMap<Integer, JLabel>();
   private final HashMap<Integer, JLabel>    gasLblMap2          = new HashMap<Integer, JLabel>();
-  private final HashMap<Integer, JCheckBox> bailoutMap         = new HashMap<Integer, JCheckBox>();
-  private final HashMap<Integer, JCheckBox> diluent1Map        = new HashMap<Integer, JCheckBox>();
-  private final HashMap<Integer, JCheckBox> diluent2Map        = new HashMap<Integer, JCheckBox>();
+  private final HashMap<Integer, JCheckBox> bailoutMap          = new HashMap<Integer, JCheckBox>();
+  private final HashMap<Integer, JCheckBox> diluent1Map         = new HashMap<Integer, JCheckBox>();
+  private final HashMap<Integer, JCheckBox> diluent2Map         = new HashMap<Integer, JCheckBox>();
   private LogDerbyDatabaseUtil              databaseUtil        = null;
   private Logger                            LOGGER              = null;
   private int                               licenseState        = ProjectConst.SPX_LICENSE_NOT_SET;
   private int                               customConfig        = -1;
   private boolean                           isPanelInitiated    = false;
+  private boolean                           isOnline            = false;
   private ResourceBundle                    stringsBundle       = null;
   private MainCommGUI                       mainCommGUI         = null;
-  private boolean                           isElementsGasMatrixEnabled = false;
+  // private boolean isElementsGasMatrixEnabled = false;
   private SpxPcloggerProgramConfig          progConfig          = null;
   private String                            unitsString         = "metric";
   private double                            ppOMax              = 1.6D;
   private boolean                           salnity             = false;
+  private SPX42GasList                      currGasList         = null;
+  private boolean                           ignoreAction        = false;
+  private static final Pattern              fieldPatternDp      = Pattern.compile( ":" );
   // @formatter:on
   /**
    * 
    */
-  private static final long                 serialVersionUID           = 1L;
+  private static final long                 serialVersionUID    = 1L;
   private JLabel                            gasLabel_00;
   private JLabel                            gasLabel_01;
   private JLabel                            gasLabel_03;
@@ -107,8 +114,8 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   private JLabel                            gasNameLabel_05;
   private JLabel                            gasNameLabel_06;
   private JLabel                            gasNameLabel_07;
-  private final ButtonGroup                 duluent1ButtonGroup        = new ButtonGroup();
-  private final ButtonGroup                 diluent2ButtonGroup        = new ButtonGroup();
+  private final ButtonGroup                 duluent1ButtonGroup = new ButtonGroup();
+  private final ButtonGroup                 diluent2ButtonGroup = new ButtonGroup();
   private JLabel                            licenseStatusLabel;
   private JButton                           gasReadFromSPXButton;
   private JButton                           gasWriteToSPXButton;
@@ -146,6 +153,7 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   private JLabel                            borderGasLabel_05;
   private JLabel                            borderGasLabel_06;
   private JLabel                            borderGasLabel_07;
+  private JButton                           buttonComputeGases;
 
   /**
    * 
@@ -188,7 +196,10 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     this.LOGGER = logger;
     this.progConfig = progConfig;
     this.databaseUtil = databaseUtil;
-    isPanelInitiated = false;
+    this.currGasList = new SPX42GasList( logger );
+    this.isPanelInitiated = false;
+    this.isOnline = false;
+    this.licenseState = ProjectConst.SPX_LICENSE_NOT_SET;
   }
 
   @Override
@@ -266,8 +277,106 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   }
 
   /**
+   * Ändere Heliumanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * Fülle die Preset-Combobox mit Dten aus der Datenbank
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
+   * @param gasNr
+   *          welches Gas denn
+   * @param he
+   *          Heliumanteil
+   */
+  private void changeHEFromGas( int gasNr, int he )
+  {
+    int o2;
+    o2 = currGasList.getO2FromGas( gasNr );
+    ignoreAction = true;
+    if( heSpinnerMap == null ) return;
+    if( o2SpinnerMap == null ) return;
+    if( he < 0 )
+    {
+      he = 0;
+      ( heSpinnerMap.get( gasNr ) ).setValue( 0 );
+    }
+    else if( he > 100 )
+    {
+      // Mehr als 100% geht nicht!
+      // ungesundes Zeug!
+      o2 = 0;
+      he = 100;
+      ( heSpinnerMap.get( gasNr ) ).setValue( he );
+      ( o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      LOGGER.log( Level.WARNING, String.format( "change helium (max) in Gas %d Value: <%d/0x%02x>...", gasNr, he, he ) );
+    }
+    else if( ( o2 + he ) > 100 )
+    {
+      // Auch hier geht nicht mehr als 100%
+      // Sauerstoff verringern!
+      o2 = 100 - he;
+      ( o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      LOGGER.fine( String.format( "change helium in Gas %d Value: <%d/0x%02x>, reduct O2 <%d/0x%02x...", gasNr, he, he, o2, o2 ) );
+    }
+    else
+    {
+      LOGGER.fine( String.format( "change helium in Gas %d Value: <%d/0x%02x> O2: <%d/0x%02x>...", gasNr, he, he, o2, o2 ) );
+    }
+    currGasList.setGas( gasNr, o2, he );
+    setDescriptionForGas( gasNr, o2, he );
+    ignoreAction = false;
+  }
+
+  /**
+   * Ändere Sauerstoffanteil vom Gas Nummer X Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.04.2012
+   * @param gasNr
+   *          welches Gas
+   * @param o2
+   *          Sauerstoffanteil
+   */
+  private void changeO2FromGas( int gasNr, int o2 )
+  {
+    int he;
+    he = currGasList.getHEFromGas( gasNr );
+    ignoreAction = true;
+    if( heSpinnerMap == null ) return;
+    if( o2SpinnerMap == null ) return;
+    if( o2 < 0 )
+    {
+      // das Zeut ist dann auch ungesund!
+      o2 = 0;
+      ( o2SpinnerMap.get( gasNr ) ).setValue( 0 );
+    }
+    else if( o2 > 100 )
+    {
+      // Mehr als 100% geht nicht!
+      o2 = 100;
+      he = 0;
+      ( heSpinnerMap.get( gasNr ) ).setValue( he );
+      ( o2SpinnerMap.get( gasNr ) ).setValue( o2 );
+      LOGGER.log( Level.WARNING, String.format( "change oxygen (max) in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
+    }
+    else if( ( o2 + he ) > 100 )
+    {
+      // Auch hier geht nicht mehr als 100%
+      // Helium verringern!
+      he = 100 - o2;
+      ( heSpinnerMap.get( gasNr ) ).setValue( he );
+      LOGGER.fine( String.format( "change oxygen in Gas %d Value: <%d/0x%02x>, reduct HE <%d/0x%02x...", gasNr, o2, o2, he, he ) );
+    }
+    else
+    {
+      LOGGER.fine( String.format( "change oxygen in Gas %d Value: <%d/0x%02x>...", gasNr, o2, o2 ) );
+    }
+    currGasList.setGas( gasNr, o2, he );
+    // erzeuge und setze noch den Gasnamen
+    // und färbe dabei gleich die Zahlen ein
+    setDescriptionForGas( gasNr, o2, he );
+    ignoreAction = false;
+  }
+
+  /**
+   * 
+   * Fülle die Preset-Combobox mit Daten aus der Datenbank
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
@@ -290,92 +399,91 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     GasPresetComboBoxModel presetModel = new GasPresetComboBoxModel( databaseUtil.getPresets() );
     presetModel.insertElementAt( new GasPresetComboObject( "SPX42 - current", -1 ), 0 );
     customPresetComboBox.setModel( presetModel );
-    customPresetComboBox.setSelectedIndex( 0 );
+    if( isOnline )
+    {
+      customPresetComboBox.setSelectedIndex( 0 );
+    }
+    else
+    {
+      customPresetComboBox.setSelectedIndex( 0 );
+    }
   }
 
   /**
    * 
-   * Bailout Checkboxenliste veröffentlichen
+   * Die aktuelle Gasliste zurückgeben
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 03.09.2012
-   * @return Liste der Checkboxen
+   *         Stand: 07.10.2012
+   * @return aktuelle Online Gasliste
+   * 
    */
-  public HashMap<Integer, JCheckBox> getBailoutMap()
+  public SPX42GasList getCurrGasList()
   {
-    if( !isPanelInitiated ) return( null );
-    return( bailoutMap );
+    return( currGasList );
   }
 
   /**
    * 
-   * Diluent-1 Checkboxenliste veröffentlichen
+   * Gase von currentGas initialisieren
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 03.09.2012
-   * @return Liste der Checkboxen
+   *         Stand: 07.10.2012
    */
-  public HashMap<Integer, JCheckBox> getDiluent1Map()
+  public void initGasesFromCurrent()
   {
-    if( !isPanelInitiated ) return( null );
-    return( diluent1Map );
-  }
-
-  /**
-   * 
-   * Diluent-2 Checkboxenliste veröffentlichen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 03.09.2012
-   * @return Liste der Checkboxen
-   */
-  public HashMap<Integer, JCheckBox> getDiluent2Map()
-  {
-    if( !isPanelInitiated ) return( null );
-    return( diluent2Map );
-  }
-
-  /**
-   * 
-   * Spinner für Heliumeinstellung veröffentlichen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 03.09.2012
-   * @return Liste der Spinner
-   */
-  public HashMap<Integer, JSpinner> getHeSpinnerMap()
-  {
-    if( !isPanelInitiated ) return( null );
-    return( heSpinnerMap );
-  }
-
-  /**
-   * 
-   * Spinner für Sauerstoffeinstellung veröffentlichen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 03.09.2012
-   * @return liste der Spinner
-   */
-  public HashMap<Integer, JSpinner> getO2SpinnerMap()
-  {
-    if( !isPanelInitiated ) return( null );
-    return( o2SpinnerMap );
+    //
+    // Gase initialisieren
+    //
+    if( !currGasList.isInitialized() )
+    {
+      LOGGER.warning( "currentGasList nor initialized! Abort." );
+      return;
+    }
+    //
+    // erst mal nicht auf Änderugen reagieren
+    //
+    ignoreAction = true;
+    //
+    // alle Gase eintragen
+    //
+    for( int idx = 0; idx < currGasList.getGasCount(); idx++ )
+    {
+      ( heSpinnerMap.get( idx ) ).setValue( currGasList.getHEFromGas( idx ) );
+      ( o2SpinnerMap.get( idx ) ).setValue( currGasList.getO2FromGas( idx ) );
+      if( currGasList.getDiulent1() == idx )
+      {
+        ( diluent1Map.get( idx ) ).setSelected( true );
+      }
+      // ist dieses Gas Diluent 2?
+      if( currGasList.getDiluent2() == idx )
+      {
+        ( diluent2Map.get( idx ) ).setSelected( true );
+      }
+      // Status als Bailoutgas?
+      if( currGasList.getBailout( idx ) == 3 )
+      {
+        ( bailoutMap.get( idx ) ).setSelected( true );
+      }
+      else
+      {
+        ( bailoutMap.get( idx ) ).setSelected( false );
+      }
+    }
+    //
+    // nachträglich alle Beschreibungen setzen
+    //
+    setAllDescriptionsForGas();
+    //
+    // reagiere wieder auf Änderungen
+    //
+    ignoreAction = false;
   }
 
   /**
@@ -478,7 +586,7 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     gasReadFromSPXButton.setForeground( new Color( 0, 100, 0 ) );
     gasReadFromSPXButton.setBackground( new Color( 152, 251, 152 ) );
     gasReadFromSPXButton.setActionCommand( "read_gaslist" );
-    gasReadFromSPXButton.setBounds( 10, 421, 199, 60 );
+    gasReadFromSPXButton.setBounds( 10, 421, 200, 60 );
     add( gasReadFromSPXButton );
     gasWriteToSPXButton = new JButton( "WRITE" );
     gasWriteToSPXButton.setIconTextGap( 15 );
@@ -487,10 +595,10 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     gasWriteToSPXButton.setForeground( Color.RED );
     gasWriteToSPXButton.setBackground( new Color( 255, 192, 203 ) );
     gasWriteToSPXButton.setActionCommand( "write_gaslist" );
-    gasWriteToSPXButton.setBounds( 346, 421, 217, 60 );
+    gasWriteToSPXButton.setBounds( 219, 421, 200, 60 );
     add( gasWriteToSPXButton );
     gasMatrixPanel = new JPanel();
-    gasMatrixPanel.setBorder( new LineBorder( new Color( 0, 0, 0 ) ) );
+    gasMatrixPanel.setBorder( new LineBorder( Color.BLACK, 1, true ) );
     gasMatrixPanel.setBounds( 10, 11, 773, 368 );
     add( gasMatrixPanel );
     GridBagLayout gbl_gasMatrixPanel = new GridBagLayout();
@@ -1058,12 +1166,22 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     pressureUnitLabel = new JLabel( "BAR" );
     pressureUnitLabel.setBounds( 675, 390, 46, 14 );
     add( pressureUnitLabel );
+    buttonComputeGases = new JButton( "COMPUTE" );
+    buttonComputeGases.setIcon( new ImageIcon( spx42GaslistEditPanel.class.getResource( "/com/sun/java/swing/plaf/windows/icons/Computer.gif" ) ) );
+    buttonComputeGases.setIconTextGap( 15 );
+    buttonComputeGases.setHorizontalAlignment( SwingConstants.LEFT );
+    buttonComputeGases.setForeground( Color.BLUE );
+    buttonComputeGases.setBackground( new Color( 250, 250, 210 ) );
+    buttonComputeGases.setActionCommand( "compute_gas" );
+    buttonComputeGases.setBounds( 429, 421, 133, 60 );
+    add( buttonComputeGases );
     isPanelInitiated = true;
   }
 
   @Override
   public void itemStateChanged( ItemEvent ev )
   {
+    if( ignoreAction ) return;
     // ////////////////////////////////////////////////////////////////////////
     // Checkbox Event?
     if( ev.getSource() instanceof JCheckBox )
@@ -1071,12 +1189,66 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
       JCheckBox cb = ( JCheckBox )ev.getItemSelectable();
       String cmd = cb.getActionCommand();
       // //////////////////////////////////////////////////////////////////////
-      // Dynamische Gradienten?
+      // Salzwasser?
       if( cmd.equals( "check_salnity" ) )
       {
         LOGGER.fine( "salnity <" + cb.isSelected() + ">" );
         salnity = cb.isSelected();
         setAllDescriptionsForGas();
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Bailout checkbox für ein Gas?
+      else if( cmd.startsWith( "bailout:" ) )
+      {
+        String[] fields = fieldPatternDp.split( cmd );
+        try
+        {
+          int idx = Integer.parseInt( fields[1] );
+          LOGGER.fine( String.format( "Bailout %s changed.", cmd ) );
+          currGasList.setBailout( idx, cb.isSelected() );
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.severe( "Exception while recive bailout checkbox event: " + ex.getLocalizedMessage() );
+        }
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Diluent 1 für ein Gas setzen?
+      else if( cmd.startsWith( "diluent1:" ) )
+      {
+        String[] fields = fieldPatternDp.split( cmd );
+        try
+        {
+          int idx = Integer.parseInt( fields[1] );
+          LOGGER.fine( String.format( "Diluent 1  to %d changed.", idx ) );
+          if( cb.isSelected() )
+          {
+            currGasList.setDiluent1( idx );
+          }
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.severe( "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
+        }
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Diluent 2 für ein Gas setzen?
+      else if( cmd.startsWith( "diluent2:" ) )
+      {
+        String[] fields = fieldPatternDp.split( cmd );
+        try
+        {
+          int idx = Integer.parseInt( fields[1] );
+          LOGGER.fine( String.format( "Diluent 2  to %d changed.", idx ) );
+          if( cb.isSelected() )
+          {
+            currGasList.setDiluent2( idx );
+          }
+        }
+        catch( NumberFormatException ex )
+        {
+          LOGGER.severe( "Exception while recive diluent1 checkbox event: " + ex.getLocalizedMessage() );
+        }
       }
       else
       {
@@ -1162,15 +1334,11 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
         }
       }
     }
-    // currGasList = tempGasList;
     //
     // Gase initialisieren
     //
-    for( int idx = 0; idx < tempGasList.getGasCount(); idx++ )
-    {
-      ( heSpinnerMap.get( idx ) ).setValue( tempGasList.getHEFromGas( idx ) );
-      ( o2SpinnerMap.get( idx ) ).setValue( tempGasList.getO2FromGas( idx ) );
-    }
+    currGasList = tempGasList;
+    initGasesFromCurrent();
   }
 
   /**
@@ -1187,9 +1355,13 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   {
     initPanel();
     initGasObjectMaps();
-    setAllGasPanelsEnabled( isElementsGasMatrixEnabled );
+    if( !isOnline )
+    {
+      licenseState = ProjectConst.SPX_LICENSE_FULLTX;
+    }
     setLanguageStrings( stringsBundle );
     setLicenseLabel( stringsBundle );
+    setAllGasPanels();
     fillPresetComboBox();
     setGlobalChangeListener( mainCommGUI );
   }
@@ -1231,7 +1403,6 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   {
     int i, o2, he;
     if( !isPanelInitiated ) return;
-    if( !isElementsGasMatrixEnabled ) return;
     for( i = 0; i < 8; i++ )
     {
       o2 = ( Integer )o2SpinnerMap.get( i ).getValue();
@@ -1242,7 +1413,7 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
 
   /**
    * 
-   * Alle Gaseinstellungsdinger de/aktivieren
+   * Alles im Panel vorbereiten
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
@@ -1250,13 +1421,126 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
    * 
    *         Stand: 22.04.2012
    * @param en
-   *          enabled?
    */
-  public void setAllGasPanelsEnabled( boolean en )
+  private void setAllGasPanels()
   {
-    setElementsGasMatrixPanelEnabled( en );
-    // momentan IMMER disabled
-    setGasPresetObjectsEnabled( false );
+    if( !isPanelInitiated ) return;
+    LOGGER.fine( "setAllGasPanels..." );
+    for( Component cp : gasMatrixPanel.getComponents() )
+    {
+      // License State 0=Nitrox,1=Normoxic Trimix,2=Full Trimix
+      // isses ein Spinner?
+      if( cp instanceof JSpinner )
+      {
+        JSpinner currSpinner = ( JSpinner )cp;
+        // welcher Lizenzstatus
+        // ////////////////////////////////////////////////////////////////////
+        // Ist es NITROX?
+        if( licenseState <= ProjectConst.SPX_LICENSE_NITROX )
+        {
+          LOGGER.fine( "setAllGasPanels...NITROX..." );
+          // issen einer von den Helium-Teilen
+          for( Integer idx : heSpinnerMap.keySet() )
+          {
+            JSpinner sp = heSpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein Helium-Teil, NITROX enabled, also sperre das Ding
+              sp.setValue( 0 );
+              sp.setEnabled( false );
+            }
+          }
+          // ein Sauerstoffteil?
+          for( Integer idx : o2SpinnerMap.keySet() )
+          {
+            JSpinner sp = o2SpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein Sauerstoff-Teil, NITROX enabled, setze Range von 18 bis 100%
+              sp.setEnabled( true );
+              sp.setModel( new SpinnerNumberModel( 21, 18, 100, 1 ) );
+            }
+          }
+        }
+        // ////////////////////////////////////////////////////////////////////
+        // ist es Normoxic Trimix?
+        if( licenseState == ProjectConst.SPX_LICENSE_NORMOXICTX )
+        {
+          LOGGER.fine( "setAllGasPanels...NORMOXICTX..." );
+          // issen einer von den Helium-Teilen / Normoxic Trimix enabled
+          for( Integer idx : heSpinnerMap.keySet() )
+          {
+            JSpinner sp = heSpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein Helium-Teil, max 79 Prozent Helium
+              sp.setEnabled( true );
+              sp.setModel( new SpinnerNumberModel( 0, 0, 79, 1 ) );
+            }
+          }
+          // ein Sauerstoffteil?
+          for( Integer idx : o2SpinnerMap.keySet() )
+          {
+            JSpinner sp = o2SpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein O2-Teil, NORMOXIC Trimix enabled, Bereich von 18 bis 100%
+              sp.setEnabled( true );
+              sp.setModel( new SpinnerNumberModel( 21, 18, 100, 1 ) );
+            }
+          }
+        }
+        // ////////////////////////////////////////////////////////////////////
+        // ist es FULL Trimix
+        else if( licenseState == ProjectConst.SPX_LICENSE_FULLTX )
+        {
+          LOGGER.fine( "setAllGasPanels...FULLTX..." );
+          // Full Trimix
+          // issen einer von den Helium-Teilen
+          for( Integer idx : heSpinnerMap.keySet() )
+          {
+            JSpinner sp = heSpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein Helium-Teil, full Trimix
+              currSpinner.setEnabled( true );
+              currSpinner.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+            }
+          }
+          // ein Sauerstoffteil?
+          for( Integer idx : o2SpinnerMap.keySet() )
+          {
+            JSpinner sp = o2SpinnerMap.get( idx );
+            if( currSpinner.equals( sp ) )
+            {
+              // ja, ein O2-Teil, Full Trimmix enabled
+              currSpinner.setEnabled( true );
+              currSpinner.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
+            }
+          }
+        }
+      }
+      else
+      {
+        cp.setEnabled( true );
+      }
+    }
+    gasMatrixPanel.setEnabled( true );
+    gasWriteToSPXButton.setEnabled( isOnline );
+    gasReadFromSPXButton.setEnabled( isOnline );
+    customPresetComboBox.setEnabled( true );
+    writeGasPresetButton.setEnabled( true );
+    //
+    // farbig hervorheben
+    //
+    if( isOnline )
+    {
+      gasMatrixPanel.setBorder( new LineBorder( Color.GREEN, 3, true ) );
+    }
+    else
+    {
+      gasMatrixPanel.setBorder( new LineBorder( Color.BLUE, 1, true ) );
+    }
   }
 
   /**
@@ -1277,7 +1561,6 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     double mod, ead;
     int n2 = 100 - ( o2 + he );
     if( !isPanelInitiated ) return;
-    if( !isElementsGasMatrixEnabled ) return;
     gasLblMap.get( i ).setText( GasComputeUnit.getNameForGas( o2, he ) );
     setGasColor( i, o2 );
     if( unitsString.equals( "metric" ) )
@@ -1294,122 +1577,6 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
       ead = GasComputeUnit.getEADForGasImperial( n2, mod, salnity );
       gasLblMap2.get( i ).setText( String.format( stringsBundle.getString( "spx42GaslistEditPanel.mod-ead-label.imperial" ), Math.round( mod ), Math.round( ead ) ) );
     }
-  }
-
-  /**
-   * 
-   * Alles inm Panel für die Gasmatrix de/aktivieren
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 22.04.2012
-   * @param en
-   */
-  public void setElementsGasMatrixPanelEnabled( boolean en )
-  {
-    this.isElementsGasMatrixEnabled = en;
-    if( !isPanelInitiated ) return;
-    for( Component cp : gasMatrixPanel.getComponents() )
-    {
-      // License State 0=Nitrox,1=Normoxic Trimix,2=Full Trimix
-      // isses ein Spinner?
-      if( cp instanceof JSpinner )
-      {
-        JSpinner currSpinner = ( JSpinner )cp;
-        // welcher Lizenzstatus
-        // ////////////////////////////////////////////////////////////////////
-        // Ist es NITROX?
-        if( licenseState <= ProjectConst.SPX_LICENSE_NITROX )
-        {
-          // issen einer von den Helium-Teilen
-          for( Integer idx : heSpinnerMap.keySet() )
-          {
-            JSpinner sp = heSpinnerMap.get( idx );
-            if( currSpinner.equals( sp ) )
-            {
-              // ja, ein Helium-Teil, NITROX enabled
-              cp.setEnabled( false );
-            }
-          }
-          // ein Sauerstoffteil?
-          for( Integer idx : o2SpinnerMap.keySet() )
-          {
-            JSpinner sp = o2SpinnerMap.get( idx );
-            if( currSpinner.equals( sp ) )
-            {
-              // ja, ein Helium-Teil, NITROX enabled
-              cp.setEnabled( en );
-              currSpinner.setModel( new SpinnerNumberModel( 21, 21, 100, 1 ) );
-            }
-          }
-        }
-        // ////////////////////////////////////////////////////////////////////
-        // ist es Normoxic Trimix?
-        if( licenseState == ProjectConst.SPX_LICENSE_NORMOXICTX )
-        {
-          // issen einer von den Helium-Teilen / Normoxic Trimix enabled
-          for( Integer idx : heSpinnerMap.keySet() )
-          {
-            JSpinner sp = heSpinnerMap.get( idx );
-            if( currSpinner.equals( sp ) )
-            {
-              // ja, ein Helium-Teil, max 79 Prozent Helium
-              cp.setEnabled( en );
-              currSpinner.setModel( new SpinnerNumberModel( 0, 0, 79, 1 ) );
-            }
-          }
-          // ein Sauerstoffteil?
-          for( Integer idx : o2SpinnerMap.keySet() )
-          {
-            JSpinner sp = o2SpinnerMap.get( idx );
-            if( currSpinner.equals( sp ) )
-            {
-              // ja, ein O2-Teil, NORMOXIC Trimix enabled
-              cp.setEnabled( en );
-              currSpinner.setModel( new SpinnerNumberModel( 21, 21, 100, 1 ) );
-            }
-          }
-        }
-        // ////////////////////////////////////////////////////////////////////
-        // ist es FULL Trimix
-        else if( licenseState == ProjectConst.SPX_LICENSE_FULLTX )
-        {
-          // Normoxic Trimix
-          // issen einer von den Helium-Teilen
-          for( Integer idx : heSpinnerMap.keySet() )
-          {
-            JSpinner sp = heSpinnerMap.get( idx );
-            if( currSpinner.equals( sp ) )
-            {
-              // ja, ein Helium-Teil, full Trimix
-              cp.setEnabled( en );
-              sp.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
-            }
-          }
-          // ein Sauerstoffteil?
-          for( Integer idx : o2SpinnerMap.keySet() )
-          {
-            JSpinner sp = o2SpinnerMap.get( idx );
-            if( currSpinner.equals( sp ) )
-            {
-              // ja, ein O2-Teil, Full Trimmix enabled
-              cp.setEnabled( en );
-              currSpinner.setModel( new SpinnerNumberModel( 1, 1, 100, 1 ) );
-            }
-          }
-        }
-      }
-      else
-      {
-        cp.setEnabled( en );
-      }
-    }
-    gasMatrixPanel.setEnabled( en );
-    gasWriteToSPXButton.setEnabled( en );
-    customPresetComboBox.setEnabled( en );
-    writeGasPresetButton.setEnabled( en );
   }
 
   /**
@@ -1445,24 +1612,6 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
 
   /**
    * 
-   * Presets erlauben/verbieten
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 22.04.2012
-   * @param en
-   */
-  public void setGasPresetObjectsEnabled( boolean en )
-  {
-    if( !isPanelInitiated ) return;
-    customPresetComboBox.setEnabled( en );
-    writeGasPresetButton.setEnabled( en );
-  }
-
-  /**
-   * 
    * Alle Change Listener für Spinner setzen
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
@@ -1479,35 +1628,33 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     for( Integer idx : o2SpinnerMap.keySet() )
     {
       JSpinner sp = o2SpinnerMap.get( idx );
-      sp.addChangeListener( mainCommGUI );
-      sp.setModel( new SpinnerNumberModel( 21, 21, 100, 1 ) );
+      sp.addChangeListener( this );
     }
     //
     for( Integer idx : heSpinnerMap.keySet() )
     {
       JSpinner sp = heSpinnerMap.get( idx );
-      sp.addChangeListener( mainCommGUI );
-      sp.setModel( new SpinnerNumberModel( 0, 0, 99, 1 ) );
+      sp.addChangeListener( this );
     }
     //
     for( Integer idx : bailoutMap.keySet() )
     {
       JCheckBox cb = bailoutMap.get( idx );
-      cb.addItemListener( mainCommGUI );
+      cb.addItemListener( this );
       cb.setActionCommand( String.format( "bailout:%d", idx ) );
     }
     //
     for( Integer idx : diluent1Map.keySet() )
     {
       JCheckBox cb = diluent1Map.get( idx );
-      cb.addItemListener( mainCommGUI );
+      cb.addItemListener( this );
       cb.setActionCommand( String.format( "diluent1:%d", idx ) );
     }
     //
     for( Integer idx : diluent2Map.keySet() )
     {
       JCheckBox cb = diluent2Map.get( idx );
-      cb.addItemListener( mainCommGUI );
+      cb.addItemListener( this );
       cb.setActionCommand( String.format( "diluent2:%d", idx ) );
     }
     //
@@ -1529,8 +1676,24 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     //
     writeGasPresetButton.addActionListener( this );
     writeGasPresetButton.addMouseMotionListener( mainCommGUI );
+    //
+    buttonComputeGases.addActionListener( this );
+    buttonComputeGases.addMouseMotionListener( mainCommGUI );
   }
 
+  /**
+   * 
+   * Lokale Sprachenstrings einbauen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.10.2012
+   * @param stringsBundle
+   * @return erfolgreich oder nicht
+   * 
+   */
   public int setLanguageStrings( ResourceBundle stringsBundle )
   {
     this.stringsBundle = stringsBundle;
@@ -1586,6 +1749,8 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
       customPresetComboBox.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.gasPanel.customPresetComboBox.tooltiptext" ) );
       salnityCheckBox.setText( stringsBundle.getString( "spx42GaslistEditPanel.salnityCheckBox.text" ) );
       salnityCheckBox.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.salnityCheckBox.tooltiptext" ) );
+      buttonComputeGases.setText( stringsBundle.getString( "spx42GaslistEditPanel.buttonComputeGases.text" ) );
+      buttonComputeGases.setToolTipText( stringsBundle.getString( "spx42GaslistEditPanel.buttonComputeGases.tooltiptext" ) );
       String[] pressureStrings = new String[7];
       // Voreinstellung für Einheiten auf dieser Seite
       if( progConfig.getUnitsProperty() == ProjectConst.UNITS_DEFAULT )
@@ -1641,12 +1806,12 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     catch( MissingResourceException ex )
     {
       System.out.println( "ERROR set language strings - the given key can be found <" + ex.getMessage() + "> ABORT!" );
-      return( 0 );
+      return( -1 );
     }
     catch( ClassCastException ex )
     {
       System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
-      return( 0 );
+      return( -1 );
     }
     return( 1 );
   }
@@ -1717,6 +1882,33 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
 
   /**
    * 
+   * Ist das Pannel im Online-Mode?
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.10.2012
+   * @param online
+   * @return Online Modus
+   */
+  public boolean setPanelOnlineMode( boolean online )
+  {
+    this.isOnline = online;
+    LOGGER.fine( "setPanelOnlineMode: " + online );
+    if( !online )
+    {
+      // Kein SPX da, muss ich also annehmen, ich hab alle Lizenzen
+      licenseState = ProjectConst.SPX_LICENSE_FULLTX;
+    }
+    setLicenseLabel( stringsBundle );
+    // Panels setzen
+    setAllGasPanels();
+    return( this.isOnline );
+  }
+
+  /**
+   * 
    * Dialogbox anzeigen, die mitteilt, daß die Lizenz nicht ausreicht
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
@@ -1768,12 +1960,10 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   private void showPresetSaveEditForm( String oldName, int dbId )
   {
     GasPresetNameDialog edDial = null;
-    SPX42GasList currGasList = null;
     //
     // vorbereitung...
     //
-    if( mainCommGUI == null ) return;
-    currGasList = mainCommGUI.getCurrGasList();
+    if( currGasList == null ) return;
     if( !currGasList.isInitialized() ) return;
     //
     edDial = new GasPresetNameDialog( stringsBundle );
@@ -1806,6 +1996,44 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     else
     {
       edDial.dispose();
+    }
+  }
+
+  @Override
+  public void stateChanged( ChangeEvent ev )
+  {
+    JSpinner currSpinner;
+    int currValue;
+    if( ignoreAction ) return;
+    // //////////////////////////////////////////////////////////////////////
+    // war es ein spinner?
+    if( ev.getSource() instanceof JSpinner )
+    {
+      currSpinner = ( JSpinner )ev.getSource();
+      // //////////////////////////////////////////////////////////////////////
+      // Nix gefunden, also versuch mal die Listen durch
+      if( heSpinnerMap == null ) return;
+      if( o2SpinnerMap == null ) return;
+      for( int gasNr = 0; gasNr < currGasList.getGasCount(); gasNr++ )
+      {
+        if( currSpinner.equals( o2SpinnerMap.get( gasNr ) ) )
+        {
+          // O2 Spinner betätigt
+          // Gas <gasNr> Sauerstoffanteil ändern
+          currValue = ( Integer )currSpinner.getValue();
+          changeO2FromGas( gasNr, currValue );
+          return;
+        }
+        else if( currSpinner.equals( heSpinnerMap.get( gasNr ) ) )
+        {
+          // Heliumspinner betätigt
+          // Gas <gasNr> Heliumanteil ändern
+          currValue = ( Integer )currSpinner.getValue();
+          changeHEFromGas( gasNr, currValue );
+          return;
+        }
+      }
+      LOGGER.log( Level.WARNING, "unknown spinner recived!" );
     }
   }
 }

@@ -47,9 +47,6 @@ import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 //@formatter:off
 public class spx42GaslistEditPanel extends JPanel implements ItemListener, ActionListener, ChangeListener
 {  //
-  private static Color                      gasNameNormalColor  = new Color( 0x000088 );
-  private static Color                      gasDangerousColor   = Color.red;
-  private static Color                      gasNoNormOxicColor  = Color.MAGENTA;
   private final HashMap<Integer, JSpinner>  o2SpinnerMap        = new HashMap<Integer, JSpinner>();
   private final HashMap<Integer, JSpinner>  heSpinnerMap        = new HashMap<Integer, JSpinner>();
   private final HashMap<Integer, JLabel>    gasLblMap           = new HashMap<Integer, JLabel>();
@@ -260,10 +257,26 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
           customPresetComboBox.setSelectedIndex( idx );
         }
       }
+      // ///////////////////////////////////////////////////////////////////////
+      // Gas vom SPX lesen
       else if( cmd.equals( "read_gaslist" ) )
       {
         // will vom SPX lesen, dann muss die combobox aber auf Index "0"
         customPresetComboBox.setSelectedIndex( 0 );
+      }
+      // ///////////////////////////////////////////////////////////////////////
+      // Gasbrerchnungen machen
+      else if( cmd.equals( "compute_gas" ) )
+      {
+        //
+        // öffne einen Berechnungsdialog zur Berechnung von Gasen
+        //
+        GasComputeDialog gcDial = new GasComputeDialog( LOGGER, stringsBundle, unitsString );
+        gcDial.showModal();
+        //
+        // hier könnte ich noch was machen
+        //
+        gcDial.dispose();
       }
       else
       {
@@ -1167,11 +1180,12 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
     pressureUnitLabel.setBounds( 675, 390, 46, 14 );
     add( pressureUnitLabel );
     buttonComputeGases = new JButton( "COMPUTE" );
-    buttonComputeGases.setIcon( new ImageIcon( spx42GaslistEditPanel.class.getResource( "/com/sun/java/swing/plaf/windows/icons/Computer.gif" ) ) );
+    buttonComputeGases.setRolloverIcon( new ImageIcon( spx42GaslistEditPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/calcColor.png" ) ) );
+    buttonComputeGases.setIcon( new ImageIcon( spx42GaslistEditPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/calcBw.png" ) ) );
     buttonComputeGases.setIconTextGap( 15 );
     buttonComputeGases.setHorizontalAlignment( SwingConstants.LEFT );
     buttonComputeGases.setForeground( Color.BLUE );
-    buttonComputeGases.setBackground( new Color( 250, 250, 210 ) );
+    buttonComputeGases.setBackground( new Color( 255, 255, 240 ) );
     buttonComputeGases.setActionCommand( "compute_gas" );
     buttonComputeGases.setBounds( 429, 421, 133, 60 );
     add( buttonComputeGases );
@@ -1595,18 +1609,18 @@ public class spx42GaslistEditPanel extends JPanel implements ItemListener, Actio
   {
     if( o2 < 14 )
     {
-      ( gasLblMap.get( gasNr ) ).setForeground( gasDangerousColor );
-      ( ( NumberEditor )( o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasDangerousColor );
+      ( gasLblMap.get( gasNr ) ).setForeground( ProjectConst.GASNAMECOLOR_DANGEROUS );
+      ( ( NumberEditor )( o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( ProjectConst.GASNAMECOLOR_DANGEROUS );
     }
     else if( o2 < 21 )
     {
-      ( gasLblMap.get( gasNr ) ).setForeground( gasNoNormOxicColor );
-      ( ( NumberEditor )( o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNoNormOxicColor );
+      ( gasLblMap.get( gasNr ) ).setForeground( ProjectConst.GASNAMECOLOR_NONORMOXIC );
+      ( ( NumberEditor )( o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( ProjectConst.GASNAMECOLOR_NONORMOXIC );
     }
     else
     {
-      ( gasLblMap.get( gasNr ) ).setForeground( gasNameNormalColor );
-      ( ( NumberEditor )( o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( gasNameNormalColor );
+      ( gasLblMap.get( gasNr ) ).setForeground( ProjectConst.GASNAMECOLOR_NORMAL );
+      ( ( NumberEditor )( o2SpinnerMap.get( gasNr ).getEditor() ) ).getTextField().setForeground( ProjectConst.GASNAMECOLOR_NORMAL );
     }
   }
 

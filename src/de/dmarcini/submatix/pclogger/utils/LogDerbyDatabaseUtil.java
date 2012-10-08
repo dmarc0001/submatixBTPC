@@ -112,14 +112,15 @@ public class LogDerbyDatabaseUtil
     //@formatter:on
     //
     // ////////////////////////////////////////////////////////////////////////
-    // Die Tabelle für Geräte (Tauchcompis mit aliasnamen und PIN)
+    // Die Tabelle für Geräte (Tauchcompis mit aliasnamen und PIN und Typ (virtual/nativ)
     //@formatter:off
     sql = String.format( 
-            "create table %s ( %s varchar(64) not null, %s varchar(64) not null, %s char(6) )",
+            "create table %s ( %s varchar(64) not null, %s varchar(64) not null, %s char(6), %s char(7) )",
             ProjectConst.A_DBALIAS,
             ProjectConst.A_DEVNAME,
             ProjectConst.A_ALIAS,
-            ProjectConst.A_PIN
+            ProjectConst.A_PIN,
+            ProjectConst.A_TYP
             );
     //@formatter:on
     LOGGER.fine( String.format( "create table: %s", ProjectConst.V_DBVERSION ) );
@@ -442,6 +443,31 @@ public class LogDerbyDatabaseUtil
     conn.commit();
   }
 
+  private void _updateDatabaseToVersion6() throws SQLException
+  {
+    String sql;
+    Statement stat;
+    //
+    LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
+    // ////////////////////////////////////////////////////////////////////////
+    // Datentabellen ergänzen
+    //
+    stat = conn.createStatement();
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Aliastabelle updaten
+    sql = String.format( "alter table %s  add %s char(7)", ProjectConst.A_DBALIAS, ProjectConst.A_TYP );
+    LOGGER.fine( String.format( "alter table " +  ProjectConst.A_ALIAS ));
+    stat.execute( sql );
+    conn.commit();
+    // ////////////////////////////////////////////////////////////////////////
+    // Die Versionstabelle updaten
+    // Versionsnummer reinschreiben
+    sql = String.format( "insert into %s ( %s ) values ( %d )", ProjectConst.V_DBVERSION, ProjectConst.V_VERSION, ProjectConst.DB_VERSION );
+    LOGGER.fine( String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
+    stat.execute( sql );
+    conn.commit();
+  }
+  
   /**
    * 
    * Einen neuen Alias in die DB aufnehmen
@@ -453,9 +479,10 @@ public class LogDerbyDatabaseUtil
    *         Stand: 05.09.2012
    * @param dev
    * @param alias
+   * @param type Gerätetyp virtual oder nativ
    * @return hat geklappt?
    */
-  public boolean addAliasForNameConn( final String dev, final String alias )
+  public boolean addAliasForNameConn( final String dev, final String alias, final String type  )
   {
     String sql;
     Statement stat;
@@ -466,7 +493,7 @@ public class LogDerbyDatabaseUtil
       return( false );
     }
     LOGGER.fine( "try to add alias..." );
-    sql = String.format( "insert into %s (%s, %s) values ('%s', '%s')", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, dev, alias );
+    sql = String.format( "insert into %s (%s, %s, %s) values ('%s', '%s', '%s')", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_TYP, dev, alias, type );
     try
     {
       stat = conn.createStatement();
@@ -706,6 +733,9 @@ public class LogDerbyDatabaseUtil
         _updateDatabaseToVersion5();
         return( conn );
       case 5:
+        _updateDatabaseToVersion6();
+        return(conn);
+      case 6:
         // das ist momentan aktuell
         return( conn );
       default:
@@ -887,17 +917,19 @@ public class LogDerbyDatabaseUtil
       //
       // Gib her die Einträge, wenn welche vorhanden sind
       //
-      sql = String.format( "select %s,%s,%s from %s order by %s", ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_PIN, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME );
+      sql = String.format( "select %s,%s,%s,%s from %s order by %s", ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_PIN, ProjectConst.A_TYP, ProjectConst.A_DBALIAS,
+              ProjectConst.A_DEVNAME );
       rs = stat.executeQuery( sql );
       while( rs.next() )
       {
-        String[] entr = new String[4];
+        String[] entr = new String[5];
         entr[0] = rs.getString( 1 ); // Device-ID
         entr[1] = rs.getString( 2 ); // Device Alias
         entr[2] = "";
         entr[3] = rs.getString( 3 ); // PIN
+        entr[4] = rs.getString( 4 ); // Typ des Gerätes (virtual oder nativ)
         aliasData.add( entr );
-        LOGGER.fine( String.format( "Read:%s::%s::%s::%s", entr[0], entr[1], entr[2], entr[3] ) );
+        LOGGER.fine( String.format( "Read:%s::%s::%s::%s::%s", entr[0], entr[1], entr[2], entr[3], entr[4] ) );
       }
       rs.close();
       stat.close();

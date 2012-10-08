@@ -1728,7 +1728,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           if( null == databaseUtil.getAliasForNameConn( cmd ) )
           {
             // dann muss ich den auch noch eintragen
-            databaseUtil.addAliasForNameConn( cmd, cmd );
+            databaseUtil.addAliasForNameConn( cmd, cmd, "virtual" );
           }
         }
         break;
@@ -2158,6 +2158,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   private void refillPortComboBox()
   {
+    // Alle Aliase holen und die nativen Geräte rausfischen
     Vector<String[]> entrys = btComm.getNameArray();
     DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
     connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );

@@ -989,7 +989,7 @@ public class BTCommunication implements IBTCommunication
                 {
                   if( log ) LOGGER.fine( "Device was not in cache. insert data..." );
                   // Gerät ist noch nicht im Cache
-                  deviceCache.addDevice( devName, url, "0000", "A-" + devName, servRecord[i].getHostDevice() );
+                  deviceCache.addDevice( devName, url, "0000", "A-" + devName, servRecord[i].getHostDevice(), "nativ" );
                 }
                 if( aListener != null )
                 {
@@ -1109,6 +1109,7 @@ public class BTCommunication implements IBTCommunication
       // den Vector mit den Stringarrays für die Anzeige in der Combobox füllen
       String dev = it.next();
       String[] e = new String[4];
+      if( deviceCache.getType( dev ).equals( "virtual" ) ) continue;
       e[0] = dev;
       e[1] = deviceCache.getAlias( dev );
       if( deviceCache.getConnectionString( dev ) != null )
@@ -1207,7 +1208,7 @@ public class BTCommunication implements IBTCommunication
           {
             if( !deviceCache.isDeviceInDb( devName ) )
             {
-              dbUtil.addAliasForNameConn( devName, deviceCache.getAlias( devName ) );
+              dbUtil.addAliasForNameConn( devName, deviceCache.getAlias( devName ), "nativ" );
             }
             else
             {

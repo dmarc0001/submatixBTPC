@@ -123,7 +123,6 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     deviceToConnectComboBox.setEnabled( true );
     virtualDeviceComboBox.setEnabled( false );
     pinButton.setEnabled( true );
-    deviceAliasButton.setEnabled( true );
     connectBtRefreshButton.setEnabled( true );
   }
 
@@ -142,7 +141,6 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     deviceToConnectComboBox.setEnabled( false );
     virtualDeviceComboBox.setEnabled( true );
     pinButton.setEnabled( false );
-    deviceAliasButton.setEnabled( false );
     connectBtRefreshButton.setEnabled( false );
   }
 
@@ -153,7 +151,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     //
     if( ev.getSource() instanceof JRadioButton )
     {
-      JRadioButton rb = ( JRadioButton )ev.getSource();
+      // JRadioButton rb = ( JRadioButton )ev.getSource();
       // //////////////////////////////////////////////////////////////////////
       // Bluethooth direkt Kommunizieren
       if( cmd.equals( "connect_bt_direct" ) )

@@ -209,7 +209,7 @@ public class DeviceCache
 
   /**
    * 
-   * Das Remote Device von einem Gerär abfragen
+   * Das Remote Device von einem Gerät abfragen
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
    * 

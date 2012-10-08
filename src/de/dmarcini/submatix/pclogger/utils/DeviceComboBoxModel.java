@@ -23,6 +23,8 @@ public class DeviceComboBoxModel extends DefaultComboBoxModel
   // elem[0] == device ID
   // elem[1] == Device Alias
   // elem[2] == Flag, ob Device im BT gefunden wurde
+  // elem[3] == PIN
+  // elem[4] == Typ
   //
   /**
    * 

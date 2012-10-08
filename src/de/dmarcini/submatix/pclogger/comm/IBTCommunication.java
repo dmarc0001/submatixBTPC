@@ -9,6 +9,8 @@
  */
 package de.dmarcini.submatix.pclogger.comm;
 
+import gnu.io.PortInUseException;
+
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
@@ -49,6 +51,8 @@ public interface IBTCommunication
 
   public void connectDevice( String deviceName ) throws Exception;
 
+  public void connectVirtDevice( String deviceName ) throws PortInUseException, Exception;
+
   public String getConnectedDevice();
 
   public void disconnectDevice();
@@ -58,6 +62,8 @@ public interface IBTCommunication
   public void writeSPXMsgToDevice( String msg );
 
   public void askForSerialNumber();
+
+  public void setNameForVirtualDevice( String serialNumber );
 
   public void readConfigFromSPX42();
 

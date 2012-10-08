@@ -1,5 +1,10 @@
 package de.dmarcini.submatix.pclogger.comm;
 
+import gnu.io.CommPort;
+import gnu.io.CommPortIdentifier;
+import gnu.io.PortInUseException;
+import gnu.io.SerialPort;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
@@ -64,7 +69,9 @@ public class BTCommunication implements IBTCommunication
   private ReaderRunnable                              reader = null;
   private AliveTask                                    alive = null;
   private RemoteDevice                       connectedDevice = null;
+  private String                      connectedVirtualDevice = null;
   private String                                  deviceName = null;
+  private SerialPort                              serialPort = null; 
   @SuppressWarnings( "unused" )
   private static final Pattern              fieldPattern0x09 = Pattern.compile( ProjectConst.LOGSELECTOR );
   private static final Pattern                fieldPatternDp = Pattern.compile(  ":" );
@@ -1133,6 +1140,8 @@ public class BTCommunication implements IBTCommunication
     LOGGER.fine( "try to connect device <" + devName + ">..." );
     this.deviceName = devName;
     this.connectedDevice = null;
+    this.connectedVirtualDevice = null;
+    this.serialPort = null;
     // suche die URL für die Verbindung
     if( deviceCache.isDeviceThere( devName ) )
     {
@@ -1307,6 +1316,59 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
+  public void connectVirtDevice( String devName ) throws PortInUseException, Exception
+  {
+    //
+    LOGGER.fine( "try to connect virtual device <" + devName + ">..." );
+    this.deviceName = devName;
+    this.connectedDevice = null;
+    this.connectedVirtualDevice = null;
+    this.serialPort = null;
+    isConnected = false;
+    // Port ID holen
+    CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier( devName );
+    // versuch den Port zu öffnen, wirft PortInUseException
+    CommPort commPort = portIdentifier.open( this.getClass().getName(), 10000 );
+    if( commPort instanceof SerialPort )
+    {
+      LOGGER.fine( "device <" + devName + "> is serial port..." );
+      this.serialPort = ( SerialPort )commPort;
+      this.connectedVirtualDevice = "virtual";
+      // serialPort.setSerialPortParams(57600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
+      // Eingabe erzeugen
+      InputStream din = serialPort.getInputStream();
+      reader = new ReaderRunnable( din );
+      Thread rt = new Thread( reader );
+      rt.setName( "bt_reader_thread" );
+      rt.setPriority( Thread.NORM_PRIORITY - 1 );
+      rt.start();
+      //
+      // Ausgabe erzeugen
+      OutputStream dout = serialPort.getOutputStream();
+      writer = new WriterRunnable( dout );
+      Thread wt = new Thread( writer );
+      wt.setName( "bt_writer_thread" );
+      wt.setPriority( Thread.NORM_PRIORITY - 2 );
+      wt.start();
+      isConnected = true;
+      if( aListener != null )
+      {
+        ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTED, null );
+        aListener.actionPerformed( ex );
+      }
+    }
+    else
+    {
+      LOGGER.severe( "device <" + devName + "> is NOT serial port ABORT!" );
+      if( aListener != null )
+      {
+        ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+        aListener.actionPerformed( ex1 );
+      }
+    }
+  }
+
+  @Override
   public void disconnectDevice()
   {
     if( writer != null )
@@ -1337,6 +1399,13 @@ public class BTCommunication implements IBTCommunication
     writer = null;
     reader = null;
     conn = null;
+    if( this.serialPort != null )
+    {
+      this.serialPort.close();
+    }
+    this.serialPort = null;
+    this.connectedVirtualDevice = null;
+    this.connectedDevice = null;
   }
 
   @Override
@@ -1760,6 +1829,12 @@ public class BTCommunication implements IBTCommunication
   {
     if( isConnected )
     {
+      // ist es ein virtuelles Gerät?
+      if( this.connectedVirtualDevice != null )
+      {
+        // ja, dann guck ich mal weiter
+        return( this.connectedVirtualDevice );
+      }
       // ich muss mal sehen, ob da ein Eintrag ist oder besorgt werden kann
       if( this.connectedDevice == null )
       {
@@ -1810,5 +1885,11 @@ public class BTCommunication implements IBTCommunication
   public void refreshNameArray()
   {
     deviceCache.refreshFromDb();
+  }
+
+  @Override
+  public void setNameForVirtualDevice( String serialNumber )
+  {
+    this.connectedVirtualDevice = serialNumber;
   }
 }

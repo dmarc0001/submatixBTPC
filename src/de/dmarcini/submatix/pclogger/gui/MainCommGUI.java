@@ -702,52 +702,55 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 20.12.2011
    */
-  private void connectSPX()
+  private void connectSPX( String deviceName )
   {
-    int itemIndex = connectionPanel.deviceToConnectComboBox.getSelectedIndex();
-    // Welche Schnittstelle?
-    if( itemIndex == -1 )
+    LOGGER.fine( "connect via device <" + deviceName + ">..." );
+    if( btComm.isConnected() )
     {
-      LOGGER.log( Level.WARNING, "no connection device selected!" );
-      showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
+      // ist verbunden, was nun?
       return;
-    }
-    //
-    // ist das Gerät als Online gefunden markiert?
-    //
-    if( ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getWasOnlineAt( itemIndex ) )
-    {
-      // gerätenamen holen
-      String deviceName = ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getDeviceIdAt( itemIndex );
-      LOGGER.fine( "connect via device <" + deviceName + ">..." );
-      if( btComm.isConnected() )
-      {
-        // ist verbunden, was nun?
-        return;
-      }
-      else
-      {
-        // nicht verbunden, tu was!
-        try
-        {
-          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
-          wDial.setVisible( true );
-          wDial.setTimeout( 90 * 1000 );
-          btComm.connectDevice( deviceName );
-        }
-        catch( Exception ex )
-        {
-          showErrorDialog( ex.getLocalizedMessage() );
-          LOGGER.severe( "Exception: <" + ex.getMessage() + ">" );
-        }
-      }
     }
     else
     {
-      String deviceName = ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getDeviceIdAt( itemIndex );
-      String deviceAlias = ( ( DeviceComboBoxModel )connectionPanel.deviceToConnectComboBox.getModel() ).getDeviceAliasAt( itemIndex );
-      showErrorDialog( String.format( stringsBundle.getString( "MainCommGUI.errorDialog.deviceNotConnected" ), deviceName + "/" + deviceAlias ) );
-      LOGGER.warning( "the device <" + deviceName + "> was not online!" );
+      // nicht verbunden, tu was!
+      try
+      {
+        wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
+        wDial.setVisible( true );
+        wDial.setTimeout( 90 * 1000 );
+        btComm.connectDevice( deviceName );
+      }
+      catch( Exception ex )
+      {
+        showErrorDialog( ex.getLocalizedMessage() );
+        LOGGER.severe( "Exception: <" + ex.getMessage() + ">" );
+      }
+    }
+  }
+
+  private void connectVirtSPX( String deviceName )
+  {
+    LOGGER.fine( "connect via virtual device <" + deviceName + ">..." );
+    if( btComm.isConnected() )
+    {
+      // ist verbunden, was nun?
+      return;
+    }
+    else
+    {
+      // nicht verbunden, tu was!
+      try
+      {
+        wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
+        wDial.setVisible( true );
+        wDial.setTimeout( 90 * 1000 );
+        btComm.connectVirtDevice( deviceName );
+      }
+      catch( Exception ex )
+      {
+        showErrorDialog( ex.getLocalizedMessage() );
+        LOGGER.severe( "Exception: <" + ex.getMessage() + ">" );
+      }
     }
   }
 
@@ -1287,27 +1290,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     String cmd = ev.getActionCommand();
     // /////////////////////////////////////////////////////////////////////////
-    // Verbinde mit Device
-    if( cmd.equals( "connect" ) )
-    {
-      if( btComm != null )
-      {
-        waitForMessage = 0; // auf erst mal nix warten...
-        connectSPX();
-      }
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Trenne Verbindung
-    else if( cmd.equals( "disconnect" ) )
-    {
-      if( btComm != null )
-      {
-        disconnectSPX();
-      }
-    }
-    // /////////////////////////////////////////////////////////////////////////
     // lese Config aus Device
-    else if( cmd.equals( "read_config" ) )
+    if( cmd.equals( "read_config" ) )
     {
       if( btComm != null )
       {
@@ -1510,20 +1494,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     String entry = null;
     JComboBox srcBox = ( JComboBox )ev.getSource();
     // /////////////////////////////////////////////////////////////////////////
-    // Auswahl welches Gerät soll verbunden werden
-    if( connectionPanel.deviceToConnectComboBox.equals( srcBox ) )
-    {
-      if( srcBox.getSelectedIndex() == -1 )
-      {
-        // nix selektiert
-        return;
-      }
-      entry = ( String )srcBox.getItemAt( srcBox.getSelectedIndex() );
-      LOGGER.fine( "select port <" + entry + ">..." );
-    }
-    // /////////////////////////////////////////////////////////////////////////
     // Letzter Decostop auf 3 oder 6 Meter
-    else if( cmd.equals( "deco_last_stop" ) )
+    if( cmd.equals( "deco_last_stop" ) )
     {
       entry = ( String )srcBox.getSelectedItem();
       LOGGER.fine( "deco last stop <" + entry + ">..." );
@@ -1748,6 +1720,17 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         LOGGER.log( Level.INFO, "Serial Number from SPX42 recived..." );
         configPanel.setSerialNumber( cmd );
         currentConfig.setSerial( cmd );
+        // bei Verbindung mit einem virtuellen Device muss ich noch einen Namen eintragen. Das ist dann die Seriennummer
+        if( btComm.getConnectedDevice().equals( "virtual" ) )
+        {
+          btComm.setNameForVirtualDevice( cmd );
+          // jetzt guck mal, ob ein Alias vorhanden ist
+          if( null == databaseUtil.getAliasForNameConn( cmd ) )
+          {
+            // dann muss ich den auch noch eintragen
+            databaseUtil.addAliasForNameConn( cmd, cmd );
+          }
+        }
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Decompressionseinstellungen gelesen
@@ -1907,7 +1890,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       case ProjectConst.MESSAGE_BTAUTHREQEST:
         LOGGER.log( Level.INFO, "authentification requested..." );
         setPinForDevice();
-        connectSPX();
+        connectSPX( cmd );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Discover Nachricht gesendet
@@ -2132,6 +2115,32 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Der 10-Sekunden Ticker
       case ProjectConst.MESSAGE_TICK:
         if( DEBUG ) LOGGER.fine( "TICK!" );
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Ich soll mit BT Device direkt verbinden
+      case ProjectConst.MESSAGE_CONNECTBTDEVICE:
+        if( btComm != null )
+        {
+          waitForMessage = 0; // auf erst mal nix warten...
+          connectSPX( cmd );
+        }
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Ich soll mit BT Device direkt verbinden
+      case ProjectConst.MESSAGE_CONNECTVIRTDEVICE:
+        if( btComm != null )
+        {
+          waitForMessage = 0; // auf erst mal nix warten...
+          connectVirtSPX( cmd );
+        }
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Trenne Verbindung
+      case ProjectConst.MESSAGE_DISCONNECTBTDEVICE:
+        if( btComm != null )
+        {
+          disconnectSPX();
+        }
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nichts traf zu....

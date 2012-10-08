@@ -25,7 +25,7 @@ public final class ProjectConst
   public static final String GENDAY                     = "08";
   
   // Datenbankversion
-  public static int          DB_VERSION                 = 5;
+  public static int          DB_VERSION                 = 6;
 
   // interne Begrenzung für Empfangspuffer
   public static final int    MAXINBUFFER                = 10 * 1024;
@@ -180,6 +180,7 @@ public final class ProjectConst
   public static final String A_DEVNAME                  = "devname";
   public static final String A_ALIAS                    = "alias";
   public static final String A_PIN                      = "pin";
+  public static final String A_TYP                      = "typ";
   //
   // Tabelle für die Kopfdaten des Tauchgangs
   // Tabelle dive_logs

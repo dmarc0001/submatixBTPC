@@ -15,6 +15,7 @@ public class DeviceCache
     String       connection;
     String       pin;
     String       alias;
+    String       type;
     RemoteDevice remoteDevice;
     boolean      isInDb       = false;
     boolean      isConsistent = false;
@@ -22,34 +23,6 @@ public class DeviceCache
 
   private final HashMap<String, deviceData> deviceHash = new HashMap<String, deviceData>();
   private LogDerbyDatabaseUtil              dbUtil;
-
-  /**
-   * 
-   * Einfaches zufügen des Gerätes
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.09.2012
-   * @param deviceName
-   */
-  public void addDevice( final String deviceName )
-  {
-    if( !deviceHash.containsKey( deviceName ) )
-    {
-      deviceData dev = new deviceData();
-      //
-      dev.connection = null;
-      dev.pin = "0000";
-      dev.alias = "AD-" + deviceName;
-      dev.remoteDevice = null;
-      dev.isInDb = false;
-      dev.isConsistent = false;
-      //
-      deviceHash.put( deviceName, dev );
-    }
-  }
 
   /**
    * 
@@ -63,7 +36,7 @@ public class DeviceCache
    */
   @SuppressWarnings( "unused" )
   private DeviceCache()
-  {};
+  {}
 
   /**
    * 
@@ -79,6 +52,36 @@ public class DeviceCache
   public DeviceCache( LogDerbyDatabaseUtil dbUtil )
   {
     this.dbUtil = dbUtil;
+  };
+
+  /**
+   * 
+   * Einfaches zufügen des Gerätes
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 13.09.2012
+   * @param deviceName
+   * @param type
+   */
+  public void addDevice( final String deviceName, final String type )
+  {
+    if( !deviceHash.containsKey( deviceName ) )
+    {
+      deviceData dev = new deviceData();
+      //
+      dev.connection = null;
+      dev.pin = "0000";
+      dev.alias = "AD-" + deviceName;
+      dev.type = type;
+      dev.remoteDevice = null;
+      dev.isInDb = false;
+      dev.isConsistent = false;
+      //
+      deviceHash.put( deviceName, dev );
+    }
   }
 
   /**
@@ -95,8 +98,9 @@ public class DeviceCache
    * @param pin
    * @param alias
    * @param remoteDevice
+   * @param type
    */
-  public void addDevice( final String deviceName, final String connectionString, final String pin, final String alias, final RemoteDevice remoteDevice )
+  public void addDevice( final String deviceName, final String connectionString, final String pin, final String alias, final RemoteDevice remoteDevice, final String type )
   {
     if( !deviceHash.containsKey( deviceName ) )
     {
@@ -108,6 +112,7 @@ public class DeviceCache
       dev.remoteDevice = remoteDevice;
       dev.isInDb = false;
       dev.isConsistent = false;
+      dev.type = type;
       //
       deviceHash.put( deviceName, dev );
     }
@@ -151,7 +156,7 @@ public class DeviceCache
 
   /**
    * 
-   * Gib den Verbindunsstring des Gerätes zurück
+   * Gib den Verbindungsstring des Gerätes zurück
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
    * 
@@ -226,6 +231,58 @@ public class DeviceCache
       return( deviceHash.get( deviceName ).remoteDevice );
     }
     return( null );
+  }
+
+  /**
+   * 
+   * Gib den Typ des Gerätes zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 08.10.2012
+   * @param deviceName
+   * @return typ des Devices
+   * 
+   */
+  public String getType( final String deviceName )
+  {
+    return( deviceHash.get( deviceName ).type );
+  }
+
+  /**
+   * 
+   * Cache von DB füllen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 13.09.2012
+   * @return Vector mit Stringarrays
+   */
+  public Vector<String[]> initFromDb()
+  {
+    Vector<String[]> alData = dbUtil.getAliasDataConn();
+    if( alData != null )
+    {
+      for( String[] fields : alData )
+      {
+        deviceData dev = new deviceData();
+        //
+        dev.connection = null;
+        dev.pin = fields[3];
+        dev.alias = fields[1];
+        dev.remoteDevice = null;
+        dev.isInDb = true;
+        dev.isConsistent = true;
+        dev.type = fields[4];
+        //
+        deviceHash.put( fields[0], dev );
+      }
+    }
+    return( alData );
   }
 
   /**
@@ -305,6 +362,49 @@ public class DeviceCache
 
   /**
    * 
+   * Cache von Datenbank auffrischen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 13.09.2012
+   */
+  public void refreshFromDb()
+  {
+    Vector<String[]> alData = dbUtil.getAliasDataConn();
+    if( alData != null )
+    {
+      for( String[] fields : alData )
+      {
+        if( deviceHash.containsKey( fields[0] ) )
+        {
+          deviceData dev = deviceHash.get( fields[0] );
+          dev.alias = fields[1];
+          dev.pin = fields[3];
+          dev.type = fields[4];
+          dev.isInDb = true;
+        }
+        else
+        {
+          deviceData dev = new deviceData();
+          //
+          dev.connection = null;
+          dev.pin = fields[3];
+          dev.alias = fields[1];
+          dev.type = fields[4];
+          dev.remoteDevice = null;
+          dev.isInDb = true;
+          dev.isConsistent = true;
+          //
+          deviceHash.put( fields[0], dev );
+        }
+      }
+    }
+  }
+
+  /**
+   * 
    * Einen Aliasnamen für ein Gerät vergeben
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
@@ -367,7 +467,7 @@ public class DeviceCache
 
   /**
    * 
-   * Setze den Datensatz als Konsistent mirt DB
+   * Setze den Datensatz als Konsistent mit DB
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
    * 
@@ -441,79 +541,5 @@ public class DeviceCache
   public int size()
   {
     return( deviceHash.size() );
-  }
-
-  /**
-   * 
-   * Cache von DB füllen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.09.2012
-   * @return Vector mit Stringarrays
-   */
-  public Vector<String[]> initFromDb()
-  {
-    Vector<String[]> alData = dbUtil.getAliasDataConn();
-    if( alData != null )
-    {
-      for( String[] pair : alData )
-      {
-        deviceData dev = new deviceData();
-        //
-        dev.connection = null;
-        dev.pin = pair[3];
-        dev.alias = pair[1];
-        dev.remoteDevice = null;
-        dev.isInDb = true;
-        dev.isConsistent = true;
-        //
-        deviceHash.put( pair[0], dev );
-      }
-    }
-    return( alData );
-  }
-
-  /**
-   * 
-   * Cache von Datenbank auffrischen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.09.2012
-   */
-  public void refreshFromDb()
-  {
-    Vector<String[]> alData = dbUtil.getAliasDataConn();
-    if( alData != null )
-    {
-      for( String[] pair : alData )
-      {
-        if( deviceHash.containsKey( pair[0] ) )
-        {
-          deviceData dev = deviceHash.get( pair[0] );
-          dev.alias = pair[1];
-          dev.pin = pair[3];
-          dev.isInDb = true;
-        }
-        else
-        {
-          deviceData dev = new deviceData();
-          //
-          dev.connection = null;
-          dev.pin = pair[3];
-          dev.alias = pair[1];
-          dev.remoteDevice = null;
-          dev.isInDb = true;
-          dev.isConsistent = true;
-          //
-          deviceHash.put( pair[0], dev );
-        }
-      }
-    }
   }
 }

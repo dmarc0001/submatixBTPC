@@ -19,7 +19,7 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "1.0-RC02-branch";
+  public static final String MANUFACTVERS               = "1.0-RC03";
   public static final String GENYEAR                    = "2012";
   public static final String GENMONTH                   = "10";
   public static final String GENDAY                     = "08";
@@ -29,6 +29,8 @@ public final class ProjectConst
 
   // interne Begrenzung für Empfangspuffer
   public static final int    MAXINBUFFER                = 10 * 1024;
+  // wie lange wartet der Watchdog auf Schreiben ins Device
+  public static final int    WATCHDOG_FOR_WRITEOPS      = 5;
   
   // Buggy Firmware, Temperatur-Lesen, Gradienten-Bug
   public static final String FIRMWARE_2_6_7_7V          = "V2.6.7.7_V";
@@ -157,7 +159,7 @@ public final class ProjectConst
   public static final int    MESSAGE_CONNECTBTDEVICE    = ActionEvent.RESERVED_ID_MAX + 43;
   public static final int    MESSAGE_CONNECTVIRTDEVICE  = ActionEvent.RESERVED_ID_MAX + 44;
   public static final int    MESSAGE_DISCONNECTBTDEVICE = ActionEvent.RESERVED_ID_MAX + 45;
-  
+  public static final int    MESSAGE_COMMTIMEOUT        = ActionEvent.RESERVED_ID_MAX + 46;
   
   
   // Interne Messages

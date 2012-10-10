@@ -61,7 +61,7 @@ public class BTCommunication implements IBTCommunication
   static Logger                                       LOGGER = null;
   private LogDerbyDatabaseUtil                        dbUtil = null;
   private boolean                                        log = false;
-  private boolean                                isConnected = false;
+  private volatile boolean                       isConnected = false;
   private ActionListener                           aListener = null;
   private static volatile boolean          discoverInProcess = false;
   StreamConnection                                      conn = null;
@@ -72,6 +72,7 @@ public class BTCommunication implements IBTCommunication
   private String                      connectedVirtualDevice = null;
   private String                                  deviceName = null;
   private SerialPort                              serialPort = null; 
+  private int                                  writeWatchDog = -1;
   @SuppressWarnings( "unused" )
   private static final Pattern              fieldPattern0x09 = Pattern.compile( ProjectConst.LOGSELECTOR );
   private static final Pattern                fieldPatternDp = Pattern.compile(  ":" );
@@ -153,8 +154,12 @@ public class BTCommunication implements IBTCommunication
         // ich gebe einen Eintrag aus...
         try
         {
+          // Watchdog für Schreiben aktivieren
+          writeWatchDog = ProjectConst.WATCHDOG_FOR_WRITEOPS;
           // also den String Eintrag in den Outstream...
           outStream.write( ( writeList.remove( 0 ) ).getBytes() );
+          // kommt das an, den Watchog wieder AUS
+          writeWatchDog = -1;
           // zwischen den Kommandos etwas warten, der SPX braucht etwas bis er wieder zuhört...
           // das gibt dem Swing-Thread etwas Gelegenheit zum Zeichnen oder irgendwas anderem
           for( int factor = 0; factor < 5; factor++ )
@@ -762,20 +767,36 @@ public class BTCommunication implements IBTCommunication
       {
         try
         {
-          // 10 Sekunden schlafen gehen
-          Thread.sleep( 10000 );
+          // 1 Sekunden schlafen gehen
+          Thread.sleep( 1000 );
           counter++;
         }
         catch( InterruptedException ex )
-        {}
+        {
+          LOGGER.severe( "Exception while ticker sleeps: <" + ex.getMessage() + ">" );
+        }
         // aller 90 sekunden
-        if( isConnected && counter > 9 )
+        if( isConnected && counter > 90 )
         {
           askForSPXAlive();
           counter = 0;
         }
+        // den Watchdog testen
+        if( isConnected && writeWatchDog > -1 )
+        {
+          if( writeWatchDog == 0 )
+          {
+            if( aListener != null )
+            {
+              ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_COMMTIMEOUT, "timeout" );
+              aListener.actionPerformed( ev );
+            }
+          }
+          // runterzählen, bei -1 ist eh schluss
+          writeWatchDog--;
+        }
         // regelmaessig bescheid geben
-        if( aListener != null )
+        if( aListener != null && ( counter % 10 == 0 ) )
         {
           ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_TICK, "tick" );
           aListener.actionPerformed( ev );

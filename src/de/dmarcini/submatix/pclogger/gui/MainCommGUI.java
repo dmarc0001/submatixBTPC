@@ -195,6 +195,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   public static void main( String[] args )
   {
     CommandLine cmd = null;
+    StartSplashWindow splashWin = null;
+    Thread tr = null;
     //
     // Kommandozeilenargumente parsen
     //
@@ -232,7 +234,19 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     //
-    // Style bestimmen, wenn möglich
+    // So, hier könnte ich splashen, alle "gefährlichen" Sachen sind erledigt
+    //
+    splashWin = new StartSplashWindow();
+    tr = new Thread( splashWin );
+    tr.start();
+    try
+    {
+      Thread.sleep( 500 );
+    }
+    catch( InterruptedException ex1 )
+    {}
+    //
+    // GUI starten
     //
     EventQueue.invokeLater( new Runnable() {
       @Override
@@ -275,6 +289,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
       }
     } );
+    splashWin.terminate();
   }
 
   /**
@@ -525,6 +540,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         System.exit( -1 );
       }
     }
+    //
+    // jetzt die wichtigen anderen Sachen, die dauern.
+    //
     prepareDatabase();
     currentConfig.setLogger( LOGGER );
     btComm = new BTCommunication( LOGGER, databaseUtil );
@@ -1947,7 +1965,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         SPX42GasList currGasList = gasConfigPanel.getCurrGasList();
         if( currGasList == null )
         {
-          LOGGER.warning( "not alloacated gaslist in gasEdotPanel yet!" );
+          LOGGER.warning( "not alloacated gaslist in gasEditPanel yet!" );
           return;
         }
         // läßt sich das Teil parsen?
@@ -2141,6 +2159,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           disconnectSPX();
         }
+        break;
+      case ProjectConst.MESSAGE_COMMTIMEOUT:
+        LOGGER.severe( "TIMEOUT (write to comm) recived! Disconnect!" );
+        System.exit( -1 );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nichts traf zu....

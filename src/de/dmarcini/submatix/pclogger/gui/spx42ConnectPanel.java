@@ -283,27 +283,41 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
   @SuppressWarnings( "unchecked" )
   private void fillVirtualDevicesComboBox()
   {
-    CommPortIdentifier portId;
-    Enumeration<CommPortIdentifier> portList;
-    DefaultComboBoxModel mod;
-    //
-    // Liste der ports holen
-    //
-    portList = CommPortIdentifier.getPortIdentifiers();
-    //
-    // die Liste abklappern
-    // und Ergebnisse in Combo-Liste eintragen
-    //
-    mod = new DefaultComboBoxModel();
-    while( portList.hasMoreElements() )
-    {
-      portId = portList.nextElement();
-      if( portId.getPortType() == CommPortIdentifier.PORT_SERIAL )
-      {
-        mod.addElement( portId.getName() );
-      }
-    }
+    DefaultComboBoxModel mod = new DefaultComboBoxModel();
+    mod.addElement( "read virtual devices..." );
     virtualDeviceComboBox.setModel( mod );
+    //
+    // Weil es dauert, mach nen eigenen Thread draus
+    //
+    new Thread() {
+      @Override
+      public void run()
+      {
+        CommPortIdentifier portId;
+        Enumeration<CommPortIdentifier> portList;
+        DefaultComboBoxModel mod;
+        LOGGER.info( "START filltVirtualBox..." );
+        //
+        // Liste der ports holen
+        //
+        portList = CommPortIdentifier.getPortIdentifiers();
+        //
+        // die Liste abklappern
+        // und Ergebnisse in Combo-Liste eintragen
+        //
+        mod = new DefaultComboBoxModel();
+        while( portList.hasMoreElements() )
+        {
+          portId = portList.nextElement();
+          if( portId.getPortType() == CommPortIdentifier.PORT_SERIAL )
+          {
+            mod.addElement( portId.getName() );
+          }
+        }
+        virtualDeviceComboBox.setModel( mod );
+        LOGGER.info( "ENDE filltVirtualBox..." );
+      }
+    }.start();
   }
 
   /**
@@ -401,7 +415,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
   /**
    * Alias tabelle auffrischen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 26.04.2012 TODO
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 26.04.2012
    */
   public void refreshAliasTable()
   {
@@ -660,6 +674,9 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
         alMod.addTableModelListener( this );
         aliasEditTable.setModel( alMod );
       }
+      virtualDevicesLabel.setText( stringsBundle.getString( "spx42ConnectPanel.virtualDevicesLabel.text" ) );
+      bluethoothDirectLabel.setText( stringsBundle.getString( "spx42ConnectPanel.bluethoothDirectLabel.text" ) );
+      virtualDeviceComboBox.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.virtualDeviceComboBox.tooltiptext" ) );
     }
     catch( NullPointerException ex )
     {

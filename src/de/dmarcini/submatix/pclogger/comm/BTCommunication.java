@@ -1130,6 +1130,7 @@ public class BTCommunication implements IBTCommunication
       // den Vector mit den Stringarrays für die Anzeige in der Combobox füllen
       String dev = it.next();
       String[] e = new String[4];
+      if( deviceCache.getType( dev ) == null ) continue;
       if( deviceCache.getType( dev ).equals( "virtual" ) ) continue;
       e[0] = dev;
       e[1] = deviceCache.getAlias( dev );

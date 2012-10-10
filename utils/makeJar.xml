@@ -9,7 +9,6 @@
                 <attribute name="Class-Path" value="."/>
             </manifest>
             <fileset dir="C:/DATEN/eclipseWorkspace/SubmatixBTForPC/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/RXTXcomm.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/commons-cli-1.2/commons-cli-1.2.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/joda-time-2.1/joda-time-2.1.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/jfreechart/jfreechart-1.0.14/lib/jfreechart-1.0.14.jar"/>
@@ -30,7 +29,8 @@
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_zh_CN.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_zh_TW.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derby.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/bluecove-2.1.0.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/bluecove/bluecove-2.1.0-all.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/rxtx/RXTXcomm.jar"/>
         </jar>
     </target>
 </project>

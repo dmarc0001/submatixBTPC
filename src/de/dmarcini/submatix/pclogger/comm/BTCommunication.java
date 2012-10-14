@@ -74,6 +74,7 @@ public class BTCommunication implements IBTCommunication
   private String                                  deviceName = null;
   private SerialPort                              serialPort = null; 
   private int                                  writeWatchDog = -1;
+  protected String url;
   @SuppressWarnings( "unused" )
   private static final Pattern              fieldPattern0x09 = Pattern.compile( ProjectConst.LOGSELECTOR );
   private static final Pattern                fieldPatternDp = Pattern.compile(  ":" );
@@ -1172,10 +1173,8 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
-  public void connectDevice( String devName ) throws Exception
+  public void connectDevice( final String devName ) throws Exception
   {
-    String url = null;
-    String devicePin = null;
     //
     LOGGER.fine( "try to connect device <" + devName + ">..." );
     this.deviceName = devName;
@@ -1193,16 +1192,16 @@ public class BTCommunication implements IBTCommunication
         // keine url, kann man nix verbinden!
         if( aListener != null )
         {
-          ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
-          aListener.actionPerformed( ex1 );
+          ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+          aListener.actionPerformed( ev );
         }
         return;
       }
       this.connectedDevice = deviceCache.getRemoteDevice( devName );
       if( aListener != null )
       {
-        ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTING, null );
-        aListener.actionPerformed( ex );
+        ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTING, null );
+        aListener.actionPerformed( ev );
       }
     }
     else
@@ -1213,146 +1212,167 @@ public class BTCommunication implements IBTCommunication
       this.connectedDevice = null;
       if( aListener != null )
       {
-        ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTNODEVCONN, null );
-        aListener.actionPerformed( ex );
+        ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTNODEVCONN, null );
+        aListener.actionPerformed( ev );
       }
       return;
     }
     // So, das Verbinden halt...
-    try
-    {
-      if( log ) LOGGER.fine( "Connect to Device <" + devName + ">" );
-      // Verbinden....
-      if( this.connectedDevice.isAuthenticated() )
+    // Da das etwas daueren kann, in einem Thread machen
+    //
+    Thread ct = new Thread() {
+      String devicePin = null;
+
+      @Override
+      public void run()
       {
-        // Wenn device authentifiziert ist, alles OK
-        if( log ) LOGGER.log( Level.INFO, "Device is Authentificated" );
-        conn = ( StreamConnection )Connector.open( url );
-      }
-      else
-      {
-        // Device ist nicht authentifiziert.
-        // Versuch das mal zu machen
-        if( log ) LOGGER.log( Level.INFO, "try autentificating..." );
-        // versuche die PIN zu bekommen
-        devicePin = deviceCache.getPin( devName );
-        if( devicePin != null )
+        try
         {
-          // ich habe eine PIN in meinem Speicher
-          if( log ) LOGGER.log( Level.INFO, "try autentificating whith pin <" + devicePin + ">" );
-          RemoteDeviceHelper.authenticate( this.connectedDevice, devicePin );
-          conn = ( StreamConnection )Connector.open( url );
-          // Die Verbindung nun in die Alias Datenbank eintragen, wenn nicht schon vorhanden
-          if( !deviceCache.isDeviceInDb( devName ) || !deviceCache.isDeviceSyncWithDb( devName ) )
+          if( log ) LOGGER.fine( "Connect to Device <" + devName + ">" );
+          // Verbinden....
+          if( connectedDevice.isAuthenticated() )
           {
-            if( !deviceCache.isDeviceInDb( devName ) )
+            // Wenn device authentifiziert ist, alles OK
+            if( log ) LOGGER.log( Level.INFO, "Device is Authentificated" );
+            conn = ( StreamConnection )Connector.open( url );
+          }
+          else
+          {
+            // Device ist nicht authentifiziert.
+            // Versuch das mal zu machen
+            if( log ) LOGGER.log( Level.INFO, "try autentificating..." );
+            // versuche die PIN zu bekommen
+            devicePin = deviceCache.getPin( devName );
+            if( devicePin != null )
             {
-              dbUtil.addAliasForNameConn( devName, deviceCache.getAlias( devName ), "nativ" );
+              // ich habe eine PIN in meinem Speicher
+              if( log ) LOGGER.log( Level.INFO, "try autentificating whith pin <" + devicePin + ">" );
+              RemoteDeviceHelper.authenticate( connectedDevice, devicePin );
+              conn = ( StreamConnection )Connector.open( url );
+              // Die Verbindung nun in die Alias Datenbank eintragen, wenn nicht schon vorhanden
+              if( !deviceCache.isDeviceInDb( devName ) || !deviceCache.isDeviceSyncWithDb( devName ) )
+              {
+                if( !deviceCache.isDeviceInDb( devName ) )
+                {
+                  dbUtil.addAliasForNameConn( devName, deviceCache.getAlias( devName ), "nativ" );
+                }
+                else
+                {
+                  dbUtil.updateDeviceAliasConn( devName, deviceCache.getAlias( devName ) );
+                }
+                dbUtil.setPinForDeviceConn( devName, devicePin );
+                deviceCache.setDeviceInDb( devName, true );
+                deviceCache.setDeviceSyncWithDb( devName, true );
+              }
             }
             else
             {
-              dbUtil.updateDeviceAliasConn( devName, deviceCache.getAlias( devName ) );
+              // Benutzer anquengeln
+              // und PIN eigeben lassen
+              if( log ) LOGGER.log( Level.INFO, "Device is NOT Authentificated" );
+              connectedDevice = null;
+              deviceName = null;
+              if( aListener != null )
+              {
+                ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+                aListener.actionPerformed( ex1 );
+                ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTAUTHREQEST, devName );
+                aListener.actionPerformed( ex );
+              }
+              // isConnected = false;
+              return;
             }
-            dbUtil.setPinForDeviceConn( devName, devicePin );
-            deviceCache.setDeviceInDb( devName, true );
-            deviceCache.setDeviceSyncWithDb( devName, true );
+          }
+          //
+          // Wollen wir mal unser Glück versuchen?
+          //
+          // Eingabe erzeugen
+          InputStream din = new DataInputStream( conn.openInputStream() );
+          reader = new ReaderRunnable( din );
+          Thread rt = new Thread( reader );
+          rt.setName( "bt_reader_thread" );
+          rt.setPriority( Thread.NORM_PRIORITY - 1 );
+          rt.start();
+          //
+          // Ausgabe erzeugen
+          OutputStream dout;
+          dout = new DataOutputStream( conn.openOutputStream() );
+          // Get the output stream
+          writer = new WriterRunnable( dout );
+          Thread wt = new Thread( writer );
+          wt.setName( "bt_writer_thread" );
+          wt.setPriority( Thread.NORM_PRIORITY - 2 );
+          wt.start();
+          isConnected = true;
+          if( aListener != null )
+          {
+            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTED, null );
+            aListener.actionPerformed( ex );
           }
         }
-        else
+        catch( BluetoothConnectionException ex )
         {
-          // Benutzer anquengeln
-          // und PIN eigeben lassen
-          if( log ) LOGGER.log( Level.INFO, "Device is NOT Authentificated" );
-          this.connectedDevice = null;
-          this.deviceName = null;
+          isConnected = false;
+          connectedDevice = null;
+          if( log ) LOGGER.severe( "BTConnectionException <" + ex.getLocalizedMessage() + ">" );
           if( aListener != null )
           {
             ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
             aListener.actionPerformed( ex1 );
-            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTAUTHREQEST, devName );
-            aListener.actionPerformed( ex );
           }
-          // isConnected = false;
-          return;
+          int status = ex.getStatus();
+          switch ( status )
+          {
+            case BluetoothConnectionException.UNKNOWN_PSM:
+              if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed because no service for the given PSM was registered>" );
+              break;
+            case BluetoothConnectionException.SECURITY_BLOCK:
+              if( log )
+                LOGGER.severe( "BTConnectionException <the connection failed because the security settings on the local device or the remote device were incompatible with the request>" );
+              break;
+            case BluetoothConnectionException.NO_RESOURCES:
+              if( log ) LOGGER.severe( "BTConnectionException <the connection failed due to a lack of resources either on the local device or on the remote device>" );
+              break;
+            case BluetoothConnectionException.FAILED_NOINFO:
+              if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed due to unknown reasons.>" );
+              break;
+            case BluetoothConnectionException.TIMEOUT:
+              if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed due to a timeout>" );
+              break;
+            case BluetoothConnectionException.UNACCEPTABLE_PARAMS:
+              if( log )
+                LOGGER.severe( "BTConnectionException <the connection failed because the configuration parameters provided were not acceptable to either the remote device or the local device>" );
+              break;
+            default:
+              if( log ) LOGGER.severe( "BTConnectionException <unknown>" );
+          }
+        }
+        catch( IOException ex )
+        {
+          isConnected = false;
+          connectedDevice = null;
+          if( log ) LOGGER.severe( "Exception <" + ex.getLocalizedMessage() + ">" );
+          if( aListener != null )
+          {
+            ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+            aListener.actionPerformed( ev );
+          }
+        }
+        catch( Exception ex )
+        {
+          isConnected = false;
+          connectedDevice = null;
+          if( log ) LOGGER.severe( "Exception <" + ex.getLocalizedMessage() + ">" );
+          if( aListener != null )
+          {
+            ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+            aListener.actionPerformed( ex1 );
+          }
         }
       }
-      //
-      // Wollen wir mal unser Glück versuchen?
-      //
-      // Eingabe erzeugen
-      InputStream din = new DataInputStream( conn.openInputStream() );
-      reader = new ReaderRunnable( din );
-      Thread rt = new Thread( reader );
-      rt.setName( "bt_reader_thread" );
-      rt.setPriority( Thread.NORM_PRIORITY - 1 );
-      rt.start();
-      //
-      // Ausgabe erzeugen
-      OutputStream dout = new DataOutputStream( conn.openOutputStream() );// Get the output stream
-      writer = new WriterRunnable( dout );
-      Thread wt = new Thread( writer );
-      wt.setName( "bt_writer_thread" );
-      wt.setPriority( Thread.NORM_PRIORITY - 2 );
-      wt.start();
-      isConnected = true;
-      if( aListener != null )
-      {
-        ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTED, null );
-        aListener.actionPerformed( ex );
-      }
-    }
-    catch( BluetoothConnectionException ex )
-    {
-      isConnected = false;
-      this.connectedDevice = null;
-      if( log ) LOGGER.severe( "BTConnectionException <" + ex.getLocalizedMessage() + ">" );
-      if( aListener != null )
-      {
-        ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
-        aListener.actionPerformed( ex1 );
-      }
-      int status = ex.getStatus();
-      switch ( status )
-      {
-        case BluetoothConnectionException.UNKNOWN_PSM:
-          if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed because no service for the given PSM was registered>" );
-          break;
-        case BluetoothConnectionException.SECURITY_BLOCK:
-          if( log )
-            LOGGER.severe( "BTConnectionException <the connection failed because the security settings on the local device or the remote device were incompatible with the request>" );
-          break;
-        case BluetoothConnectionException.NO_RESOURCES:
-          if( log ) LOGGER.severe( "BTConnectionException <the connection failed due to a lack of resources either on the local device or on the remote device>" );
-          break;
-        case BluetoothConnectionException.FAILED_NOINFO:
-          if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed due to unknown reasons.>" );
-          break;
-        case BluetoothConnectionException.TIMEOUT:
-          if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed due to a timeout>" );
-          break;
-        case BluetoothConnectionException.UNACCEPTABLE_PARAMS:
-          if( log )
-            LOGGER.severe( "BTConnectionException <the connection failed because the configuration parameters provided were not acceptable to either the remote device or the local device>" );
-          break;
-        default:
-          if( log ) LOGGER.severe( "BTConnectionException <unknown>" );
-      }
-    }
-    catch( Exception ex )
-    {
-      isConnected = false;
-      this.connectedDevice = null;
-      if( log ) LOGGER.severe( "Exception <" + ex.getLocalizedMessage() + ">" );
-      if( aListener != null )
-      {
-        ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
-        aListener.actionPerformed( ex1 );
-      }
-    }
-    finally
-    {
-      // was immer ausgeführt werden muss
-    }
+    };
+    ct.setName( "bt_connect_thread" );
+    ct.start();
   }
 
   @Override

@@ -2,6 +2,7 @@ package de.dmarcini.submatix.pclogger.comm;
 
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
+import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
 
@@ -209,6 +210,19 @@ public class BTCommunication implements IBTCommunication
     {
       notifyAll();
       this.running = false;
+      try
+      {
+        Thread.sleep( 300 );
+        outStream.close();
+      }
+      catch( InterruptedException ex )
+      {
+        LOGGER.severe( "exception while Thread.sleep (" + ex.getLocalizedMessage() + ")" );
+      }
+      catch( IOException ex )
+      {
+        LOGGER.severe( "exception while closing outstream (" + ex.getLocalizedMessage() + ")" );
+      }
     }
 
     /**
@@ -1342,7 +1356,7 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
-  public void connectVirtDevice( String devName ) throws PortInUseException, Exception
+  public void connectVirtDevice( final String devName )
   {
     //
     LOGGER.fine( "try to connect virtual device <" + devName + ">..." );
@@ -1351,47 +1365,93 @@ public class BTCommunication implements IBTCommunication
     this.connectedVirtualDevice = null;
     this.serialPort = null;
     isConnected = false;
-    // Port ID holen
-    CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier( devName );
-    // versuch den Port zu öffnen, wirft PortInUseException
-    CommPort commPort = portIdentifier.open( this.getClass().getName(), 10000 );
-    if( commPort instanceof SerialPort )
-    {
-      LOGGER.fine( "device <" + devName + "> is serial port..." );
-      this.serialPort = ( SerialPort )commPort;
-      this.connectedVirtualDevice = "virtual";
-      // serialPort.setSerialPortParams(57600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
-      // Eingabe erzeugen
-      InputStream din = serialPort.getInputStream();
-      reader = new ReaderRunnable( din );
-      Thread rt = new Thread( reader );
-      rt.setName( "bt_reader_thread" );
-      rt.setPriority( Thread.NORM_PRIORITY - 1 );
-      rt.start();
-      //
-      // Ausgabe erzeugen
-      OutputStream dout = serialPort.getOutputStream();
-      writer = new WriterRunnable( dout );
-      Thread wt = new Thread( writer );
-      wt.setName( "bt_writer_thread" );
-      wt.setPriority( Thread.NORM_PRIORITY - 2 );
-      wt.start();
-      isConnected = true;
-      if( aListener != null )
+    //
+    // Da das länger dauern kann, wieder einen Thread eröffnen,
+    // damit Swing eine Change hat die Grafik zu erneutern
+    //
+    Thread ct = new Thread() {
+      @Override
+      public void run()
       {
-        ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTED, null );
-        aListener.actionPerformed( ex );
+        // Port ID holen
+        CommPortIdentifier portIdentifier;
+        CommPort commPort = null;
+        try
+        {
+          portIdentifier = CommPortIdentifier.getPortIdentifier( devName );
+          // versuch den Port zu öffnen, wirft PortInUseException
+          commPort = portIdentifier.open( this.getClass().getName(), 10000 );
+          if( commPort instanceof SerialPort )
+          {
+            LOGGER.fine( "device <" + devName + "> is serial port..." );
+            serialPort = ( SerialPort )commPort;
+            connectedVirtualDevice = "virtual";
+            // Ist ein virtueller Port, da brauch ioch keine Parameter einstellen....
+            // serialPort.setSerialPortParams(57600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
+            // Eingabe erzeugen
+            InputStream din;
+            din = serialPort.getInputStream();
+            reader = new ReaderRunnable( din );
+            Thread rt = new Thread( reader );
+            rt.setName( "bt_reader_thread" );
+            rt.setPriority( Thread.NORM_PRIORITY - 1 );
+            rt.start();
+            //
+            // Ausgabe erzeugen
+            OutputStream dout = serialPort.getOutputStream();
+            writer = new WriterRunnable( dout );
+            Thread wt = new Thread( writer );
+            wt.setName( "bt_writer_thread" );
+            wt.setPriority( Thread.NORM_PRIORITY - 2 );
+            wt.start();
+            isConnected = true;
+            if( aListener != null )
+            {
+              ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTED, null );
+              aListener.actionPerformed( ex );
+            }
+          }
+          else
+          {
+            LOGGER.severe( "device <" + devName + "> is NOT serial port ABORT!" );
+            if( aListener != null )
+            {
+              ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+              aListener.actionPerformed( ex1 );
+            }
+          }
+        }
+        catch( NoSuchPortException ex )
+        {
+          LOGGER.severe( "device <" + devName + "> is NOT serial port ABORT!" );
+          if( aListener != null )
+          {
+            ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+            aListener.actionPerformed( ex1 );
+          }
+        }
+        catch( PortInUseException ex )
+        {
+          LOGGER.severe( "device <" + devName + "> is in use. ABORT!" );
+          if( aListener != null )
+          {
+            ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+            aListener.actionPerformed( ex1 );
+          }
+        }
+        catch( IOException ex )
+        {
+          LOGGER.severe( "device <" + devName + "> had an Exception : <" + ex.getLocalizedMessage() + ">" );
+          if( aListener != null )
+          {
+            ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
+            aListener.actionPerformed( ex1 );
+          }
+        }
       }
-    }
-    else
-    {
-      LOGGER.severe( "device <" + devName + "> is NOT serial port ABORT!" );
-      if( aListener != null )
-      {
-        ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
-        aListener.actionPerformed( ex1 );
-      }
-    }
+    };
+    ct.setName( "virt_device_connect" );
+    ct.start();
   }
 
   @Override

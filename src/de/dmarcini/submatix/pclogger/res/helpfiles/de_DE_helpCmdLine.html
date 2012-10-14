@@ -1,0 +1,74 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta http-equiv="content-language" content="de">
+    <title>Hilfe (deutsch) für Konfigurations/Logprogram für den SPX42</title>
+	<link rel="stylesheet" type="text/css" href="style_normal.css">
+  </head>
+  <body>
+    <h1><a name="pagestart">Kommandozeilenoptionen</a></h1>
+    
+    <div>
+      <div class="code">
+        -logfile path/file
+      </div>
+    </div>
+    Der Parameter bestimmt den Namen und die Position der Logdatei. Wird als Parameter <b>NONE</b> 
+    angegeben, wird keine Logdatei erzeugt.<br/>
+    Standartmäßig wird im Programmverzeichnis eine Datei mit dem Namen "logfile.log" angelegt.
+    
+    <div class="param">
+    Angabe mit absolutem Pfad, relativem Pfad oder ohne Pfad (Programmverzeichnis wird automatisch gewählt)
+    </div>
+    
+    <div>
+      <div class="code">
+        -cacheonstart
+      </div>
+      Der Parameter besitzt keine Werte. Wird dieser Parameter auf der Kommandozeile eingetragen,
+      versucht die Bluethooth Bibliothek zunächst bereits evaluierte BT-Geräte ohne weitere
+      Suche darzustellen. <br />
+      Dies kann die Wartezeit erheblich verkürzen. Unter Max Os kann es zum "einfrieren" des Programmes führen.
+    </div>
+	
+    <div>
+      <div class="code">
+        -debug
+      </div>
+      Der Parameter besitzt keine Werte. Wird dieser Parameter auf der Kommandozeile eingetragen,
+	  werden alle Ausgwben des Programmes zusätzlich zur Ausgsabe in die Logdatei auch auf der Konsole 
+	  ausgegeben. Nützlich bei Start mit der debugversion von java.
+    </div>
+	
+    <div>
+      <div class="code">
+        -databasedir
+      </div>
+	  Mit diesem Parameter kann beim Start das Verzeichis angegeben werden, in dem die Datenbank gespeichert ist.
+	  <br />
+	  (Es ist im Normalfall nicht notwendig, diese Option zu benutzen)
+    </div>
+	
+    <div>
+      <div class="code">
+        -langcode
+      </div>
+	  Normalerweise startet das Programm mit der Sprache, für welche der ausführende Computer eingerichtet ist.
+	  Wird diese Sprache (noch) nicht unterstützt, wird als Standart englisch benutzt. <br />
+	  Soll eine der unterstützten Sprachen, abweichend vom ausfühtrenden Computer benutzt werden, ist
+	  dieser Parameter hilfreich. <br />
+	  Soll beispielsweise französisch gewählt werden würde der Parameter "-langcode fr" lauten. <br />
+	  Der Landescode entspricht der Festlegung im "Two-Letter Code ISO-639"
+    </div>
+	
+	<br />
+	<br />
+	<br />
+	<br />
+	<br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+	<br />
+  </body>
+</html>

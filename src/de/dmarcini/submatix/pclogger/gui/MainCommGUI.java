@@ -508,7 +508,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         LOGGER.fine( "try get locale from system..." );
         programLocale = Locale.getDefault();
       }
-      // programLocale = Locale.FRENCH;
       LOGGER.fine( String.format( "getLocale says: Display Language :<%s>, lang: <%s>", programLocale.getDisplayLanguage(), programLocale.getLanguage() ) );
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
       if( stringsBundle.getLocale().equals( programLocale ) )

@@ -22,8 +22,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 
-public class HelpFrameClass extends JFrame implements ActionListener
+public class HelpFrameClass extends JFrame implements ActionListener, HyperlinkListener
 {
   /**
    * 
@@ -61,7 +65,6 @@ public class HelpFrameClass extends JFrame implements ActionListener
     setVisible( true );
     setTitle( stringsBundle.getString( "HelpFrameClass.Windowtitle.title" ) );
     setIconImage( Toolkit.getDefaultToolkit().getImage( HelpFrameClass.class.getResource( "/de/dmarcini/submatix/pclogger/res/search.png" ) ) );
-    // setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     setBounds( 100, 100, 912, 645 );
     contentPane = new JPanel();
     contentPane.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
@@ -76,6 +79,8 @@ public class HelpFrameClass extends JFrame implements ActionListener
     htmlTextPane = new JTextPane();
     htmlTextPane.setEditable( false );
     htmlTextPane.setContentType( "text/html" );
+    htmlTextPane.setEditable( false );
+    htmlTextPane.addHyperlinkListener( this );
     scrollPane.setViewportView( htmlTextPane );
     //
     // Test setzen
@@ -85,11 +90,11 @@ public class HelpFrameClass extends JFrame implements ActionListener
 
   private void setHelpText( Locale programLocale )
   {
-    URL url = HelpFrameClass.class.getResource( "/de/dmarcini/submatix/pclogger/res/helpFile_" + programLocale.toString() + ".html" );
+    URL url = HelpFrameClass.class.getResource( "/de/dmarcini/submatix/pclogger/res/helpfiles/" + programLocale.toString() + "_helpFileMain.html" );
     if( url == null )
     {
-      htmlTextPane.setText( "<body><h1>" + stringsBundle.getString( "HelpFrameClass.helpFileNotFound.text" ) + "<h3>/de/dmarcini/submatix/pclogger/res/helpFile_"
-              + programLocale.toString() + ".html</h3></body></html>" );
+      htmlTextPane.setText( "<body><h1>" + stringsBundle.getString( "HelpFrameClass.helpFileNotFound.text" ) + "<h3>/de/dmarcini/submatix/pclogger/res/helpfiles/"
+              + programLocale.toString() + "_helpFileMain.html</h3></body></html>" );
       return;
     }
     try
@@ -116,6 +121,36 @@ public class HelpFrameClass extends JFrame implements ActionListener
     if( cmd.equals( "close" ) )
     {
       this.dispose();
+    }
+  }
+
+  @Override
+  public void hyperlinkUpdate( HyperlinkEvent ev )
+  {
+    //
+    // ist das Ereignis aktivierung eines Hyperlinks?
+    //
+    if( ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
+    {
+      // Das Panel ist
+      JTextPane pane = ( JTextPane )ev.getSource();
+      if( ev instanceof HTMLFrameHyperlinkEvent )
+      {
+        HTMLFrameHyperlinkEvent evt = ( HTMLFrameHyperlinkEvent )ev;
+        HTMLDocument doc = ( HTMLDocument )pane.getDocument();
+        doc.processHTMLFrameHyperlinkEvent( evt );
+      }
+      else
+      {
+        try
+        {
+          pane.setPage( ev.getURL() );
+        }
+        catch( Throwable t )
+        {
+          t.printStackTrace();
+        }
+      }
     }
   }
 }

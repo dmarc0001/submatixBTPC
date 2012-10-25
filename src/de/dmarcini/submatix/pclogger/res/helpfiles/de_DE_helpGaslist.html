@@ -1,0 +1,138 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta http-equiv="content-language" content="de">
+  <title>Gasmanagement</title>
+<link rel="stylesheet" type="text/css" href="style_normal.css">
+</head>
+<body>
+  <h1><a name="pagestart">SPX42 Gasmanagement</a></h1>
+  
+  <!-- 
+  ##############################################################################
+  #### einführung                                                           ####    
+  ##############################################################################
+   -->
+  <h2><a name="gasentry">Gasmanagement Tab</a></h2>
+  
+  In diesem Tab sind die für das Gasmanagement des SPX42 benötigten Funktionen 
+  zusammengefaßt. Um optisch immer darüber im Klaren zu sein, in welchem 
+  Zustand sich die Bearbeitung (Online/Offline) befindet, ist die Gasliste
+  farbig eingerahmt. Ist der Rahmen <b style="color:darkblue;">BLAU</b> dann ist
+  der SPX42 nicht verbunden ("<a href="#offline">offline</a>") und es können nur 
+  <a href="#presets"> Presets</a> bearbeitet werden. Ist der Rahmen 
+  <b style="color:green;">GRÜN</b>  eingefärbt, ist der SPX42 verbunden 
+  ("<a href="#online">online</a>"). <br />  Die Bearbeitung der Gase kann dann 
+  direkt fpr den SPX42 erfolgen. die Buttons "Lese Gasliste" und 
+  "Schreibe Gasliste" sind dann aktiviert.<br />
+  Auch hier ist die Funktionalität "online" abhängig von der erworbenen 
+  Softwarelizenz des SPX42. Offline sind alle Einstellungen möglich, online sind
+  nur die Lizensierten Funktionen möglich. Auch wenn Presets anzulegen sind, die 
+  nicht dem aktuellen Lizenzmodell entsprechen, siend diese jedoch nicht ohne
+  Lizenz auf den SPX42 übertragbar.
+
+  <div class="underline">
+    <img class="block" alt="Gaslisten Editor OFFLINE" src="de_DE__gaslistTabOffline.png" />
+    <br />
+    Gaslisten Editor Tab OFFLINE
+  </div>  
+  <br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  
+  
+  <!-- 
+  ##############################################################################
+  #### gas Presets                                                          ####    
+  ##############################################################################
+   -->
+  <h3><a name="presets">Gas Presets</a></h3>
+  
+  Die Idee hinter den Gas Presets ist die Überlegung, daß der SPX42 für 
+  verschiedene typische Einsatzfälle schnell umkonfiguriert werden kann, ohne 
+  jedesmal die Einstellungen zu verlieren. <br />
+  Beispielsweise wechselt der Autor zwischen dem Presets für flache 
+  Süßwassertauchgänge mit Luft als Diluent und Nitrox als Bailout und Presets 
+  für spezielle Tauchgänge. Ein Preset ist beispielsweise für lange Tauchgänge 
+  bis 60 Meter Tiefe mit Trimix 21/45 und zwei Bailout-Gasen. <br />
+  Denkbar ist auch ein Preset für wiederholte Tauchgänge an speziellen 
+  Tauchplätzen, die eine besondere Bailoutgas Zusammenstellung erfordern
+  oder ein schneller Wechsel auf ein Leihgerät.
+  
+  <div class="underline">
+    <img class="block" alt="Gaslisten Editor PRESET OFFLINE" src="de_DE__gaslistTabOfflinePreset.png" />
+    <br />
+    <a name="offline">Gaslisten Editor Tab PRESET OFFLINE</a>
+  </div>  
+  
+  Das Beispiel oben zeigt ein eingelesenes Preset mit dem Namen 
+  "Standart-Trimix-Normoxic" <br />
+  Eine Gasliste kann mit dem Button "Als Voreinstellung" unter einem frei 
+  wählbaren Namen in der internen Datenbankgesichert werden, und im Onlinemodus 
+  auch auf den verbundenen SPX42 geschrieben werden. <br />
+  
+  <div class="underline">
+    <img class="block" alt="Gaslisten Editor PRESET ONLINE" src="de_DE__gaslistTabOnlineRead.png" />
+    <br />
+    <a name="online">Gaslisten Editor Tab PRESET ONLINE</a>
+  </div>  
+  
+  <br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+ 
+  <!-- 
+  ##############################################################################
+  #### Gasnamen                                                             ####    
+  ##############################################################################
+   -->
+  <h3><a name="gasnames">Gas Benennungen</a></h3>
+  
+  Die Bezeichnungen der Gase entwprechen dem üblichen Standart.<br />
+  "AIR" steht für Luft (21% Sauerstoff, 78% Stickstoff, 1% Rest)<br />
+  "NX" steht für Nitrox, der Zahlenwert für Prozentualen Anteil O2<br />
+  "TX" steht für Trimix, erste Zahl O2, zweite Zahl Helium<br />
+  "HX" Steht für Helioxm erste Zahl steht für O2, zweite Zahl für Helium<br />
+  <br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  
+  
+  <!-- 
+  ##############################################################################
+  #### MOD                                                                  ####    
+  ##############################################################################
+   -->
+  <h3><a name="mod">Gas "Maximal Oxygen Depth"</a></h3>
+  
+  Die MOD berechnet sich für Salzwasser/Süßwasser und dem eingestellten Wert für
+  den maximal gewünschten Sauerstoff Partialdruck. Dieser Wert gilt für das Bailout
+  und das Diluent, da beim Spülvorgang kurzzeitig das reine Diluent geatmet wird.
+  
+  <div class="underline">
+    <img class="block" alt="Gaslisten Editor MOD" src="de_DE__gaslistTabMod.png" />
+    <br />
+    <a name="online">Gaslisten Editor Tab MOD</a>
+  </div>  
+  
+  <br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+
+  
+  <!-- 
+  ##############################################################################
+  #### Gasberechnungen                                                      ####    
+  ##############################################################################
+   -->
+  <h3><a name="presets">Gas Berechnungen</a></h3>
+  
+  
+  
+  
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  <br />
+</body>
+</html>

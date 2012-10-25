@@ -15,14 +15,15 @@
     ###########################################################################
     -->
     <h2>Inhalt</h2>
-    <ul>
+    <ul style="list-style-type:decimal;">
       <li><a href="#pagestart">Seitenanfang</a></li>
       <li><a href="#preface">Einführung</a></li>
-      <li><a href="#btconnection">Bluethoothverbindung herstellen</a></li>
-      <ul>
-        <li><a href="#btconnection">Scannen nach Geräten</a></li>
-      </ul>
       <li><a href="de_DE_helpCmdLine.html">Optionen auf der Kommandozeile</a></li>
+      <li><a href="de_DE_helpConnection.html">Bluethoothverbindung herstellen</a></li>
+      <li><a href="de_DE_helpSPXConfig.html">SPX42 Konfiguration</a></li>
+      <li><a href="de_DE_helpGaslist.html">SPX42 Gasmanagement</a></li>
+
+      <li><a href="de_DE_helpLicenses.html">Bibliotheken und Lizenzen</a></li>
     </ul>
     
     
@@ -31,53 +32,23 @@
     #### Einleitung                                                        ####    
     ###########################################################################
     -->
-    <h2>Einführung</h2>
+    <h2><a name="preface">Einführung</a></h2>
     
     Dieses Programm verbindet sich mittels der Blutethooth Schnittstelle Ihres PC mit dem
     <b>SPX42</b> Tauchcomputer. Es kann die Konfiguration auslesen und eine neue Konfiguration setzen.
     <br />
+	Das Programm kann mit mehreren verschiedenen <b>SXP42</b> zusammenarbeiten und sichert 
+	die Daten jeweils getrennt voneinander in derselben Datenbank.
     <br />
     Weiterhin kann das Logbuch des <b>SPX42</b> Tauchcomputers ausgelesen und in einer 
-    lokalen Datenbank gesichert werden.
-    <br /><b>TODO: weiter schreiben</b><br /> <br />
+    lokalen Datenbank gesichert werden. <br />
+	Die ausgelesenen Logdaten können für die weitere Aufbereitung oder Archivierung 
+	wieder im UDDF Format exportiert werden. Das UDDF-Format ist ein universelles
+	Datenformat für den Austausch von tauchrelevantern Daten. <br />
+	Ein Beilspiel ist das vom Author selbst benutzte "Diving Log", welches als
+	persönliches Logbuch mit Speicherung des Profils und anderer Daten dient.
+     
     
-    <!--
-    ###########################################################################
-    #### Verbindung herstellen                                             ####    
-    ###########################################################################
-    -->
-    <h2><a name="btconnection">Bluethoothverbindung herstellen</a></h2>
-    
-    <h3><a name="scanforbt">Scannen nach Geräten</a></h3>
-    Scannen...
-    
-    <!--
-    ###########################################################################
-    #### Inhaltsverzeichnis                                                ####    
-    ###########################################################################
-    -->
-    <h2><a name="clioptions">Optionen auf der Kommandozeile</a></h2>
-    Das Programm kann mit Kommandozeilenoptionen gestartet werden. Folgende Optionen sind möglich
-    
-    <div>
-      <div class="code">
-        --loglevel LEVEL
-      </div>
-      Der Parameter bestimmt, wie ausführlich das Programm seine Tätigkeit dokumentiert. Die 
-      Dokumentation des Programmes werden an die Konsole und in eine Logdatei ausgegeben.<br />
-      Möglich sind folgende Parameter: <br/>
-      <div class="param">
-      <table>
-      <tr><td>SEVERE (höchster Level)    </td><td>Nur Fehlermeldungen</td></tr>
-      <tr><td>WARNING                    </td><td>Fehlermeldungen und Warnungen  </td></tr>
-      <tr><td>INFO                       </td><td>Info, Warnungen, Fehlermeldungen  </td></tr>
-      <tr><td>CONFIG                     </td><td>Konfigurationesmeldungen, alles hier drüber  </td></tr>
-      <tr><td>FINE oder DEBUG            </td><td>DEBUG Meldungen (nur für Entwickler interessant)  </td></tr>
-      <tr><td>FINER                      </td><td>Noch ausführlicher  </td></tr>
-      <tr><td>FINEST (niedrigster Level) </td><td>Einfach alle Meldungen  </td></tr>
-      </table>
-      </div>
-    </div>
     
 	<br />
 	<br />

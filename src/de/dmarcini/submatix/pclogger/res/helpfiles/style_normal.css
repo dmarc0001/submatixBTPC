@@ -2,64 +2,77 @@
   **** Hier werden die Formate definiert                                   ****
   ****************************************************************************/
   
-  body
-  {
-    background-color:#e0e0e0;
-    color:blue;
-    font-family:Helvetica,Arial,sans-serif;
-    margin-left:40px;
-    margin-right:40px;
-	padding: 20px;
-  }
-  
-  h1
-  {
-    margin-top:30px;
-    color:red;
-    font-weight:bold;
-    margin-left:4em;
-    border-style:none;
-    border-bottom-style:solid;
-    border-bottom-color:red; 
-    border-bottom-width:2px;
-  }
-  
-  h2
-  {
-    margin-top:25px;
-    color:#000040;
-    font-style:italic;
-    font-weight:bold;
-    border-style:none;
-    border-bottom-style:solid;
-    border-bottom-color:#000040; 
-    border-bottom-width:1px;
-    
-  }
+body
+{
+  background-color:#e0e0e0;
+  color:blue;
+  font-family:Helvetica,Arial,sans-serif;
+  margin-left:20px;
+  margin-right:20px;
+  padding: 5px;
+}
 
-  h3
-  {
-    margin-top:15px:
-    color:004040;
-    font-style:italic;
-  }
-  
-  div.code<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+h1
+{
+  margin-top:35px;
+  color:red;
+  font-weight:bold;
+  margin-left:4em;
+  border-style:none;
+  border-bottom-style:solid;
+  border-bottom-color:red; 
+  border-bottom-width:2px;
+}
 
-  {
-    font.weight=bold;
-    font-size:bigger;
-    margin-top:15px;
-    background-color:#f0f0f0
-    padding:30px;
-    font-family:Monospace;
-  }
-  
-  div.param
-  {
-    margin-top:15px;
-    color:black;
-    font-family:Monospace;
-    Margin-left:25px;
-  }
-  
+h2
+{
+  margin-top:35px;
+  color:#000040;
+  font-style:italic;
+  font-weight:bold;
+  border-style:none;
+  border-bottom-style:solid;
+  border-bottom-color:#000040; 
+  border-bottom-width:1px;
+}
+
+h3
+{
+  margin-top:30px:
+  color:004040;
+  font-style:italic;
+}
+
+div.code
+{
+  font.weight=bold;
+  font-size:bigger;
+  margin-top:15px;
+  background-color:#f0f0f0
+  padding:30px;
+  font-family:Monospace;
+}
+
+div.param
+{
+  margin-top:15px;
+  color:black;
+  font-family:Monospace;
+  Margin-left:25px;
+}
+
+div.underline
+{
+  color:darkblue;
+  font-family:Monospace;
+  font-size:small;
+  font-style:italic;
+  margin-top:18px;
+  margin-bottom:25px;
+}
+
+img.block
+{
+  display:block;
+}
+

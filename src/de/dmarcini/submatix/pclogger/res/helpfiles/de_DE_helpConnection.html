@@ -1,0 +1,158 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>Hilfe (deutsch) für Konfigurations/Logprogram für den SPX42</title>
+	<meta http-equiv="content-language" content="de">
+	<link rel="stylesheet" type="text/css" href="style_normal.css">
+</head>
+<body>
+  <h1><a name="pagestart"></a>Bluethooth Verbindung</h1>
+  
+  <h2>Der Verbindungs-Tab</h2>
+  
+  Nach dem Start des Programmes ist zunächst der Verbindungs-Tab geöffnet.<br />
+  Einige Tabs sind noch grau hinterlegt (gesperrt), da für deren Benutzung eine 
+  Verbindung zum SPX42 hergestellt sein muß.<br />
+  Die Oberfläche sieht in ihrem oberen Teil dann in etwa so wie hier angezeigt
+  aus.
+  <div class="underline">
+    <img class="block" alt="Oberfläche beim Start" src="de_DE_connectionTabNormal.png" />
+    <br />
+    Der Verbindungs - Tab
+  </div>
+  
+  <h3>Die Verbindungs-Listen</h3>
+  Es gibt zwei Verbindungslisten:
+  <br />
+  <ul style="list-style-type:circle;">
+    <li><a href="#direktBT">Direkte BT Verbindung</a></li>
+    <li><a href="#virtuelleBT">Virtuelle Geräte</a></li>
+  </ul>
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Nativ verbinden (Bluecove)                                           ####    
+  ##############################################################################
+   -->
+  <h3><a name="direktBT">Direkte Bluethoothverbindung</a></h3>
+ 
+  Das Programm kann nativ, das hei&szlig;t direkt mit den
+  Bluethoothger&auml;ten (in diesem Falle der SPX42) kommunizieren.<br />
+  Ermöglicht wird dies durch eine plattformübergreifende Bibliothek mit dem Namen
+  "bluecove" (http://bluecove.org/). Diese ist unter der Apache Lizenz 2.0 
+  veröffentlicht.<br />
+  Wenn keine Geräte angezeigt werden, oder wenn das angezeigte Gerät ohne "*" 
+  hinter dem Namen angezeigt wird, sollte der "BT einlesen" Button gedrückt 
+  werden. (Natürlich muß der auszulesende SPX42 im Syncronisationsmode sein). 
+  
+  <div class="underline">
+    <img alt="Einlesen der aktiven Bluethooth Geräte" src="de_DE__connectionTabreadBT.png" />
+    <br />
+    Einlesen der aktiven BT Geräte
+  </div>
+
+
+  Danach kann in der Liste (herunterklappen mit dem Dreieck-Symbol) der gewünschte
+  SPX42 ausgewählt werden. Via Bluethooth erreichbare SPX42 werden mit einem Stern 
+  hinter dem Gerätenamen gekennzeichnet.<br />
+  Die Geräte-PIN wird eingetragen, wenn das gewünschte Gerät in der oberen 
+  Auswahlliste gewählt ist und dann der Button "PIN s..." gedrückt wird. <br />
+  Im dann erscheinenden Dialog wird die PIN eingetragen, und nach erfolgreicher
+  Verbindung in der internen Datenbank gespeichert.<br />
+  <a href="#connectBT">Verbinde SPX42</a>
+  <br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Nativ verbinden (Bluecove)                                           ####    
+  ##############################################################################
+   -->
+  <h3><a name="virtuelleBT">Virtuelle Geräte</a></h3>
+ 
+  Kann keine Verbindung mit dem SPX42 über direkte Verbindung hergestellt werden,
+  Ursache kann ein Herstellerspezifischer Treiber des Bluethooth-Adapters sein, 
+  kann auf deisem Weg eine Verbindung zum SPX42 hergestellt werden. <br />
+  Dazu muß mit dem Betriebssystem ein virtueller Geräteanschluß erzeugt werden.
+  Die Vorgehensweise sollte im Handbuch des Bluethoothadapters nachzulesen sein.<br />
+  Wird ein solcher Anschluß erzeugt (im Bild unten unter Microsoft Windows als
+  "COM4" dargestellt) wird dieser in der unteren Auswahlliste ausgewählt. <br />
+ 
+  <div class="underline">
+    <img class="block" alt="Verbindungstab mit Virtuellem Gerät" src="de_DE__connectionVirtualBT.png" />
+    <br />
+    Ausgewählter Anschluss "COM4" 
+  </div>
+  <br />
+  <a href="#connectBT">Verbinde SPX42</a>
+  <br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  
+  
+  <!-- 
+  ##############################################################################
+  #### Verbunden                                                            ####    
+  ##############################################################################
+   -->
+  <h3><a name="connectBT">Verbindung mit dem SPX42</a></h3>
+     
+  Nach dem Druck auf dem Button "Verbinde SPX" sollte nach kurzer Wartezeit
+  das folgende Bild zu sehen sein:
+
+  <div class="underline">
+    <img class="block" alt="Verbindungstab mit Virtuellem Gerät" src="de_DE__connectionTabConnected.png" />
+    <br />
+    Ausgewählter Anschluss "COM4" 
+  </div>
+  
+  Es werden alle Buttons, bis auf den Button zum trennen der Verbindung deaktiviert
+  und alle Tabs aktiviert.<br />
+  Nun können alle Funktionen des Programmes genutzt werden.
+  <br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Aliase                                                               ####    
+  ##############################################################################
+   -->
+  <h3><a name="connectBT">Aliase bearbeiten</a></h3>
+  
+  Sobald ein Gerät einmal erfolgreich verbunden war, kann ihm ein Alias zugeordnet
+  werden. Dies ist sinnvoll, um verschiedene SPX42 nicht nur anhand der Nummer
+  sondern anhand sprechender Namen zu unterscheiden. <br />
+  Der Alias-Editor ist <b style="color:red;">nur</b> erreichbar, wenn keine
+  Verbindung zu einem SPX besteht. <br />
+  Nach dem Druck auf den Button "Bearbeite Aliase" sollte folgende Ansicht 
+  sichtbar sein:
+  
+  <div class="underline">
+    <img class="block" alt="Verbindungstab mit Alias-Editor" src="de_DE__connectionTabAliasEditor.png" />
+    <br />
+    Alias-Editor mit einem Eintrag" 
+  </div>
+  
+  Durch Klicken auf den jeweils rechten Eintrag kann der Alias bearbeitet werden.<br />
+  ENTER beendet die Bearbeitung und übernimmt den Alias für das Gerät. 
+  
+  <div class="underline">
+    <img class="block" alt="Verbindungstab mit Alias-Editor" src="de_DE__connectionTabAliasEditorEdited.png" />
+    <br />
+    Alias-Editor mit einem Eintrag editiert 
+  </div>
+  
+  Danach ist sofort in allen Anzeigen der Aliasname verfügbar. Dieser wird in der
+  internen Datenbank gespeichert und kann natürlich auch geändert werden.<br />
+  Ein Druck auf "Verberge Aliase" verbirgt den Alias-Editor wieder.
+  
+  
+  
+  <br />
+  <br />
+  <br />
+  <br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+</body>
+</html>

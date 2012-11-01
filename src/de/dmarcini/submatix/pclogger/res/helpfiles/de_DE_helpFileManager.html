@@ -1,0 +1,115 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta http-equiv="content-language" content="de">
+  <title>Dateimanager</title>
+<link rel="stylesheet" type="text/css" href="style_normal.css">
+</head>
+<body>
+  <h1><a name="pagestart">Dateimanager</a></h1>
+
+  <!-- 
+  ##############################################################################
+  #### Übersicht                                                            ####    
+  ##############################################################################
+  -->
+  
+  <h2>Übersicht</h2>
+  
+  Der Dateimanager gibt zum Einen Übersicht über die in der Datenbank vorhandenen 
+  Daten und erlaubt andererseits ein <a href="#delete">löschen</a> von 
+  unerwünschten Daten bzw einen <a href="#export">Export</a> von Daten für eine 
+  weitere Verwendung. <br />
+  
+  <div class="underline">
+    <img class="block" alt="Dateimanager" src="de_DE_filemanagerOverview.png" />
+    <br />
+    Dateimanager für Logdaten 
+  </div>
+  
+  Die Anzeige der Daten erfolgt wieder getrennt nach Geräten. Die Auswahl des
+  Gerätes für die Anzeige der Daten erfolgt analog zur grafischen Loganzeige
+  über das Auswahklfeld links oben: <br />
+  
+  <div class="underline">
+    <img class="block" alt="Gerät wählen" src="de_DE_filemanagerDeviceSelect.png" />
+    <br />
+    Wählen des Gerätes für die Anzeige der Daten
+  </div>
+  <br />
+  <a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  
+  
+  <!-- 
+  ##############################################################################
+  #### Löschen von Daten                                                    ####    
+  ##############################################################################
+  -->
+
+  <h2><a name="delete">Löschen von Datensätzen</a></h2>
+  
+  Manchmal sind unerwünschte Daten in der Datenbank gespeichert. Dazu gehören
+  zum Beispiel während der Wartung oder Reparatur eines Gerätes durchgeführte
+  Druckkammertauchgänge.<br />
+  Um diese wieder aus der Datenbank (NICHT aus dem SPX42!) zu entfernen kann der
+  Dateimanager genutzt werden. <br />
+  Werden Einträge selektiert, werden gleichzeitig die Buttons im unteren Teil
+  des Programmfensters freigegeben:
+  
+  <div class="underline">
+    <img class="block" alt="ausgewählte Einträge" src="de_DE_filemanagerSelectDives.png" />
+    <br />
+    Einträge ausgewählt, Buttons freigegeben
+  </div>
+  <br />
+  
+  Ein Druck auf den Button "Abbruch/Des..." entfernt die Markierungen und 
+  sperrt die Buttons wieder.<br />
+  Wenn die markierten Datensätze aus der internen Datenbank gelöscht werden sollen, 
+  wird dies durch einen Klick auf den Button mit der Aufschrift "LÖSCHEN!"
+  ausgelöst. <br />
+  Zur Sicherheit fragt das Programm noch einmal mit einer Dialogbox: "Sind Sie
+  sicher?". Nach einem Klick auf "LÖSCHEN!" erfolgt die Löschung der ausgewählten 
+  Daten ohne Widerruf.
+  
+  <br />
+  <a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Löschen von Daten                                                    ####    
+  ##############################################################################
+  -->
+
+  <h2><a name="export">Export von Datensätzen</a></h2>
+
+  Momentan wird der Export in das UDDF-Format unterstützt,. Das UDDF-Format ist 
+  ein universelles Datenformat für den Austausch von tauchrelevantern Daten und 
+  ist eine Anwendung des XML-Standart. Es handelt sich also um nach strengen
+  aber einfachen Regeln formatieren Text. <br />
+  Wird nach dem markieren der zu exportierenden Daten der Button "Export..."
+  angeklickt, wenden die gewählten Daten unmittelbar in das in den 
+  <a href="de_DE_helpOptions.html">Einstellungen</a> ausgewählte Verzeichnis 
+  exportiert.<br />
+  In der Grundeinstellung des Programmes ist das das Verzeichnis "export" im 
+  Ordner, in dem die Programmdatei installiert wurde. <br />
+  Die Datei hat als namen die Nummer des Gerätes und einer zusammengestellten 
+  Bezeichnung wie dem Datum und dem Zeitpunkt des Tauchganges. Die Endung 
+  lautet ".uddf"<br />
+  Ein Anwendungsfall (vom Autor bevorzugt) ist das Führen eines persönlichen 
+  Logs mittels der Software 
+  ( <a href="http://www.divinglog.de/"> "Diving Log" von Sven Koch </a> 
+  
+
+
+
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  <br />
+</body>
+</html>

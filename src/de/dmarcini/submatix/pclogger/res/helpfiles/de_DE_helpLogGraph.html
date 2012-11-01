@@ -1,0 +1,165 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta http-equiv="content-language" content="de">
+  <title>Grafische Anzeige</title>
+<link rel="stylesheet" type="text/css" href="style_normal.css">
+</head>
+<body>
+  <h1><a name="pagestart">Grafische Anzeige</a></h1>
+
+  <!-- 
+  ##############################################################################
+  #### Übersicht                                                            ####    
+  ##############################################################################
+  -->
+  <h2>Übersicht</h2>
+  
+  Im Tab "Log Graphisch" können die in der internen Datenbank gespeicherten 
+  Tauchgprofile für eine erste Ansicht grafisch dargestellt werden. Weiterhin 
+  kann für jedes Profil eine Notitz in der Datenbank gespeichert werden, die 
+  auch später mit der Exportfunktion mit exportiert werden kann. <br />
+
+  <div class="underline">
+    <img class="block" alt="Übersicht grafische Darstellung" src="de_DE_graphOverview.png" />
+    <br />
+    Übersicht Tab grafdische Darstellung
+  </div>
+  <br />
+  
+  Für die grafische Anzeige der Daten wird eine Open Source Bibliothek mit dem 
+  Namen "JFreeChart" <a href="http://www.jfree.org"> www.jfree.org </a> benutzt, 
+  welche unter der GNU Lesser General Public Licence veröffentlicht wurde.<br />
+  (Siehe <a href="de_DE_helpLicenses.html">Bibliotheken und Lizenzen</a>)
+  <br />
+	<a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Geräeteauswahl                                                       ####    
+  ##############################################################################
+  -->
+  
+  <h3>Gerät für die Anzeige auswählen</h3>
+  
+  Zunächst ist das Gerät, für welches Logdaten anzuzeigen sind auszuwählen.
+  Es wird, wenn mehrere Geräte in der Datenbank vorhanden sind, das aktuell 
+  verbundene Gerät voreingestellt, ansonsten das Erste in der Datenbank gefundene
+  gerät. <br />
+  
+  <div class="underline">
+    <img class="block" alt="Gerät auswählen" src="de_DE_graphDeviceSelect.png" />
+    <br />
+    Gerät auswählen (von welchem Daten gezeigt werden sollen)
+  </div>
+  
+  <!-- 
+  ##############################################################################
+  #### Profil wählen                                                        ####    
+  ##############################################################################
+  -->
+  
+  <h3>Tauchgang/Profil auswählen</h3>
+  
+  Wurde ein Gerät ausgewählt, wird die Liste mit verfügbaren Logs 
+  (Tauchgängen/Profilen) des Gerätes gefüllt, sofern vorhanden. Es kann dann der 
+  gewünschte Eintrag aus der herunterklappbaren Liste gewählt werden. <br />
+
+  <div class="underline">
+    <img class="block" alt="Profile wählen" src="de_DE_graphProfilSelect.png" />
+    <br />
+    Log/Profil auswählen
+  </div>
+
+  <!-- 
+  ##############################################################################
+  #### Graph anzeigen                                                       ####    
+  ##############################################################################
+  -->
+  
+  <h2>Anzeige der Daten</h2>
+  
+  Um nun die grafische Ansicht des Tauchganges anzuzeigen wir einfach der "Zeige!"
+  Button gedrückt, und es wir in etwa eine Ansicht wie diese gezeigt werden: <br />
+  
+  <div class="underline">
+    <img class="block" alt="Profile anzeigen" src="de_DE_graphShowProfile.png" />
+    <br />
+    Log/Profil anzeigen
+  </div>
+  <br />
+  
+  Zommen in die Zeitachse kann man mit dm Mausrad, oder mit der linken Maustaste indem
+  man einen (den zu vergrößernden ) Bereich mit gedrückter linker Maustaste 
+  markiert. Den vergrößerten Bereich kann man nach links und recht schwenken, indem 
+  man die STRG (Steuerungstaste) gedrückt hält, und den vergrößerten Ausschnitt
+  nach links oder rechts schiebt.<br />
+  Eine Vergrößerung in der Tiefen/Druck/Temperaturachse ist so nicht vorgesehen.
+  <br />
+  <br />
+	
+  <!-- 
+  ##############################################################################
+  #### Anzeigedetails                                                       ####    
+  ##############################################################################
+  -->
+  
+  <h2>Details der Anzeige</h2>
+  
+  Um Detail der Logdaten anzuzeigen oder auszublenden kann der Button "Detail..."
+  geklickt werden. Es öffnet sich ein Dialog, der die Möglichkeit anbietet, 
+  bestimmte Details ein- oder auszublenden <br />
+  
+  <div class="underline">
+    <img class="block" alt="Details" src="de_DE_graphDetailDialog.png" />
+    <br />
+    Details ein/Ausblenden
+  </div>
+  <br />
+
+  Nachdem durch aktivieren/deaktivieren der Haken an den Details die 
+  Anzeigeeinstellungen gestgelegt wurden, kann mit "Anwenden" diese Einstellung
+  übernommen werden.
+  
+  <!-- 
+  ##############################################################################
+  #### Notizen zum Tauchgang                                                ####    
+  ##############################################################################
+  -->
+  
+  <h3>Bemerkungen zum Tauchgang/Profil</h3>
+  
+  Zu jedem Tauchgang/Profil kann ein kurzer Text mit in der Datenbank 
+  abgespeichert werden. Dazu genügt ein Klick auf den Button, der mit einem
+  Schraubenschlüsselsymbol gekennzeichnet ist <br />
+  
+  <div class="underline">
+    <img class="block" alt="Bemerkungen" src="de_DE_graphNotesDialog.png" />
+    <br />
+    Bemerkungen zum Tacuhgang editieren
+  </div>
+  <br />
+  
+  Auch hier speichert ein "Speichern.." die Bemerkungen in der Datenbank. Diese 
+  werden bei einem Export auch mit exportiert und in der grafischen Ansicht 
+  fortan angezeigt.
+  
+  <div class="underline">
+    <img class="block" alt="Bemerkungen" src="de_DE_graphShowNotes.png" />
+    <br />
+    Bemerkungen zum Tauchgang 
+  </div>
+  <br />
+  
+  <br />
+  <a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <a href="de_DE_helpFileMain.html">zum Inhalt</a>
+  <br />
+</body>
+</html>

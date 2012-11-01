@@ -1621,7 +1621,8 @@ public class BTCommunication implements IBTCommunication
       if( log ) LOGGER.severe( "config was not initialized! CANCEL!" );
       return;
     }
-    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( config.getFirmwareVersion() ) || ProjectConst.FIRMWARE_2_7V.equals( config.getFirmwareVersion() ) )
+    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( config.getFirmwareVersion() ) || ProjectConst.FIRMWARE_2_7V.equals( config.getFirmwareVersion() )
+            || config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7H ) )
     {
       // Führe als eigenen Thread aus, damit die Swing-Oberfläche
       // Gelegenheit bekommt, sich zu zeichnen
@@ -1641,9 +1642,19 @@ public class BTCommunication implements IBTCommunication
           {
             firmware = ProjectConst.FW_2_7V;
           }
+          else if( config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7H ) )
+          {
+            firmware = ProjectConst.FW_2_7H;
+          }
           else
           {
             if( log ) LOGGER.severe( "Firmware not supportet! CANCEL!" );
+            if( aListener != null )
+            {
+              if( log ) LOGGER.severe( "SEND MESSAGE!" );
+              ae = new ActionEvent( this, ProjectConst.MESSAGE_FWNOTSUPPORTED, config.getFirmwareVersion() );
+              aListener.actionPerformed( ae );
+            }
             return;
           }
           //
@@ -1664,6 +1675,7 @@ public class BTCommunication implements IBTCommunication
               break;
             default:
             case ProjectConst.FW_2_7V:
+            case ProjectConst.FW_2_7H:
               // Kommando SPX_SET_SETUP_DEKO
               // ~29:GL:GH:DS:DY:LS
               // GL=GF-Low, GH=GF-High,
@@ -1727,6 +1739,7 @@ public class BTCommunication implements IBTCommunication
               break;
             default:
             case ProjectConst.FW_2_7V:
+            case ProjectConst.FW_2_7H:
               // ~30:A:P
               // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
               // P = Partialdruck (0..4) 1.0 .. 1.4
@@ -1778,6 +1791,12 @@ public class BTCommunication implements IBTCommunication
     else
     {
       if( log ) LOGGER.severe( "write for this firmware version not confirmed! CANCEL!" );
+      if( aListener != null )
+      {
+        if( log ) LOGGER.severe( "SEND MESSAGE!" );
+        ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_FWNOTSUPPORTED, config.getFirmwareVersion() );
+        aListener.actionPerformed( ev );
+      }
     }
   }
 

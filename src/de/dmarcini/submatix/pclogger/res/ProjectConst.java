@@ -19,10 +19,10 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "1.0-RC03";
+  public static final String MANUFACTVERS               = "1.0-RC04";
   public static final String GENYEAR                    = "2012";
-  public static final String GENMONTH                   = "10";
-  public static final String GENDAY                     = "08";
+  public static final String GENMONTH                   = "11";
+  public static final String GENDAY                     = "01";
   
   // Datenbankversion
   public static int          DB_VERSION                 = 6;
@@ -35,8 +35,11 @@ public final class ProjectConst
   // Buggy Firmware, Temperatur-Lesen, Gradienten-Bug
   public static final String FIRMWARE_2_6_7_7V          = "V2.6.7.7_V";
   public static final String FIRMWARE_2_7V              = "V2.7_V";
+  public static final String FIRMWARE_2_7H              = "V2.7_H";
+  
   public static final int    FW_2_6_7_7V                = 0;
   public static final int    FW_2_7V                    = 1;
+  public static final int    FW_2_7H                    = 2;
   
   // Lizenzstati des SPX42
   public static final int SPX_LICENSE_NOT_SET           = -1;
@@ -75,7 +78,7 @@ public final class ProjectConst
   public static final int SPX_CAL_CO2_IS_CALIBRATED     = 0x27; //! CO2 Flag ob kalibriert wurde
   public static final int SPX_DEBUG_DEPTH               = 0x28;
   public static final int SPX_SET_SETUP_DEKO            = 0x29; //! Bluetoothkommunikation, setzen der Dekodaten
-  public static final int SPX_SET_SETUP_SETPOINT        = 0x30;  //! Einstellung des Setpoints (Bluetooth)
+  public static final int SPX_SET_SETUP_SETPOINT        = 0x30; //! Einstellung des Setpoints (Bluetooth)
   public static final int SPX_SET_SETUP_DISPLAYSETTINGS = 0x31; //! Displayeinstellungen setzen (Bluetooth)
   public static final int SPX_SET_SETUP_UNITS           = 0x32; //! Einheiten setzen (Bluetooth)
   public static final int SPX_SET_SETUP_INDIVIDUAL      = 0x33; //! Individualsettings (Bluetooth)
@@ -160,6 +163,7 @@ public final class ProjectConst
   public static final int    MESSAGE_CONNECTVIRTDEVICE  = ActionEvent.RESERVED_ID_MAX + 44;
   public static final int    MESSAGE_DISCONNECTBTDEVICE = ActionEvent.RESERVED_ID_MAX + 45;
   public static final int    MESSAGE_COMMTIMEOUT        = ActionEvent.RESERVED_ID_MAX + 46;
+  public static final int    MESSAGE_FWNOTSUPPORTED     = ActionEvent.RESERVED_ID_MAX + 47;
   
   
   // Interne Messages

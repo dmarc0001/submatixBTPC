@@ -363,11 +363,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // FINEST (lowest value)
     if( levelString.equals( "FINEST" ) )
     {
-      return( Level.FINE );
+      return( Level.FINEST );
     }
     if( levelString.equals( "FINER" ) )
     {
-      return( Level.FINE );
+      return( Level.FINER );
     }
     if( levelString.equals( "FINE" ) )
     {
@@ -390,6 +390,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       return( Level.WARNING );
     }
     if( levelString.equals( "SERVE" ) )
+    {
+      return( Level.SEVERE );
+    }
+    if( levelString.equals( "ERROR" ) )
     {
       return( Level.SEVERE );
     }
@@ -2159,9 +2163,21 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           disconnectSPX();
         }
         break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Timeout bei Schreiben auf Gerät
       case ProjectConst.MESSAGE_COMMTIMEOUT:
         LOGGER.severe( "TIMEOUT (write to comm) recived! Disconnect!" );
         System.exit( -1 );
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Firmware nicht unterstützt beim schreiben
+      case ProjectConst.MESSAGE_FWNOTSUPPORTED:
+        if( wDial != null )
+        {
+          wDial.dispose();
+          wDial = null;
+        }
+        showErrorDialog( "Firmware not supported" );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Nichts traf zu....

@@ -1,0 +1,6 @@
+TODO: 
+- Graph und Logdata in einem Tab? (Philippe)
+- Backups / Restore (Philippe)
+- Datumsanzeige Benutzerkonfigurierbar (12/24 Stunden)
+- Import der Daten direkt von der SD-Card
+- Datentransfer von einem PC zum Anderen selektiv

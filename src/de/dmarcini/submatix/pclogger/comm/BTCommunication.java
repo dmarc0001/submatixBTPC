@@ -1822,7 +1822,7 @@ public class BTCommunication implements IBTCommunication
       if( log ) LOGGER.severe( "config was not initialized! CANCEL!" );
       return;
     }
-    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( spxVersion ) || ProjectConst.FIRMWARE_2_7V.equals( spxVersion ) )
+    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( spxVersion ) || ProjectConst.FIRMWARE_2_7V.equals( spxVersion ) || spxVersion.startsWith( ProjectConst.FIRMWARE_2_7H ) )
     {
       // Schreibe für die leicht Fehlerhafte Version
       // Führe als eigenen Thread aus, damit die Swing-Oberfläche
@@ -1845,6 +1845,10 @@ public class BTCommunication implements IBTCommunication
           else if( ProjectConst.FIRMWARE_2_7V.equals( spxVersion ) )
           {
             firmware = ProjectConst.FW_2_7V;
+          }
+          else if( spxVersion.startsWith( ProjectConst.FIRMWARE_2_7H ) )
+          {
+            firmware = ProjectConst.FW_2_7H;
           }
           else
           {
@@ -1885,6 +1889,7 @@ public class BTCommunication implements IBTCommunication
                 break;
               default:
               case ProjectConst.FW_2_7V:
+              case ProjectConst.FW_2_7H:
                 // Kommando SPX_SET_SETUP_GASLIST
                 // ~40:NR:N2:HE:BO:DI:CU
                 // NR: Nummer des Gases 0..7

@@ -923,7 +923,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     frmMainWindow.setFont( new Font( "Arial", Font.PLAIN, 12 ) );
     frmMainWindow.setSize( new Dimension( 810, 600 ) );
     frmMainWindow.setResizable( false );
-    frmMainWindow.setIconImage( Toolkit.getDefaultToolkit().getImage( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/apple.png" ) ) );
+    frmMainWindow.setIconImage( Toolkit.getDefaultToolkit().getImage( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112.png" ) ) );
     frmMainWindow.setTitle( "TITLE" );
     frmMainWindow.setBounds( 100, 100, 800, 600 );
     frmMainWindow.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );

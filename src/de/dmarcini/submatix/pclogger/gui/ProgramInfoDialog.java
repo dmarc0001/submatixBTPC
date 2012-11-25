@@ -73,12 +73,13 @@ public class ProgramInfoDialog extends JDialog
       setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
       setTitle( stringsBundle.getString( "ProgramInfoDialog.infoDlg.headline" ) );
       setIconImage( Toolkit.getDefaultToolkit().getImage( ProgramInfoDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/45.png" ) ) );
-      setBounds( 100, 100, 510, 267 );
+      setBounds( 100, 100, 453, 405 );
       getContentPane().setLayout( new BorderLayout() );
+      contentPanel.setBackground( Color.WHITE );
       contentPanel.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
-      getContentPane().add( contentPanel, BorderLayout.CENTER );
+      getContentPane().add( contentPanel, BorderLayout.NORTH );
       JLabel lblNewLabel = new JLabel( "" );
-      lblNewLabel.setIcon( new ImageIcon( ProgramInfoDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/Wiki2.png" ) ) );
+      lblNewLabel.setIcon( new ImageIcon( ProgramInfoDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/logosub_400.png" ) ) );
       JLabel line01Label = new JLabel( stringsBundle.getString( "ProgramInfoDialog.infoDlg.line1" ) );
       JLabel line02Label = new JLabel( stringsBundle.getString( "ProgramInfoDialog.infoDlg.line2" ) );
       JLabel line03Label = new JLabel( stringsBundle.getString( "ProgramInfoDialog.infoDlg.line3" ) );
@@ -94,33 +95,7 @@ public class ProgramInfoDialog extends JDialog
       buildDateLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
       buildDateLabel.setForeground( Color.GRAY );
       GroupLayout gl_contentPanel = new GroupLayout( contentPanel );
-      gl_contentPanel.setHorizontalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING )
-              .addGroup(
-                      gl_contentPanel
-                              .createSequentialGroup()
-                              .addContainerGap()
-                              .addGroup(
-                                      gl_contentPanel
-                                              .createParallelGroup( Alignment.LEADING )
-                                              .addGroup(
-                                                      gl_contentPanel
-                                                              .createSequentialGroup()
-                                                              .addComponent( lblNewLabel )
-                                                              .addGap( 26 )
-                                                              .addGroup(
-                                                                      gl_contentPanel.createParallelGroup( Alignment.LEADING, false )
-                                                                              .addComponent( buildDateLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                              .addComponent( buildNumLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                              .addComponent( versionLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                              .addComponent( line04Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                              .addComponent( line03Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                              .addComponent( line02Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                              .addComponent( line01Label, GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE ) )
-                                                              .addContainerGap( 29, Short.MAX_VALUE ) )
-                                              .addGroup(
-                                                      gl_contentPanel.createSequentialGroup().addComponent( line05Label, GroupLayout.DEFAULT_SIZE, 445, Short.MAX_VALUE )
-                                                              .addGap( 29 ) ) ) ) );
-      gl_contentPanel.setVerticalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+      gl_contentPanel.setHorizontalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
               gl_contentPanel
                       .createSequentialGroup()
                       .addContainerGap()
@@ -128,12 +103,34 @@ public class ProgramInfoDialog extends JDialog
                               gl_contentPanel
                                       .createParallelGroup( Alignment.LEADING )
                                       .addGroup(
-                                              gl_contentPanel.createSequentialGroup().addComponent( line01Label ).addPreferredGap( ComponentPlacement.RELATED )
-                                                      .addComponent( line02Label ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( line03Label )
-                                                      .addPreferredGap( ComponentPlacement.RELATED ).addComponent( line04Label ).addPreferredGap( ComponentPlacement.UNRELATED )
-                                                      .addComponent( versionLabel ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( buildNumLabel )
-                                                      .addPreferredGap( ComponentPlacement.RELATED ).addComponent( buildDateLabel ) ).addComponent( lblNewLabel ) )
-                      .addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( line05Label ).addContainerGap( 28, Short.MAX_VALUE ) ) );
+                                              gl_contentPanel
+                                                      .createSequentialGroup()
+                                                      .addGroup(
+                                                              gl_contentPanel.createParallelGroup( Alignment.LEADING, false )
+                                                                      .addComponent( buildDateLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                                                      .addComponent( buildNumLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                                                      .addComponent( versionLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                                                      .addComponent( line04Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                                                      .addComponent( line03Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                                                      .addComponent( line02Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) )
+                                                      .addContainerGap( 17, Short.MAX_VALUE ) )
+                                      .addGroup( gl_contentPanel.createSequentialGroup().addComponent( line05Label, GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE ).addGap( 29 ) )
+                                      .addGroup(
+                                              gl_contentPanel
+                                                      .createSequentialGroup()
+                                                      .addGroup(
+                                                              gl_contentPanel
+                                                                      .createParallelGroup( Alignment.TRAILING, false )
+                                                                      .addComponent( line01Label, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+                                                                              Short.MAX_VALUE )
+                                                                      .addComponent( lblNewLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+                                                                              Short.MAX_VALUE ) ).addContainerGap( 17, Short.MAX_VALUE ) ) ) ) );
+      gl_contentPanel.setVerticalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+              gl_contentPanel.createSequentialGroup().addContainerGap().addComponent( lblNewLabel ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( line01Label )
+                      .addPreferredGap( ComponentPlacement.RELATED ).addComponent( line02Label ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( line03Label )
+                      .addPreferredGap( ComponentPlacement.RELATED ).addComponent( line04Label ).addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( versionLabel )
+                      .addPreferredGap( ComponentPlacement.RELATED ).addComponent( buildNumLabel ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( buildDateLabel )
+                      .addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( line05Label ).addContainerGap( 19, Short.MAX_VALUE ) ) );
       contentPanel.setLayout( gl_contentPanel );
       {
         JPanel buttonPane = new JPanel();
@@ -145,9 +142,8 @@ public class ProgramInfoDialog extends JDialog
           getRootPane().setDefaultButton( okButton );
         }
         GroupLayout gl_buttonPane = new GroupLayout( buttonPane );
-        gl_buttonPane.setHorizontalGroup( gl_buttonPane.createParallelGroup( Alignment.LEADING ).addGroup(
-                Alignment.TRAILING,
-                gl_buttonPane.createSequentialGroup().addContainerGap( 349, Short.MAX_VALUE ).addComponent( okButton, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE )
+        gl_buttonPane.setHorizontalGroup( gl_buttonPane.createParallelGroup( Alignment.TRAILING ).addGroup(
+                gl_buttonPane.createSequentialGroup().addContainerGap( 352, Short.MAX_VALUE ).addComponent( okButton, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE )
                         .addContainerGap() ) );
         gl_buttonPane.setVerticalGroup( gl_buttonPane.createParallelGroup( Alignment.LEADING ).addGroup(
                 gl_buttonPane.createSequentialGroup().addComponent( okButton ).addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) ) );

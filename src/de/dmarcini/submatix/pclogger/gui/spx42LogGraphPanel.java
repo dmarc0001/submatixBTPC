@@ -90,6 +90,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   @SuppressWarnings( "unused" )
   private spx42LogGraphPanel()
   {
+    setBackground( Color.WHITE );
     setPreferredSize( new Dimension( 796, 504 ) );
     initPanel();
   }
@@ -560,13 +561,17 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private void initPanel()
   {
     setLayout( new BorderLayout( 0, 0 ) );
+    setBackground( Color.WHITE );
     topPanel = new JPanel();
+    topPanel.setBackground( Color.WHITE );
     add( topPanel, BorderLayout.NORTH );
     deviceComboBox = new JComboBox();
+    deviceComboBox.setBackground( Color.WHITE );
     deviceComboBox.setMaximumRowCount( 26 );
     deviceComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     deviceComboBox.setActionCommand( "change_device_to_display" );
     diveSelectComboBox = new JComboBox();
+    diveSelectComboBox.setBackground( Color.WHITE );
     diveSelectComboBox.setMaximumRowCount( 26 );
     diveSelectComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     diveSelectComboBox.setActionCommand( "change_dive_to_display" );
@@ -601,6 +606,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
                                     .addComponent( diveSelectComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) ) ) );
     topPanel.setLayout( gl_topPanel );
     bottomPanel = new JPanel();
+    bottomPanel.setBackground( Color.WHITE );
     add( bottomPanel, BorderLayout.SOUTH );
     maxDepthValueLabel = new JLabel( "0" );
     coldestTempValueLabel = new JLabel( "0" );

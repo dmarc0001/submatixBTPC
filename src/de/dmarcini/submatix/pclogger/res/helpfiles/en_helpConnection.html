@@ -1,0 +1,167 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Help (english) for config / log program for SPX42</title>
+	<meta http-equiv="content-language" content="en">
+	<link rel="stylesheet" type="text/css" href="style_normal.css">
+</head>
+<body>
+  <h1><a name="pagestart"></a>Bluethooth Connection</h1>
+  
+  <h2>The Connections-Tab</h2>
+
+  After starting the program the connections tab is opened by default. Some 
+  other tabs will be grayed out (deactivated), since they require connection 
+  to the SPX42.
+  <br />
+  The GUI's top part should look somewhat like the displayed one:  
+  <div class="underline">
+    <img class="block" alt="GUI on start" src="en_connectionTabNormal.png" />
+    <br />
+    The Connections-Tab
+  </div>
+  
+  <h2>The Connections-Lists</h2>
+  There are two Connections-Lists:
+  <br />
+  <ul style="list-style-type:circle;">
+    <li><a href="#direktBT">Direct BT Connection</a></li>
+    <li><a href="#virtuelleBT">Virtual Devices</a></li>
+  </ul>
+	<a href="en_helpFileMain.html">Contents</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Nativ verbinden (Bluecove)                                           ####    
+  ##############################################################################
+   -->
+  <h3><a name="direktBT">Direct Bluetooth Connection</a></h3>
+ 
+  The program can communicate natively, that is directly with the bluetooth 
+  devices (in this case the SPX42).
+  <br />
+  This is made possible by the cross-platform library 'bluecove' 
+  (<a href="http://bluecove.org/">http://bluecove.org/</a>).
+  <br />
+  Bluecove is published under the Apache License 2.0.
+  <br />
+  If there are no devices displayed or none are displayed with an asterisk '*' 
+  after the name, the 'Refresh BT' button should be pressed. (The SPX42 to read 
+  has to be in synchronization mode for that.)
+  <br />
+  (See <a href="en_helpLicenses.html">Libraries and Licenses</a>)
+  <br />
+ 
+  <div class="underline">
+    <img alt="Reading in of active BT-devices" src="en_connectionTabreadBT.png" />
+    <br />
+    Reading in of active BT-devices
+  </div>
+  After that the desired SPX42 can be selected from the list (drop down by 
+  pressing the triangle symbol). SPX42s available via Bluetooth are marked by an
+  asterisk after the device name.
+  <br />
+  The device PIN will be recorded when the desired device is selected in the 
+  drop-down menu and the  button 'PINs...' is pressed.
+  <br />
+  Recording of the PIN is completed by inserting into the appearing dialog box, 
+  which will save the PIN after successful connection to the internal database.
+  <br />
+  <a href="#connectBT">Connect SPX42</a>
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Nativ verbinden (Bluecove)                                           ####    
+  ##############################################################################
+   -->
+  <h3><a name="virtuelleBT">Virtual Devices</a></h3>
+
+  If no connection to the SPX42 can be established using a direct connection, 
+  caused for example by manufacturer specific drivers of the Bluetooth adapter,
+  using virtual devices can still enable a connection.
+  <br />
+  In order to that, the operating system has to provide a virtual device port.
+  Procedure for that should be in the Bluetooth adapter's handbook.
+  <br />
+  After providing such a port it will be displayed in this drop-down
+  menu (seen here under Microsoft Windos as 'COM4').
+ 
+  <div class="underline">
+    <img class="block" alt="Verbindungstab mit Virtuellem Gerät" src="en_connectionVirtualBT.png" />
+    <br />
+    Selected port "COM4" 
+  </div>
+  <br />
+  <a href="#connectBT">Connection to the SPX42</a>
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  
+  
+  <!-- 
+  ##############################################################################
+  #### Verbunden                                                            ####    
+  ##############################################################################
+   -->
+  <h2><a name="connectBT">Connection to the SPX42</a></h2>
+  
+  After pressing the button 'Connect to SPX' the following should be displayed 
+  after a short while:
+
+  <div class="underline">
+    <img class="block" alt="Verbindungstab mit Virtuellem Gerät" src="en_connectionTabConnected.png" />
+    <br />
+    Selected port 'COM4' 
+  </div>
+
+  All buttons except the 'Disconnect from SPX' will be deactivated and all tabs 
+  activated.
+  <br />
+  All of the program's functions will be available now.
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Aliase                                                               ####    
+  ##############################################################################
+   -->
+  <h2><a name="connectBT">Edit Aliases</a></h2>
+  
+  When a device has been connected previously it can be assigned and alias. This 
+  is useful to discern different SPX42 not using their respective device numbers 
+  but names. The alias editor is <b style="color:red;">only</b> available if 
+  there is no connection to the SPX. 
+  <br />
+  After pressing the 'Edit Aliases' button the following should be displayed:
+  
+  <div class="underline">
+    <img class="block" alt="Alias Editor with one entry" src="en_connectionTabAliasEditor.png" />
+    <br />
+    Alias Editor with one entry 
+  </div>
+  
+  By clicking the respective right-side entry the alias can be edited. 
+  <br />
+  ENTER will terminate the editing and save the alias to the device.
+  
+  <div class="underline">
+    <img class="block" alt="Alias editor with one entry edited" src="en_connectionTabAliasEditorEdited.png" />
+    <br />
+    Alias editor with one entry edited 
+  </div>
+ 
+  After that, the alias will be instantly available in all displays. The alias 
+  will be saved in an internal database and of course can be changed. 
+  <br />
+  Pressing the 'Hide Aliases' button will hide the alias editor.
+  
+  <br />
+  <br />
+  <br />
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+</body>
+</html>

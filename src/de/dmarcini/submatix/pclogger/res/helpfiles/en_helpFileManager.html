@@ -1,0 +1,113 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta http-equiv="content-language" content="en">
+  <title>Help (english) for config / log program for SPX42</title>
+  <link rel="stylesheet" type="text/css" href="style_normal.css">
+</head>
+<body>
+  <h1><a name="pagestart">File manager</a></h1>
+
+  <!-- 
+  ##############################################################################
+  #### Übersicht                                                            ####    
+  ##############################################################################
+  -->
+  
+  <h2>Overview</h2>
+
+  The file manager allows an overview over the existing data sets and enables 
+  the user to <a href="#delete">delete</a> unwanted sets or <a href="#export">
+  export</a> sets for further use.
+  <br />
+
+  <div class="underline">
+    <img class="block" alt="File manager for log files" src="en_filemanagerOverview.png" />
+    <br />
+    File manager for log files
+  </div>
+
+  Display of data sets is again sorted and separated by devices. Selection of 
+  the device for display of Sets is done analogously to visual representation of
+  logs via the down-down menu in the upper left:
+  <br />
+  
+  <div class="underline">
+    <img class="block" alt="Selection of device for display of data" src="en_filemanagerDeviceSelect.png" />
+    <br />
+    Selection of device for display of data
+  </div>
+  <br />
+  <a href="en_helpFileMain.html">Contents</a>
+  
+  
+  <!-- 
+  ##############################################################################
+  #### Löschen von Daten                                                    ####    
+  ##############################################################################
+  -->
+
+  <h2><a name="delete">Deleting data sets</a></h2>
+  
+  Sometimes unwanted files are saved in the database, e.g. from device 
+  maintenance in pressure chambers.
+  <br />
+  To delete those from the database (NOT the SPX42!) the file manager can be 
+  used. 
+  <br />
+  Selecting entries automatically enables the buttons in the lower part of the
+  program window:
+  
+  <div class="underline">
+    <img class="block" alt="Entries selected, buttons enabled" src="en_filemanagerSelectDives.png" />
+    <br />
+    Entries selected, buttons enabled
+  </div>
+  <br />
+  
+  Pressing the button 'Cancel/Unselect' undoes the selection of entries and 
+  disables the buttons again. 
+  <br />
+  To delete the data sets from the internal database, click the 'Delete' button. 
+  <br />
+  The program will ask 'Are you sure?' for confirmation. After confirmation by 
+  clicking 'Delete!' the sets will be deleted permanently.
+
+  <br />
+  <a href="en_helpFileMain.html">Contents</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Löschen von Daten                                                    ####    
+  ##############################################################################
+  -->
+
+  <h2><a name="export">Exporting data sets</a></h2>
+
+  At the moment export is supported in the UDDF-format. The UDDF format is a 
+  universal file format for the exchange of diving related data and is an 
+  application of the XML-standards. It therefore is a text formatted by strict 
+  but simple rules. 
+  <br />
+  Clicking the 'Export' button after selecting the wanted data sets will 
+  immediately export the files to the directory specified in the 
+  <a href="en_helpOptions.html">Properties</a> menu. The program default for 
+  'Export' is within the program's main directory. 
+  <br />
+  The export file's name is composed of the device number and a string including 
+  date and time of the dive. The file extension is '.uddf'. 
+  <br />
+  An application (preferred by the author) is maintaining a personal log using 
+  the <a href="http://www.divinglog.de/">'Diving Log'</a>-software 
+  <a href="http://www.divinglog.de/">by Sven Koch</a>.  
+  
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <a href="en_helpFileMain.html">Contents</a>
+  <br />
+</body>
+</html>

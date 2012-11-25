@@ -1,0 +1,88 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta http-equiv="content-language" content="en">
+    <title>Help (english) for config / log program for SPX42</title>
+	<link rel="stylesheet" type="text/css" href="style_normal.css">
+  </head>
+  <body>
+    <h1><a name="pagestart">Command Line Options</a></h1>
+    
+    <div>
+      <div class="code">
+        -logfile path/file
+      </div>
+    </div>
+    This parameter determines
+    the logfile's name and position. If <b>NONE</b> is chosen as value no logfile 
+    is being creating. 
+    <br />
+    Default setting creates a file 'logfile.log' inside the program's directory. 
+    <br />
+    Declaration of path in absolute or relative path. Declaring no path will
+    automatically select program directory
+    <div>
+      <div class="code">
+        --loglevel [SEVERE|ERROR|WARNING|INFO|CONFIG|FINE|DEBUG|FINER|FINEST]
+      </div>
+      Determines the degree of detail the program uses for logging.      
+    </div>
+    
+    
+    <div>
+      <div class="code">
+        -cacheonstart
+      </div>
+      This parameter has no options. Using this command in the prompt will cause 
+      the program to search the bluetooth library for BT-devices already 
+      evaluated without displaying further searches.
+      <br />
+      This option causes sometimes an freeze under MAC OS.
+    </div>
+	
+    <div>
+      <div class="code">
+        -debug
+      </div>
+      This parameter has no options. Using this command in the prompt will cause 
+      the program to display all outputs not only in the logfile but also the terminal.
+      <br />
+      Useful when starting the debug version of java.      
+    </div>
+	
+    <div>
+      <div class="code">
+        -databasedir
+      </div>
+      Using this parameter will cause the program to display the database's 
+      directory. 
+      <br />
+      (Usually this is not necessary.)
+    </div>
+	
+    <div>
+      <div class="code">
+        -langcode
+      </div>
+      The program normally starts using the operating system's default language. 
+      If the program does not support this language, the standard English will 
+      be used. 
+      <br />
+      The parameter enables the setting of a supported language other than the 
+      system's default. 
+      <br />
+      If for example French is to be set, the parameter would be '-langcode fr'. 
+      The country code is determined by the 'Two-Letter Code ISO-639'.      
+    </div>
+	
+	<br />
+	<br />
+	<br />
+	<br />
+	<br />
+	<a href="en_helpFileMain.html">Contents</a>
+	<br />
+  </body>
+</html>

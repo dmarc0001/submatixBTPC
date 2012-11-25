@@ -1,0 +1,162 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta http-equiv="content-language" content="en">
+    <title>Help (english) for config / log program for SPX42</title>
+<link rel="stylesheet" type="text/css" href="style_normal.css">
+</head>
+<body>
+  <h1><a name="pagestart">SPX42 gas management</a></h1>
+  
+  <!-- 
+  ##############################################################################
+  #### einführung                                                           ####    
+  ##############################################################################
+   -->
+  <h2><a name="gasentry">Gas management Tab</a></h2>
+
+  This tab summarizes the functions necessary for the SPX42's gas management. 
+  The gas list is framed in different colours to distinguish between online 
+  and offline mode, where <b style="color:darkblue;">BLUE</b> corresponds to
+  <a href="#offline">offline</a>, that is disconnected from the SPX42
+  and <b style="color:green;">GREEN</b> to <a href="#online">online</a> that is 
+  connected to the SPX42.
+  <br />
+  Once in online mode, editing of gases can be done directly, that is on the 
+  SPX42. The buttons 'Read gas list' and 'Write gas list' will be active.
+  <br />
+  Here again the functionality in the online mode depends on the SPX42's 
+  available software licenses. In offline mode all settings are available 
+  whereas online settings are restricted to those with proper license. Even 
+  though it is possible to create presets that do not comply with currently 
+  available licenses it is not possible to write those onto the SPX42.
+
+  <div class="underline">
+    <img class="block" alt="Gas list Editor Tab OFFLINE" src="en_gaslistTabOffline.png" />
+    <br />
+    Gas list Editor Tab OFFLINE
+  </div>  
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  
+  
+  <!-- 
+  ##############################################################################
+  #### gas Presets                                                          ####    
+  ##############################################################################
+   -->
+  <h2><a name="presets">Gas presets</a></h2>
+ 
+  The idea behind gas presets is to prepare sets of settings for typical or 
+  recurring dives without having to redo those over and over.
+  <br />
+  For example: The author switches between presets for shallow dives in 
+  freshwater with air as diluent and Nitrox as bailout and presets for special 
+  dives. A preset would be for long dives to depths of 60 m with Trimix 21/45 
+  and two bailout gases. 
+  <br />
+  Another possibility would be a preset for recurring dives at a specific 
+  location that requires a certain composition of bailout gases or another for 
+  the fast exchange to another SPX42 unit.
+  
+  <div class="underline">
+    <img class="block" alt="Gas list Editor Tab Presets OFFLINE" src="en_gaslistTabOfflinePreset.png" />
+    <br />
+    <a name="offline">Gas list Editor Tab Presets OFFLINE</a>
+  </div>  
+  
+  The example above shows a previously defined preset under the name
+  'Standard-Trimix-Normoxic'. 
+  <br />
+  A gas list can be saved in the local data base under an arbitrary name by 
+  clicking the 'Save as preset' button and can be written onto the SPX42 when 
+  operated in online modus.
+
+  <div class="underline">
+    <img class="block" alt="Gas list Editor Tab Presets ONLINE" src="en_gaslistTabOnlineRead.png" />
+    <br />
+    <a name="online">Gas list Editor Tab Presets ONLINE</a>
+  </div>  
+  
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+ 
+  <!-- 
+  ##############################################################################
+  #### Gasnamen                                                             ####    
+  ##############################################################################
+   -->
+  <h2><a name="gasnames">Names of Gases</a></h2>
+  
+  Terminology for gases is compliant with the usual standard:
+  <br />
+  &quot;AIR&quot; stands for air (21% oxygen, 78% nitrogen, 1% others)<br />
+  &quot;NX&quot;  stands for Nitrox, number displayed is percentage O2<br />
+  &quot;TX&quot;  stands for Trimix, first number O2 content, second Helium
+  content<br />
+  &quot;HX&quot; stands for Helioxm, first number is O2 content, second Helium content
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  
+  
+  <!-- 
+  ##############################################################################
+  #### MOD                                                                  ####    
+  ##############################################################################
+   -->
+  <h2><a name="mod">Gas "Maximal Oxygen Depth"</a></h2>
+  
+  The MOD is calculated from the setting of salt/fresh water and the defined 
+  value for the desired maximum of O2 partial pressure. This value is for both 
+  bailout and diluent since during flushing for a brief moment the diluent alone 
+  will be inhaled.
+  
+  <div class="underline">
+    <img class="block" alt="Gas list Editor Tab MOD" src="en_gaslistTabMod.png" />
+    <br />
+    <a name="online">Gas list Editor Tab MOD</a>
+  </div>  
+  
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+
+  
+  <!-- 
+  ##############################################################################
+  #### Gasberechnungen                                                      ####    
+  ##############################################################################
+   -->
+  <h2><a name="presets">Gas calculation</a></h2>
+  
+  Once the button 'Compute' is clicked a window will pop up (see below) which 
+  allows calculations for single gases.
+  <br />
+  
+  <div class="underline">
+    <img class="block" alt="Gas calculation" src="en_gaslistTabGasCompute.png" />
+    <br />
+    <a name="online">Gas calculation</a>
+  </div>  
+  <br />
+
+  Assuming that the composition of gases inside the closed breather loop is not 
+  equal to that of the diluent, caused by the defined O2 setpoint (which means 
+  depending on environment pressure and setpoint oxygen will be added), the 
+  effective EAD (equivalent air depth) of diluent and actual gas composition 
+  will not be equal.
+  <br />
+  This window allows computation of effective EAD using variable parameters.
+  <br />
+  As a guide the name of the gas used as a basis for the current computation is 
+  displayed in the lower left side of the window.
+  
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  <br />
+</body>
+</html>

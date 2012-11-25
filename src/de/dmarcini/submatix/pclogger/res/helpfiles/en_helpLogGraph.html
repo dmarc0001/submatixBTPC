@@ -1,0 +1,176 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta http-equiv="content-language" content="en">
+  <title>Help (english) for config / log program for SPX42</title>
+  <link rel="stylesheet" type="text/css" href="style_normal.css">
+</head>
+<body>
+  <h1><a name="pagestart">Graphical display of logs</a></h1>
+
+  <!-- 
+  ##############################################################################
+  #### Übersicht                                                            ####    
+  ##############################################################################
+  -->
+  <h2>Overview</h2>
+ 
+  The tab 'Graph log' allows a quick graphical display of the dive profiles saved 
+  in the internal database. Furthermore a note can be saved to the database 
+  alongside every profile which will be exported alongside the profile.
+  <br />
+
+  <div class="underline">
+    <img class="block" alt="Overview tab graphical display" src="en_graphOverview.png" />
+    <br />
+    Overview tab graphical display
+  </div>
+  <br />
+  
+  Displaying the data is done using an Open Source library called 
+  &quot;JFreeChart&quot; <a href="http://www.jfree.org/">www.jfree.org</a>
+  which is published under the GNU Lesser General Public Licence.
+  <br />
+  (See <a href="en_helpLicenses.html">Libraries and Licenses</a>)  
+  
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  
+  <!-- 
+  ##############################################################################
+  #### Geräeteauswahl                                                       ####    
+  ##############################################################################
+  -->
+  
+  <h3>Select device for display</h3>
+  
+  First the selection of the device with the corresponding log files is 
+  necessary. In case more than one device is available in the data base the 
+  default setting will be the currently connected device. In case no device is 
+  currently connected, the default setting will be the alphanumerical first 
+  entry of the database. 
+  <br />
+  
+  <div class="underline">
+    <img class="block" alt="Select device with desired log files" src="en_graphDeviceSelect.png" />
+    <br />
+    Select device with desired log files
+  </div>
+  
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+ <!-- 
+  ##############################################################################
+  #### Profil wählen                                                        ####    
+  ##############################################################################
+  -->
+  
+  <h3>Selection of dive/profile</h3>
+  
+  Once a device has been selected the list will be filled with the device's 
+  available logs (dives/profiles). The desired entry can be selected from the
+  drop-down list.  
+  <br />
+  
+  <div class="underline">
+    <img class="block" alt="Selecting log/profil" src="en_graphProfilSelect.png" />
+    <br />
+    Selecting log/profil
+  </div>
+
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  <!-- 
+  ##############################################################################
+  #### Graph anzeigen                                                       ####    
+  ##############################################################################
+  -->
+  
+  <h2>Displaying of Data</h2>
+  
+  To display the dive's graphical respresentation, simply click the 'Display!' 
+  button and you show the following:
+  <br />
+  
+  <div class="underline">
+    <img class="block" alt="Displaying log/profile" src="en_graphShowProfile.png" />
+    <br />
+    Displaying log/profile
+  </div>
+  <br />
+  
+  Zooming on the time axis can be done using the mouse wheel or the left mouse 
+  button by selecting the desired portion of the window with the left mouse 
+  button being held. It is possible to move the zoomed region left and right by 
+  holding the CTRL-key (Control key) and moving the mouse left and right. 
+  <br />
+  Zooming on the depth/pressure/temperature axis is not supported.
+  <br />
+  <br />
+	
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  <!-- 
+  ##############################################################################
+  #### Anzeigedetails                                                       ####    
+  ##############################################################################
+  -->
+  
+  <h2>Details of display</h2>
+  
+  To display or hide the log data's details simply click the 'Detail...' button. 
+  A dialog window will pop up allowing to en-/disable certain details.
+  <br />
+  
+  <div class="underline">
+    <img class="block" alt="En-/disable details" src="en_graphDetailDialog.png" />
+    <br />
+    En-/disable details
+  </div>
+  <br />
+
+  After display options have been en-/disabled by clicking the
+  check boxes, they can be applied by clicking the 'Accept' button..
+
+  <br />
+	<a href="en_helpFileMain.html">Contents</a>
+  <!-- 
+  ##############################################################################
+  #### Notizen zum Tauchgang                                                ####    
+  ##############################################################################
+  -->
+  
+  <h3>Notes to dive/profile</h3>
+  
+  For every dive/profile a short text can be saved alongside to the database. 
+  Simply clicking the wrench button will cause a window to pop up which allows 
+  you to enter that note.
+  <br />
+  
+  <div class="underline">
+    <img class="block" alt="Edit dive's note" src="en_graphNotesDialog.png" />
+    <br />
+    Edit dive's note
+  </div>
+  <br />
+  
+  Clicking the 'Save' button will save the note to the database. This note will 
+  be exported alongside the file and will be displayed during graphical display.
+  
+  <div class="underline">
+    <img class="block" alt="Dive note" src="en_graphShowNotes.png" />
+    <br />
+    Dive note
+  </div>
+  <br />
+  
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <a href="en_helpFileMain.html">Contents</a>
+  <br />
+</body>
+</html>

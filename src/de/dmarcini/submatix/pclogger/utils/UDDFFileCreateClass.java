@@ -455,7 +455,7 @@ public class UDDFFileCreateClass
     }
     else
     {
-      txNode.appendChild( doc.createTextNode( "-" ) );
+      txNode.appendChild( doc.createTextNode( "" ) );
     }
     noNode.appendChild( txNode );
     diveNode.appendChild( noNode );

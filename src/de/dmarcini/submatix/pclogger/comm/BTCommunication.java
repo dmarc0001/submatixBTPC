@@ -1621,8 +1621,8 @@ public class BTCommunication implements IBTCommunication
       if( log ) LOGGER.severe( "config was not initialized! CANCEL!" );
       return;
     }
-    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( config.getFirmwareVersion() ) || ProjectConst.FIRMWARE_2_7V.equals( config.getFirmwareVersion() )
-            || config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7H ) )
+    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( config.getFirmwareVersion() ) || config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7Vx )
+            || config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7Hx ) )
     {
       // Führe als eigenen Thread aus, damit die Swing-Oberfläche
       // Gelegenheit bekommt, sich zu zeichnen
@@ -1638,11 +1638,11 @@ public class BTCommunication implements IBTCommunication
           {
             firmware = ProjectConst.FW_2_6_7_7V;
           }
-          else if( ProjectConst.FIRMWARE_2_7V.equals( config.getFirmwareVersion() ) )
+          else if( config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7Vx ) )
           {
             firmware = ProjectConst.FW_2_7V;
           }
-          else if( config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7H ) )
+          else if( config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7Hx ) )
           {
             firmware = ProjectConst.FW_2_7H;
           }
@@ -1822,7 +1822,7 @@ public class BTCommunication implements IBTCommunication
       if( log ) LOGGER.severe( "config was not initialized! CANCEL!" );
       return;
     }
-    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( spxVersion ) || ProjectConst.FIRMWARE_2_7V.equals( spxVersion ) || spxVersion.startsWith( ProjectConst.FIRMWARE_2_7H ) )
+    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( spxVersion ) || spxVersion.startsWith( ProjectConst.FIRMWARE_2_7Vx ) || spxVersion.startsWith( ProjectConst.FIRMWARE_2_7Hx ) )
     {
       // Schreibe für die leicht Fehlerhafte Version
       // Führe als eigenen Thread aus, damit die Swing-Oberfläche
@@ -1842,11 +1842,11 @@ public class BTCommunication implements IBTCommunication
           {
             firmware = ProjectConst.FW_2_6_7_7V;
           }
-          else if( ProjectConst.FIRMWARE_2_7V.equals( spxVersion ) )
+          else if( spxVersion.startsWith( ProjectConst.FIRMWARE_2_7Vx ) )
           {
             firmware = ProjectConst.FW_2_7V;
           }
-          else if( spxVersion.startsWith( ProjectConst.FIRMWARE_2_7H ) )
+          else if( spxVersion.startsWith( ProjectConst.FIRMWARE_2_7Hx ) )
           {
             firmware = ProjectConst.FW_2_7H;
           }

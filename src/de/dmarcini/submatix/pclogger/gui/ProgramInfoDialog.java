@@ -23,6 +23,7 @@ import javax.swing.JViewport;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -111,7 +112,7 @@ public class ProgramInfoDialog extends JDialog
       fameScrollPane.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
       fameScrollPane.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
       fameScrollPane.setDoubleBuffered( true );
-      fameScrollPane.setBorder( null );
+      fameScrollPane.setBorder( new LineBorder( Color.DARK_GRAY ) );
       GroupLayout gl_contentPanel = new GroupLayout( contentPanel );
       gl_contentPanel.setHorizontalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
               gl_contentPanel
@@ -124,26 +125,24 @@ public class ProgramInfoDialog extends JDialog
                                               gl_contentPanel
                                                       .createSequentialGroup()
                                                       .addGroup(
-                                                              gl_contentPanel.createParallelGroup( Alignment.LEADING, false )
-                                                                      .addComponent( buildDateLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                      .addComponent( buildNumLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                      .addComponent( versionLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                      .addComponent( line04Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                      .addComponent( line03Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-                                                                      .addComponent( line02Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) )
-                                                      .addContainerGap( 341, Short.MAX_VALUE ) )
+                                                              gl_contentPanel.createParallelGroup( Alignment.LEADING )
+                                                                      .addComponent( buildDateLabel, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE )
+                                                                      .addComponent( buildNumLabel, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE )
+                                                                      .addComponent( versionLabel, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE )
+                                                                      .addComponent( line04Label, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE )
+                                                                      .addComponent( line03Label, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE )
+                                                                      .addComponent( line02Label, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE ) ).addGap( 11 ) )
                                       .addGroup( gl_contentPanel.createSequentialGroup().addComponent( line05Label, GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE ).addGap( 29 ) )
                                       .addGroup(
                                               gl_contentPanel
                                                       .createSequentialGroup()
                                                       .addGroup(
                                                               gl_contentPanel
-                                                                      .createParallelGroup( Alignment.TRAILING, false )
-                                                                      .addComponent( fameScrollPane, Alignment.LEADING )
+                                                                      .createParallelGroup( Alignment.TRAILING )
                                                                       .addComponent( line01Label, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
                                                                               Short.MAX_VALUE )
                                                                       .addComponent( lblNewLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-                                                                              Short.MAX_VALUE ) ).addContainerGap( 11, Short.MAX_VALUE ) ) ) ) );
+                                                                              Short.MAX_VALUE ).addComponent( fameScrollPane, Alignment.LEADING ) ).addGap( 11 ) ) ) ) );
       gl_contentPanel.setVerticalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
               gl_contentPanel.createSequentialGroup().addContainerGap().addComponent( lblNewLabel ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( line01Label )
                       .addPreferredGap( ComponentPlacement.RELATED ).addComponent( line02Label ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( line03Label )
@@ -152,9 +151,10 @@ public class ProgramInfoDialog extends JDialog
                       .addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( line05Label ).addPreferredGap( ComponentPlacement.RELATED )
                       .addComponent( fameScrollPane, GroupLayout.DEFAULT_SIZE, 65, Short.MAX_VALUE ) ) );
       fameTextPane = new JTextPane();
+      fameTextPane.setAutoscrolls( false );
       fameTextPane.setBorder( null );
       fameTextPane.setEditable( false );
-      fameTextPane.setText( "FAME 01\nFAME 02\nFAME 03\nFAME 04\nFAME 05\nFAME 06\nFAME 07\nFAME 08\nFAME 09" );
+      fameTextPane.setText( "-" );
       fameScrollPane.setViewportView( fameTextPane );
       contentPanel.setLayout( gl_contentPanel );
       {
@@ -204,110 +204,136 @@ public class ProgramInfoDialog extends JDialog
       {}
       scrollThread = null;
     }
+    //
+    // Creiere einen Threwad, der dsas durchscrollt
+    //
     scrollThread = new Thread() {
       @Override
       public void run()
       {
         isRunning = true;
         Point vPoint;
-        int oldy = 0;
         int diff = 0;
         boolean countUp = true;
+        //
+        // Viewpoint auf Anfang setzen
+        //
+        try
+        {
+          sleep( 500 );
+        }
+        catch( InterruptedException ex )
+        {}
+        vPoint = fameScrollPane.getViewport().getViewPosition();
+        vPoint.y = 0;
+        fameScrollPane.getViewport().setViewPosition( vPoint );
+        //
+        // und nun wandern lassen
+        //
         while( isRunning )
         {
           try
           {
-            sleep( 100 );
-            JViewport vPort = fameScrollPane.getViewport();
-            vPoint = vPort.getViewPosition();
-            diff = vPort.getView().getHeight() - vPort.getHeight();
-            //
-            // ist die Differenz größer als der angezeigte Bereich
-            // also würde die Anzeige über den Bereich des textes hinausgehen?
-            //
-            if( vPoint.y >= diff )
-            {
-              countUp = false;
-              System.out.println( "Ab hier rückwärts zählen" );
-            }
-            //
-            // sind wir an Anfang ganz oben angekommen?
-            //
-            else if( vPoint.y == 0 )
-            {
-              countUp = true;
-              System.out.println( "Ab hier vorwärts zählen" );
-            }
-            //
-            // zähle jetzt mal die Pixel hoch oder runter
-            //
-            if( countUp )
-            {
-              vPoint.y++;
-            }
-            else
-            {
-              vPoint.y--;
-            }
-            oldy = vPoint.y;
-            //
-            // immer größer oder gleich null und kleiner oder gleich der Differnenz aus ViewHöhe und dem Viewport
-            //
-            vPoint.y = Math.max( 0, vPoint.y );
-            vPoint.y = Math.min( vPort.getView().getHeight() - vPort.getHeight(), vPoint.y );
-            vPort.setViewPosition( vPoint );
+            sleep( 70 );
           }
           catch( InterruptedException ex )
           {}
+          JViewport vPort = fameScrollPane.getViewport();
+          vPoint = vPort.getViewPosition();
+          diff = vPort.getView().getHeight() - vPort.getHeight();
+          //
+          // ist die Differenz größer als der angezeigte Bereich
+          // also würde die Anzeige über den Bereich des textes hinausgehen?
+          //
+          if( vPoint.y >= diff )
+          {
+            countUp = false;
+            System.out.println( "Ab hier rückwärts zählen" );
+          }
+          //
+          // sind wir an Anfang ganz oben angekommen?
+          //
+          else if( vPoint.y == 0 )
+          {
+            try
+            {
+              sleep( 500 );
+            }
+            catch( InterruptedException ex )
+            {}
+            countUp = true;
+            System.out.println( "Ab hier vorwärts zählen" );
+          }
+          //
+          // zähle jetzt mal die Pixel hoch oder runter
+          //
+          if( countUp )
+          {
+            vPoint.y++;
+          }
+          else
+          {
+            vPoint.y--;
+          }
+          //
+          // immer größer oder gleich null und kleiner oder gleich der Differnenz aus ViewHöhe und dem Viewport
+          //
+          vPoint.y = Math.max( 0, vPoint.y );
+          vPoint.y = Math.min( vPort.getView().getHeight() - vPort.getHeight(), vPoint.y );
+          vPort.setViewPosition( vPoint );
         }
         System.out.println( "Thread endet......" );
       }
     };
+    // Thread benamen
     scrollThread.setName( "scrollThread" );
+    // text einfüllen
     setHalOfFame();
+    // Thread starten
     scrollThread.start();
     setVisible( true );
   }
 
+  /**
+   * 
+   * Die Ruhmeshalle füllen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 02.12.2012
+   */
   public void setHalOfFame()
   {
     fameTextPane.setText( "" );
     Document doc = fameTextPane.getDocument();
     try
     {
-      doc.insertString( doc.getLength(), "Languages:\n", TextStyleConstants.HEAD );
+      doc.insertString( doc.getLength(), " \n", TextStyleConstants.HEAD );
+      doc.insertString( doc.getLength(), "Translations:\n", TextStyleConstants.HEAD );
       doc.insertString( doc.getLength(), "deutsch\t", TextStyleConstants.TITLE );
-      doc.insertString( doc.getLength(), "NAME Des Translators\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "Dirk Marciniak\n", TextStyleConstants.NAME );
       doc.insertString( doc.getLength(), "english\t", TextStyleConstants.TITLE );
-      doc.insertString( doc.getLength(), "NAME Des Translators\n", TextStyleConstants.NAME );
-      doc.insertString( doc.getLength(), "french\t", TextStyleConstants.TITLE );
-      doc.insertString( doc.getLength(), "Name des Translators\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "Christian Marciniak\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "français\t", TextStyleConstants.TITLE );
+      doc.insertString( doc.getLength(), "Pilippe Belmont\n", TextStyleConstants.NAME );
       //
       // Dank den Betatestern
       //
+      doc.insertString( doc.getLength(), " \n", TextStyleConstants.HEAD );
       doc.insertString( doc.getLength(), "BETA:\n", TextStyleConstants.HEAD );
-      doc.insertString( doc.getLength(), "NAME Des Translators01\n", TextStyleConstants.NAME );
-      doc.insertString( doc.getLength(), "NAME Des Translators02\n", TextStyleConstants.NAME );
-      doc.insertString( doc.getLength(), "NAME Des Translators03\n", TextStyleConstants.NAME );
-      doc.insertString( doc.getLength(), "NAME Des Translators04\n", TextStyleConstants.NAME );
-      doc.insertString( doc.getLength(), "NAME Des Translators05\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "Paul Dressler (D)\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "Phillipe Belmont (F)\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "Carsten Schäl (D)\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "Steffen Paetke (D)\n", TextStyleConstants.NAME );
       //
       // noch ne Zeile
       //
-      doc.insertString( doc.getLength(), "LLLLLLLLLLLLLL:\n", TextStyleConstants.HEAD );
-      //
-      // View an den Anfang
-      //
-      Point vp = fameScrollPane.getViewport().getViewPosition();
-      vp.y = 0;
-      vp.x = 0;
-      fameScrollPane.getViewport().setViewPosition( vp );
+      doc.insertString( doc.getLength(), " \n", TextStyleConstants.HEAD );
     }
     catch( BadLocationException ex )
-    {
-      // TODO Auto-generated catch block
-      ex.printStackTrace();
-    }
+    {}
   }
 
   /**

@@ -3,6 +3,7 @@ package de.dmarcini.submatix.pclogger.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.util.ResourceBundle;
@@ -16,21 +17,32 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.JViewport;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 import de.dmarcini.submatix.pclogger.utils.BuildVersion;
+import de.dmarcini.submatix.pclogger.utils.TextStyleConstants;
 
 public class ProgramInfoDialog extends JDialog
 {
   /**
    * 
    */
-  private static final long serialVersionUID = 1880409081700630690L;
-  private final JPanel      contentPanel     = new JPanel();
-  private ResourceBundle    stringsBundle    = null;
-  private JButton           okButton;
-  private final Action      action           = new SwingAction();
+  private static final long       serialVersionUID = 1880409081700630690L;
+  private JPanel                  contentPanel     = null;
+  private ResourceBundle          stringsBundle    = null;
+  private Thread                  scrollThread     = null;
+  private static volatile Boolean isRunning        = false;
+  private JButton                 okButton;
+  private final Action            action           = new SwingAction();
+  private JScrollPane             fameScrollPane;
+  private JTextPane               fameTextPane;
 
   @SuppressWarnings( "unused" )
   private ProgramInfoDialog()
@@ -73,11 +85,12 @@ public class ProgramInfoDialog extends JDialog
       setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
       setTitle( stringsBundle.getString( "ProgramInfoDialog.infoDlg.headline" ) );
       setIconImage( Toolkit.getDefaultToolkit().getImage( ProgramInfoDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/45.png" ) ) );
-      setBounds( 100, 100, 453, 405 );
+      setBounds( 100, 100, 447, 459 );
       getContentPane().setLayout( new BorderLayout() );
+      contentPanel = new JPanel();
       contentPanel.setBackground( Color.WHITE );
       contentPanel.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
-      getContentPane().add( contentPanel, BorderLayout.NORTH );
+      getContentPane().add( contentPanel, BorderLayout.CENTER );
       JLabel lblNewLabel = new JLabel( "" );
       lblNewLabel.setIcon( new ImageIcon( ProgramInfoDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/logosub_400.png" ) ) );
       JLabel line01Label = new JLabel( stringsBundle.getString( "ProgramInfoDialog.infoDlg.line1" ) );
@@ -94,6 +107,11 @@ public class ProgramInfoDialog extends JDialog
               versObj.getLocaleDate( stringsBundle.getString( "MainCommGUI.timeFormatterString" ) ) ) );
       buildDateLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
       buildDateLabel.setForeground( Color.GRAY );
+      fameScrollPane = new JScrollPane();
+      fameScrollPane.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER );
+      fameScrollPane.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
+      fameScrollPane.setDoubleBuffered( true );
+      fameScrollPane.setBorder( null );
       GroupLayout gl_contentPanel = new GroupLayout( contentPanel );
       gl_contentPanel.setHorizontalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
               gl_contentPanel
@@ -113,24 +131,31 @@ public class ProgramInfoDialog extends JDialog
                                                                       .addComponent( line04Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
                                                                       .addComponent( line03Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
                                                                       .addComponent( line02Label, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) )
-                                                      .addContainerGap( 17, Short.MAX_VALUE ) )
-                                      .addGroup( gl_contentPanel.createSequentialGroup().addComponent( line05Label, GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE ).addGap( 29 ) )
+                                                      .addContainerGap( 341, Short.MAX_VALUE ) )
+                                      .addGroup( gl_contentPanel.createSequentialGroup().addComponent( line05Label, GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE ).addGap( 29 ) )
                                       .addGroup(
                                               gl_contentPanel
                                                       .createSequentialGroup()
                                                       .addGroup(
                                                               gl_contentPanel
                                                                       .createParallelGroup( Alignment.TRAILING, false )
+                                                                      .addComponent( fameScrollPane, Alignment.LEADING )
                                                                       .addComponent( line01Label, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
                                                                               Short.MAX_VALUE )
                                                                       .addComponent( lblNewLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-                                                                              Short.MAX_VALUE ) ).addContainerGap( 17, Short.MAX_VALUE ) ) ) ) );
+                                                                              Short.MAX_VALUE ) ).addContainerGap( 11, Short.MAX_VALUE ) ) ) ) );
       gl_contentPanel.setVerticalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
               gl_contentPanel.createSequentialGroup().addContainerGap().addComponent( lblNewLabel ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( line01Label )
                       .addPreferredGap( ComponentPlacement.RELATED ).addComponent( line02Label ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( line03Label )
                       .addPreferredGap( ComponentPlacement.RELATED ).addComponent( line04Label ).addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( versionLabel )
                       .addPreferredGap( ComponentPlacement.RELATED ).addComponent( buildNumLabel ).addPreferredGap( ComponentPlacement.RELATED ).addComponent( buildDateLabel )
-                      .addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( line05Label ).addContainerGap( 19, Short.MAX_VALUE ) ) );
+                      .addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( line05Label ).addPreferredGap( ComponentPlacement.RELATED )
+                      .addComponent( fameScrollPane, GroupLayout.DEFAULT_SIZE, 65, Short.MAX_VALUE ) ) );
+      fameTextPane = new JTextPane();
+      fameTextPane.setBorder( null );
+      fameTextPane.setEditable( false );
+      fameTextPane.setText( "FAME 01\nFAME 02\nFAME 03\nFAME 04\nFAME 05\nFAME 06\nFAME 07\nFAME 08\nFAME 09" );
+      fameScrollPane.setViewportView( fameTextPane );
       contentPanel.setLayout( gl_contentPanel );
       {
         JPanel buttonPane = new JPanel();
@@ -168,7 +193,121 @@ public class ProgramInfoDialog extends JDialog
    */
   public void showDialog()
   {
+    if( scrollThread != null )
+    {
+      isRunning = false;
+      try
+      {
+        Thread.sleep( 800 );
+      }
+      catch( InterruptedException ex )
+      {}
+      scrollThread = null;
+    }
+    scrollThread = new Thread() {
+      @Override
+      public void run()
+      {
+        isRunning = true;
+        Point vPoint;
+        int oldy = 0;
+        int diff = 0;
+        boolean countUp = true;
+        while( isRunning )
+        {
+          try
+          {
+            sleep( 100 );
+            JViewport vPort = fameScrollPane.getViewport();
+            vPoint = vPort.getViewPosition();
+            diff = vPort.getView().getHeight() - vPort.getHeight();
+            //
+            // ist die Differenz größer als der angezeigte Bereich
+            // also würde die Anzeige über den Bereich des textes hinausgehen?
+            //
+            if( vPoint.y >= diff )
+            {
+              countUp = false;
+              System.out.println( "Ab hier rückwärts zählen" );
+            }
+            //
+            // sind wir an Anfang ganz oben angekommen?
+            //
+            else if( vPoint.y == 0 )
+            {
+              countUp = true;
+              System.out.println( "Ab hier vorwärts zählen" );
+            }
+            //
+            // zähle jetzt mal die Pixel hoch oder runter
+            //
+            if( countUp )
+            {
+              vPoint.y++;
+            }
+            else
+            {
+              vPoint.y--;
+            }
+            oldy = vPoint.y;
+            //
+            // immer größer oder gleich null und kleiner oder gleich der Differnenz aus ViewHöhe und dem Viewport
+            //
+            vPoint.y = Math.max( 0, vPoint.y );
+            vPoint.y = Math.min( vPort.getView().getHeight() - vPort.getHeight(), vPoint.y );
+            vPort.setViewPosition( vPoint );
+          }
+          catch( InterruptedException ex )
+          {}
+        }
+        System.out.println( "Thread endet......" );
+      }
+    };
+    scrollThread.setName( "scrollThread" );
+    setHalOfFame();
+    scrollThread.start();
     setVisible( true );
+  }
+
+  public void setHalOfFame()
+  {
+    fameTextPane.setText( "" );
+    Document doc = fameTextPane.getDocument();
+    try
+    {
+      doc.insertString( doc.getLength(), "Languages:\n", TextStyleConstants.HEAD );
+      doc.insertString( doc.getLength(), "deutsch\t", TextStyleConstants.TITLE );
+      doc.insertString( doc.getLength(), "NAME Des Translators\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "english\t", TextStyleConstants.TITLE );
+      doc.insertString( doc.getLength(), "NAME Des Translators\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "french\t", TextStyleConstants.TITLE );
+      doc.insertString( doc.getLength(), "Name des Translators\n", TextStyleConstants.NAME );
+      //
+      // Dank den Betatestern
+      //
+      doc.insertString( doc.getLength(), "BETA:\n", TextStyleConstants.HEAD );
+      doc.insertString( doc.getLength(), "NAME Des Translators01\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "NAME Des Translators02\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "NAME Des Translators03\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "NAME Des Translators04\n", TextStyleConstants.NAME );
+      doc.insertString( doc.getLength(), "NAME Des Translators05\n", TextStyleConstants.NAME );
+      //
+      // noch ne Zeile
+      //
+      doc.insertString( doc.getLength(), "LLLLLLLLLLLLLL:\n", TextStyleConstants.HEAD );
+      //
+      // View an den Anfang
+      //
+      Point vp = fameScrollPane.getViewport().getViewPosition();
+      vp.y = 0;
+      vp.x = 0;
+      fameScrollPane.getViewport().setViewPosition( vp );
+    }
+    catch( BadLocationException ex )
+    {
+      // TODO Auto-generated catch block
+      ex.printStackTrace();
+    }
   }
 
   /**
@@ -197,6 +336,7 @@ public class ProgramInfoDialog extends JDialog
     @Override
     public void actionPerformed( ActionEvent ev )
     {
+      isRunning = false;
       dispose();
     }
   }

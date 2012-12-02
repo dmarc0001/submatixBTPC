@@ -244,12 +244,6 @@ public class SPX42Config implements ISPX42Config
     }
     gradientLow = vals[0];
     gradientHigh = vals[1];
-    // if( ProjectConst.BUGGY_FIRMWARE_01.equals( firmwareVersion ) )
-    // {
-    // untersuche mal, wie der Firmwarebug zurückgerechnet werden kann....
-    // gradientLow++;
-    // gradientHigh++;
-    // }
     if( vals[2] == 0 )
     {
       enableDeepStops = false;

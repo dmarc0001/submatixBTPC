@@ -1873,6 +1873,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         configPanel.setAllConfigPanlelsEnabled( false );
         gasConfigPanel.setPanelOnlineMode( false );
         connectionPanel.refreshAliasTable();
+        connectionPanel.setAliasesEditable( true );
         if( tabbedPane.getSelectedIndex() != programTabs.TAB_CONNECT.ordinal() )
         {
           showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.connectionClosed" ) );

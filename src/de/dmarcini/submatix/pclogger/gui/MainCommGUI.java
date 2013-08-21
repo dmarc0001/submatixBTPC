@@ -69,6 +69,7 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.ConfigReadWriteException;
 import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.OperatingSystemDetector;
 import de.dmarcini.submatix.pclogger.utils.ReadConfig;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
@@ -481,6 +482,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       progConfig.setLogFile( logFile );
     }
     makeLogger( progConfig.getLogFile(), optionLogLevel );
+    LOGGER.info( "Operating System: <" + OperatingSystemDetector.getOsName() + ">" );
+    LOGGER.info( "Java VM Datamodel: " + OperatingSystemDetector.getDataModel() + " bits" );
     if( databaseDir != null )
     {
       // wenn auf der Kommandozeile ein neues Verzeichnis angegeben wurde

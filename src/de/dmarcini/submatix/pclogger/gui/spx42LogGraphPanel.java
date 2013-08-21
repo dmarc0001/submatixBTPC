@@ -77,8 +77,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private String                   pressureUnitName;
   private JPanel                   topPanel;
   private JPanel                   bottomPanel;
-  private JComboBox                deviceComboBox;
-  private JComboBox                diveSelectComboBox;
+  private JComboBox<String>        deviceComboBox;
+  private JComboBox<String>        diveSelectComboBox;
   private JButton                  computeGraphButton;
   private JLabel                   maxDepthValueLabel;
   private JLabel                   coldestTempValueLabel;
@@ -143,7 +143,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
           LOGGER.log( Level.WARNING, "no dive selected." );
           return;
         }
-        device = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceIdAt( deviceComboBox.getSelectedIndex() );
+        device = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceSerialAt( deviceComboBox.getSelectedIndex() );
         dbId = ( ( LogListComboBoxModel )diveSelectComboBox.getModel() ).getDatabaseIdAt( diveSelectComboBox.getSelectedIndex() );
         if( dbId < 0 )
         {
@@ -181,16 +181,17 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     }
     // /////////////////////////////////////////////////////////////////////////
     // Combobox
-    else if( ev.getSource() instanceof JComboBox )
+    else if( ev.getSource() instanceof JComboBox<?> )
     {
-      JComboBox srcBox = ( JComboBox )ev.getSource();
+      @SuppressWarnings( "unchecked" )
+      JComboBox<String> srcBox = ( JComboBox<String> )ev.getSource();
       // /////////////////////////////////////////////////////////////////////////
       // Gerät zur Grafischen Darstellung auswählen
       if( cmd.equals( "change_device_to_display" ) )
       {
         if( srcBox.getModel() instanceof DeviceComboBoxModel )
         {
-          entry = ( ( DeviceComboBoxModel )srcBox.getModel() ).getDeviceIdAt( srcBox.getSelectedIndex() );
+          entry = ( ( DeviceComboBoxModel )srcBox.getModel() ).getDeviceSerialAt( srcBox.getSelectedIndex() );
           LOGGER.fine( "device <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
           fillDiveComboBox( entry );
         }
@@ -225,6 +226,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    * 
    *         Stand: 03.07.2012
    */
+  @SuppressWarnings( "unchecked" )
   public void clearDiveComboBox()
   {
     Vector<String[]> diveEntrys = new Vector<String[]>();
@@ -548,7 +550,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     if( deviceComboBox.getSelectedIndex() != -1 )
     {
-      connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceIdAt( deviceComboBox.getSelectedIndex() );
+      connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceSerialAt( deviceComboBox.getSelectedIndex() );
       fillDiveComboBox( connDev );
     }
   }

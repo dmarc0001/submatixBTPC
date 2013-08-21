@@ -8,33 +8,14 @@ import gnu.io.SerialPort;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import javax.bluetooth.BluetoothConnectionException;
-import javax.bluetooth.BluetoothStateException;
-import javax.bluetooth.DataElement;
-import javax.bluetooth.DeviceClass;
-import javax.bluetooth.DiscoveryListener;
-import javax.bluetooth.LocalDevice;
-import javax.bluetooth.RemoteDevice;
-import javax.bluetooth.ServiceRecord;
-import javax.bluetooth.UUID;
-import javax.microedition.io.Connector;
-import javax.microedition.io.StreamConnection;
-
-import com.intel.bluetooth.RemoteDeviceHelper;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
@@ -54,24 +35,18 @@ import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 //@formatter:off
 public class BTCommunication implements IBTCommunication
 {
-  static final UUID                       UUID_SERIAL_DEVICE = new UUID( 0x1101 );
   public static final int             CONFIG_WRITE_KDO_COUNT = 4;
   public static final int              CONFIG_READ_KDO_COUNT = 7;
   // übersichtlicher machen mit Objekt für alle
-  private DeviceCache                            deviceCache = null;
   static Logger                                       LOGGER = null;
   private LogDerbyDatabaseUtil                        dbUtil = null;
   private boolean                                        log = false;
   private volatile boolean                       isConnected = false;
   private ActionListener                           aListener = null;
-  private static volatile boolean          discoverInProcess = false;
-  StreamConnection                                      conn = null;
   private WriterRunnable                              writer = null;
   private ReaderRunnable                              reader = null;
   private AliveTask                                    alive = null;
-  private RemoteDevice                       connectedDevice = null;
   private String                      connectedVirtualDevice = null;
-  private String                                  deviceName = null;
   private SerialPort                              serialPort = null; 
   private int                                  writeWatchDog = -1;
   protected String url;
@@ -857,7 +832,6 @@ public class BTCommunication implements IBTCommunication
     LOGGER = lg;
     LOGGER.fine( "bluethooth communication object create..." );
     this.dbUtil = dbUtil;
-    deviceCache = new DeviceCache( dbUtil );
     if( lg == null )
       log = false;
     else
@@ -881,9 +855,6 @@ public class BTCommunication implements IBTCommunication
       }
     }
     //
-    // Den Cache aus der Datenbank erstbefüllen
-    deviceCache.initFromDb();
-    //
     // jetzt noch Tick starten und dabei ALIVE abfragen...
     //
     LOGGER.fine( "bluethooth communication object create...start ticker..." );
@@ -902,268 +873,9 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
-  public boolean discoverDevices( final boolean cached )
-  {
-    if( discoverInProcess )
-    {
-      if( log ) LOGGER.log( Level.WARNING, "Discovering always in process..." );
-      return false;
-    }
-    discoverInProcess = true;
-    Thread sb = new Thread() {
-      @Override
-      public void run()
-      {
-        // Warteschleife mit Nachrichten
-        while( discoverInProcess )
-        {
-          try
-          {
-            Thread.sleep( 50 );
-          }
-          catch( InterruptedException ex )
-          {}
-          if( aListener != null )
-          {
-            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTWAITFOR, null );
-            aListener.actionPerformed( ex );
-          }
-        }
-      }
-    };
-    Thread th = new Thread() {
-      @Override
-      public void run()
-      {
-        // Discovery starten
-        if( log ) LOGGER.fine( "start discover für Bluethooth devices..." );
-        try
-        {
-          if( cached )
-          {
-            if( log ) LOGGER.fine( "read cached..." );
-            if( !RemoteDeviceDiscovery.readCached() )
-            {
-              if( log ) LOGGER.fine( "read cached failed, try normal discovering..." );
-              RemoteDeviceDiscovery.doDiscover();
-            }
-          }
-          else
-          {
-            if( log ) LOGGER.fine( "none read cached, try normal discovering..." );
-            RemoteDeviceDiscovery.doDiscover();
-          }
-        }
-        catch( IOException ex )
-        {
-          if( aListener != null )
-          {
-            ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
-            aListener.actionPerformed( ev );
-          }
-          discoverInProcess = false;
-          return;
-        }
-        catch( InterruptedException ex )
-        {
-          if( aListener != null )
-          {
-            ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
-            aListener.actionPerformed( ev );
-          }
-          discoverInProcess = false;
-          return;
-        }
-        // suche nach Serial devices
-        UUID serviceUUID = UUID_SERIAL_DEVICE;
-        // Event Objet
-        final Object serviceSearchCompletedEvent = new Object();
-        // Inline Klasse
-        DiscoveryListener listener = new DiscoveryListener() {
-          @Override
-          public void deviceDiscovered( RemoteDevice btDevice, DeviceClass cod )
-          {
-            LOGGER.fine( "device discovered: <" + btDevice.getBluetoothAddress() + ">" );
-          }
-
-          @Override
-          public void inquiryCompleted( int discType )
-          {}
-
-          @Override
-          public void servicesDiscovered( int transID, ServiceRecord[] servRecord )
-          {
-            if( log ) LOGGER.fine( "Services Discovered..." );
-            //
-            // Alle gefundenen Devices durchgehen
-            //
-            for( int i = 0; i < servRecord.length; i++ )
-            {
-              String url = servRecord[i].getConnectionURL( ServiceRecord.AUTHENTICATE_NOENCRYPT, false );
-              if( url == null )
-              {
-                // ich will nur mit gültiger Verbindung
-                continue;
-              }
-              DataElement serviceName = servRecord[i].getAttributeValue( 0x0100 );
-              String devName;
-              devName = servRecord[i].getHostDevice().getBluetoothAddress();
-              if( serviceName != null )
-              {
-                String sName = ( ( String )serviceName.getValue() );
-                sName = sName.replaceAll( "[^A-Z0-9a-z]{2,}", "" );
-                if( log ) LOGGER.fine( "Device <" + devName + "> Service <" + sName + "> found at <" + url + ">" );
-                // URL speichern
-                if( deviceCache.isDeviceThere( devName ) )
-                {
-                  if( log ) LOGGER.fine( "Device was in cache. update data..." );
-                  // gerät ist schon im Cache
-                  deviceCache.setConnectionString( devName, url );
-                  deviceCache.setRemoteDevice( devName, servRecord[i].getHostDevice() );
-                }
-                else
-                {
-                  if( log ) LOGGER.fine( "Device was not in cache. insert data..." );
-                  // Gerät ist noch nicht im Cache
-                  deviceCache.addDevice( devName, url, "0000", "A-" + devName, servRecord[i].getHostDevice(), "nativ" );
-                }
-                if( aListener != null )
-                {
-                  ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTMESSAGE, devName );
-                  aListener.actionPerformed( ev );
-                }
-              }
-              else
-              {
-                if( log ) LOGGER.fine( "Service found, URL: <" + url + "> IGNORE!" );
-              }
-            }
-          }
-
-          @Override
-          public void serviceSearchCompleted( int transID, int respCode )
-          {
-            if( log ) LOGGER.fine( "service search completed!" );
-            synchronized( serviceSearchCompletedEvent )
-            {
-              serviceSearchCompletedEvent.notifyAll();
-            }
-          }
-        };
-        // nach welchen UUID soll gesucht werden? (natürlich nur Serial Comm)
-        UUID[] searchUuidSet = new UUID[]
-        { serviceUUID };
-        // nach welchem Attr-Ids soll gesucht werden?
-        int[] attrIDs = new int[]
-        { 0x0100 };// Service name
-        // jetzt alle gefundenen Devices nach dem Gesuchten untersuchen
-        for( Enumeration<RemoteDevice> en = RemoteDeviceDiscovery.devicesDiscovered.elements(); en.hasMoreElements(); )
-        {
-          RemoteDevice btDevice = en.nextElement();
-          synchronized( serviceSearchCompletedEvent )
-          {
-            try
-            {
-              if( log ) LOGGER.fine( "search services on " + btDevice.getBluetoothAddress() + " " + btDevice.getFriendlyName( false ) );
-              LocalDevice.getLocalDevice().getDiscoveryAgent().searchServices( attrIDs, searchUuidSet, btDevice, listener );
-              serviceSearchCompletedEvent.wait();
-            }
-            catch( BluetoothStateException ex )
-            {
-              if( aListener != null )
-              {
-                ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
-                aListener.actionPerformed( ev );
-              }
-              discoverInProcess = false;
-              return;
-            }
-            catch( IOException ex )
-            {
-              if( aListener != null )
-              {
-                ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
-                aListener.actionPerformed( ev );
-              }
-              discoverInProcess = false;
-              return;
-            }
-            catch( InterruptedException ex )
-            {
-              if( aListener != null )
-              {
-                ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVERERR, ex.getLocalizedMessage() );
-                aListener.actionPerformed( ev );
-              }
-              discoverInProcess = false;
-              return;
-            }
-          }
-        }
-        if( aListener != null )
-        {
-          ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTRECOVEROK, new String( "discover_ok" ) );
-          aListener.actionPerformed( ex );
-          ex = new ActionEvent( this, ProjectConst.MESSAGE_BTMESSAGE, "OK" );
-          aListener.actionPerformed( ex );
-        }
-        if( log ) LOGGER.fine( "Bluethooth Discovering OK" );
-        discoverInProcess = false;
-      }
-    };
-    th.setName( "btDiscoverThread" );
-    sb.setName( "btStatusThread" );
-    sb.start();
-    th.start();
-    return true;
-  }
-
-  @Override
   public void addActionListener( ActionListener al )
   {
     aListener = al;
-  }
-
-  @Override
-  public Vector<String[]> getNameArray()
-  {
-    Vector<String[]> alData = null;
-    //
-    // den Vector erzeugen
-    //
-    alData = new Vector<String[]>();
-    if( deviceCache.isEmpty() )
-    {
-      return( alData );
-    }
-    //
-    // Vector füllen
-    //
-    Iterator<String> it = deviceCache.getDevicesIterator();
-    while( it.hasNext() )
-    {
-      // den Vector mit den Stringarrays für die Anzeige in der Combobox füllen
-      String dev = it.next();
-      String[] e = new String[4];
-      if( deviceCache.getType( dev ) != null )
-      {
-        // virtuelle Geräte will ich hier ausklammern
-        if( deviceCache.getType( dev ).equals( "virtual" ) ) continue;
-      }
-      e[0] = dev;
-      e[1] = deviceCache.getAlias( dev );
-      if( deviceCache.getConnectionString( dev ) != null )
-      {
-        e[2] = "*";
-      }
-      else
-      {
-        e[2] = "";
-      }
-      e[3] = deviceCache.getPin( dev );
-      alData.add( e );
-    }
-    return( alData );
   }
 
   @Override
@@ -1173,215 +885,10 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
-  public void connectDevice( final String devName ) throws Exception
-  {
-    //
-    LOGGER.fine( "try to connect device <" + devName + ">..." );
-    this.deviceName = devName;
-    this.connectedDevice = null;
-    this.connectedVirtualDevice = null;
-    this.serialPort = null;
-    // suche die URL für die Verbindung
-    if( deviceCache.isDeviceThere( devName ) )
-    {
-      LOGGER.fine( "device name found in list. can try to connect device..." );
-      // Ich hab den Gerätenamen gefunden, kann verbinden
-      url = deviceCache.getConnectionString( devName );
-      if( url == null )
-      {
-        // keine url, kann man nix verbinden!
-        if( aListener != null )
-        {
-          ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
-          aListener.actionPerformed( ev );
-        }
-        return;
-      }
-      this.connectedDevice = deviceCache.getRemoteDevice( devName );
-      if( aListener != null )
-      {
-        ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTING, null );
-        aListener.actionPerformed( ev );
-      }
-    }
-    else
-    {
-      // das geht nicht! Kann nicht herausfinden, mit wem ich verbinden soll!
-      LOGGER.severe( "device <" + devName + "> is not in list. give up!" );
-      this.deviceName = null;
-      this.connectedDevice = null;
-      if( aListener != null )
-      {
-        ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_BTNODEVCONN, null );
-        aListener.actionPerformed( ev );
-      }
-      return;
-    }
-    // So, das Verbinden halt...
-    // Da das etwas daueren kann, in einem Thread machen
-    //
-    Thread ct = new Thread() {
-      String devicePin = null;
-
-      @Override
-      public void run()
-      {
-        try
-        {
-          if( log ) LOGGER.fine( "Connect to Device <" + devName + ">" );
-          // Verbinden....
-          if( connectedDevice.isAuthenticated() )
-          {
-            // Wenn device authentifiziert ist, alles OK
-            if( log ) LOGGER.log( Level.INFO, "Device is Authentificated" );
-            conn = ( StreamConnection )Connector.open( url );
-          }
-          else
-          {
-            // Device ist nicht authentifiziert.
-            // Versuch das mal zu machen
-            if( log ) LOGGER.log( Level.INFO, "try autentificating..." );
-            // versuche die PIN zu bekommen
-            devicePin = deviceCache.getPin( devName );
-            if( devicePin != null )
-            {
-              // ich habe eine PIN in meinem Speicher
-              if( log ) LOGGER.log( Level.INFO, "try autentificating whith pin <" + devicePin + ">" );
-              RemoteDeviceHelper.authenticate( connectedDevice, devicePin );
-              conn = ( StreamConnection )Connector.open( url );
-              // Die Verbindung nun in die Alias Datenbank eintragen, wenn nicht schon vorhanden
-              if( !deviceCache.isDeviceInDb( devName ) || !deviceCache.isDeviceSyncWithDb( devName ) )
-              {
-                if( !deviceCache.isDeviceInDb( devName ) )
-                {
-                  dbUtil.addAliasForNameConn( devName, deviceCache.getAlias( devName ), "nativ" );
-                }
-                else
-                {
-                  dbUtil.updateDeviceAliasConn( devName, deviceCache.getAlias( devName ) );
-                }
-                dbUtil.setPinForDeviceConn( devName, devicePin );
-                deviceCache.setDeviceInDb( devName, true );
-                deviceCache.setDeviceSyncWithDb( devName, true );
-              }
-            }
-            else
-            {
-              // Benutzer anquengeln
-              // und PIN eigeben lassen
-              if( log ) LOGGER.log( Level.INFO, "Device is NOT Authentificated" );
-              connectedDevice = null;
-              deviceName = null;
-              if( aListener != null )
-              {
-                ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
-                aListener.actionPerformed( ex1 );
-                ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_BTAUTHREQEST, devName );
-                aListener.actionPerformed( ex );
-              }
-              // isConnected = false;
-              return;
-            }
-          }
-          //
-          // Wollen wir mal unser Glück versuchen?
-          //
-          // Eingabe erzeugen
-          InputStream din = new DataInputStream( conn.openInputStream() );
-          reader = new ReaderRunnable( din );
-          Thread rt = new Thread( reader );
-          rt.setName( "bt_reader_thread" );
-          rt.setPriority( Thread.NORM_PRIORITY - 1 );
-          rt.start();
-          //
-          // Ausgabe erzeugen
-          OutputStream dout;
-          dout = new DataOutputStream( conn.openOutputStream() );
-          // Get the output stream
-          writer = new WriterRunnable( dout );
-          Thread wt = new Thread( writer );
-          wt.setName( "bt_writer_thread" );
-          wt.setPriority( Thread.NORM_PRIORITY - 2 );
-          wt.start();
-          isConnected = true;
-          if( aListener != null )
-          {
-            ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTED, null );
-            aListener.actionPerformed( ex );
-          }
-        }
-        catch( BluetoothConnectionException ex )
-        {
-          isConnected = false;
-          connectedDevice = null;
-          if( log ) LOGGER.severe( "BTConnectionException <" + ex.getLocalizedMessage() + ">" );
-          if( aListener != null )
-          {
-            ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
-            aListener.actionPerformed( ex1 );
-          }
-          int status = ex.getStatus();
-          switch ( status )
-          {
-            case BluetoothConnectionException.UNKNOWN_PSM:
-              if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed because no service for the given PSM was registered>" );
-              break;
-            case BluetoothConnectionException.SECURITY_BLOCK:
-              if( log )
-                LOGGER.severe( "BTConnectionException <the connection failed because the security settings on the local device or the remote device were incompatible with the request>" );
-              break;
-            case BluetoothConnectionException.NO_RESOURCES:
-              if( log ) LOGGER.severe( "BTConnectionException <the connection failed due to a lack of resources either on the local device or on the remote device>" );
-              break;
-            case BluetoothConnectionException.FAILED_NOINFO:
-              if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed due to unknown reasons.>" );
-              break;
-            case BluetoothConnectionException.TIMEOUT:
-              if( log ) LOGGER.severe( "BTConnectionException <the connection to the server failed due to a timeout>" );
-              break;
-            case BluetoothConnectionException.UNACCEPTABLE_PARAMS:
-              if( log )
-                LOGGER.severe( "BTConnectionException <the connection failed because the configuration parameters provided were not acceptable to either the remote device or the local device>" );
-              break;
-            default:
-              if( log ) LOGGER.severe( "BTConnectionException <unknown>" );
-          }
-        }
-        catch( IOException ex )
-        {
-          isConnected = false;
-          connectedDevice = null;
-          if( log ) LOGGER.severe( "Exception <" + ex.getLocalizedMessage() + ">" );
-          if( aListener != null )
-          {
-            ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
-            aListener.actionPerformed( ev );
-          }
-        }
-        catch( Exception ex )
-        {
-          isConnected = false;
-          connectedDevice = null;
-          if( log ) LOGGER.severe( "Exception <" + ex.getLocalizedMessage() + ">" );
-          if( aListener != null )
-          {
-            ActionEvent ex1 = new ActionEvent( this, ProjectConst.MESSAGE_DISCONNECTED, null );
-            aListener.actionPerformed( ex1 );
-          }
-        }
-      }
-    };
-    ct.setName( "bt_connect_thread" );
-    ct.start();
-  }
-
-  @Override
   public void connectVirtDevice( final String devName )
   {
     //
     LOGGER.fine( "try to connect virtual device <" + devName + ">..." );
-    this.deviceName = devName;
-    this.connectedDevice = null;
     this.connectedVirtualDevice = null;
     this.serialPort = null;
     isConnected = false;
@@ -1390,6 +897,7 @@ public class BTCommunication implements IBTCommunication
     // damit Swing eine Change hat die Grafik zu erneutern
     //
     Thread ct = new Thread() {
+      @SuppressWarnings( "resource" )
       @Override
       public void run()
       {
@@ -1491,27 +999,14 @@ public class BTCommunication implements IBTCommunication
     }
     catch( InterruptedException ex )
     {}
-    if( conn != null )
-    {
-      try
-      {
-        conn.close();
-      }
-      catch( IOException ex )
-      {
-        ex.printStackTrace();
-      }
-    }
     writer = null;
     reader = null;
-    conn = null;
     if( this.serialPort != null )
     {
       this.serialPort.close();
     }
     this.serialPort = null;
     this.connectedVirtualDevice = null;
-    this.connectedDevice = null;
   }
 
   @Override
@@ -1586,30 +1081,6 @@ public class BTCommunication implements IBTCommunication
   @Override
   public void putDeviceInfos( String infos ) throws Exception
   {}
-
-  @Override
-  public void setPinForDevice( String devName, String pin )
-  {
-    deviceCache.setPin( devName, pin );
-    //
-    // ist das Device in der Datenbank aufgezeichnet?
-    //
-    if( deviceCache.isDeviceInDb( devName ) )
-    {
-      // Ja, in der Datenbank vorhanden, setze noch die PIN
-      dbUtil.setPinForDeviceConn( devName, pin );
-    }
-  }
-
-  @Override
-  public String getPinForDevice( String dev )
-  {
-    if( deviceCache.isDeviceThere( dev ) )
-    {
-      return( deviceCache.getPin( dev ) );
-    }
-    return( "0000" );
-  }
 
   @Override
   public void writeConfigToSPX( final SPX42Config config )
@@ -1965,24 +1436,6 @@ public class BTCommunication implements IBTCommunication
         // ja, dann guck ich mal weiter
         return( this.connectedVirtualDevice );
       }
-      // ich muss mal sehen, ob da ein Eintrag ist oder besorgt werden kann
-      if( this.connectedDevice == null )
-      {
-        LOGGER.log( Level.WARNING, "connected Device is NULL!" );
-        // Kein Eintrag da...
-        if( deviceName == null )
-        {
-          // Kein Gerätename, mit dem ich verbunden bin
-          LOGGER.log( Level.WARNING, "deviceName is NULL!" );
-          return( null );
-        }
-        this.connectedDevice = deviceCache.getRemoteDevice( deviceName );
-      }
-      // ich muss mal sehen, ob da ein Eintrag nun da ist
-      if( this.connectedDevice != null )
-      {
-        return( this.connectedDevice.getBluetoothAddress() );
-      }
       LOGGER.log( Level.WARNING, "connected Device is again NULL!" );
     }
     return null;
@@ -2000,21 +1453,6 @@ public class BTCommunication implements IBTCommunication
       }
       this.writeToDevice( kdoString );
     }
-  }
-
-  /**
-   * 
-   * Den Cache von der DB ergänzen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.comm
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 13.09.2012
-   */
-  public void refreshNameArray()
-  {
-    deviceCache.refreshFromDb();
   }
 
   @Override

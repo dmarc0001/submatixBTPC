@@ -57,7 +57,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   private final LogDerbyDatabaseUtil     dbUtil;
   private final MouseMotionListener      mListener;
   private JTable                         dataViewTable;
-  private JComboBox                      deviceComboBox;
+  private JComboBox<String>              deviceComboBox;
   private JButton                        cancelButton;
   private JButton                        deleteButton;
   private JButton                        exportButton;
@@ -81,17 +81,17 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     if( cmd.equals( "change_device_to_display" ) )
     {
       // wenn das eine ComboBox ist
-      if( ev.getSource() instanceof JComboBox )
+      if( ev.getSource() instanceof JComboBox<?> )
       {
         // ist das die DeviceBox?
-        JComboBox theBox = ( JComboBox )ev.getSource();
+        JComboBox<?> theBox = ( JComboBox<?> )ev.getSource();
         if( theBox.equals( deviceComboBox ) )
         {
           releaseLists();
           // ist was ausgewählt?
           if( deviceComboBox.getSelectedIndex() != -1 )
           {
-            String connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceIdAt( deviceComboBox.getSelectedIndex() );
+            String connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceSerialAt( deviceComboBox.getSelectedIndex() );
             if( connDev != null )
             {
               fillDiveTable( connDev );
@@ -441,6 +441,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
    */
   public void initData( String connDev ) throws Exception
   {
+    Vector<String[]> entrys;
     //
     // entsorge für alle Fälle das Zeug von vorher
     //
@@ -464,7 +465,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     // Lese eine Liste der Geräte/Aliase
     //
-    Vector<String[]> entrys = dbUtil.getAliasDataConn();
+    entrys = dbUtil.getAliasDataConn();
     if( entrys == null )
     {
       LOGGER.log( Level.WARNING, "no devices found in database." );
@@ -505,7 +506,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     if( deviceComboBox.getSelectedIndex() != -1 )
     {
-      connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceIdAt( deviceComboBox.getSelectedIndex() );
+      connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceSerialAt( deviceComboBox.getSelectedIndex() );
       if( connDev != null )
       {
         fillDiveTable( connDev );
@@ -521,7 +522,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     JPanel topComboBoxPanel = new JPanel();
     topComboBoxPanel.setPreferredSize( new Dimension( 10, 40 ) );
     add( topComboBoxPanel, BorderLayout.NORTH );
-    deviceComboBox = new JComboBox();
+    deviceComboBox = new JComboBox<String>();
     deviceComboBox.setMaximumRowCount( 26 );
     deviceComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     deviceComboBox.setActionCommand( "change_device_to_display" );

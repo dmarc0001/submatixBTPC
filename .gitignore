@@ -4,6 +4,7 @@ bin/
 javadoc/
 database/
 export/
+utils/
 *.uddf
 *.log.?
 *.log.lck

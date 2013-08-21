@@ -19,13 +19,13 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "1.0a";
-  public static final String GENYEAR                    = "2012";
-  public static final String GENMONTH                   = "12";
-  public static final String GENDAY                     = "02";
+  public static final String MANUFACTVERS               = "1.1";
+  public static final String GENYEAR                    = "2013";
+  public static final String GENMONTH                   = "08";
+  public static final String GENDAY                     = "21";
   
   // Datenbankversion
-  public static int          DB_VERSION                 = 6;
+  public static int          DB_VERSION                 = 7;
 
   // interne Begrenzung für Empfangspuffer
   public static final int    MAXINBUFFER                = 10 * 1024;
@@ -118,7 +118,7 @@ public final class ProjectConst
   
   // Message Bezeichnungen
   public static final int    MESSAGE_NONE               = ActionEvent.RESERVED_ID_MAX + 1;
-  public static final int    MESSAGE_STATE_CHANGE       = ActionEvent.RESERVED_ID_MAX + 2;
+  public static final int    MESSAGE_PORT_STATE_CHANGE  = ActionEvent.RESERVED_ID_MAX + 2;
   public static final int    MESSAGE_READ               = ActionEvent.RESERVED_ID_MAX + 3;
   public static final int    MESSAGE_WRITE              = ActionEvent.RESERVED_ID_MAX + 4;
   public static final int    MESSAGE_DEVICE_NAME        = ActionEvent.RESERVED_ID_MAX + 5;
@@ -181,12 +181,10 @@ public final class ProjectConst
   public static final String V_DBVERSION                = "dbversion";
   public static final String V_VERSION                  = "version";
   //
-  // Tabelle für Alias und PIN des Gerätes
+  // Tabelle für Alias des Gerätes
   public static final String A_DBALIAS                  = "aliases";
-  public static final String A_DEVNAME                  = "devname";
+  public static final String A_DEVSERIAL                = "dev_serial";
   public static final String A_ALIAS                    = "alias";
-  public static final String A_PIN                      = "pin";
-  public static final String A_TYP                      = "typ";
   //
   // Tabelle für die Kopfdaten des Tauchgangs
   // Tabelle dive_logs
@@ -195,7 +193,7 @@ public final class ProjectConst
   public static final String H_DIVEID                   = "dive_id";
   public static final String H_DIVENUMBERONSPX          = "dive_number";
   public static final String H_FILEONSPX                = "filename";
-  public static final String H_DEVICEID                 = "device_id";
+  public static final String H_DEVICESERIAL             = "dev_serial";
   public static final String H_STARTTIME                = "starttime";
   public static final String H_HADSEND                  = "had_send";
   public static final String H_FIRSTTEMP                = "airtemp";

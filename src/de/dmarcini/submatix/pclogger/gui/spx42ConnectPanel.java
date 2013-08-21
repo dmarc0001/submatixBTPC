@@ -29,6 +29,7 @@ import javax.swing.event.TableModelListener;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.AliasEditTableModel;
+import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 
 public class spx42ConnectPanel extends JPanel implements TableModelListener, ActionListener
@@ -50,6 +51,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
   private JLabel               messageConnectToastLabel;
   private JComboBox<String>    virtualDeviceComboBox;
   private JLabel               virtualDevicesLabel;
+  private JButton              renewVirtButton;
 
   @SuppressWarnings( "unused" )
   private spx42ConnectPanel()
@@ -120,6 +122,11 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
         if( virtualDeviceComboBox.getSelectedIndex() != -1 )
         {
           String device = virtualDeviceComboBox.getItemAt( virtualDeviceComboBox.getSelectedIndex() );
+          if( device.equals( stringsBundle.getString( "spx42ConnectPanel.virtualDeviceComboBox.initialModel" ) ) )
+          {
+            LOGGER.fine( "No port selected, ports are searching..." );
+            return;
+          }
           LOGGER.fine( "connect virtual port <" + device + ">..." );
           if( aListener != null )
           {
@@ -164,6 +171,8 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     connectButton.setSize( new Dimension( 426, 41 ) );
     connectButton.setMargin( new Insets( 2, 30, 2, 30 ) );
     deviceAliasButton = new JButton( "ALIAS" );
+    deviceAliasButton.setMargin( new Insets( 2, 30, 2, 14 ) );
+    deviceAliasButton.setHorizontalAlignment( SwingConstants.LEFT );
     deviceAliasButton.setIconTextGap( 15 );
     deviceAliasButton.setBounds( 347, 76, 426, 39 );
     deviceAliasButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/45.png" ) ) );
@@ -186,11 +195,19 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     add( messageConnectToastLabel );
     virtualDeviceComboBox = new JComboBox<String>();
     virtualDeviceComboBox.setActionCommand( "virt_dev_to_connect" );
-    virtualDeviceComboBox.setBounds( 41, 38, 281, 26 );
+    virtualDeviceComboBox.setBounds( 39, 89, 281, 26 );
     add( virtualDeviceComboBox );
     virtualDevicesLabel = new JLabel( "VIRTUAL DEVICE CONNECT:" );
-    virtualDevicesLabel.setBounds( 41, 24, 281, 14 );
+    virtualDevicesLabel.setBounds( 39, 75, 281, 14 );
     add( virtualDevicesLabel );
+    renewVirtButton = new JButton( "RENEW VIRT BUTTON" );
+    renewVirtButton.setIconTextGap( 15 );
+    renewVirtButton.setMargin( new Insets( 2, 30, 2, 14 ) );
+    renewVirtButton.setHorizontalAlignment( SwingConstants.LEFT );
+    renewVirtButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/112.png" ) ) );
+    renewVirtButton.setBounds( 39, 24, 281, 41 );
+    renewVirtButton.setActionCommand( "renew_virt_buttons" );
+    add( renewVirtButton );
   }
 
   /**
@@ -319,6 +336,23 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
   }
 
   /**
+   * 
+   * Die Combobox enablen/disablen (wenn Devices gesucht werden sollte die diabled sein)
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 21.08.2013
+   * @param _en
+   */
+  public void setVirtDevicesBoxEnabled( boolean _en )
+  {
+    virtualDeviceComboBox.setEnabled( _en );
+    renewVirtButton.setEnabled( _en );
+  }
+
+  /**
    * Elemente bei Bedarf abschalten Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 26.04.2012
@@ -346,6 +380,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     connectButton.addMouseMotionListener( mainCommGUI );
     deviceAliasButton.addActionListener( mainCommGUI );
     deviceAliasButton.addMouseMotionListener( mainCommGUI );
+    renewVirtButton.addActionListener( mainCommGUI );
   }
 
   /**
@@ -399,8 +434,13 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
       }
       virtualDevicesLabel.setText( stringsBundle.getString( "spx42ConnectPanel.virtualDevicesLabel.text" ) );
       virtualDeviceComboBox.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.virtualDeviceComboBox.tooltiptext" ) );
-      virtualDeviceComboBox.setModel( new DefaultComboBoxModel<String>( new String[]
-      { stringsBundle.getString( "spx42ConnectPanel.virtualDeviceComboBox.initialModel" ) } ) );
+      if( !( virtualDeviceComboBox.getModel() instanceof DeviceComboBoxModel ) )
+      {
+        virtualDeviceComboBox.setModel( new DefaultComboBoxModel<String>( new String[]
+        { stringsBundle.getString( "spx42ConnectPanel.virtualDeviceComboBox.initialModel" ) } ) );
+      }
+      renewVirtButton.setText( stringsBundle.getString( "spx42ConnectPanel.renewVirtButton.text" ) );
+      renewVirtButton.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.renewVirtButton.tooltiptext" ) );
     }
     catch( NullPointerException ex )
     {

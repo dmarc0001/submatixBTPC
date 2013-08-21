@@ -579,6 +579,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       LOGGER.severe( "setLanguageStrings() faild. give up..." );
       System.exit( -1 );
     }
+    connectionPanel.setVirtDevicesBoxEnabled( false );
     startVirtualPortFinder( null );
     waitForMessage = 0;
   }
@@ -1468,6 +1469,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     // /////////////////////////////////////////////////////////////////////////
+    // Virtual Coms neu einlesen
+    else if( cmd.equals( "renew_virt_buttons" ) )
+    {
+      connectionPanel.setVirtDevicesBoxEnabled( false );
+      startVirtualPortFinder( null );
+    }
+    // /////////////////////////////////////////////////////////////////////////
     // Da hab ich nix passendes gefunden!
     else
     {
@@ -1692,6 +1700,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           VirtualSerialPortsFinder finder = ( VirtualSerialPortsFinder )ev.getSource();
           connectionPanel.setNewVirtDeviceList( finder.getComboBoxModel() );
+          connectionPanel.setVirtDevicesBoxEnabled( true );
         }
         break;
       // /////////////////////////////////////////////////////////////////////////

@@ -145,6 +145,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         }
         device = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceSerialAt( deviceComboBox.getSelectedIndex() );
         dbId = ( ( LogListComboBoxModel )diveSelectComboBox.getModel() ).getDatabaseIdAt( diveSelectComboBox.getSelectedIndex() );
+        LOGGER.log( Level.FINE, "Select Device-Serial: " + device + ", DBID: " + dbId );
         if( dbId < 0 )
         {
           LOGGER.severe( "can't find database id for dive." );

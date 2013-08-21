@@ -19,6 +19,8 @@ public class DeviceComboBoxModel extends DefaultComboBoxModel<String>
 {
   private final Vector<String[]> data             = new Vector<String[]>();
   private String[]               selectedItem     = null;
+  private static final int       ID_SERIAL        = 0;
+  private static final int       ID_ALIAS         = 1;
   //
   // Daten sind in einem Vector<String[]> gesichert
   // Jedes Element des Vectors elem ist
@@ -66,57 +68,9 @@ public class DeviceComboBoxModel extends DefaultComboBoxModel<String>
     // data.addAll( entrys );
   }
 
-  /**
-   * Gib den für die Anzeige vorgesehenen Wert zurück
-   */
-  @Override
-  public String getElementAt( int index )
+  public void addElement( String[] _elem )
   {
-    if( index > data.size() )
-    {
-      return( null );
-    }
-    if( index <= -1 )
-    {
-      return( "-" );
-    }
-    String[] value = data.elementAt( index );
-    if( value.length < 2 )
-    {
-      return( "-" );
-    }
-    return( value[0] );
-  }
-
-  /**
-   * 
-   * Gib die Device-Id zurück
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 07.09.2012
-   * @param index
-   * @return geräteID
-   */
-  public String getDeviceSerialAt( int index )
-  {
-    String[] value;
-    if( index > super.getSize() )
-    {
-      return( "" );
-    }
-    if( index <= -1 )
-    {
-      return( new String( "" ) );
-    }
-    value = data.elementAt( index );
-    if( value.length < 2 )
-    {
-      return( "" );
-    }
-    return( value[0] );
+    data.add( _elem );
   }
 
   /**
@@ -147,17 +101,97 @@ public class DeviceComboBoxModel extends DefaultComboBoxModel<String>
     {
       return( "" );
     }
-    return( value[1] );
+    return( value[ID_ALIAS] );
   }
 
-  public void addElement( String[] _elem )
+  /**
+   * 
+   * Gib die Device-Id zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 07.09.2012
+   * @param index
+   * @return geräteID
+   */
+  public String getDeviceSerialAt( int index )
   {
-    data.add( _elem );
+    String[] value;
+    if( index > data.size() )
+    {
+      return( "" );
+    }
+    if( index <= -1 )
+    {
+      return( new String( "" ) );
+    }
+    value = data.elementAt( index );
+    if( value.length < 2 )
+    {
+      return( "" );
+    }
+    return( value[ID_SERIAL] );
+  }
+
+  /**
+   * Gib den für die Anzeige vorgesehenen Wert zurück
+   */
+  @Override
+  public String getElementAt( int index )
+  {
+    if( index > data.size() )
+    {
+      return( null );
+    }
+    if( index <= -1 )
+    {
+      return( "-" );
+    }
+    String[] value = data.elementAt( index );
+    if( value.length < 2 )
+    {
+      return( "-" );
+    }
+    return( value[ID_ALIAS] );
   }
 
   public int getIndexOf( String[] _obj )
   {
     return( data.indexOf( _obj ) );
+  }
+
+  @SuppressWarnings( "unused" )
+  private String[] getItemForSerial( final String _elem )
+  {
+    for( String[] elem : data )
+    {
+      if( elem[ID_SERIAL].equals( _elem ) )
+      {
+        return( elem );
+      }
+    }
+    return( null );
+  }
+
+  private String[] getItemForAlias( final String _elem )
+  {
+    for( String[] elem : data )
+    {
+      if( elem[ID_ALIAS].equals( _elem ) )
+      {
+        return( elem );
+      }
+    }
+    return( null );
+  }
+
+  @Override
+  public String getSelectedItem()
+  {
+    if( this.selectedItem == null ) return( null );
+    return( this.selectedItem[ID_ALIAS] );
   }
 
   @Override
@@ -188,31 +222,26 @@ public class DeviceComboBoxModel extends DefaultComboBoxModel<String>
     data.remove( index );
   }
 
-  public void setSelectedItem( String _elem )
+  @Override
+  public void setSelectedItem( Object _item )
   {
-    this.selectedItem = getItemForSerial( _elem );
+    if( _item instanceof String )
+    {
+      setSelectedItem( ( String )_item );
+    }
+    else if( _item instanceof String[] )
+    {
+      setSelectedItem( ( String[] )_item );
+    }
   }
 
-  private String[] getItemForSerial( final String _elem )
+  public void setSelectedItem( String _elem )
   {
-    for( String[] elem : data )
-    {
-      if( elem[0].equals( _elem ) )
-      {
-        return( elem );
-      }
-    }
-    return( null );
+    this.selectedItem = getItemForAlias( _elem );
   }
 
   public void setSelectedItem( String[] _elem )
   {
     this.selectedItem = _elem;
-  }
-
-  @Override
-  public String getSelectedItem()
-  {
-    return( this.selectedItem[0] );
   }
 }

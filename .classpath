@@ -20,9 +20,9 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derby.jar"/>
-	<classpathentry kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/rxtx/v2.2/RXTXcomm.jar" sourcepath="C:/DATEN/eclipseWorkspace/extLibs/rxtx/v2.2/rxtx-2.2pre2.zip">
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/rxtxLibs">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="C:/DATEN/eclipseWorkspace/extLibs/rxtx/v2.2/win_x86"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="SubmatixBTForPC/lib"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>

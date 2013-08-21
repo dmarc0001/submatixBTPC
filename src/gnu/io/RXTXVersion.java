@@ -58,34 +58,36 @@
 package gnu.io;
 
 /**
-A class to keep the current version in
-*/
-
+ * A class to keep the current version in
+ */
 public class RXTXVersion
 {
-/*------------------------------------------------------------------------------
-	RXTXVersion  
-	accept:       -
-	perform:      Set Version.
-	return:       -
-	exceptions:   Throwable
-	comments:     
-		      See INSTALL for details.
-------------------------------------------------------------------------------*/
-	private static String Version;
+  /*------------------------------------------------------------------------------
+   RXTXVersion  
+   accept:       -
+   perform:      Set Version.
+   return:       -
+   exceptions:   Throwable
+   comments:     
+   See INSTALL for details.
+   ------------------------------------------------------------------------------*/
+  private static String Version;
+  static
+  {
+    System.loadLibrary( String.format( "rxtxSerial_%s_%s", OperatingSystemFinder.getOsTypString(), OperatingSystemFinder.getArch() ) );
+    // Version = "RXTX-2.2pre2";
+    Version = "RXTX-2.2-20081207 Cloudhopper Build rxtx.cloudhopper.net";
+  }
 
-	static {
-		System.loadLibrary( "rxtxSerial" );
-		Version = "RXTX-2.2pre2";
-	}
-	/**
-	*  static method to return the current version of RXTX
-	*  unique to RXTX.
-	*  @return a string representing the version  "RXTX-1.4-9"
-	*/
-	public static String getVersion()
-	{
-		return(Version);
-	}
-	public static native String nativeGetVersion();
+  /**
+   * static method to return the current version of RXTX unique to RXTX.
+   * 
+   * @return a string representing the version "RXTX-1.4-9"
+   */
+  public static String getVersion()
+  {
+    return( Version );
+  }
+
+  public static native String nativeGetVersion();
 }

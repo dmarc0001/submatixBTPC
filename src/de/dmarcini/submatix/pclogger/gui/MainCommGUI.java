@@ -484,6 +484,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     makeLogger( progConfig.getLogFile(), optionLogLevel );
     LOGGER.info( "Operating System: <" + OperatingSystemDetector.getOsName() + ">" );
     LOGGER.info( "Java VM Datamodel: " + OperatingSystemDetector.getDataModel() + " bits" );
+    LOGGER.info( "Java VM Datamodel: <" + OperatingSystemDetector.getArch() + ">" );
     if( databaseDir != null )
     {
       // wenn auf der Kommandozeile ein neues Verzeichnis angegeben wurde

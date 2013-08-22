@@ -90,32 +90,32 @@ public class WriteConfig
       out.append( "#" + LINE_SEPARATOR );
       out.append( "# generated file, do not edit." + LINE_SEPARATOR );
       out.append( "#" + LINE_SEPARATOR );
-      out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_DATABASEDIR, SpxPcloggerProgramConfig.databaseDir.getAbsolutePath(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_LOGFILE, SpxPcloggerProgramConfig.logFile.getAbsoluteFile(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_EXPORTDIR, SpxPcloggerProgramConfig.exportDir.getAbsoluteFile(), LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_DATABASEDIR, SpxPcloggerProgramConfig.databaseDir.getAbsolutePath(), LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_LOGFILE, SpxPcloggerProgramConfig.logFile.getAbsoluteFile(), LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_EXPORTDIR, SpxPcloggerProgramConfig.exportDir.getAbsoluteFile(), LINE_SEPARATOR ) );
       switch ( SpxPcloggerProgramConfig.unitsProperty )
       {
         case ProjectConst.UNITS_DEFAULT:
-          out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "default", LINE_SEPARATOR ) );
+          out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "default", LINE_SEPARATOR ) );
           break;
         case ProjectConst.UNITS_METRIC:
-          out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "metric", LINE_SEPARATOR ) );
+          out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "metric", LINE_SEPARATOR ) );
           break;
         case ProjectConst.UNITS_IMPERIAL:
-          out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "imperial", LINE_SEPARATOR ) );
+          out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "imperial", LINE_SEPARATOR ) );
           break;
         default:
-          out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "default", LINE_SEPARATOR ) );
+          out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "default", LINE_SEPARATOR ) );
       }
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWTEMPERRATURE, SpxPcloggerProgramConfig.showTemperature, LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPORESULT, SpxPcloggerProgramConfig.showPpoResult, LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO1, SpxPcloggerProgramConfig.showPpo01, LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO2, SpxPcloggerProgramConfig.showPpo02, LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO3, SpxPcloggerProgramConfig.showPpo03, LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWSETPOINT, SpxPcloggerProgramConfig.showSetpoint, LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWHE, SpxPcloggerProgramConfig.showHe, LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWN2, SpxPcloggerProgramConfig.showN2, LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWNULLTIME, SpxPcloggerProgramConfig.showNulltime, LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %b%s", ProjectConst.CONFIG_SHOWTEMPERRATURE, SpxPcloggerProgramConfig.showTemperature, LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %b%s", ProjectConst.CONFIG_SHOWPPORESULT, SpxPcloggerProgramConfig.showPpoResult, LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %b%s", ProjectConst.CONFIG_SHOWPPO1, SpxPcloggerProgramConfig.showPpo01, LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %b%s", ProjectConst.CONFIG_SHOWPPO2, SpxPcloggerProgramConfig.showPpo02, LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %b%s", ProjectConst.CONFIG_SHOWPPO3, SpxPcloggerProgramConfig.showPpo03, LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %b%s", ProjectConst.CONFIG_SHOWSETPOINT, SpxPcloggerProgramConfig.showSetpoint, LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %b%s", ProjectConst.CONFIG_SHOWHE, SpxPcloggerProgramConfig.showHe, LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %b%s", ProjectConst.CONFIG_SHOWN2, SpxPcloggerProgramConfig.showN2, LINE_SEPARATOR ) );
+      out.append( String.format( "%-18s = %b%s", ProjectConst.CONFIG_SHOWNULLTIME, SpxPcloggerProgramConfig.showNulltime, LINE_SEPARATOR ) );
       out.flush();
     }
     catch( IOException ex )

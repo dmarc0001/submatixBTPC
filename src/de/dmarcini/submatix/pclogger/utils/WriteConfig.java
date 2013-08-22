@@ -11,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Locale;
 
 import org.apache.log4j.Level;
 
@@ -93,6 +94,14 @@ public class WriteConfig
       out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_DATABASEDIR, SpxPcloggerProgramConfig.databaseDir.getAbsolutePath(), LINE_SEPARATOR ) );
       out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_LOGFILE, SpxPcloggerProgramConfig.logFile.getAbsoluteFile(), LINE_SEPARATOR ) );
       out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_EXPORTDIR, SpxPcloggerProgramConfig.exportDir.getAbsoluteFile(), LINE_SEPARATOR ) );
+      if( SpxPcloggerProgramConfig.langCode != null )
+      {
+        out.append( String.format( "%-18s = %s%s", ProjectConst.CONFIG_LANGCODE, SpxPcloggerProgramConfig.langCode, LINE_SEPARATOR ) );
+      }
+      else
+      {
+        out.append( String.format( "#%-18s = %s%s", ProjectConst.CONFIG_LANGCODE, Locale.getDefault().getLanguage(), LINE_SEPARATOR ) );
+      }
       switch ( SpxPcloggerProgramConfig.unitsProperty )
       {
         case ProjectConst.UNITS_DEFAULT:

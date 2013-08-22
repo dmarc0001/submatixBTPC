@@ -17,8 +17,13 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
  */
 public class BuildVersion
 {
+<<<<<<< HEAD
   private final long buildNumber = 1717L;
   private final long buildDate = 1354898644804L;
+=======
+  private final long buildNumber = 1757L;
+  private final long buildDate = 1377119619073L;
+>>>>>>> refs/heads/20130821-removeBlueCove
 
   /**
    * Gib die Buildnummer zurück

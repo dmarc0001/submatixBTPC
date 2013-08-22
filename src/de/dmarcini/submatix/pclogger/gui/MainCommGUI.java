@@ -26,7 +26,6 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.Vector;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -35,6 +34,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -67,13 +67,14 @@ import org.joda.time.format.DateTimeFormatter;
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.ConfigReadWriteException;
-import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.DirksConsoleLogFormatter;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.OperatingSystemDetector;
 import de.dmarcini.submatix.pclogger.utils.ReadConfig;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
+import de.dmarcini.submatix.pclogger.utils.VirtualSerialPortsFinder;
 import de.dmarcini.submatix.pclogger.utils.WriteConfig;
 
 //@formatter:off
@@ -179,7 +180,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private PleaseWaitDialog         wDial               = null;
   private boolean                  ignoreAction        = false;
   private static Level             optionLogLevel      = Level.FINE;
-  private static boolean           readBtCacheOnStart  = false;
   private static File              logFile             = null;
   private static File              databaseDir         = null;
   private static boolean           DEBUG               = false;
@@ -192,6 +192,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * 
    * @param args
    */
+  @SuppressWarnings( "null" )
   public static void main( String[] args )
   {
     CommandLine cmd = null;
@@ -208,10 +209,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     if( cmd.hasOption( "loglevel" ) )
     {
       optionLogLevel = parseLogLevel( cmd.getOptionValue( "loglevel" ) );
-    }
-    if( cmd.hasOption( "cacheonstart" ) )
-    {
-      readBtCacheOnStart = true;
     }
     if( cmd.hasOption( "logfile" ) )
     {
@@ -485,6 +482,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       progConfig.setLogFile( logFile );
     }
     makeLogger( progConfig.getLogFile(), optionLogLevel );
+    LOGGER.info( "Operating System: <" + OperatingSystemDetector.getOsName() + ">" );
+    LOGGER.info( "Java VM Datamodel: " + OperatingSystemDetector.getDataModel() + " bits" );
+    LOGGER.info( "Java VM Datamodel: <" + OperatingSystemDetector.getArch() + ">" );
     if( databaseDir != null )
     {
       // wenn auf der Kommandozeile ein neues Verzeichnis angegeben wurde
@@ -570,10 +570,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     // Listener setzen (braucht auch die Maps)
     setGlobalChangeListener();
-    btComm.refreshNameArray();
-    Vector<String[]> entrys = btComm.getNameArray();
-    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
-    connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
     //
     initLanuageMenu( programLocale );
     if( !DEBUG )
@@ -582,18 +578,33 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       logListPanel.setAllLogPanelsEnabled( false );
       setElementsConnected( false );
     }
-    if( readBtCacheOnStart )
-    {
-      LOGGER.log( Level.INFO, "call discover btdevices cached..." );
-      btComm.discoverDevices( true );
-      connectionPanel.setElementsDiscovering( true );
-    }
     if( setLanguageStrings() < 1 )
     {
       LOGGER.severe( "setLanguageStrings() faild. give up..." );
       System.exit( -1 );
     }
+    connectionPanel.setVirtDevicesBoxEnabled( false );
+    startVirtualPortFinder( null );
     waitForMessage = 0;
+  }
+
+  /**
+   * 
+   * Starte einen virtuellen Portfinder
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 21.08.2013
+   * @param _model
+   */
+  private void startVirtualPortFinder( DefaultComboBoxModel<String> _model )
+  {
+    VirtualSerialPortsFinder vPortFinder = new VirtualSerialPortsFinder( this, _model );
+    Thread th = new Thread( vPortFinder );
+    th.setName( "virtual_port_finder" );
+    th.start();
   }
 
   /**
@@ -739,7 +750,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
         wDial.setVisible( true );
         wDial.setTimeout( 90 * 1000 );
-        btComm.connectDevice( deviceName );
       }
       catch( Exception ex )
       {
@@ -938,7 +948,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     frmMainWindow.getContentPane().add( tabbedPane, BorderLayout.CENTER );
     tabbedPane.addMouseMotionListener( this );
     // Connection Panel
-    connectionPanel = new spx42ConnectPanel( LOGGER, databaseUtil, btComm );
+    connectionPanel = new spx42ConnectPanel( LOGGER, databaseUtil );
     tabbedPane.addTab( "CONNECTION", null, connectionPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_CONNECT.ordinal(), true );
     // config Panel
@@ -999,7 +1009,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     mntmInfo.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/javax/swing/plaf/metal/icons/ocean/expanded.gif" ) ) );
     mntmInfo.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_I, InputEvent.CTRL_MASK ) );
     mnHelp.add( mntmInfo );
-    connectionPanel.discoverProgressBar.setVisible( false );
   }
 
   /**
@@ -1223,9 +1232,9 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       setStatus( ( ( JButton )ev.getSource() ).getToolTipText() );
     }
-    else if( ev.getSource() instanceof JComboBox )
+    else if( ev.getSource() instanceof JComboBox<?> )
     {
-      setStatus( ( ( JComboBox )ev.getSource() ).getToolTipText() );
+      setStatus( ( ( JComboBox<?> )ev.getSource() ).getToolTipText() );
     }
     else if( ev.getSource() instanceof JMenuItem )
     {
@@ -1247,21 +1256,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       setStatus( "" );
     }
-  }
-
-  /**
-   * Die Statusbar soll sich bewegen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 10.01.2012
-   */
-  private void moveStatusBar()
-  {
-    if( connectionPanel.discoverProgressBar.getMaximum() == connectionPanel.discoverProgressBar.getValue() )
-    {
-      connectionPanel.discoverProgressBar.setValue( 0 );
-      return;
-    }
-    connectionPanel.discoverProgressBar.setValue( connectionPanel.discoverProgressBar.getValue() + 1 );
   }
 
   /**
@@ -1345,21 +1339,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         writeConfigToSPX( savedConfig );
       }
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // Geräteliste neu lesen
-    else if( cmd.equals( "refresh_bt_devices" ) )
-    {
-      LOGGER.log( Level.INFO, "call discover btdevices..." );
-      btComm.discoverDevices( false );
-      connectionPanel.setElementsDiscovering( true );
-    }
-    // /////////////////////////////////////////////////////////////////////////
-    // PIN für Gerät setzen
-    else if( cmd.equals( "set_pin_for_dev" ) )
-    {
-      LOGGER.log( Level.INFO, "call set pin for device..." );
-      setPinForDevice();
     }
     // /////////////////////////////////////////////////////////////////////////
     // Alias editor zeigen
@@ -1492,6 +1471,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
         }
       }
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Virtual Coms neu einlesen
+    else if( cmd.equals( "renew_virt_buttons" ) )
+    {
+      connectionPanel.setVirtDevicesBoxEnabled( false );
+      startVirtualPortFinder( null );
     }
     // /////////////////////////////////////////////////////////////////////////
     // Da hab ich nix passendes gefunden!
@@ -1711,7 +1697,24 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     switch ( actionId )
     {
     // /////////////////////////////////////////////////////////////////////////
-    // Hab was gelesen!
+    // Virtuelle Ports verändert
+      case ProjectConst.MESSAGE_PORT_STATE_CHANGE:
+        LOGGER.fine( "VIRTUAL PORT CHANGED command!" );
+        if( ev.getSource() instanceof VirtualSerialPortsFinder )
+        {
+          VirtualSerialPortsFinder finder = ( VirtualSerialPortsFinder )ev.getSource();
+          connectionPanel.setNewVirtDeviceList( finder.getComboBoxModel() );
+          connectionPanel.setVirtDevicesBoxEnabled( true );
+        }
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Info anzeigen...
+      case ProjectConst.MESSAGE_TOAST:
+        LOGGER.fine( "TOAST command!" );
+        connectionPanel.setToastMessage( cmd );
+        break;
+      // /////////////////////////////////////////////////////////////////////////
+      // Hab was gelesen!
       case ProjectConst.MESSAGE_READ:
         LOGGER.fine( "READ Command!" );
         // soll den reader Thread und die GUI nicht blockieren
@@ -1885,39 +1888,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         break;
       // /////////////////////////////////////////////////////////////////////////
-      // BT Discovering war erfolgreich
-      case ProjectConst.MESSAGE_BTRECOVEROK:
-        connectionPanel.setElementsDiscovering( false );
-        refillPortComboBox();
-        break;
-      // /////////////////////////////////////////////////////////////////////////
-      // BT Discovering war fehlerhaft
-      case ProjectConst.MESSAGE_BTRECOVERERR:
-        connectionPanel.setElementsDiscovering( false );
-        break;
-      // /////////////////////////////////////////////////////////////////////////
-      // Nachricht bitte noch warten
-      case ProjectConst.MESSAGE_BTWAITFOR:
-        moveStatusBar();
-        break;
-      // /////////////////////////////////////////////////////////////////////////
       // Kein Gerät zum Verbinden gefunden!
       case ProjectConst.MESSAGE_BTNODEVCONN:
         LOGGER.severe( "no device found..." );
         showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
         setElementsConnected( false );
-        break;
-      // /////////////////////////////////////////////////////////////////////////
-      // Gerät benötigt PIN
-      case ProjectConst.MESSAGE_BTAUTHREQEST:
-        LOGGER.log( Level.INFO, "authentification requested..." );
-        setPinForDevice();
-        connectSPX( cmd );
-        break;
-      // /////////////////////////////////////////////////////////////////////////
-      // Discover Nachricht gesendet
-      case ProjectConst.MESSAGE_BTMESSAGE:
-        connectionPanel.setBtMessage( "device: " + cmd );
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Lebenszeichen mit Ackuspannugn empfangen
@@ -2190,19 +2165,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Die devicebox neu befüllen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.01.2012
-   */
-  private void refillPortComboBox()
-  {
-    // Alle Aliase holen und die nativen Geräte rausfischen
-    Vector<String[]> entrys = btComm.getNameArray();
-    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
-    connectionPanel.deviceToConnectComboBox.setModel( portBoxModel );
-  }
-
-  /**
    * Ackuwert des SPX anzeigen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.01.2012
@@ -2416,33 +2378,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     LOGGER.fine( "setLanguageStrings( ) END." );
     return( 1 );
-  }
-
-  /**
-   * Setze PIN für Gerät in der Auswahl Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.01.2012
-   */
-  private void setPinForDevice()
-  {
-    String deviceName = null;
-    ImageIcon icon = null;
-    String pinString = null;
-    // Welche Schnittstelle?
-    if( connectionPanel.deviceToConnectComboBox.getSelectedIndex() == -1 )
-    {
-      LOGGER.log( Level.WARNING, "no connection device selected!" );
-      showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
-      return;
-    }
-    deviceName = ( ( DeviceComboBoxModel )( connectionPanel.deviceToConnectComboBox.getModel() ) ).getDeviceIdAt( connectionPanel.deviceToConnectComboBox.getSelectedIndex() );
-    icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) );
-    pinString = ( String )JOptionPane.showInputDialog( this, stringsBundle.getString( "MainCommGUI.setPinDialog.text" ) + " <" + deviceName + ">",
-            stringsBundle.getString( "MainCommGUI.setPinDialog.headline" ), JOptionPane.PLAIN_MESSAGE, icon, null, btComm.getPinForDevice( deviceName ) );
-    if( pinString != null )
-    {
-      btComm.setPinForDevice( deviceName, pinString.trim() );
-    }
   }
 
   /**

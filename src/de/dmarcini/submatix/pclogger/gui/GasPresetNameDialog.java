@@ -31,7 +31,7 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
   private final JPanel      contentPanel     = new JPanel();
   private ResourceBundle    stringsBundle    = null;
   private JLabel            nameForPresetLabel;
-  private JTextField        textField;
+  private JTextField        nameTextField;
   private JButton           cancelButton;
   private JButton           okButton;
 
@@ -101,15 +101,15 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
       nameForPresetLabel = new JLabel( stringsBundle.getString( "GasPresetNameDialog.nameForPresetLabel.text" ) );
       nameForPresetLabel.setBounds( 10, 11, 385, 14 );
       contentPanel.add( nameForPresetLabel );
-      textField = new JTextField();
-      textField.setSelectedTextColor( new Color( 255, 0, 0 ) );
-      textField.setForeground( new Color( 0, 128, 0 ) );
-      textField.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
-      textField.setDoubleBuffered( true );
-      textField.setBounds( 10, 36, 714, 20 );
-      textField.setColumns( 128 );
-      textField.setDocument( new JTextFieldLimit( maxChars ) );
-      contentPanel.add( textField );
+      nameTextField = new JTextField();
+      nameTextField.setSelectedTextColor( new Color( 255, 0, 0 ) );
+      nameTextField.setForeground( new Color( 0, 128, 0 ) );
+      nameTextField.setFont( new Font( "Tahoma", Font.PLAIN, 12 ) );
+      nameTextField.setDoubleBuffered( true );
+      nameTextField.setBounds( 10, 36, 714, 20 );
+      nameTextField.setColumns( 128 );
+      nameTextField.setDocument( new JTextFieldLimit( maxChars ) );
+      contentPanel.add( nameTextField );
     }
     catch( Exception e )
     {
@@ -181,7 +181,7 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
 
   /**
    * 
-   * lese den NAmen des Presets
+   * lese den Namen des Presets
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
@@ -193,7 +193,8 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
   @Override
   public String getName()
   {
-    return( textField.getText() );
+    if( nameTextField == null ) return( null );
+    return( nameTextField.getText() );
   }
 
   /**
@@ -210,7 +211,7 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
   @Override
   public void setName( String msg )
   {
-    textField.setText( msg );
+    nameTextField.setText( msg );
   }
 
   protected class JTextFieldLimit extends PlainDocument

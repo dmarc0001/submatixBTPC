@@ -1,7 +1,5 @@
 package de.dmarcini.submatix.pclogger.gui;
 
-import gnu.io.CommPortIdentifier;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -9,14 +7,12 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
-import java.util.Enumeration;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -24,8 +20,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -33,7 +27,6 @@ import javax.swing.SwingConstants;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.AliasEditTableModel;
 import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
@@ -46,11 +39,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
    */
   private static final long    serialVersionUID = 1L;
   protected Logger             LOGGER           = null;
-  public JComboBox             deviceToConnectComboBox;
   public JButton               connectButton;
-  public JButton               connectBtRefreshButton;
-  public JProgressBar          discoverProgressBar;
-  public JButton               pinButton;
   public JButton               deviceAliasButton;
   public JTable                aliasEditTable;
   private JScrollPane          aliasScrollPane;
@@ -58,16 +47,11 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
   private Vector<String[]>     aliasData        = null;
   private LogDerbyDatabaseUtil databaseUtil     = null;
   private ResourceBundle       stringsBundle    = null;
-  private BTCommunication      btComm           = null;
   private ActionListener       aListener        = null;
-  private JLabel               discoverBtLabel;
-  private JLabel               messageBtLabel;
-  private JComboBox            virtualDeviceComboBox;
-  private JLabel               bluethoothDirectLabel;
+  private JLabel               messageConnectToastLabel;
+  private JComboBox<String>    virtualDeviceComboBox;
   private JLabel               virtualDevicesLabel;
-  private final ButtonGroup    buttonGroup      = new ButtonGroup();
-  private JRadioButton         btDirectRadioButton;
-  private JRadioButton         virtualDeviceRadioButton;
+  private JButton              renewVirtButton;
 
   @SuppressWarnings( "unused" )
   private spx42ConnectPanel()
@@ -81,17 +65,14 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
    * 
    * @param LOGGER
    * @param _dbUtil
-   * @param btComm
    * @throws ClassNotFoundException
    * @throws SQLException
    */
-  public spx42ConnectPanel( final Logger LOGGER, final LogDerbyDatabaseUtil _dbUtil, final BTCommunication btComm ) throws SQLException, ClassNotFoundException
+  public spx42ConnectPanel( final Logger LOGGER, final LogDerbyDatabaseUtil _dbUtil ) throws SQLException, ClassNotFoundException
   {
     this.LOGGER = LOGGER;
     LOGGER.log( Level.FINE, "constructor..." );
     this.databaseUtil = _dbUtil;
-    this.btComm = btComm;
-    // dbUtil.closeDB();
     aliasData = null;
     columnNames = new Vector<String>();
     columnNames.add( "DEVICE" );
@@ -101,47 +82,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     {
       databaseUtil.createConnection();
     }
-    // aliasData = databaseUtil.getAliasDataConn();
     setAliasesEditable( false );
-    fillVirtualDevicesComboBox();
-    btDirectRadioButton.setSelected( true );
-    setBtDirect();
-  }
-
-  /**
-   * 
-   * GUI für Direct Bluethooth vorbereiten
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 08.10.2012
-   */
-  private void setBtDirect()
-  {
-    deviceToConnectComboBox.setEnabled( true );
-    virtualDeviceComboBox.setEnabled( false );
-    pinButton.setEnabled( true );
-    connectBtRefreshButton.setEnabled( true );
-  }
-
-  /**
-   * 
-   * GUI für Verbindung via Virtual Device vorbereiten
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 08.10.2012
-   */
-  private void setVirtualDevice()
-  {
-    deviceToConnectComboBox.setEnabled( false );
-    virtualDeviceComboBox.setEnabled( true );
-    pinButton.setEnabled( false );
-    connectBtRefreshButton.setEnabled( false );
   }
 
   @Override
@@ -149,56 +90,21 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
   {
     String cmd = ev.getActionCommand();
     //
-    if( ev.getSource() instanceof JRadioButton )
+    if( ev.getSource() instanceof JComboBox<?> )
     {
-      // JRadioButton rb = ( JRadioButton )ev.getSource();
-      // //////////////////////////////////////////////////////////////////////
-      // Bluethooth direkt Kommunizieren
-      if( cmd.equals( "connect_bt_direct" ) )
-      {
-        LOGGER.fine( "Radiobutton <bt direct>" );
-        setBtDirect();
-        return;
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Virtual Device zum verbinden
-      else if( cmd.equals( "connect_virt_dev" ) )
-      {
-        LOGGER.fine( "Radiobutton <virtual devices>" );
-        setVirtualDevice();
-        return;
-      }
-      else
-      {
-        LOGGER.warning( "unknown Radiobutton slected!" );
-      }
-    }
-    else if( ev.getSource() instanceof JComboBox )
-    {
-      JComboBox srcBox = ( JComboBox )ev.getSource();
+      @SuppressWarnings( "unchecked" )
+      JComboBox<String> srcBox = ( JComboBox<String> )ev.getSource();
       String entry;
       // /////////////////////////////////////////////////////////////////////////
-      // Auswahl welches Gerät soll verbunden werden
-      if( cmd.equals( "bt_device_to_connect" ) )
-      {
-        if( srcBox.getSelectedIndex() == -1 )
-        {
-          // nix selektiert
-          return;
-        }
-        entry = ( String )srcBox.getItemAt( srcBox.getSelectedIndex() );
-        LOGGER.fine( "select bluethooth port <" + entry + ">..." );
-      }
-      // /////////////////////////////////////////////////////////////////////////
       // Auswahl welches virtuelle Gerät soll verbunden werden
-      else if( cmd.equals( "virt_dev_to_connect" ) )
+      if( cmd.equals( "virt_dev_to_connect" ) )
       {
         if( srcBox.getSelectedIndex() == -1 )
         {
           // nix selektiert
           return;
         }
-        entry = ( String )srcBox.getItemAt( srcBox.getSelectedIndex() );
+        entry = srcBox.getItemAt( srcBox.getSelectedIndex() );
         LOGGER.fine( "select virtual port <" + entry + ">..." );
       }
       else
@@ -212,43 +118,20 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
       // Verbinde mit Device
       if( cmd.equals( "connect" ) )
       {
-        if( btDirectRadioButton.isSelected() )
+        // ich will mit virtuellem Gerät verbinden
+        if( virtualDeviceComboBox.getSelectedIndex() != -1 )
         {
-          // ich will direkt mit BT verbinden
-          if( deviceToConnectComboBox.getSelectedIndex() != -1 )
+          String device = virtualDeviceComboBox.getItemAt( virtualDeviceComboBox.getSelectedIndex() );
+          if( device.equals( stringsBundle.getString( "spx42ConnectPanel.virtualDeviceComboBox.initialModel" ) ) )
           {
-            int itemIndex = deviceToConnectComboBox.getSelectedIndex();
-            String device = ( ( DeviceComboBoxModel )deviceToConnectComboBox.getModel() ).getDeviceIdAt( itemIndex );
-            // guck nach, ob das Gerät online ist
-            if( ( ( DeviceComboBoxModel )deviceToConnectComboBox.getModel() ).getWasOnlineAt( itemIndex ) )
-            {
-              LOGGER.fine( "connect bluethooth device <" + device + ">..." );
-              if( aListener != null )
-              {
-                ActionEvent evnt = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTBTDEVICE, device );
-                aListener.actionPerformed( evnt );
-              }
-            }
-            else
-            {
-              String deviceAlias = ( ( DeviceComboBoxModel )deviceToConnectComboBox.getModel() ).getDeviceAliasAt( itemIndex );
-              showErrorDialog( String.format( stringsBundle.getString( "MainCommGUI.errorDialog.deviceNotConnected" ), device + "/" + deviceAlias ) );
-              LOGGER.warning( "the device <" + device + "> was not online!" );
-            }
+            LOGGER.fine( "No port selected, ports are searching..." );
+            return;
           }
-        }
-        else
-        {
-          // ich will mit virtuellem Gerät verbinden
-          if( virtualDeviceComboBox.getSelectedIndex() != -1 )
+          LOGGER.fine( "connect virtual port <" + device + ">..." );
+          if( aListener != null )
           {
-            String device = ( String )virtualDeviceComboBox.getItemAt( virtualDeviceComboBox.getSelectedIndex() );
-            LOGGER.fine( "connect virtual port <" + device + ">..." );
-            if( aListener != null )
-            {
-              ActionEvent evnt = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTVIRTDEVICE, device );
-              aListener.actionPerformed( evnt );
-            }
+            ActionEvent evnt = new ActionEvent( this, ProjectConst.MESSAGE_CONNECTVIRTDEVICE, device );
+            aListener.actionPerformed( evnt );
           }
         }
       }
@@ -271,69 +154,12 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
   }
 
   /**
-   * 
-   * Virtualle und echte Serial ports auflisten
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 08.10.2012
-   */
-  @SuppressWarnings( "unchecked" )
-  private void fillVirtualDevicesComboBox()
-  {
-    DefaultComboBoxModel mod = new DefaultComboBoxModel();
-    mod.addElement( "read virtual devices..." );
-    virtualDeviceComboBox.setModel( mod );
-    //
-    // Weil es dauert, mach nen eigenen Thread draus
-    //
-    new Thread() {
-      @Override
-      public void run()
-      {
-        CommPortIdentifier portId;
-        Enumeration<CommPortIdentifier> portList;
-        DefaultComboBoxModel mod;
-        LOGGER.info( "START filltVirtualBox..." );
-        //
-        // Liste der ports holen
-        //
-        portList = CommPortIdentifier.getPortIdentifiers();
-        //
-        // die Liste abklappern
-        // und Ergebnisse in Combo-Liste eintragen
-        //
-        mod = new DefaultComboBoxModel();
-        while( portList.hasMoreElements() )
-        {
-          portId = portList.nextElement();
-          if( portId.getPortType() == CommPortIdentifier.PORT_SERIAL )
-          {
-            mod.addElement( portId.getName() );
-          }
-        }
-        virtualDeviceComboBox.setModel( mod );
-        LOGGER.info( "ENDE filltVirtualBox..." );
-      }
-    }.start();
-  }
-
-  /**
    * Initialisiere das Panel für die Verbindungen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
    */
   private void initPanel()
   {
-    deviceToConnectComboBox = new JComboBox();
-    deviceToConnectComboBox.setActionCommand( "bt_device_to_connect" );
-    deviceToConnectComboBox.setBounds( 44, 39, 281, 26 );
-    deviceToConnectComboBox.setPreferredSize( new Dimension( 220, 40 ) );
-    deviceToConnectComboBox.setMinimumSize( new Dimension( 180, 20 ) );
-    deviceToConnectComboBox.setMaximumSize( new Dimension( 500, 40 ) );
-    deviceToConnectComboBox.setModel( new DeviceComboBoxModel() );
     connectButton = new JButton( "CONNECT" );
     connectButton.setHorizontalAlignment( SwingConstants.LEFT );
     connectButton.setIconTextGap( 15 );
@@ -342,74 +168,46 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     connectButton.setActionCommand( "connect" );
     connectButton.setPreferredSize( new Dimension( 180, 40 ) );
     connectButton.setMaximumSize( new Dimension( 160, 40 ) );
-    connectButton.setSize( new Dimension( 295, 41 ) );
+    connectButton.setSize( new Dimension( 426, 41 ) );
     connectButton.setMargin( new Insets( 2, 30, 2, 30 ) );
-    connectBtRefreshButton = new JButton( "REFRESH" );
-    connectBtRefreshButton.setIconTextGap( 15 );
-    connectBtRefreshButton.setBounds( 347, 83, 426, 39 );
-    connectBtRefreshButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Refresh.png" ) ) );
-    connectBtRefreshButton.setActionCommand( "refresh_bt_devices" );
-    discoverProgressBar = new JProgressBar();
-    discoverProgressBar.setBounds( 10, 441, 763, 14 );
-    discoverProgressBar.setBorder( null );
-    discoverProgressBar.setBackground( new Color( 240, 248, 255 ) );
-    discoverProgressBar.setForeground( new Color( 176, 224, 230 ) );
-    pinButton = new JButton( "PINBUTTON" );
-    pinButton.setHorizontalAlignment( SwingConstants.LEFT );
-    pinButton.setIconTextGap( 15 );
-    pinButton.setBounds( 648, 24, 125, 41 );
-    pinButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Unlock.png" ) ) );
-    pinButton.setActionCommand( "set_pin_for_dev" );
     deviceAliasButton = new JButton( "ALIAS" );
+    deviceAliasButton.setMargin( new Insets( 2, 30, 2, 14 ) );
+    deviceAliasButton.setHorizontalAlignment( SwingConstants.LEFT );
     deviceAliasButton.setIconTextGap( 15 );
-    deviceAliasButton.setBounds( 347, 133, 426, 39 );
+    deviceAliasButton.setBounds( 347, 76, 426, 39 );
     deviceAliasButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/45.png" ) ) );
     deviceAliasButton.setActionCommand( "alias_bt_devices_on" );
     setLayout( null );
-    add( deviceToConnectComboBox );
-    add( connectBtRefreshButton );
     add( connectButton );
-    add( pinButton );
     add( deviceAliasButton );
-    add( discoverProgressBar );
     aliasScrollPane = new JScrollPane();
-    aliasScrollPane.setBounds( 347, 183, 426, 247 );
+    aliasScrollPane.setBounds( 347, 126, 426, 298 );
     add( aliasScrollPane );
     aliasEditTable = new JTable();
     aliasEditTable.setCellSelectionEnabled( true );
     aliasEditTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
     aliasScrollPane.setViewportView( aliasEditTable );
-    discoverBtLabel = new JLabel( "SEARCHING BT" );
-    discoverBtLabel.setLabelFor( discoverProgressBar );
-    discoverBtLabel.setHorizontalAlignment( SwingConstants.CENTER );
-    discoverBtLabel.setBounds( 10, 461, 763, 14 );
-    add( discoverBtLabel );
-    messageBtLabel = new JLabel( "-" );
-    messageBtLabel.setForeground( Color.DARK_GRAY );
-    messageBtLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
-    messageBtLabel.setHorizontalAlignment( SwingConstants.CENTER );
-    messageBtLabel.setBounds( 10, 479, 763, 14 );
-    add( messageBtLabel );
-    virtualDeviceComboBox = new JComboBox();
+    messageConnectToastLabel = new JLabel( "-" );
+    messageConnectToastLabel.setForeground( Color.DARK_GRAY );
+    messageConnectToastLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
+    messageConnectToastLabel.setHorizontalAlignment( SwingConstants.CENTER );
+    messageConnectToastLabel.setBounds( 10, 479, 763, 14 );
+    add( messageConnectToastLabel );
+    virtualDeviceComboBox = new JComboBox<String>();
     virtualDeviceComboBox.setActionCommand( "virt_dev_to_connect" );
-    virtualDeviceComboBox.setBounds( 44, 109, 281, 26 );
+    virtualDeviceComboBox.setBounds( 39, 89, 281, 26 );
     add( virtualDeviceComboBox );
-    bluethoothDirectLabel = new JLabel( "BLUETOOTH DIRECT:" );
-    bluethoothDirectLabel.setBounds( 44, 24, 281, 14 );
-    add( bluethoothDirectLabel );
     virtualDevicesLabel = new JLabel( "VIRTUAL DEVICE CONNECT:" );
-    virtualDevicesLabel.setBounds( 44, 95, 281, 14 );
+    virtualDevicesLabel.setBounds( 39, 75, 281, 14 );
     add( virtualDevicesLabel );
-    btDirectRadioButton = new JRadioButton( "" );
-    btDirectRadioButton.setActionCommand( "connect_bt_direct" );
-    buttonGroup.add( btDirectRadioButton );
-    btDirectRadioButton.setBounds( 10, 41, 28, 23 );
-    add( btDirectRadioButton );
-    virtualDeviceRadioButton = new JRadioButton( "" );
-    virtualDeviceRadioButton.setActionCommand( "connect_virt_dev" );
-    buttonGroup.add( virtualDeviceRadioButton );
-    virtualDeviceRadioButton.setBounds( 10, 111, 28, 23 );
-    add( virtualDeviceRadioButton );
+    renewVirtButton = new JButton( "RENEW VIRT BUTTON" );
+    renewVirtButton.setIconTextGap( 15 );
+    renewVirtButton.setMargin( new Insets( 2, 30, 2, 14 ) );
+    renewVirtButton.setHorizontalAlignment( SwingConstants.LEFT );
+    renewVirtButton.setIcon( new ImageIcon( spx42ConnectPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/112.png" ) ) );
+    renewVirtButton.setBounds( 39, 24, 281, 41 );
+    renewVirtButton.setActionCommand( "renew_virt_buttons" );
+    add( renewVirtButton );
   }
 
   /**
@@ -481,9 +279,25 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
    *         Stand: 07.09.2012
    * @param msg
    */
-  public void setBtMessage( String msg )
+  public void setToastMessage( String msg )
   {
-    messageBtLabel.setText( msg );
+    messageConnectToastLabel.setText( msg );
+  }
+
+  /**
+   * 
+   * Setze eine neue Deviceliste
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 21.08.2013
+   * @param _virtDeviceModell
+   */
+  public void setNewVirtDeviceList( final DefaultComboBoxModel<String> _virtDeviceModell )
+  {
+    virtualDeviceComboBox.setModel( _virtDeviceModell );
   }
 
   /**
@@ -494,18 +308,13 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
    */
   public void setElementsConnected( boolean active )
   {
-    btDirectRadioButton.setEnabled( !active );
-    virtualDeviceRadioButton.setEnabled( !active );
-    connectBtRefreshButton.setEnabled( !active );
     connectButton.setEnabled( true );
     // unterscheide connected oder nicht
     if( active )
     {
       // einfacher Fall, Verbunden, alles deaktivieren
-      deviceToConnectComboBox.setEnabled( false );
       virtualDeviceComboBox.setEnabled( false );
       deviceAliasButton.setEnabled( false );
-      pinButton.setEnabled( false );
       if( stringsBundle != null )
       {
         connectButton.setText( stringsBundle.getString( "spx42ConnectPanel.connectButton.disconnectText" ) );
@@ -515,15 +324,8 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     }
     else
     {
-      // nicht verbunden
-      if( btDirectRadioButton.isSelected() )
-      {
-        setBtDirect();
-      }
-      else
-      {
-        setVirtualDevice();
-      }
+      virtualDeviceComboBox.setEnabled( true );
+      deviceAliasButton.setEnabled( true );
       if( stringsBundle != null )
       {
         connectButton.setText( stringsBundle.getString( "spx42ConnectPanel.connectButton.connectText" ) );
@@ -535,47 +337,19 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
 
   /**
    * 
-   * Setze Elemente während des BT Suchvorganges
+   * Die Combobox enablen/disablen (wenn Devices gesucht werden sollte die diabled sein)
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   *         Stand: 09.05.2012
-   * @param isDiscovering
-   * 
+   *         Stand: 21.08.2013
+   * @param _en
    */
-  public void setElementsDiscovering( boolean isDiscovering )
+  public void setVirtDevicesBoxEnabled( boolean _en )
   {
-    connectBtRefreshButton.setEnabled( !isDiscovering );
-    discoverProgressBar.setVisible( isDiscovering );
-    discoverBtLabel.setVisible( isDiscovering );
-    messageBtLabel.setVisible( isDiscovering );
-    connectButton.setEnabled( !isDiscovering );
-    btDirectRadioButton.setEnabled( !isDiscovering );
-    virtualDeviceRadioButton.setEnabled( !isDiscovering );
-    if( isDiscovering )
-    {
-      // Klarer Fall alles disablen
-      deviceToConnectComboBox.setEnabled( false );
-      pinButton.setEnabled( false );
-      virtualDeviceComboBox.setEnabled( false );
-    }
-    else
-    {
-      // enablen aber die richtigen
-      if( btDirectRadioButton.isSelected() )
-      {
-        // der Fall für direct Bluethooth
-        setBtDirect();
-      }
-      else
-      {
-        // der Fall für virtual Devices
-        setVirtualDevice();
-      }
-      messageBtLabel.setText( "-" );
-    }
+    virtualDeviceComboBox.setEnabled( _en );
+    renewVirtButton.setEnabled( _en );
   }
 
   /**
@@ -586,10 +360,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
    */
   public void setElementsInactive( boolean inactive )
   {
-    deviceToConnectComboBox.setEnabled( !inactive );
     connectButton.setEnabled( !inactive );
-    pinButton.setEnabled( !inactive );
-    connectBtRefreshButton.setEnabled( inactive );
   }
 
   /**
@@ -603,20 +374,13 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
   {
     this.aListener = mainCommGUI;
     //
-    deviceToConnectComboBox.addActionListener( this );
-    deviceToConnectComboBox.addMouseMotionListener( mainCommGUI );
     virtualDeviceComboBox.addActionListener( this );
     virtualDeviceComboBox.addMouseMotionListener( mainCommGUI );
     connectButton.addActionListener( this );
     connectButton.addMouseMotionListener( mainCommGUI );
-    connectBtRefreshButton.addActionListener( mainCommGUI );
-    connectBtRefreshButton.addMouseMotionListener( mainCommGUI );
-    pinButton.addActionListener( mainCommGUI );
-    pinButton.addMouseMotionListener( mainCommGUI );
     deviceAliasButton.addActionListener( mainCommGUI );
     deviceAliasButton.addMouseMotionListener( mainCommGUI );
-    btDirectRadioButton.addActionListener( this );
-    virtualDeviceRadioButton.addActionListener( this );
+    renewVirtButton.addActionListener( mainCommGUI );
   }
 
   /**
@@ -634,11 +398,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     this.stringsBundle = stringsBundle;
     try
     {
-      deviceToConnectComboBox.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.portComboBox.tooltiptext" ) );
       connectButton.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.connectButton.tooltiptext" ) );
-      pinButton.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.pinButton.tooltiptext" ) );
-      pinButton.setText( stringsBundle.getString( "spx42ConnectPanel.pinButton.text" ) );
-      discoverBtLabel.setText( stringsBundle.getString( "spx42ConnectPanel.discoverBtLabel.text" ) );
       if( connected )
       {
         connectButton.setText( stringsBundle.getString( "spx42ConnectPanel.connectButton.disconnectText" ) );
@@ -649,8 +409,6 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
         connectButton.setText( stringsBundle.getString( "spx42ConnectPanel.connectButton.connectText" ) );
         connectButton.setActionCommand( "connect" );
       }
-      connectBtRefreshButton.setText( stringsBundle.getString( "spx42ConnectPanel.connectBtRefreshButton.text" ) );
-      connectBtRefreshButton.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.connectBtRefreshButton.tooltiptext" ) );
       // Abhängig von der Sichtbarkeit der Aliaseditfläche
       if( aliasScrollPane.isVisible() )
       {
@@ -675,8 +433,14 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
         aliasEditTable.setModel( alMod );
       }
       virtualDevicesLabel.setText( stringsBundle.getString( "spx42ConnectPanel.virtualDevicesLabel.text" ) );
-      bluethoothDirectLabel.setText( stringsBundle.getString( "spx42ConnectPanel.bluethoothDirectLabel.text" ) );
       virtualDeviceComboBox.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.virtualDeviceComboBox.tooltiptext" ) );
+      if( !( virtualDeviceComboBox.getModel() instanceof DeviceComboBoxModel ) )
+      {
+        virtualDeviceComboBox.setModel( new DefaultComboBoxModel<String>( new String[]
+        { stringsBundle.getString( "spx42ConnectPanel.virtualDeviceComboBox.initialModel" ) } ) );
+      }
+      renewVirtButton.setText( stringsBundle.getString( "spx42ConnectPanel.renewVirtButton.text" ) );
+      renewVirtButton.setToolTipText( stringsBundle.getString( "spx42ConnectPanel.renewVirtButton.tooltiptext" ) );
     }
     catch( NullPointerException ex )
     {
@@ -713,10 +477,6 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     databaseUtil.updateDeviceAliasConn( devName, devAlias );
     // Jetzt die Verbindungsbox neu einlesen, sonst gibte Chaos ;-)
     LOGGER.log( Level.FINE, "read combobox entrys again...." );
-    btComm.refreshNameArray();
-    Vector<String[]> entrys = btComm.getNameArray();
-    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
-    deviceToConnectComboBox.setModel( portBoxModel );
   }
 
   /**
@@ -731,6 +491,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
    * @param message
    * 
    */
+  @SuppressWarnings( "unused" )
   private void showErrorDialog( String message )
   {
     ImageIcon icon = null;

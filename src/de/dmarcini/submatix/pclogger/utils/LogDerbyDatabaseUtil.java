@@ -115,12 +115,10 @@ public class LogDerbyDatabaseUtil
     // Die Tabelle für Geräte (Tauchcompis mit aliasnamen und PIN und Typ (virtual/nativ)
     //@formatter:off
     sql = String.format( 
-            "create table %s ( %s varchar(64) not null, %s varchar(64) not null, %s char(6), %s char(7) )",
+            "create table %s ( %s varchar(64) not null, %s varchar(64) not null )",
             ProjectConst.A_DBALIAS,
-            ProjectConst.A_DEVNAME,
-            ProjectConst.A_ALIAS,
-            ProjectConst.A_PIN,
-            ProjectConst.A_TYP
+            ProjectConst.A_DEVSERIAL,
+            ProjectConst.A_ALIAS
             );
     //@formatter:on
     LOGGER.fine( String.format( "create table: %s", ProjectConst.V_DBVERSION ) );
@@ -151,7 +149,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.H_DIVEID,
             ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_FILEONSPX,
-            ProjectConst.H_DEVICEID,
+            ProjectConst.H_DEVICESERIAL,
             ProjectConst.H_STARTTIME,
             ProjectConst.H_HADSEND,
             ProjectConst.H_FIRSTTEMP,
@@ -175,7 +173,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVENUMBERONSPX );
-    //@formatter:off     
+    //@formatter:on    
     LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
     stat.execute( sql );
     conn.commit();
@@ -188,7 +186,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.H_STARTTIME,
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_STARTTIME );
-    //@formatter:off     
+    //@formatter:on    
     LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.H_TABLE_DIVELOGS ) );
     stat.execute( sql );
     conn.commit();
@@ -230,7 +228,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.D_DELTATIME,
             ProjectConst.D_PRESURE,
             ProjectConst.D_ACKU );
-    //@formatter:off     
+    //@formatter:on    
     LOGGER.fine( String.format( "create table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
     stat.execute( sql );
     conn.commit();
@@ -242,7 +240,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.D_DIVEID,
             ProjectConst.D_TABLE_DIVEDETAIL,
             ProjectConst.D_DIVEID );
-    //@formatter:off     
+    //@formatter:on    
     LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.D_TABLE_DIVEDETAIL ) );
     stat.execute( sql );
     // ////////////////////////////////////////////////////////////////////////
@@ -258,7 +256,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.P_DBID,
             ProjectConst.P_SETNAME
             );
-    //@formatter:off     
+    //@formatter:on   
     LOGGER.fine( String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
     stat.execute( sql );
     conn.commit();
@@ -287,7 +285,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.PD_DILUENT2,
             ProjectConst.PD_BAILOUT
             );
-    //@formatter:off     
+    //@formatter:on   
     LOGGER.fine( String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
     stat.execute( sql );
     // Index fuer die Tabelle erzeugen
@@ -298,7 +296,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.PD_SETID,
             ProjectConst.PD_TABLE_PRESETDETAIL,
             ProjectConst.PD_SETID );
-    //@formatter:off     
+    //@formatter:on     
     LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
     stat.execute( sql );
     conn.commit();
@@ -313,32 +311,38 @@ public class LogDerbyDatabaseUtil
   /**
    * 
    * eine einzelne Tabelle entfernen, wenn vorhanden
-   *
-   * Project: SubmatixBTForPC
-   * Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
-   * Stand: 05.09.2012
+   *         Stand: 05.09.2012
    * @param table
    */
+  @SuppressWarnings( "resource" )
   private void _dropTable( String table )
   {
     String sql;
-    Statement stat;
+    Statement stat = null;
     try
     {
       stat = conn.createStatement();
-      //@formatter:off
-      sql = String.format("drop table %s", table );
+      sql = String.format( "drop table %s", table );
       LOGGER.fine( sql );
-      stat.execute(sql);
-      stat.close();
-      //@formatter:on
+      stat.execute( sql );
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "can't create statement <" + ex.getLocalizedMessage() + ">" );
-      return;
+    }
+    finally
+    {
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( SQLException ex )
+      {}
     }
   }
 
@@ -361,113 +365,6 @@ public class LogDerbyDatabaseUtil
     if( checkForTable( ProjectConst.D_TABLE_DIVEDETAIL ) ) _dropTable( ProjectConst.D_TABLE_DIVEDETAIL );
   }
 
-  private void _updateDatabaseToVersion5() throws SQLException
-  {
-    String sql;
-    Statement stat;
-    //
-    LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
-    // ////////////////////////////////////////////////////////////////////////
-    // Datentabellen ergänzen
-    //
-    stat = conn.createStatement();
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Versionstabelle updaten
-    // Versionsnummer reinschreiben
-    sql = String.format( "insert into %s ( %s ) values ( %d )", ProjectConst.V_DBVERSION, ProjectConst.V_VERSION, ProjectConst.DB_VERSION );
-    LOGGER.fine( String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
-    stat.execute( sql );
-    conn.commit();
-    // @formatter:on
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Tabelle für die Gaspresets
-    //@formatter:off
-    sql = String.format( 
-            "create table %s\n" +
-            " (\n" +
-            "  %s integer not null generated always as identity, \n" + 
-            "  %s varchar(64) not null\n" +
-            " )", 
-            ProjectConst.P_TABLE_PRESETS,
-            ProjectConst.P_DBID,
-            ProjectConst.P_SETNAME
-            );
-    //@formatter:off     
-    LOGGER.fine( String.format( "create table: %s", ProjectConst.P_TABLE_PRESETS ) );
-    stat.execute( sql );
-    conn.commit();
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Tabelle für die Gaspreset Details
-    //@formatter:off
-    sql = String.format( 
-            "create table %s\n" +
-            " (\n" +
-            "  %s integer not null generated always as identity, \n" + 
-            "  %s integer not null, \n" + 
-            "  %s integer not null, \n" + 
-            "  %s integer not null, \n" + 
-            "  %s integer not null, \n" + 
-            "  %s boolean, \n" + 
-            "  %s boolean, \n" + 
-            "  %s boolean \n" + 
-            " )", 
-            ProjectConst.PD_TABLE_PRESETDETAIL,
-            ProjectConst.PD_DBID,
-            ProjectConst.PD_SETID,
-            ProjectConst.PD_GASNR,
-            ProjectConst.PD_O2,
-            ProjectConst.PD_HE,
-            ProjectConst.PD_DILUENT1,
-            ProjectConst.PD_DILUENT2,
-            ProjectConst.PD_BAILOUT
-            );
-    //@formatter:off     
-    LOGGER.fine( String.format( "create table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
-    stat.execute( sql );
-    // Index fuer die Tabelle erzeugen
-    //@formatter:off
-    sql = String.format(
-            "create index idx_%s_%s on %s ( %s ASC)",
-            ProjectConst.PD_TABLE_PRESETDETAIL,
-            ProjectConst.PD_SETID,
-            ProjectConst.PD_TABLE_PRESETDETAIL,
-            ProjectConst.PD_SETID );
-    //@formatter:off     
-    LOGGER.fine( String.format( "create index on  table: %s", ProjectConst.PD_TABLE_PRESETDETAIL ) );
-    stat.execute( sql );
-    conn.commit();
-    //
-    // eventuell noch mehr Tabellen
-    //
-    stat.close();
-    conn.commit();
-  }
-
-  private void _updateDatabaseToVersion6() throws SQLException
-  {
-    String sql;
-    Statement stat;
-    //
-    LOGGER.log( Level.INFO, String.format( "create new database version:%d", ProjectConst.DB_VERSION ) );
-    // ////////////////////////////////////////////////////////////////////////
-    // Datentabellen ergänzen
-    //
-    stat = conn.createStatement();
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Aliastabelle updaten
-    sql = String.format( "alter table %s  add %s char(7)", ProjectConst.A_DBALIAS, ProjectConst.A_TYP );
-    LOGGER.fine( String.format( "alter table " +  ProjectConst.A_ALIAS ));
-    stat.execute( sql );
-    conn.commit();
-    // ////////////////////////////////////////////////////////////////////////
-    // Die Versionstabelle updaten
-    // Versionsnummer reinschreiben
-    sql = String.format( "insert into %s ( %s ) values ( %d )", ProjectConst.V_DBVERSION, ProjectConst.V_VERSION, ProjectConst.DB_VERSION );
-    LOGGER.fine( String.format( "write database version:%d", ProjectConst.DB_VERSION ) );
-    stat.execute( sql );
-    conn.commit();
-  }
-  
   /**
    * 
    * Einen neuen Alias in die DB aufnehmen
@@ -479,13 +376,14 @@ public class LogDerbyDatabaseUtil
    *         Stand: 05.09.2012
    * @param dev
    * @param alias
-   * @param type Gerätetyp virtual oder nativ
+   * @param type
+   *          Gerätetyp virtual oder nativ
    * @return hat geklappt?
    */
-  public boolean addAliasForNameConn( final String dev, final String alias, final String type  )
+  public boolean addAliasForNameConn( final String dev, final String alias, final String type )
   {
     String sql;
-    Statement stat;
+    Statement stat = null;
     //
     if( conn == null )
     {
@@ -493,7 +391,7 @@ public class LogDerbyDatabaseUtil
       return( false );
     }
     LOGGER.fine( "try to add alias..." );
-    sql = String.format( "insert into %s (%s, %s, %s) values ('%s', '%s', '%s')", ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_TYP, dev, alias, type );
+    sql = String.format( "insert into %s (%s, %s) values ('%s', '%s')", ProjectConst.A_DBALIAS, ProjectConst.A_DEVSERIAL, ProjectConst.A_ALIAS, dev, alias );
     try
     {
       stat = conn.createStatement();
@@ -504,6 +402,12 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( String.format( "fail to insert device alias for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( SQLException ex1 )
+      {}
       return( false );
     }
     return( true );
@@ -597,23 +501,23 @@ public class LogDerbyDatabaseUtil
       if( theError.equals( "42X05" ) ) // Table does not exist
       {
         LOGGER.fine( "table <" + table + "> was not found." );
+        if( s != null ) s.close();
         return false;
       }
       else if( theError.equals( "42X14" ) || theError.equals( "42821" ) )
       {
         LOGGER.severe( "incorect table definition. create new tables!" );
+        if( s != null ) s.close();
         throw sqle;
       }
       else
       {
         LOGGER.severe( "unhandled exception < " + sqle.getLocalizedMessage() + "> !" );
+        if( s != null ) s.close();
         throw sqle;
       }
     }
-    finally
-    {
-      if( s != null ) s.close();
-    }
+    if( s != null ) s.close();
     LOGGER.fine( "Table <" + table + "> exists! " );
     return true;
   }
@@ -718,24 +622,17 @@ public class LogDerbyDatabaseUtil
     switch ( dbVersion )
     {
       case 0:
-        // Datenbank nagelneu initialisieren
-        _createNewDatabase();
-        return( conn );
       case 1:
       case 2:
       case 3:
-        _dropTablesFromDatabase();
+      case 4:
+      case 5:
+      case 6:
         // Datenbank nagelneu initialisieren
+        _dropTablesFromDatabase();
         _createNewDatabase();
         return( conn );
-      case 4:
-        // Da muss ich was machen
-        _updateDatabaseToVersion5();
-        return( conn );
-      case 5:
-        _updateDatabaseToVersion6();
-        return(conn);
-      case 6:
+      case 7:
         // das ist momentan aktuell
         return( conn );
       default:
@@ -760,7 +657,7 @@ public class LogDerbyDatabaseUtil
   public void deleteAllSetsForIdsLog( int[] dbIds )
   {
     String sql;
-    Statement stat;
+    Statement stat = null;
     StringBuilder out = new StringBuilder();
     //
     if( dbIds.length == 0 || conn == null )
@@ -800,7 +697,12 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
-      ex.printStackTrace();
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( SQLException ex1 )
+      {}
     }
     //
     // jetzt die Kopfdaten entfernen
@@ -826,7 +728,12 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
-      ex.printStackTrace();
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( SQLException ex1 )
+      {}
     }
   }
 
@@ -844,7 +751,7 @@ public class LogDerbyDatabaseUtil
   public int deleteLogFromDatabeaseLog()
   {
     String sql;
-    Statement stat;
+    Statement stat = null;
     //
     if( currentDiveId == -1 )
     {
@@ -874,7 +781,12 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
-      ex.printStackTrace();
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( SQLException ex1 )
+      {}
     }
     currentDiveId = -1;
     if( logDataList != null )
@@ -896,11 +808,12 @@ public class LogDerbyDatabaseUtil
    *         Stand: 05.09.2012
    * @return Array mit Aliaseinträgen
    */
+  @SuppressWarnings( "resource" )
   public Vector<String[]> getAliasDataConn()
   {
     String sql;
     Vector<String[]> aliasData;
-    Statement stat;
+    Statement stat = null;
     ResultSet rs;
     //
     if( conn == null )
@@ -917,19 +830,15 @@ public class LogDerbyDatabaseUtil
       //
       // Gib her die Einträge, wenn welche vorhanden sind
       //
-      sql = String.format( "select %s,%s,%s,%s from %s order by %s", ProjectConst.A_DEVNAME, ProjectConst.A_ALIAS, ProjectConst.A_PIN, ProjectConst.A_TYP, ProjectConst.A_DBALIAS,
-              ProjectConst.A_DEVNAME );
+      sql = String.format( "select %s,%s from %s order by %s", ProjectConst.A_DEVSERIAL, ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVSERIAL );
       rs = stat.executeQuery( sql );
       while( rs.next() )
       {
         String[] entr = new String[5];
-        entr[0] = rs.getString( 1 ); // Device-ID
+        entr[0] = rs.getString( 1 ); // Device-Serial
         entr[1] = rs.getString( 2 ); // Device Alias
-        entr[2] = "";
-        entr[3] = rs.getString( 3 ); // PIN
-        entr[4] = rs.getString( 4 ); // Typ des Gerätes (virtual oder nativ)
         aliasData.add( entr );
-        LOGGER.fine( String.format( "Read:%s::%s::%s::%s::%s", entr[0], entr[1], entr[2], entr[3], entr[4] ) );
+        LOGGER.fine( String.format( "Read:%s::%s", entr[0], entr[1] ) );
       }
       rs.close();
       stat.close();
@@ -938,6 +847,12 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( String.format( "fail to read device alias for devices (%s)", ex.getLocalizedMessage() ) );
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( Exception ex1 )
+      {}
     }
     return( null );
   }
@@ -954,11 +869,12 @@ public class LogDerbyDatabaseUtil
    * @param devName
    * @return Alias
    */
+  @SuppressWarnings( "resource" )
   public String getAliasForNameConn( final String devName )
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     String aliasName = null;
     //
     if( conn == null )
@@ -967,7 +883,7 @@ public class LogDerbyDatabaseUtil
       return( null );
     }
     LOGGER.fine( "try to read aliases..." );
-    sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, devName );
+    sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_ALIAS, ProjectConst.A_DBALIAS, ProjectConst.A_DEVSERIAL, devName );
     try
     {
       stat = conn.createStatement();
@@ -984,6 +900,13 @@ public class LogDerbyDatabaseUtil
     {
       LOGGER.severe( String.format( "fail to read device alias for device %s (%s)", devName, ex.getLocalizedMessage() ) );
       LOGGER.severe( sql );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
     }
     return( aliasName );
   }
@@ -1000,11 +923,12 @@ public class LogDerbyDatabaseUtil
    * @param dbId
    * @return Geräteid
    */
+  @SuppressWarnings( "resource" )
   public String getDeviceIdLog( int dbId )
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     String dbIdString = null;
     //
     // baue einen String mit dbId für die Datenbank
@@ -1018,7 +942,7 @@ public class LogDerbyDatabaseUtil
     //@formatter:off
     sql = String.format( 
             "select %s from %s where %s=%s",
-            ProjectConst.H_DEVICEID,
+            ProjectConst.H_DEVICESERIAL,
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_DIVEID,
             dbId);
@@ -1032,11 +956,19 @@ public class LogDerbyDatabaseUtil
         dbIdString = rs.getString( 1 );
       }
       rs.close();
+      stat.close();
       return( dbIdString );
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read deviceId from db! (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( null );
     }
   }
@@ -1053,11 +985,12 @@ public class LogDerbyDatabaseUtil
    * @param dbId
    * @return Array mit Logdaten
    */
+  @SuppressWarnings( "resource" )
   public Vector<Integer[]> getDiveDataFromIdLog( int dbId )
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     Vector<Integer[]> diveData = new Vector<Integer[]>();
     //
     diveData.clear();
@@ -1113,12 +1046,20 @@ public class LogDerbyDatabaseUtil
         diveData.add( resultSet );
       }
       rs.close();
+      stat.close();
       LOGGER.fine( "read logdata for dbId <" + dbId + "> from DB...OK" );
       return( diveData );
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read dive data from db! (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( null );
     }
   }
@@ -1135,11 +1076,12 @@ public class LogDerbyDatabaseUtil
    * @param device
    * @return array mit der Liste der Logs für ein Gerät
    */
+  @SuppressWarnings( "resource" )
   public Vector<String[]> getDiveListForDeviceLog( String device )
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     Vector<String[]> results = new Vector<String[]>();
     //
     LOGGER.fine( "read divelist for device <" + device + "> from DB..." );
@@ -1155,7 +1097,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_STARTTIME,
             ProjectConst.H_TABLE_DIVELOGS,
-            ProjectConst.H_DEVICEID,
+            ProjectConst.H_DEVICESERIAL,
             device,
             ProjectConst.H_DIVENUMBERONSPX
            );
@@ -1176,11 +1118,19 @@ public class LogDerbyDatabaseUtil
         LOGGER.fine( String.format( "database read dive nr <%s>", rs.getString( 1 ) ) );
       }
       rs.close();
+      stat.close();
       return( results );
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( null );
     }
   }
@@ -1216,12 +1166,13 @@ public class LogDerbyDatabaseUtil
    * @param dbIds
    * @return Array mit Gasliste für Tauchgänge
    */
+  @SuppressWarnings( "resource" )
   public ArrayList<String> getGaslistForDiveLog( int[] dbIds )
   {
     ArrayList<String> resultSet = new ArrayList<String>();
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     String dbIdString = "";
     double n2, he, o2;
     boolean isFirst = true;
@@ -1287,11 +1238,19 @@ public class LogDerbyDatabaseUtil
         resultSet.add( entry );
       }
       rs.close();
+      stat.close();
       return( resultSet );
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read gaslist list from db! (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( null );
     }
   }
@@ -1308,11 +1267,12 @@ public class LogDerbyDatabaseUtil
    * @param dbId
    * @return Array von Strings
    */
+  @SuppressWarnings( "resource" )
   public String[] getHeadDiveDataFromIdAsSTringLog( int dbId )
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     String[] diveHeadData = null;
     //
     LOGGER.fine( "read head data for spx dive number <" + dbId + "> from DB..." );
@@ -1327,7 +1287,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.H_DIVEID,
             ProjectConst.H_DIVENUMBERONSPX,
             ProjectConst.H_FILEONSPX,
-            ProjectConst.H_DEVICEID,
+            ProjectConst.H_DEVICESERIAL,
             ProjectConst.H_STARTTIME,
             ProjectConst.H_HADSEND,
             ProjectConst.H_FIRSTTEMP,
@@ -1373,12 +1333,20 @@ public class LogDerbyDatabaseUtil
         }
       }
       rs.close();
+      stat.close();
       LOGGER.fine( "read head data for spx dive number <" + dbId + "> from DB...OK" );
       return( diveHeadData );
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( null );
     }
   }
@@ -1395,11 +1363,12 @@ public class LogDerbyDatabaseUtil
    * @param dbId
    * @return Kopfdaten für einenn Tauchgang
    */
+  @SuppressWarnings( "resource" )
   public int[] getHeadDiveDataFromIdLog( int dbId )
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     int[] diveHeadData;
     //
     LOGGER.fine( "read head data for database id <" + dbId + "> from DB..." );
@@ -1440,12 +1409,20 @@ public class LogDerbyDatabaseUtil
         diveHeadData[6] = rs.getInt( 7 ); // units
       }
       rs.close();
+      stat.close();
       LOGGER.fine( "read head data for database id <" + dbId + "> from DB...OK" );
       return( diveHeadData );
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( null );
     }
   }
@@ -1462,11 +1439,12 @@ public class LogDerbyDatabaseUtil
    * @param dbId
    * @return Bemerkungen
    */
+  @SuppressWarnings( "resource" )
   public String getNotesForIdLog( int dbId )
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     String notesForDive = null;
     //
     LOGGER.fine( "read notes for dive <" + dbId + "> from DB..." );
@@ -1494,59 +1472,21 @@ public class LogDerbyDatabaseUtil
         notesForDive = rs.getString( 1 ); // die Bemerkungen
       }
       rs.close();
+      stat.close();
       return( notesForDive );
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read notes from db! (" + ex.getLocalizedMessage() + ")" );
-      return( null );
-    }
-  }
-
-  /**
-   * 
-   * Gib die PIN für ein Gerät zurück
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.09.2012
-   * @param deviceName
-   * @return PIN oder null
-   */
-  public String getPinForDeviceConn( final String deviceName )
-  {
-    String sql;
-    Statement stat;
-    ResultSet rs;
-    String pin = null;
-    //
-    //
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( null );
-    }
-    LOGGER.fine( "try to read pin for device..." );
-    sql = String.format( "select %s from %s where %s like '%s'", ProjectConst.A_PIN, ProjectConst.A_DBALIAS, ProjectConst.A_DEVNAME, deviceName );
-    try
-    {
-      stat = conn.createStatement();
-      rs = stat.executeQuery( sql );
-      if( rs.next() )
+      try
       {
-        pin = rs.getString( 1 );
-        LOGGER.fine( String.format( "pin for device %s : %s", deviceName, pin ) );
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
       }
-      rs.close();
-      stat.close();
+      catch( Exception ex1 )
+      {}
+      return( null );
     }
-    catch( SQLException ex )
-    {
-      LOGGER.severe( String.format( "fail to read pin for device %s (%s)", deviceName, ex.getLocalizedMessage() ) );
-    }
-    return( pin );
   }
 
   /**
@@ -1560,11 +1500,12 @@ public class LogDerbyDatabaseUtil
    *         Stand: 10.09.2012
    * @return Menge von DAten
    */
+  @SuppressWarnings( "resource" )
   public Vector<GasPresetComboObject> getPresets()
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     Vector<GasPresetComboObject> presets = new Vector<GasPresetComboObject>();
     GasPresetComboObject gasset = null;
     //
@@ -1593,12 +1534,20 @@ public class LogDerbyDatabaseUtil
         presets.add( gasset );
       }
       rs.close();
+      stat.close();
       LOGGER.fine( "read gas presets from DB...OK" );
       return( presets );
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read dive head data from db! (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( null );
     }
   }
@@ -1618,11 +1567,12 @@ public class LogDerbyDatabaseUtil
    *          Gerät
    * @return Log schon gespeichert?
    */
+  @SuppressWarnings( "resource" )
   public int isLogSavedLog( String filename, String device )
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     int dbId = -1;
     //
     LOGGER.fine( "was log <" + filename + "> always saved?" );
@@ -1638,7 +1588,7 @@ public class LogDerbyDatabaseUtil
             ProjectConst.H_TABLE_DIVELOGS,
             ProjectConst.H_FILEONSPX,
             filename,
-            ProjectConst.H_DEVICEID,
+            ProjectConst.H_DEVICESERIAL,
             device
            );
     //@formatter:on
@@ -1661,7 +1611,13 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't select from database! (" + ex.getLocalizedMessage() + ")" );
-      return( -1 );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
     }
     return( -1 );
   }
@@ -1705,11 +1661,12 @@ public class LogDerbyDatabaseUtil
    *         Stand: 05.09.2012
    * @return 0 == nicht vorhanden, ansonstren DB-Version
    */
+  @SuppressWarnings( "resource" )
   private int readDatabaseVersion()
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     int version = 0;
     //
     LOGGER.fine( "read database version..." );
@@ -1753,13 +1710,20 @@ public class LogDerbyDatabaseUtil
         version = rs.getInt( 1 );
         LOGGER.fine( String.format( "database read version:%d", version ) );
         rs.close();
+        stat.close();
         return( version );
       }
     }
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read dbversion (" + ex.getLocalizedMessage() + ")" );
-      return( 0 );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
     }
     return( 0 );
   }
@@ -1775,11 +1739,12 @@ public class LogDerbyDatabaseUtil
    *         Stand: 05.09.2012
    * @return Geräteliste lesen
    */
+  @SuppressWarnings( "resource" )
   public String[] readDevicesFromDatabaseConn()
   {
     String sql;
-    Statement stat;
-    ResultSet rs;
+    Statement stat = null;
+    ResultSet rs = null;
     String[] results;
     Vector<String> sammel = new Vector<String>();
     //
@@ -1806,6 +1771,7 @@ public class LogDerbyDatabaseUtil
         LOGGER.fine( String.format( "database read device <%s>", rs.getString( 1 ) ) );
       }
       rs.close();
+      stat.close();
       // stelle die Liste der Geräte zusammen!
       results = new String[sammel.size()];
       results = sammel.toArray( results );
@@ -1814,6 +1780,13 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read device list from db! (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( null );
     }
   }
@@ -1830,10 +1803,11 @@ public class LogDerbyDatabaseUtil
    * @param diveId
    * @return Sämtliche Logdaten für einen Tauchgang löschen
    */
+  @SuppressWarnings( "resource" )
   public int removeLogdataForIdLog( int diveId )
   {
     String sql;
-    Statement stat;
+    Statement stat = null;
     //
     if( diveId == -1 )
     {
@@ -1866,6 +1840,12 @@ public class LogDerbyDatabaseUtil
     {
       LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
       ex.printStackTrace();
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( Exception ex1 )
+      {}
       return 0;
     }
     return 1;
@@ -1883,12 +1863,13 @@ public class LogDerbyDatabaseUtil
    * @param newPresetName
    * @param currGasList
    */
+  @SuppressWarnings( "resource" )
   public void saveNewPresetData( String newPresetName, SPX42GasList currGasList )
   {
     String sql;
     Statement stat = null;
     PreparedStatement prep = null;
-    ResultSet rs;
+    ResultSet rs = null;
     int setId = -1;
     //
     LOGGER.fine( "insert new gas preset in DB..." );
@@ -1917,6 +1898,7 @@ public class LogDerbyDatabaseUtil
         setId = rs.getInt( 1 );
       }
       stat.close();
+      rs.close();
     }
     catch( SQLException ex )
     {
@@ -1931,6 +1913,13 @@ public class LogDerbyDatabaseUtil
         ex1.printStackTrace();
         System.exit( -1 );
       }
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return;
     }
     //
@@ -1982,6 +1971,14 @@ public class LogDerbyDatabaseUtil
           ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "addBatch" );
           aListener.actionPerformed( ev );
         }
+        try
+        {
+          if( stat != null ) stat.close();
+          if( rs != null ) rs.close();
+          if( prep != null ) prep.close();
+        }
+        catch( Exception ex1 )
+        {}
         return;
       }
     }
@@ -1996,6 +1993,14 @@ public class LogDerbyDatabaseUtil
     }
     catch( SQLException ex )
     {
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+        if( prep != null ) prep.close();
+      }
+      catch( Exception ex1 )
+      {}
       try
       {
         conn.rollback();
@@ -2033,10 +2038,11 @@ public class LogDerbyDatabaseUtil
    * @param notes
    * @return Gesichert?
    */
+  @SuppressWarnings( "resource" )
   public int saveNoteForIdLog( int dbId, String notes )
   {
     String sql;
-    Statement stat;
+    Statement stat = null;
     boolean rs;
     //
     LOGGER.fine( "update notes for dive dbid: " + dbId + "..." );
@@ -2069,6 +2075,12 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't update dbversion (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( -1 );
     }
     return( dbId );
@@ -2092,52 +2104,6 @@ public class LogDerbyDatabaseUtil
 
   /**
    * 
-   * PIN für Gerät in DB eintragen
-   * 
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
-   *         Stand: 05.09.2012
-   * @param dev
-   * @param pin
-   * @return Pin setzen erfolgreich?
-   */
-  public boolean setPinForDeviceConn( final String dev, final String pin )
-  {
-    String sql;
-    Statement stat;
-    //
-    if( conn == null )
-    {
-      LOGGER.log( Level.WARNING, "no databese connection..." );
-      return( false );
-    }
-    LOGGER.fine( "try to set pin for device..." );
-    if( null == getAliasForNameConn( dev ) )
-    {
-      LOGGER.log( Level.WARNING, "no Aliasname for Device..." );
-      return( false );
-    }
-    // jetzt kann ich die PIN einbauen, wenn datensatz schon vorhanden
-    sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_PIN, pin, ProjectConst.A_DEVNAME, dev );
-    try
-    {
-      stat = conn.createStatement();
-      stat.execute( sql );
-      stat.close();
-      conn.commit();
-    }
-    catch( SQLException ex )
-    {
-      LOGGER.severe( String.format( "fail to update pin for device <%s> (%s)", dev, ex.getLocalizedMessage() ) );
-      return( false );
-    }
-    return( true );
-  }
-
-  /**
-   * 
    * Alias für ein Gerät eintragen
    * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
@@ -2145,14 +2111,15 @@ public class LogDerbyDatabaseUtil
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 05.09.2012
-   * @param devName
+   * @param devSerial
    * @param devAlias
    * @return Alias aktualisieren
    */
-  public boolean updateDeviceAliasConn( final String devName, final String devAlias )
+  @SuppressWarnings( "resource" )
+  public boolean updateDeviceAliasConn( final String devSerial, final String devAlias )
   {
     String sql;
-    Statement stat;
+    Statement stat = null;
     //
     LOGGER.fine( "try to update alias..." );
     if( conn == null )
@@ -2169,15 +2136,21 @@ public class LogDerbyDatabaseUtil
       }
       // Ok, Datenbank da und geöffnet!
       stat = conn.createStatement();
-      sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, devAlias, ProjectConst.A_DEVNAME, devName );
-      LOGGER.fine( String.format( "update device alias <%s> to <%s>", devName, devAlias ) );
+      sql = String.format( "update %s set %s='%s' where %s like '%s'", ProjectConst.A_DBALIAS, ProjectConst.A_ALIAS, devAlias, ProjectConst.A_DEVSERIAL, devSerial );
+      LOGGER.fine( String.format( "update device alias <%s> to <%s>", devSerial, devAlias ) );
       stat.execute( sql );
       stat.close();
       conn.commit();
     }
     catch( SQLException ex )
     {
-      LOGGER.severe( String.format( "fail to update device alias for device <%s> (%s)", devName, ex.getLocalizedMessage() ) );
+      LOGGER.severe( String.format( "fail to update device alias for device <%s> (%s)", devSerial, ex.getLocalizedMessage() ) );
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( false );
     }
     return( true );
@@ -2195,6 +2168,7 @@ public class LogDerbyDatabaseUtil
    * @param dbId
    * @param currGasList
    */
+  @SuppressWarnings( "resource" )
   public void updatePresetData( int dbId, SPX42GasList currGasList )
   {
     String sql;
@@ -2245,7 +2219,6 @@ public class LogDerbyDatabaseUtil
       catch( SQLException ex )
       {
         LOGGER.severe( "fatal error in sql prepare: " + ex.getLocalizedMessage() );
-        ex.printStackTrace();
         if( aListener != null )
         {
           // die "das ging schief" Nachricht
@@ -2284,6 +2257,12 @@ public class LogDerbyDatabaseUtil
         ActionEvent ev = new ActionEvent( this, ProjectConst.MESSAGE_DB_FAIL, "executeBatch" );
         aListener.actionPerformed( ev );
       }
+      try
+      {
+        if( prep != null ) prep.close();
+      }
+      catch( Exception ex1 )
+      {}
       return;
     }
     LOGGER.fine( "update gas presets in DB..." );
@@ -2302,6 +2281,7 @@ public class LogDerbyDatabaseUtil
    * @param newPresetName
    * @param currGasList
    */
+  @SuppressWarnings( "resource" )
   public void updatePresetData( int dbId, String newPresetName, SPX42GasList currGasList )
   {
     String sql;
@@ -2333,6 +2313,12 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( "fatal error in execute: " + ex.getLocalizedMessage() );
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( Exception ex1 )
+      {}
       return;
     }
     updatePresetData( dbId, currGasList );
@@ -2366,6 +2352,7 @@ public class LogDerbyDatabaseUtil
     }
     // Thread dafür aufbauen
     writeDb = new Thread( "cache_to_db" ) {
+      @SuppressWarnings( "resource" )
       @Override
       public void run()
       {
@@ -2461,6 +2448,15 @@ public class LogDerbyDatabaseUtil
              }
              logDataList.clear();
              logDataList = null;
+             try
+             {
+               if( stat != null ) stat.close();
+               if( rs != null ) rs.close();
+               if( prep != null ) prep.close();
+             }
+             catch( Exception ex1 )
+             {}
+             
              return;
            }
            //
@@ -2473,19 +2469,6 @@ public class LogDerbyDatabaseUtil
              // Der erste Wert ist mal die Lufttemperatur (geschätzt)
              markAirtemp = logLineObj.temperature;
            }
-           
-//           // Tiefste Temperatur
-//           if( markLowestTemp > logLineObj.temperature )
-//           {
-//             // ja, die Temperatur war tiefer
-//             markLowestTemp = logLineObj.temperature;
-//           }
-//           // Maximale Tiefe
-//           if( markMaxDepth < logLineObj.depth )
-//           {
-//             // setze die größere Tiefe
-//             markMaxDepth = logLineObj.depth;
-//           }
          }
          try
          {
@@ -2549,10 +2532,19 @@ public class LogDerbyDatabaseUtil
             markLowestTemp = rs.getDouble( 2 );
           }
           rs.close();
+          stat.close();
         }
         catch( SQLException ex )
         {
           LOGGER.severe( "Can't make dive statistic from db! (" + ex.getLocalizedMessage() + ")" );
+          try
+          {
+            if( stat != null ) stat.close();
+            if( rs != null ) rs.close();
+            if( prep != null ) prep.close();
+          }
+          catch( Exception ex1 )
+          {}
           return;
         }
         //
@@ -2598,7 +2590,15 @@ public class LogDerbyDatabaseUtil
            }
            logDataList.clear();
            logDataList = null;
-           return;
+           try
+           {
+             if( stat != null ) stat.close();
+             if( rs != null ) rs.close();
+             if( prep != null ) prep.close();
+           }
+           catch( Exception ex1 )
+           {}
+          return;
          }
          if( aListener != null )
          {
@@ -2631,11 +2631,12 @@ public class LogDerbyDatabaseUtil
    * @param startTime
    * @return erfolgreich?
    */
+  @SuppressWarnings( "resource" )
   public int writeNewDiveLog( String deviceId, String fileOnSPX, int units, long numberOnSPX, long startTime )
   {
-    Statement stat;
+    Statement stat=null;
     String sql;
-    ResultSet rs;
+    ResultSet rs=null;
     int generatedKey;
     //
     LOGGER.fine( "create new diving entry..." );
@@ -2655,7 +2656,7 @@ public class LogDerbyDatabaseUtil
       sql = String.format( 
               "insert into %s ( %s,%s,%s,%s,%s ) values ( '%s','%s', %d, %d, %d )",
               ProjectConst.H_TABLE_DIVELOGS,
-              ProjectConst.H_DEVICEID,
+              ProjectConst.H_DEVICESERIAL,
               ProjectConst.H_FILEONSPX,
               ProjectConst.H_UNITS,
               ProjectConst.H_DIVENUMBERONSPX,
@@ -2695,6 +2696,13 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't insert into database! (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( -1 );
     }
   }
@@ -2711,11 +2719,12 @@ public class LogDerbyDatabaseUtil
    * @param setId
    * @return Gasliste für Preset-Id oder null
    */
+  @SuppressWarnings( "resource" )
   public SPX42GasList getPresetForSetId( int setId )
   {
-    Statement stat;
+    Statement stat = null;
     String sql;
-    ResultSet rs;
+    ResultSet rs = null;
     SPX42GasList gasList = new SPX42GasList( LOGGER );
     //
     LOGGER.fine( "read preselect for setid <" + setId + ">" );
@@ -2756,6 +2765,13 @@ public class LogDerbyDatabaseUtil
     catch( SQLException ex )
     {
       LOGGER.severe( "Can't read preset (" + ex.getLocalizedMessage() + ")" );
+      try
+      {
+        if( stat != null ) stat.close();
+        if( rs != null ) rs.close();
+      }
+      catch( Exception ex1 )
+      {}
       return( null );
     }
   }
@@ -2771,10 +2787,11 @@ public class LogDerbyDatabaseUtil
    *         Stand: 23.09.2012
    * @param dbId
    */
+  @SuppressWarnings( "resource" )
   public void deleteGasPreset( int dbId )
   {
     String sql;
-    Statement stat;
+    Statement stat = null;
     //
     //
     // entferne Daten
@@ -2805,7 +2822,12 @@ public class LogDerbyDatabaseUtil
       catch( SQLException ex1 )
       {}
       LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
-      ex.printStackTrace();
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( Exception ex1 )
+      {}
     }
     //@formatter:off
     sql = String.format( 
@@ -2834,7 +2856,12 @@ public class LogDerbyDatabaseUtil
       catch( SQLException ex1 )
       {}
       LOGGER.severe( "fatal error in delete dataset: " + ex.getLocalizedMessage() );
-      ex.printStackTrace();
+      try
+      {
+        if( stat != null ) stat.close();
+      }
+      catch( Exception ex1 )
+      {}
     }
   }
 }

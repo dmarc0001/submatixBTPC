@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.apache.log4j.Level;
+
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
 /**
@@ -21,6 +23,7 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
  */
 public class WriteConfig
 {
+  private boolean            debug          = false;
   public static final String LINE_SEPARATOR = System.getProperty( "line.separator" );
 
   /**
@@ -45,6 +48,8 @@ public class WriteConfig
   public WriteConfig( SpxPcloggerProgramConfig prgConfig ) throws IOException, ConfigReadWriteException
   {
     BufferedWriter out;
+    if( SpxPcloggerProgramConfig.logLevel == Level.DEBUG ) debug = true;
+    if( debug ) System.out.println( String.format( "WriteConfig: write File <%s>", SpxPcloggerProgramConfig.configFile.getAbsolutePath() ) );
     if( null != ( out = openConfFile( SpxPcloggerProgramConfig.configFile ) ) )
     {
       if( writeConfArray( out, prgConfig ) )
@@ -95,33 +100,35 @@ public class WriteConfig
     if( conf == null ) return( false );
     try
     {
+      out.append( "#" + LINE_SEPARATOR );
       out.append( "# generated file, do not edit." + LINE_SEPARATOR );
-      out.append( String.format( "%s=%s%s", "databaseDir", SpxPcloggerProgramConfig.databaseDir.getAbsolutePath(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%s%s", "logFile", SpxPcloggerProgramConfig.logFile.getAbsoluteFile(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%s%s", "exportDir", SpxPcloggerProgramConfig.exportDir.getAbsoluteFile(), LINE_SEPARATOR ) );
+      out.append( "#" + LINE_SEPARATOR );
+      out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_DATABASEDIR, SpxPcloggerProgramConfig.databaseDir.getAbsolutePath(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_LOGFILE, SpxPcloggerProgramConfig.logFile.getAbsoluteFile(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_EXPORTDIR, SpxPcloggerProgramConfig.exportDir.getAbsoluteFile(), LINE_SEPARATOR ) );
       switch ( conf.getUnitsProperty() )
       {
         case ProjectConst.UNITS_DEFAULT:
-          out.append( String.format( "%s=%s%s", "showUnits", "default", LINE_SEPARATOR ) );
+          out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "default", LINE_SEPARATOR ) );
           break;
         case ProjectConst.UNITS_METRIC:
-          out.append( String.format( "%s=%s%s", "showUnits", "metric", LINE_SEPARATOR ) );
+          out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "metric", LINE_SEPARATOR ) );
           break;
         case ProjectConst.UNITS_IMPERIAL:
-          out.append( String.format( "%s=%s%s", "showUnits", "imperial", LINE_SEPARATOR ) );
+          out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "imperial", LINE_SEPARATOR ) );
           break;
         default:
-          out.append( String.format( "%s=%s%s", "showUnits", "default", LINE_SEPARATOR ) );
+          out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "default", LINE_SEPARATOR ) );
       }
-      out.append( String.format( "%s=%b%s", "showTemperature", conf.isShowTemperature(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%b%s", "showPpoResult", conf.isShowPpoResult(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%b%s", "showPpo01", conf.isShowPpo01(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%b%s", "showPpo02", conf.isShowPpo02(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%b%s", "showPpo03", conf.isShowPpo03(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%b%s", "showSetpoint", conf.isShowSetpoint(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%b%s", "showHe", conf.isShowHe(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%b%s", "showN2", conf.isShowN2(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%b%s", "showNulltime", conf.isShowNulltime(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWTEMPERRATURE, conf.isShowTemperature(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPORESULT, conf.isShowPpoResult(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO1, conf.isShowPpo01(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO2, conf.isShowPpo02(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO3, conf.isShowPpo03(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWSETPOINT, conf.isShowSetpoint(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWHE, conf.isShowHe(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWN2, conf.isShowN2(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWNULLTIME, conf.isShowNulltime(), LINE_SEPARATOR ) );
       out.flush();
     }
     catch( IOException ex )

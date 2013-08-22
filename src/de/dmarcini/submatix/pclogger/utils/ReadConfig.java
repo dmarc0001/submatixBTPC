@@ -7,13 +7,14 @@
  */
 package de.dmarcini.submatix.pclogger.utils;
 
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.apache.log4j.Level;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
@@ -26,6 +27,7 @@ public class ReadConfig
 {
   private final ArrayList<String>        pairs     = new ArrayList<String>();
   private final SpxPcloggerProgramConfig prgConfig = new SpxPcloggerProgramConfig();
+  private boolean                        debug     = false;
 
   /**
    * Konstruktor
@@ -38,11 +40,12 @@ public class ReadConfig
   {
     BufferedReader in;
     // gibts die Datei?
-    if (SpxPcloggerProgramConfig.configFile.exists() && SpxPcloggerProgramConfig.configFile.canRead())
+    if( SpxPcloggerProgramConfig.logLevel == Level.DEBUG ) debug = true;
+    if( SpxPcloggerProgramConfig.configFile.exists() && SpxPcloggerProgramConfig.configFile.canRead() )
     {
-      if (null != (in = openConfFile(SpxPcloggerProgramConfig.configFile)))
+      if( null != ( in = openConfFile( SpxPcloggerProgramConfig.configFile ) ) )
       {
-        if (readConfInArray(in))
+        if( readConfInArray( in ) )
         {
           in.close();
           // alles ist gut :-)
@@ -60,21 +63,21 @@ public class ReadConfig
    * @param confFile
    * @return BufferedReader
    */
-  private BufferedReader openConfFile(File confFile)
+  private BufferedReader openConfFile( File confFile )
   {
     BufferedReader in;
     try
     {
-      in = new BufferedReader(new FileReader(confFile));
-      return (in);
+      in = new BufferedReader( new FileReader( confFile ) );
+      return( in );
     }
-    catch (NullPointerException ex)
+    catch( NullPointerException ex )
     {
-      System.err.println("can not open config file: " + ex.getLocalizedMessage());
+      System.err.println( "can not open config file: " + ex.getLocalizedMessage() );
     }
-    catch (FileNotFoundException ex)
+    catch( FileNotFoundException ex )
     {
-      System.err.println("can not open config file: " + ex.getLocalizedMessage());
+      System.err.println( "can not open config file: " + ex.getLocalizedMessage() );
     }
     return null;
   }
@@ -86,125 +89,158 @@ public class ReadConfig
    * @param in
    * @return boolean
    */
-  private boolean readConfInArray(BufferedReader in)
+  private boolean readConfInArray( BufferedReader in )
   {
     String zeile = null;
     try
     {
       // die Config-Datei einlesen
-      while ((zeile = in.readLine()) != null)
+      while( ( zeile = in.readLine() ) != null )
       {
-        pairs.add(zeile);
+        pairs.add( zeile );
       }
     }
-    catch (NullPointerException ex)
+    catch( NullPointerException ex )
     {
-      System.err.println("can not read config file: " + ex.getLocalizedMessage());
-      return (false);
+      System.err.println( "can not read config file: " + ex.getLocalizedMessage() );
+      return( false );
     }
-    catch (IOException ex)
+    catch( IOException ex )
     {
-      System.err.println("can not read config file: " + ex.getLocalizedMessage());
-      return (false);
+      System.err.println( "can not read config file: " + ex.getLocalizedMessage() );
+      return( false );
     }
     //
     // auswertung der Parameter, wenn vorhanden
     //
     // sind Einträge vorhanden?
-    for (String ln : pairs)
+    for( String ln : pairs )
     {
       try
       {
         // rudimentäre Kommentare überspringen
-        if (ln.startsWith("#")) continue;
+        if( ln.startsWith( "#" ) ) continue;
         // Zeilen ohne "=" ignorieren
-        if (-1 == ln.indexOf("=")) continue;
+        if( -1 == ln.indexOf( "=" ) ) continue;
         // Zeile splitten
-        String[] fields = ln.split("=");
+        String[] fields = ln.split( "=" );
         // nur wenn es zwei Felder sind, mach ich weiter
-        if (fields.length == 2)
+        if( fields.length == 2 )
         {
-          fields[0].trim();
-          fields[1].trim();
+          fields[0] = fields[0].trim();
+          fields[1] = fields[1].trim();
         }
-        else continue;
+        else
+          continue;
+        //
         // unterscheide die Parameter
-        if (0 == fields[0].indexOf("databaseDir"))
+        //
+        if( 0 == fields[0].indexOf( ProjectConst.CONFIG_LANGCODE ) )
         {
-          if (!SpxPcloggerProgramConfig.wasCliDatabaseDir) SpxPcloggerProgramConfig.databaseDir = (new File(fields[1]));
-        }
-        if (0 == fields[0].indexOf("logFile"))
-        {
-          if (!SpxPcloggerProgramConfig.wasCliLogfile) SpxPcloggerProgramConfig.logFile = new File(fields[1]);
-        }
-        if (0 == fields[0].indexOf("exportDir"))
-        {
-          if (!SpxPcloggerProgramConfig.wasCliExportDir) SpxPcloggerProgramConfig.exportDir = new File(fields[1]);
-        }
-        if (0 == fields[0].indexOf("showUnits"))
-        {
-          if (0 == fields[1].indexOf("default"))
+          if( !SpxPcloggerProgramConfig.wasCliLangCode )
           {
-            prgConfig.setUnitsProperty(ProjectConst.UNITS_DEFAULT);
+            if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+            SpxPcloggerProgramConfig.langCode = fields[1];
           }
-          else if (0 == fields[1].indexOf("metric"))
+        }
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_DATABASEDIR ) )
+        {
+          if( !SpxPcloggerProgramConfig.wasCliDatabaseDir )
           {
-            prgConfig.setUnitsProperty(ProjectConst.UNITS_METRIC);
+            if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+            SpxPcloggerProgramConfig.databaseDir = ( new File( fields[1] ) );
           }
-          else if (0 == fields[1].indexOf("imperial"))
+        }
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_LOGFILE ) )
+        {
+          if( !SpxPcloggerProgramConfig.wasCliLogfile )
           {
-            prgConfig.setUnitsProperty(ProjectConst.UNITS_IMPERIAL);
+            if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+            SpxPcloggerProgramConfig.logFile = new File( fields[1] );
+          }
+        }
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_EXPORTDIR ) )
+        {
+          if( !SpxPcloggerProgramConfig.wasCliExportDir )
+          {
+            if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+            SpxPcloggerProgramConfig.exportDir = new File( fields[1] );
+          }
+        }
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWUNITS ) )
+        {
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          if( 0 == fields[1].indexOf( "default" ) )
+          {
+            prgConfig.setUnitsProperty( ProjectConst.UNITS_DEFAULT );
+          }
+          else if( 0 == fields[1].indexOf( "metric" ) )
+          {
+            prgConfig.setUnitsProperty( ProjectConst.UNITS_METRIC );
+          }
+          else if( 0 == fields[1].indexOf( "imperial" ) )
+          {
+            prgConfig.setUnitsProperty( ProjectConst.UNITS_IMPERIAL );
           }
           else
           {
-            prgConfig.setUnitsProperty(ProjectConst.UNITS_DEFAULT);
+            prgConfig.setUnitsProperty( ProjectConst.UNITS_DEFAULT );
           }
         }
-        if (0 == fields[0].indexOf("showTemperature"))
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWTEMPERRATURE ) )
         {
-          prgConfig.setShowTemperature(Boolean.parseBoolean(fields[1]));
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          prgConfig.setShowTemperature( Boolean.parseBoolean( fields[1] ) );
         }
-        if (0 == fields[0].indexOf("showPpoResult"))
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWPPORESULT ) )
         {
-          prgConfig.setShowPpoResult(Boolean.parseBoolean(fields[1]));
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          prgConfig.setShowPpoResult( Boolean.parseBoolean( fields[1] ) );
         }
-        if (0 == fields[0].indexOf("showPpo01"))
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWPPO1 ) )
         {
-          prgConfig.setShowPpo01(Boolean.parseBoolean(fields[1]));
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          prgConfig.setShowPpo01( Boolean.parseBoolean( fields[1] ) );
         }
-        if (0 == fields[0].indexOf("showPpo02"))
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWPPO2 ) )
         {
-          prgConfig.setShowPpo02(Boolean.parseBoolean(fields[1]));
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          prgConfig.setShowPpo02( Boolean.parseBoolean( fields[1] ) );
         }
-        if (0 == fields[0].indexOf("showPpo03"))
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWPPO3 ) )
         {
-          prgConfig.setShowPpo03(Boolean.parseBoolean(fields[1]));
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          prgConfig.setShowPpo03( Boolean.parseBoolean( fields[1] ) );
         }
-        if (0 == fields[0].indexOf("showSetpoint"))
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWSETPOINT ) )
         {
-          prgConfig.setShowSetpoint(Boolean.parseBoolean(fields[1]));
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          prgConfig.setShowSetpoint( Boolean.parseBoolean( fields[1] ) );
         }
-        if (0 == fields[0].indexOf("showHe"))
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWHE ) )
         {
-          prgConfig.setShowHe(Boolean.parseBoolean(fields[1]));
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          prgConfig.setShowHe( Boolean.parseBoolean( fields[1] ) );
         }
-        if (0 == fields[0].indexOf("showN2"))
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWN2 ) )
         {
-          prgConfig.setShowN2(Boolean.parseBoolean(fields[1]));
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          prgConfig.setShowN2( Boolean.parseBoolean( fields[1] ) );
         }
-        if (0 == fields[0].indexOf("showNulltime"))
+        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWNULLTIME ) )
         {
-          prgConfig.setShowNulltime(Boolean.parseBoolean(fields[1]));
+          if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
+          prgConfig.setShowNulltime( Boolean.parseBoolean( fields[1] ) );
         }
       }
-      catch (NumberFormatException ex)
+      catch( NumberFormatException ex )
       {
         // nicht sooo sauber, aber sollte funktionieren
         continue;
       }
     }
     // nach dem Einlesen ist das nicht geändert!
-    prgConfig.setWasChanged(false);
+    prgConfig.setWasChanged( false );
     return true;
   }
 
@@ -216,6 +252,6 @@ public class ReadConfig
    */
   public SpxPcloggerProgramConfig getConfigClass()
   {
-    return (prgConfig);
+    return( prgConfig );
   }
 }

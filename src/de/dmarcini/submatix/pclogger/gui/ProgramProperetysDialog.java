@@ -45,40 +45,39 @@ import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
  */
 public class ProgramProperetysDialog extends JDialog implements ActionListener, MouseMotionListener
 {
-  private static final long        serialVersionUID    = 4117246672129154876L;
-  private Logger                   lg                  = null;
-  private String                   approveLogButtonText;
-  private String                   approveLogButtonTooltip;
-  private String                   fileChooserLogTitle;
-  private String                   approveDirButtonText;
-  private String                   approveDirButtonTooltip;
-  private String                   fileChooserDirTitle;
-  private final JPanel             contentPanel        = new JPanel();
-  private JButton                  btnCancel;
-  private JButton                  btnOk;
-  private boolean                  closeWithOk         = false;
-  private boolean                  wasChangedParameter = false;
-  private JLabel                   databaseDirLabel;
-  private JLabel                   logfileLabel;
-  private JTextField               databaseDirTextField;
-  private JTextField               logfileNameTextField;
-  private JCheckBox                moveDataCheckBox;
-  private SpxPcloggerProgramConfig progConfig;
-  private JPanel                   pahtsPanel;
-  private JPanel                   unitsPanel;
-  private JRadioButton             defaultUnitsRadioButton;
-  private JRadioButton             metricUnitsRadioButton;
-  private JRadioButton             imperialUnitsRadioButton;
-  private JLabel                   defaultUnitsLabel;
-  private JLabel                   metricUnitsLabel;
-  private JLabel                   imperialUnitsLabel;
-  private ButtonGroup              unitsButtonGroup;
-  private JButton                  databaseDirFileButton;
-  private JButton                  logfileNameButton;
-  private JLabel                   exportDirLabel;
-  private JTextField               exportDirTextField;
-  private JButton                  exportDirButton;
-  private String                   fileChooserExportDirTitle;
+  private static final long serialVersionUID    = 4117246672129154876L;
+  private Logger            lg                  = null;
+  private String            approveLogButtonText;
+  private String            approveLogButtonTooltip;
+  private String            fileChooserLogTitle;
+  private String            approveDirButtonText;
+  private String            approveDirButtonTooltip;
+  private String            fileChooserDirTitle;
+  private final JPanel      contentPanel        = new JPanel();
+  private JButton           btnCancel;
+  private JButton           btnOk;
+  private boolean           closeWithOk         = false;
+  private boolean           wasChangedParameter = false;
+  private JLabel            databaseDirLabel;
+  private JLabel            logfileLabel;
+  private JTextField        databaseDirTextField;
+  private JTextField        logfileNameTextField;
+  private JCheckBox         moveDataCheckBox;
+  private JPanel            pahtsPanel;
+  private JPanel            unitsPanel;
+  private JRadioButton      defaultUnitsRadioButton;
+  private JRadioButton      metricUnitsRadioButton;
+  private JRadioButton      imperialUnitsRadioButton;
+  private JLabel            defaultUnitsLabel;
+  private JLabel            metricUnitsLabel;
+  private JLabel            imperialUnitsLabel;
+  private ButtonGroup       unitsButtonGroup;
+  private JButton           databaseDirFileButton;
+  private JButton           logfileNameButton;
+  private JLabel            exportDirLabel;
+  private JTextField        exportDirTextField;
+  private JButton           exportDirButton;
+  private String            fileChooserExportDirTitle;
 
   /**
    * Vor Aufruf schützen
@@ -96,9 +95,8 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
    * @param stringsBundle
    * @param progConfig
    */
-  public ProgramProperetysDialog( ResourceBundle stringsBundle, SpxPcloggerProgramConfig progConfig )
+  public ProgramProperetysDialog( ResourceBundle stringsBundle )
   {
-    this.progConfig = progConfig;
     this.lg = SpxPcloggerProgramConfig.LOGGER;
     initDialog();
     lg.debug( "ProgramProperetysDialog created..." );
@@ -319,17 +317,6 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
       wasChangedParameter = true;
       lg.debug( "select <" + fileChooser.getSelectedFile().getName() + "> as new logfile after restart." );
     }
-  }
-
-  /**
-   * Das eventuell veränderte Objekt zurückgeben Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.07.2012
-   * @return config
-   */
-  public SpxPcloggerProgramConfig getProcConfig()
-  {
-    return( progConfig );
   }
 
   /**

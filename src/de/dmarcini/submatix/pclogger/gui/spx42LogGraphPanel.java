@@ -49,42 +49,41 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   /**
    * 
    */
-  private static final long        serialVersionUID  = 1L;
-  private static int               GRAPH_TEMPERATURE = 0;
-  private static int               GRAPH_PPO2ALL     = 1;
-  private static int               GRAPH_PPO2_01     = 2;
-  private static int               GRAPH_PPO2_02     = 3;
-  private static int               GRAPH_PPO2_03     = 4;
-  private static int               GRAPH_SETPOINT    = 5;
-  private static int               GRAPH_HE          = 6;
-  private static int               GRAPH_N2          = 7;
-  private static int               GRAPH_NULLTIME    = 8;
-  private static int               GRAPH_DEPTH       = 9;
-  protected Logger                 lg                = null;
-  private LogDerbyDatabaseUtil     databaseUtil      = null;
-  private ResourceBundle           stringsBundle     = null;
-  private ChartPanel               chartPanel        = null;
-  private SpxPcloggerProgramConfig progConfig        = null;
-  private int                      showingUnitSystem = ProjectConst.UNITS_DEFAULT;
-  private int                      savedUnitSystem   = ProjectConst.UNITS_DEFAULT;
-  private int                      showingDbIdForDiveWasShowing;
-  private String                   maxDepthLabelString;
-  private String                   coldestLabelString;
-  private String                   diveLenLabelString;
-  private String                   depthUnitName;
-  private String                   tempUnitName;
-  private String                   pressureUnitName;
-  private JPanel                   topPanel;
-  private JPanel                   bottomPanel;
-  private JComboBox<String>        deviceComboBox;
-  private JComboBox<String>        diveSelectComboBox;
-  private JButton                  computeGraphButton;
-  private JLabel                   maxDepthValueLabel;
-  private JLabel                   coldestTempValueLabel;
-  private JLabel                   diveLenValueLabel;
-  private JButton                  detailGraphButton;
-  private JLabel                   notesLabel;
-  private JButton                  notesEditButton;
+  private static final long    serialVersionUID  = 1L;
+  private static int           GRAPH_TEMPERATURE = 0;
+  private static int           GRAPH_PPO2ALL     = 1;
+  private static int           GRAPH_PPO2_01     = 2;
+  private static int           GRAPH_PPO2_02     = 3;
+  private static int           GRAPH_PPO2_03     = 4;
+  private static int           GRAPH_SETPOINT    = 5;
+  private static int           GRAPH_HE          = 6;
+  private static int           GRAPH_N2          = 7;
+  private static int           GRAPH_NULLTIME    = 8;
+  private static int           GRAPH_DEPTH       = 9;
+  protected Logger             lg                = null;
+  private LogDerbyDatabaseUtil databaseUtil      = null;
+  private ResourceBundle       stringsBundle     = null;
+  private ChartPanel           chartPanel        = null;
+  private int                  showingUnitSystem = ProjectConst.UNITS_DEFAULT;
+  private int                  savedUnitSystem   = ProjectConst.UNITS_DEFAULT;
+  private int                  showingDbIdForDiveWasShowing;
+  private String               maxDepthLabelString;
+  private String               coldestLabelString;
+  private String               diveLenLabelString;
+  private String               depthUnitName;
+  private String               tempUnitName;
+  private String               pressureUnitName;
+  private JPanel               topPanel;
+  private JPanel               bottomPanel;
+  private JComboBox<String>    deviceComboBox;
+  private JComboBox<String>    diveSelectComboBox;
+  private JButton              computeGraphButton;
+  private JLabel               maxDepthValueLabel;
+  private JLabel               coldestTempValueLabel;
+  private JLabel               diveLenValueLabel;
+  private JButton              detailGraphButton;
+  private JLabel               notesLabel;
+  private JButton              notesEditButton;
 
   @SuppressWarnings( "unused" )
   private spx42LogGraphPanel()
@@ -100,12 +99,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    * @param _dbUtil
    * @param progConfig
    */
-  public spx42LogGraphPanel( final LogDerbyDatabaseUtil _dbUtil, SpxPcloggerProgramConfig progConfig )
+  public spx42LogGraphPanel( final LogDerbyDatabaseUtil _dbUtil )
   {
     this.lg = SpxPcloggerProgramConfig.LOGGER;
     lg.debug( "constructor..." );
     this.databaseUtil = _dbUtil;
-    this.progConfig = progConfig;
     initPanel();
     showingDbIdForDiveWasShowing = -1;
   }
@@ -155,7 +153,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       if( cmd.equals( "set_detail_for_show_graph" ) )
       {
         lg.debug( "select details for log selected." );
-        SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog( stringsBundle, progConfig );
+        SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog( stringsBundle );
         if( sgd.showModal() )
         {
           lg.debug( "dialog returned 'true' => change propertys..." );
@@ -684,7 +682,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     headData = databaseUtil.getHeadDiveDataFromIdLog( dbId );
     notesLabel.setText( databaseUtil.getNotesForIdLog( dbId ) );
-    showingUnitSystem = progConfig.getUnitsProperty();
+    showingUnitSystem = SpxPcloggerProgramConfig.unitsProperty;
     savedUnitSystem = headData[6];
     // jetzt die Strings für Masseinheiten holen
     String[] labels = getUnitsLabel( showingUnitSystem, savedUnitSystem );
@@ -765,7 +763,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Temperatur einfügen
     //
-    if( progConfig.isShowTemperature() )
+    if( SpxPcloggerProgramConfig.showTemperature )
     {
       makeTemperatureGraph( diveList, thePlot, labels );
     }
@@ -777,7 +775,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // wenn eine der Achsen dargesstellt werden muss, dann sollte die Achse auch in der Grafil da sein
     //
-    if( progConfig.isShowPpo01() || progConfig.isShowPpo02() || progConfig.isShowPpo03() || progConfig.isShowPpoResult() || progConfig.isShowSetpoint() )
+    if( SpxPcloggerProgramConfig.showPpo01 || SpxPcloggerProgramConfig.showPpo02 || SpxPcloggerProgramConfig.showPpo03 || SpxPcloggerProgramConfig.showPpoResult
+            || SpxPcloggerProgramConfig.showSetpoint )
     {
       ppo2Axis.setAutoRangeIncludesZero( false );
       ppo2Axis.setAutoRange( false );
@@ -808,7 +807,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       ppo2Axis.setTickLabelPaint( new Color( ProjectConst.GRAPH_PPO2ALL_ACOLOR ) );
       thePlot.setRangeAxis( GRAPH_PPO2ALL, ppo2Axis );
     }
-    if( progConfig.isShowHe() || progConfig.isShowN2() )
+    if( SpxPcloggerProgramConfig.showHe || SpxPcloggerProgramConfig.showN2 )
     {
       percentAxis.setAutoRangeIncludesZero( false );
       percentAxis.setAutoRange( false );
@@ -821,45 +820,45 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // Partialdrücke der einzelnen Sensoren einfügen
     //
     // Sensor 01 anzeigen
-    if( progConfig.isShowPpo01() )
+    if( SpxPcloggerProgramConfig.showPpo01 )
     {
       makePpoGraph( diveList, thePlot, 1 );
     }
     // Sensor 02 anzeigen
-    if( progConfig.isShowPpo02() )
+    if( SpxPcloggerProgramConfig.showPpo02 )
     {
       makePpoGraph( diveList, thePlot, 2 );
     }
     // Sensor 03 anzeigen
-    if( progConfig.isShowPpo03() )
+    if( SpxPcloggerProgramConfig.showPpo03 )
     {
       makePpoGraph( diveList, thePlot, 3 );
     }
     // Resultierenden PPO anzeigen
-    if( progConfig.isShowPpoResult() )
+    if( SpxPcloggerProgramConfig.showPpoResult )
     {
       makePpoGraph( diveList, thePlot, 0 );
       // makePpoResultGraph( diveList, thePlot );
     }
-    if( progConfig.isShowSetpoint() )
+    if( SpxPcloggerProgramConfig.showSetpoint )
     {
       makeSetpointGraph( diveList, thePlot );
     }
     //
     // Helium und Stickstoffanteil im Gas?
     //
-    if( progConfig.isShowHe() )
+    if( SpxPcloggerProgramConfig.showHe )
     {
       makeInnertGasGraph( diveList, thePlot, "he" );
     }
-    if( progConfig.isShowN2() )
+    if( SpxPcloggerProgramConfig.showN2 )
     {
       makeInnertGasGraph( diveList, thePlot, "n2" );
     }
     //
     // die Nullzeit auf Wunsch
     //
-    if( progConfig.isShowNulltime() )
+    if( SpxPcloggerProgramConfig.showNulltime )
     {
       makeNulltimeGraph( diveList, thePlot );
     }

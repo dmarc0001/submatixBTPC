@@ -131,50 +131,49 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     TAB_LOGGRAPH,
     TAB_FILEMANAGER
   }
-  private static final long        serialVersionUID    = 3L;
-  private final static int         VERY_CONSERVATIVE   = 0;
-  private final static int         CONSERVATIVE        = 1;
-  private final static int         MODERATE            = 2;
-  private final static int         AGGRESSIVE          = 3;                                            ;
-  private final static int         VERY_AGGRESSIVE     = 4;
-  private int                      licenseState        = -1;
-  private int                      customConfig        = -1;
-  private LogDerbyDatabaseUtil     databaseUtil        = null;
-  private int                      waitForMessage      = 0;
+  private static final long       serialVersionUID    = 3L;
+  private final static int        VERY_CONSERVATIVE   = 0;
+  private final static int        CONSERVATIVE        = 1;
+  private final static int        MODERATE            = 2;
+  private final static int        AGGRESSIVE          = 3;                                            ;
+  private final static int        VERY_AGGRESSIVE     = 4;
+  private int                     licenseState        = -1;
+  private int                     customConfig        = -1;
+  private LogDerbyDatabaseUtil    databaseUtil        = null;
+  private int                     waitForMessage      = 0;
   //
   // @formatter:on
-  private JFrame                   frmMainWindow;
-  private JTabbedPane              tabbedPane;
-  private spx42ConnectPanel        connectionPanel;
-  private spx42ConfigPanel         configPanel;
-  private spx42GaslistEditPanel    gasConfigPanel;
-  private spx42LoglistPanel        logListPanel;
-  private spx42LogGraphPanel       logGraphPanel;
-  private spx42FileManagerPanel    fileManagerPanel;
-  private JMenuItem                mntmExit;
-  private JMenu                    mnLanguages;
-  private JMenu                    mnFile;
-  private JMenu                    mnOptions;
-  private JMenu                    mnHelp;
-  private JMenuItem                mntmHelp;
-  private JMenuItem                mntmInfo;
-  private JTextField               statusTextField;
-  private JMenuItem                mntmOptions;
-  private static ResourceBundle    stringsBundle       = null;
-  private Locale                   programLocale       = null;
-  private String                   timeFormatterString = "yyyy-MM-dd - hh:mm:ss";
+  private JFrame                  frmMainWindow;
+  private JTabbedPane             tabbedPane;
+  private spx42ConnectPanel       connectionPanel;
+  private spx42ConfigPanel        configPanel;
+  private spx42GaslistEditPanel   gasConfigPanel;
+  private spx42LoglistPanel       logListPanel;
+  private spx42LogGraphPanel      logGraphPanel;
+  private spx42FileManagerPanel   fileManagerPanel;
+  private JMenuItem               mntmExit;
+  private JMenu                   mnLanguages;
+  private JMenu                   mnFile;
+  private JMenu                   mnOptions;
+  private JMenu                   mnHelp;
+  private JMenuItem               mntmHelp;
+  private JMenuItem               mntmInfo;
+  private JTextField              statusTextField;
+  private JMenuItem               mntmOptions;
+  private static ResourceBundle   stringsBundle       = null;
+  private Locale                  programLocale       = null;
+  private String                  timeFormatterString = "yyyy-MM-dd - hh:mm:ss";
   @SuppressWarnings( "unused" )
-  private final File               programDir          = new File( System.getProperty( "user.dir" ) );
-  private Logger                   lg                  = null;
-  private BTCommunication          btComm              = null;
-  private final ArrayList<String>  messagesList        = new ArrayList<String>();
-  private final SPX42Config        currentConfig       = new SPX42Config();
-  private SPX42Config              savedConfig         = null;
-  private SpxPcloggerProgramConfig progConfig          = null;
-  private PleaseWaitDialog         wDial               = null;
-  private boolean                  ignoreAction        = false;
-  private static final Pattern     fieldPatternDp      = Pattern.compile( ":" );
-  private static final Pattern     fieldPatternUnderln = Pattern.compile( "[_.]" );
+  private final File              programDir          = new File( System.getProperty( "user.dir" ) );
+  private Logger                  lg                  = null;
+  private BTCommunication         btComm              = null;
+  private final ArrayList<String> messagesList        = new ArrayList<String>();
+  private final SPX42Config       currentConfig       = new SPX42Config();
+  private SPX42Config             savedConfig         = null;
+  private PleaseWaitDialog        wDial               = null;
+  private boolean                 ignoreAction        = false;
+  private static final Pattern    fieldPatternDp      = Pattern.compile( ":" );
+  private static final Pattern    fieldPatternUnderln = Pattern.compile( "[_.]" );
 
   /**
    * Launch the application.
@@ -480,8 +479,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     setDefaultLookAndFeelDecorated( isDefaultLookAndFeelDecorated() );
     // Konfiguration aus der Datei einlesen
     // berücksichtigt schon per CLI angegebene Werte als gesetzt
-    ReadConfig rcf = new ReadConfig();
-    progConfig = rcf.getConfigClass();
+    new ReadConfig();
     makeLogger();
     //
     // gib ein paar informationen
@@ -881,23 +879,20 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     // testen, ob da noch was zurückgeschrieben werden muss
-    if( progConfig != null )
+    if( SpxPcloggerProgramConfig.wasChanged )
     {
-      if( progConfig.isWasChanged() )
+      try
       {
-        try
-        {
-          lg.info( "write config to file..." );
-          new WriteConfig( progConfig );
-        }
-        catch( IOException ex )
-        {
-          ex.printStackTrace();
-        }
-        catch( ConfigReadWriteException ex )
-        {
-          ex.printStackTrace();
-        }
+        lg.info( "write config to file..." );
+        new WriteConfig();
+      }
+      catch( IOException ex )
+      {
+        ex.printStackTrace();
+      }
+      catch( ConfigReadWriteException ex )
+      {
+        ex.printStackTrace();
       }
     }
     dispose();
@@ -939,15 +934,15 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     tabbedPane.addTab( "CONFIG", null, configPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_CONFIG.ordinal(), true );
     // GASPANEL
-    gasConfigPanel = new spx42GaslistEditPanel( databaseUtil, progConfig );
+    gasConfigPanel = new spx42GaslistEditPanel( databaseUtil );
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_GASLIST.ordinal(), true );
     // Loglisten Panel
-    logListPanel = new spx42LoglistPanel( progConfig, this, databaseUtil );
+    logListPanel = new spx42LoglistPanel( this, databaseUtil );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_LOGREAD.ordinal(), true );
     // Grafik Panel
-    logGraphPanel = new spx42LogGraphPanel( databaseUtil, progConfig );
+    logGraphPanel = new spx42LogGraphPanel( databaseUtil );
     tabbedPane.addTab( "GRAPH", null, logGraphPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_LOGGRAPH.ordinal(), true );
     // import/export Panel
@@ -2465,13 +2460,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     lg.debug( "create an show propertys dialog..." );
-    ProgramProperetysDialog pDial = new ProgramProperetysDialog( stringsBundle, progConfig );
+    ProgramProperetysDialog pDial = new ProgramProperetysDialog( stringsBundle );
     // pDial.setVisible( true );
     if( pDial.showModal() )
     {
       lg.debug( "dialog whith OK closed...." );
       // progConfig = pDial.getProcConfig();
-      if( progConfig.isWasChanged() )
+      if( SpxPcloggerProgramConfig.wasChanged )
       {
         // Wenn da was passieren sollte, muss die DB geschlossen sein.
         if( databaseUtil != null )

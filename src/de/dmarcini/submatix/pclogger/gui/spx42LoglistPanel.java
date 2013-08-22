@@ -87,7 +87,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private static final long                  serialVersionUID        = 1L;
   protected Logger                           lg                      = null;
   private ActionListener                     aListener               = null;
-  private SpxPcloggerProgramConfig           progConfig              = null;
   private final HashMap<Integer, LogDirData> logDirDataHash          = new HashMap<Integer, LogDirData>();
   private boolean                            isPanelInitiated        = false;
   private ResourceBundle                     stringsBundle           = null;
@@ -149,10 +148,9 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    * @param al
    * @param ldb
    */
-  public spx42LoglistPanel( SpxPcloggerProgramConfig _cnf, ActionListener al, LogDerbyDatabaseUtil ldb )
+  public spx42LoglistPanel( ActionListener al, LogDerbyDatabaseUtil ldb )
   {
     this.lg = SpxPcloggerProgramConfig.LOGGER;
-    progConfig = _cnf;
     this.aListener = al;
     databaseUtil = ldb;
     logDirDataHash.clear();
@@ -884,7 +882,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
           {
             savedUnits = ProjectConst.UNITS_IMPERIAL;
           }
-          if( ( progConfig.getUnitsProperty() == ProjectConst.UNITS_DEFAULT ) || progConfig.getUnitsProperty() == savedUnits )
+          if( ( SpxPcloggerProgramConfig.unitsProperty == ProjectConst.UNITS_DEFAULT ) || SpxPcloggerProgramConfig.unitsProperty == savedUnits )
           {
             //
             // alles wie gespeichert anzeigen

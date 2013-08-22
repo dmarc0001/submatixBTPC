@@ -30,7 +30,6 @@ public class WriteConfig
    * Konstruktor mit Dateinamenübergabe
    * 
    * @author Dirk Marciniak 09.12.2011
-   * @param prgConfig
    * @throws IOException
    * @throws ConfigReadWriteException
    */

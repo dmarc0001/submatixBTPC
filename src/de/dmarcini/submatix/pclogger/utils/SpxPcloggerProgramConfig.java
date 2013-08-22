@@ -22,7 +22,7 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
 public class SpxPcloggerProgramConfig
 {
   // statische Variablen, sind IMMER fürs ganze Programm gleich
-  private final int        unitsProperty     = ProjectConst.UNITS_DEFAULT;
+  public static int        unitsProperty     = ProjectConst.UNITS_DEFAULT;
   public static final File configFile        = new File( System.getProperty( "user.dir" ) + File.separator + ProjectConst.CONFIGFILENAME );
   public static final File programDir        = new File( System.getProperty( "user.dir" ) );
   public static boolean    consoleLog        = false;

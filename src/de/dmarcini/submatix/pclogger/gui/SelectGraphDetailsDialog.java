@@ -25,22 +25,21 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
   /**
    * 
    */
-  private static final long        serialVersionUID = 1880409081700634690L;
-  private boolean                  closeWithOk      = false;
-  private ResourceBundle           stringsBundle    = null;
-  private SpxPcloggerProgramConfig progConfig       = null;
-  private JButton                  cancelButton;
-  private JButton                  okButton;
-  private JCheckBox                depthCheckBox;
-  private JCheckBox                ppo2ResultCheckBox;
-  private JCheckBox                temperatureCheckBox;
-  private JCheckBox                ppo2_01CheckBox;
-  private JCheckBox                ppo2_02CheckBox;
-  private JCheckBox                ppo2_03CheckBox;
-  private JCheckBox                ppo2SetpointCheckBox;
-  private JCheckBox                hePercentCheckBox;
-  private JCheckBox                n2PercentCheckBox;
-  private JCheckBox                nullTimeCheckBox;
+  private static final long serialVersionUID = 1880409081700634690L;
+  private boolean           closeWithOk      = false;
+  private ResourceBundle    stringsBundle    = null;
+  private JButton           cancelButton;
+  private JButton           okButton;
+  private JCheckBox         depthCheckBox;
+  private JCheckBox         ppo2ResultCheckBox;
+  private JCheckBox         temperatureCheckBox;
+  private JCheckBox         ppo2_01CheckBox;
+  private JCheckBox         ppo2_02CheckBox;
+  private JCheckBox         ppo2_03CheckBox;
+  private JCheckBox         ppo2SetpointCheckBox;
+  private JCheckBox         hePercentCheckBox;
+  private JCheckBox         n2PercentCheckBox;
+  private JCheckBox         nullTimeCheckBox;
 
   @SuppressWarnings( "unused" )
   private SelectGraphDetailsDialog()
@@ -58,12 +57,10 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
    * 
    *         Stand: 31.07.2012
    * @param stringsBundle
-   * @param progConfig
    */
-  public SelectGraphDetailsDialog( ResourceBundle stringsBundle, SpxPcloggerProgramConfig progConfig )
+  public SelectGraphDetailsDialog( ResourceBundle stringsBundle )
   {
     this.stringsBundle = stringsBundle;
-    this.progConfig = progConfig;
     initGui();
   }
 
@@ -127,34 +124,34 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
       depthCheckBox.setSelected( true );
       temperatureCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.temperatureCheckBox.text" ) );
       temperatureCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.temperatureCheckBox.tooltiptext" ) );
-      temperatureCheckBox.setSelected( progConfig.isShowTemperature() );
+      temperatureCheckBox.setSelected( SpxPcloggerProgramConfig.showTemperature );
       ppo2ResultCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2ResultCheckBox.text" ) );
       ppo2ResultCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2ResultCheckBox.tooltiptext" ) );
-      ppo2ResultCheckBox.setSelected( progConfig.isShowPpoResult() );
+      ppo2ResultCheckBox.setSelected( SpxPcloggerProgramConfig.showPpoResult );
       ppo2_01CheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_01CheckBox.text" ) );
       ppo2_01CheckBox.setForeground( Color.DARK_GRAY );
       ppo2_01CheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_01CheckBox.tooltiptext" ) );
-      ppo2_01CheckBox.setSelected( progConfig.isShowPpo01() );
+      ppo2_01CheckBox.setSelected( SpxPcloggerProgramConfig.showPpo01 );
       ppo2_02CheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_02CheckBox.text" ) );
       ppo2_02CheckBox.setForeground( Color.DARK_GRAY );
       ppo2_02CheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_02CheckBox.tooltiptext" ) );
-      ppo2_02CheckBox.setSelected( progConfig.isShowPpo02() );
+      ppo2_02CheckBox.setSelected( SpxPcloggerProgramConfig.showPpo02 );
       ppo2_03CheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_03CheckBox.text" ) );
       ppo2_03CheckBox.setForeground( Color.DARK_GRAY );
       ppo2_03CheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_03CheckBox.tooltiptext" ) );
-      ppo2_03CheckBox.setSelected( progConfig.isShowPpo03() );
+      ppo2_03CheckBox.setSelected( SpxPcloggerProgramConfig.showPpo03 );
       ppo2SetpointCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2SetpointCheckBox.text" ) );
       ppo2SetpointCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2SetpointCheckBox.tooltiptext" ) );
-      ppo2SetpointCheckBox.setSelected( progConfig.isShowSetpoint() );
+      ppo2SetpointCheckBox.setSelected( SpxPcloggerProgramConfig.showSetpoint );
       hePercentCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.hePercentCheckBox.text" ) );
       hePercentCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.hePercentCheckBox.tooltiptext" ) );
-      hePercentCheckBox.setSelected( progConfig.isShowHe() );
+      hePercentCheckBox.setSelected( SpxPcloggerProgramConfig.showHe );
       n2PercentCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.n2PercentCheckBox.text" ) );
       n2PercentCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.n2PercentCheckBox.tooltiptext" ) );
-      n2PercentCheckBox.setSelected( progConfig.isShowN2() );
+      n2PercentCheckBox.setSelected( SpxPcloggerProgramConfig.showN2 );
       nullTimeCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.nullTimeCheckBox.text" ) );
       nullTimeCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.nullTimeCheckBox.tooltiptext" ) );
-      nullTimeCheckBox.setSelected( progConfig.isShowNulltime() );
+      nullTimeCheckBox.setSelected( SpxPcloggerProgramConfig.showNulltime );
       GroupLayout gl_contentPanel = new GroupLayout( contentPanel );
       gl_contentPanel.setHorizontalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(
               gl_contentPanel
@@ -243,15 +240,15 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
       // Abbrechen
       if( cmd.equals( "commit" ) )
       {
-        progConfig.setShowPpoResult( ppo2ResultCheckBox.isSelected() );
-        progConfig.setShowTemperature( temperatureCheckBox.isSelected() );
-        progConfig.setShowPpo01( ppo2_01CheckBox.isSelected() );
-        progConfig.setShowPpo02( ppo2_02CheckBox.isSelected() );
-        progConfig.setShowPpo03( ppo2_03CheckBox.isSelected() );
-        progConfig.setShowSetpoint( ppo2SetpointCheckBox.isSelected() );
-        progConfig.setShowHe( hePercentCheckBox.isSelected() );
-        progConfig.setShowN2( n2PercentCheckBox.isSelected() );
-        progConfig.setShowNulltime( nullTimeCheckBox.isSelected() );
+        SpxPcloggerProgramConfig.showPpoResult = ppo2ResultCheckBox.isSelected();
+        SpxPcloggerProgramConfig.showTemperature = temperatureCheckBox.isSelected();
+        SpxPcloggerProgramConfig.showPpo01 = ppo2_01CheckBox.isSelected();
+        SpxPcloggerProgramConfig.showPpo02 = ppo2_02CheckBox.isSelected();
+        SpxPcloggerProgramConfig.showPpo03 = ppo2_03CheckBox.isSelected();
+        SpxPcloggerProgramConfig.showSetpoint = ppo2SetpointCheckBox.isSelected();
+        SpxPcloggerProgramConfig.showHe = hePercentCheckBox.isSelected();
+        SpxPcloggerProgramConfig.showN2 = n2PercentCheckBox.isSelected();
+        SpxPcloggerProgramConfig.showNulltime = nullTimeCheckBox.isSelected();
         setVisible( false );
         closeWithOk = true;
         return;

@@ -1201,7 +1201,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       FileAppender fileAppender = new FileAppender(fileLayout, SpxPcloggerProgramConfig.logFile.getAbsolutePath(), true);
       lg.addAppender(fileAppender);
       lg.setLevel(SpxPcloggerProgramConfig.logLevel);
-      if (lg.isDebugEnabled()) lg.debug("LOGGER Created...");
+      if (lg.isDebugEnabled()) lg.debug("lg Created...");
     }
     catch (Exception ex)
     {

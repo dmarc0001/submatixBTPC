@@ -96,9 +96,9 @@ public class WriteConfig
     try
     {
       out.append( "# generated file, do not edit." + LINE_SEPARATOR );
-      out.append( String.format( "%s=%s%s", "databaseDir", conf.getDatabaseDir().getAbsolutePath(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%s%s", "logFile", conf.getLogFile().getAbsoluteFile(), LINE_SEPARATOR ) );
-      out.append( String.format( "%s=%s%s", "exportDir", conf.getExportDir().getAbsoluteFile(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%s%s", "databaseDir", SpxPcloggerProgramConfig.databaseDir.getAbsolutePath(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%s%s", "logFile", SpxPcloggerProgramConfig.logFile.getAbsoluteFile(), LINE_SEPARATOR ) );
+      out.append( String.format( "%s=%s%s", "exportDir", SpxPcloggerProgramConfig.exportDir.getAbsoluteFile(), LINE_SEPARATOR ) );
       switch ( conf.getUnitsProperty() )
       {
         case ProjectConst.UNITS_DEFAULT:

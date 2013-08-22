@@ -7,77 +7,64 @@
  */
 package de.dmarcini.submatix.pclogger.utils;
 
+
 import java.io.File;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
 /**
- * 
  * Beinhalte die Konfiguration
- * 
  * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
  * 
  * @author Dirk Marciniak (dirk_marciniak@arcor.de)
- * 
  *         Stand: 18.07.2012
  */
+@SuppressWarnings("javadoc")
 public class SpxPcloggerProgramConfig
 {
   // statische Variablen, sind IMMER fürs ganze Programm gleich
-  private int              unitsProperty   = ProjectConst.UNITS_DEFAULT;
-  public static final File configFile      = new File( System.getProperty( "user.dir" ) + File.separator + ProjectConst.CONFIGFILENAME );
-  public static final File programDir      = new File( System.getProperty( "user.dir" ) );
-  private File             databaseDir     = null;
-  private File             exportDir       = null;
-  private File             logFile         = null;
-  private boolean          wasChanged      = false;
-  private boolean          showTemperature = true;
-  private boolean          showPpoResult   = true;
-  private boolean          showPpo01       = false;
-  private boolean          showPpo02       = false;
-  private boolean          showPpo03       = false;
-  private boolean          showSetpoint    = false;
-  private boolean          showHe          = false;
-  private boolean          showN2          = false;
-  private boolean          showNulltime    = false;
+  private int              unitsProperty     = ProjectConst.UNITS_DEFAULT;
+  public static final File configFile        = new File(System.getProperty("user.dir") + File.separator + ProjectConst.CONFIGFILENAME);
+  public static final File programDir        = new File(System.getProperty("user.dir"));
+  public static boolean    consoleLog        = false;
+  public static File       logFile           = new File(programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTLOGFILE);
+  public static File       databaseDir       = new File(programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTDATADIR);
+  public static File       exportDir         = new File(programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTEXPORTDIR);
+  public static String     langCode          = "de_DE";
+  public static boolean    wasCliLogfile     = false;
+  public static boolean    wasCliLogLevel    = false;
+  public static boolean    wasCliExportDir   = false;
+  public static boolean    wasCliConsoleLog  = false;
+  public static boolean    wasCliLangCode    = false;
+  public static boolean    wasCliDatabaseDir = false;
+  public static boolean    developDebug      = false;
+  // statische Variablen, sind IMMER fürs ganze Programm gleich
+  public static Logger     LOGGER            = Logger.getRootLogger();
+  public static Level      logLevel          = Level.FATAL;
+  private boolean          wasChanged        = false;
+  private boolean          showTemperature   = true;
+  private boolean          showPpoResult     = true;
+  private boolean          showPpo01         = false;
+  private boolean          showPpo02         = false;
+  private boolean          showPpo03         = false;
+  private boolean          showSetpoint      = false;
+  private boolean          showHe            = false;
+  private boolean          showN2            = false;
+  private boolean          showNulltime      = false;
 
   /**
-   * 
    * Na dann wolln wir mal... (ein defaultverzeichnis gibt es, falls keine config existiert)
-   * 
    * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   * 
    *         Stand: 18.07.2012
    */
   public SpxPcloggerProgramConfig()
   {
-    setDatabaseDir( new File( programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTDATADIR ) );
-    setLogFile( new File( programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTLOGFILE ) );
-    setExportDir( new File( programDir.getAbsolutePath() + File.separator + ProjectConst.DEFAULTEXPORTDIR ) );
-    setWasChanged( false );
-  }
-
-  /**
-   * @return the databaseDir
-   */
-  public File getDatabaseDir()
-  {
-    return databaseDir;
-  }
-
-  public File getExportDir()
-  {
-    return( this.exportDir );
-  }
-
-  /**
-   * @return the logFile
-   */
-  public File getLogFile()
-  {
-    return logFile;
+    setWasChanged(false);
   }
 
   /**
@@ -169,38 +156,12 @@ public class SpxPcloggerProgramConfig
   }
 
   /**
-   * @param databaseDir
-   *          the databaseDir to set
-   */
-  public void setDatabaseDir( File databaseDir )
-  {
-    setWasChanged( true );
-    this.databaseDir = databaseDir;
-  }
-
-  public void setExportDir( File exportDir )
-  {
-    setWasChanged( true );
-    this.exportDir = exportDir;
-  }
-
-  /**
-   * @param logFile
-   *          the logFile to set
-   */
-  public void setLogFile( File logFile )
-  {
-    setWasChanged( true );
-    this.logFile = logFile;
-  }
-
-  /**
    * @param showHe
    *          the showHe to set
    */
-  public void setShowHe( boolean showHe )
+  public void setShowHe(boolean showHe)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.showHe = showHe;
   }
 
@@ -208,9 +169,9 @@ public class SpxPcloggerProgramConfig
    * @param showN2
    *          the showN2 to set
    */
-  public void setShowN2( boolean showN2 )
+  public void setShowN2(boolean showN2)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.showN2 = showN2;
   }
 
@@ -218,9 +179,9 @@ public class SpxPcloggerProgramConfig
    * @param showNulltime
    *          the showNulltime to set
    */
-  public void setShowNulltime( boolean showNulltime )
+  public void setShowNulltime(boolean showNulltime)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.showNulltime = showNulltime;
   }
 
@@ -228,9 +189,9 @@ public class SpxPcloggerProgramConfig
    * @param showPpo01
    *          the showPpo01 to set
    */
-  public void setShowPpo01( boolean showPpo01 )
+  public void setShowPpo01(boolean showPpo01)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.showPpo01 = showPpo01;
   }
 
@@ -238,9 +199,9 @@ public class SpxPcloggerProgramConfig
    * @param showPpo02
    *          the showPpo02 to set
    */
-  public void setShowPpo02( boolean showPpo02 )
+  public void setShowPpo02(boolean showPpo02)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.showPpo02 = showPpo02;
   }
 
@@ -248,9 +209,9 @@ public class SpxPcloggerProgramConfig
    * @param showPpo03
    *          the showPpo03 to set
    */
-  public void setShowPpo03( boolean showPpo03 )
+  public void setShowPpo03(boolean showPpo03)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.showPpo03 = showPpo03;
   }
 
@@ -258,9 +219,9 @@ public class SpxPcloggerProgramConfig
    * @param showPpoResult
    *          the showPpoResult to set
    */
-  public void setShowPpoResult( boolean showPpoResult )
+  public void setShowPpoResult(boolean showPpoResult)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.showPpoResult = showPpoResult;
   }
 
@@ -268,9 +229,9 @@ public class SpxPcloggerProgramConfig
    * @param showSetpoint
    *          the showSetpoint to set
    */
-  public void setShowSetpoint( boolean showSetpoint )
+  public void setShowSetpoint(boolean showSetpoint)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.showSetpoint = showSetpoint;
   }
 
@@ -278,9 +239,9 @@ public class SpxPcloggerProgramConfig
    * @param showTemperature
    *          the showTemperature to set
    */
-  public void setShowTemperature( boolean showTemperature )
+  public void setShowTemperature(boolean showTemperature)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.showTemperature = showTemperature;
   }
 
@@ -288,9 +249,9 @@ public class SpxPcloggerProgramConfig
    * @param unitsProperty
    *          the unitsProperty to set
    */
-  public void setUnitsProperty( int unitsProperty )
+  public void setUnitsProperty(int unitsProperty)
   {
-    setWasChanged( true );
+    setWasChanged(true);
     this.unitsProperty = unitsProperty;
   }
 
@@ -298,7 +259,7 @@ public class SpxPcloggerProgramConfig
    * @param wasChanged
    *          the wasChanged to set
    */
-  public void setWasChanged( boolean wasChanged )
+  public void setWasChanged(boolean wasChanged)
   {
     this.wasChanged = wasChanged;
   }

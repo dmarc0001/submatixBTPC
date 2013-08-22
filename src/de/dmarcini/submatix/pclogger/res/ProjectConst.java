@@ -259,6 +259,23 @@ public final class ProjectConst
   public static int          GRAPH_DEPTH_ACOLOR         = 0x4775FF;
   public static int          GRAPH_DEPTH_RCOLOR         = 0x4775FF;
   
+  //
+  // Konstanten für Namen im Konfig
+  //
+  public static final String CONFIG_LANGCODE            = "langCode";
+  public static final String CONFIG_DATABASEDIR         = "databaseDir";
+  public static final String CONFIG_LOGFILE             = "logFile";
+  public static final String CONFIG_EXPORTDIR           = "exportDir";
+  public static final String CONFIG_SHOWUNITS           = "showUnits";
+  public static final String CONFIG_SHOWTEMPERRATURE    = "showTemperature";
+  public static final String CONFIG_SHOWPPORESULT       = "showPpoResult";
+  public static final String CONFIG_SHOWPPO1            = "showPpo01";
+  public static final String CONFIG_SHOWPPO2            = "showPpo02";
+  public static final String CONFIG_SHOWPPO3            = "showPpo03";
+  public static final String CONFIG_SHOWSETPOINT        = "showSetpoint";
+  public static final String CONFIG_SHOWHE              = "showHe";
+  public static final String CONFIG_SHOWN2              = "showN2";
+  public static final String CONFIG_SHOWNULLTIME        = "showNulltime";
   
 
   //@formatter:on

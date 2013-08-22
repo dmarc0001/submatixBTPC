@@ -8,7 +8,7 @@ SetDatablockOptimize on
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "submatixBTLog"
-!define PRODUCT_VERSION "1.1"
+!define PRODUCT_VERSION "1.2"
 !define PRODUCT_PUBLISHER "Dirk Marciniak"
 !define PRODUCT_WEB_SITE "http://www.submatix.com"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -50,7 +50,7 @@ SetDatablockOptimize on
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "SubmatixBTLog-1.1-Setup.exe"
+OutFile "SubmatixBTLog-1.2-Setup.exe"
 InstallDir "$PROGRAMFILES\submatixBTLog"
 ShowInstDetails show
 ShowUnInstDetails show

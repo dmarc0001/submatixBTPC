@@ -28,6 +28,7 @@
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_zh_CN.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_zh_TW.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derby.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/apache-log4j-1.2.17/log4j-1.2.17.jar"/>
         </jar>
     </target>
 </project>

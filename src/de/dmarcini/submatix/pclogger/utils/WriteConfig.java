@@ -27,17 +27,6 @@ public class WriteConfig
   public static final String LINE_SEPARATOR = System.getProperty( "line.separator" );
 
   /**
-   * Privater Konstruktor, verhindert die Benutzung....
-   * 
-   * @author Dirk Marciniak 09.12.2011
-   */
-  @SuppressWarnings( "unused" )
-  private WriteConfig()
-  {
-    return;
-  }
-
-  /**
    * Konstruktor mit Dateinamenübergabe
    * 
    * @author Dirk Marciniak 09.12.2011
@@ -45,14 +34,14 @@ public class WriteConfig
    * @throws IOException
    * @throws ConfigReadWriteException
    */
-  public WriteConfig( SpxPcloggerProgramConfig prgConfig ) throws IOException, ConfigReadWriteException
+  public WriteConfig() throws IOException, ConfigReadWriteException
   {
     BufferedWriter out;
     if( SpxPcloggerProgramConfig.logLevel == Level.DEBUG ) debug = true;
     if( debug ) System.out.println( String.format( "WriteConfig: write File <%s>", SpxPcloggerProgramConfig.configFile.getAbsolutePath() ) );
     if( null != ( out = openConfFile( SpxPcloggerProgramConfig.configFile ) ) )
     {
-      if( writeConfArray( out, prgConfig ) )
+      if( writeConfArray( out ) )
       {
         out.close();
         // alles ist gut :-)
@@ -95,9 +84,8 @@ public class WriteConfig
    * @param out
    * @return boolean
    */
-  private boolean writeConfArray( BufferedWriter out, SpxPcloggerProgramConfig conf )
+  private boolean writeConfArray( BufferedWriter out )
   {
-    if( conf == null ) return( false );
     try
     {
       out.append( "#" + LINE_SEPARATOR );
@@ -106,7 +94,7 @@ public class WriteConfig
       out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_DATABASEDIR, SpxPcloggerProgramConfig.databaseDir.getAbsolutePath(), LINE_SEPARATOR ) );
       out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_LOGFILE, SpxPcloggerProgramConfig.logFile.getAbsoluteFile(), LINE_SEPARATOR ) );
       out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_EXPORTDIR, SpxPcloggerProgramConfig.exportDir.getAbsoluteFile(), LINE_SEPARATOR ) );
-      switch ( conf.getUnitsProperty() )
+      switch ( SpxPcloggerProgramConfig.unitsProperty )
       {
         case ProjectConst.UNITS_DEFAULT:
           out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "default", LINE_SEPARATOR ) );
@@ -120,15 +108,15 @@ public class WriteConfig
         default:
           out.append( String.format( "%12s = %s%s", ProjectConst.CONFIG_SHOWUNITS, "default", LINE_SEPARATOR ) );
       }
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWTEMPERRATURE, conf.isShowTemperature(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPORESULT, conf.isShowPpoResult(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO1, conf.isShowPpo01(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO2, conf.isShowPpo02(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO3, conf.isShowPpo03(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWSETPOINT, conf.isShowSetpoint(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWHE, conf.isShowHe(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWN2, conf.isShowN2(), LINE_SEPARATOR ) );
-      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWNULLTIME, conf.isShowNulltime(), LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWTEMPERRATURE, SpxPcloggerProgramConfig.showTemperature, LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPORESULT, SpxPcloggerProgramConfig.showPpoResult, LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO1, SpxPcloggerProgramConfig.showPpo01, LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO2, SpxPcloggerProgramConfig.showPpo02, LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWPPO3, SpxPcloggerProgramConfig.showPpo03, LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWSETPOINT, SpxPcloggerProgramConfig.showSetpoint, LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWHE, SpxPcloggerProgramConfig.showHe, LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWN2, SpxPcloggerProgramConfig.showN2, LINE_SEPARATOR ) );
+      out.append( String.format( "%12s = %b%s", ProjectConst.CONFIG_SHOWNULLTIME, SpxPcloggerProgramConfig.showNulltime, LINE_SEPARATOR ) );
       out.flush();
     }
     catch( IOException ex )

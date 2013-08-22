@@ -172,65 +172,65 @@ public class ReadConfig
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
           if( 0 == fields[1].indexOf( "default" ) )
           {
-            prgConfig.setUnitsProperty( ProjectConst.UNITS_DEFAULT );
+            SpxPcloggerProgramConfig.unitsProperty = ProjectConst.UNITS_DEFAULT;
           }
           else if( 0 == fields[1].indexOf( "metric" ) )
           {
-            prgConfig.setUnitsProperty( ProjectConst.UNITS_METRIC );
+            SpxPcloggerProgramConfig.unitsProperty = ProjectConst.UNITS_METRIC;
           }
           else if( 0 == fields[1].indexOf( "imperial" ) )
           {
-            prgConfig.setUnitsProperty( ProjectConst.UNITS_IMPERIAL );
+            SpxPcloggerProgramConfig.unitsProperty = ProjectConst.UNITS_IMPERIAL;
           }
           else
           {
-            prgConfig.setUnitsProperty( ProjectConst.UNITS_DEFAULT );
+            SpxPcloggerProgramConfig.unitsProperty = ProjectConst.UNITS_DEFAULT;
           }
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWTEMPERRATURE ) )
         {
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-          prgConfig.setShowTemperature( Boolean.parseBoolean( fields[1] ) );
+          SpxPcloggerProgramConfig.showTemperature = Boolean.parseBoolean( fields[1] );
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWPPORESULT ) )
         {
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-          prgConfig.setShowPpoResult( Boolean.parseBoolean( fields[1] ) );
+          SpxPcloggerProgramConfig.showPpoResult = Boolean.parseBoolean( fields[1] );
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWPPO1 ) )
         {
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-          prgConfig.setShowPpo01( Boolean.parseBoolean( fields[1] ) );
+          SpxPcloggerProgramConfig.showPpo01 = Boolean.parseBoolean( fields[1] );
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWPPO2 ) )
         {
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-          prgConfig.setShowPpo02( Boolean.parseBoolean( fields[1] ) );
+          SpxPcloggerProgramConfig.showPpo02 = Boolean.parseBoolean( fields[1] );
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWPPO3 ) )
         {
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-          prgConfig.setShowPpo03( Boolean.parseBoolean( fields[1] ) );
+          SpxPcloggerProgramConfig.showPpo03 = Boolean.parseBoolean( fields[1] );
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWSETPOINT ) )
         {
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-          prgConfig.setShowSetpoint( Boolean.parseBoolean( fields[1] ) );
+          SpxPcloggerProgramConfig.showSetpoint = Boolean.parseBoolean( fields[1] );
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWHE ) )
         {
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-          prgConfig.setShowHe( Boolean.parseBoolean( fields[1] ) );
+          SpxPcloggerProgramConfig.showHe = Boolean.parseBoolean( fields[1] );
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWN2 ) )
         {
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-          prgConfig.setShowN2( Boolean.parseBoolean( fields[1] ) );
+          SpxPcloggerProgramConfig.showN2 = Boolean.parseBoolean( fields[1] );
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_SHOWNULLTIME ) )
         {
           if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-          prgConfig.setShowNulltime( Boolean.parseBoolean( fields[1] ) );
+          SpxPcloggerProgramConfig.showNulltime = Boolean.parseBoolean( fields[1] );
         }
       }
       catch( NumberFormatException ex )
@@ -240,7 +240,7 @@ public class ReadConfig
       }
     }
     // nach dem Einlesen ist das nicht geändert!
-    prgConfig.setWasChanged( false );
+    SpxPcloggerProgramConfig.wasChanged = false;
     return true;
   }
 

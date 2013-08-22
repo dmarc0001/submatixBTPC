@@ -47,6 +47,7 @@ import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 //@formatter:off
 /**
  * Editor für Gaslisten auf dem SPX
+ * TODO: Gas Presets löschen!
  *
  * @author Dirk Marciniak 22.08.2013
  */

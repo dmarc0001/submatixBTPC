@@ -39,7 +39,7 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 /**
- * Dialog zu Programmeinstellungen
+ * Dialog zu Programmeinstellungen TODO: Datenbank verschieben möglich machen
  * 
  * @author Dirk Marciniak 22.08.2013
  */

@@ -19,10 +19,10 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "1.1";
+  public static final String MANUFACTVERS               = "1.2";
   public static final String GENYEAR                    = "2013";
   public static final String GENMONTH                   = "08";
-  public static final String GENDAY                     = "21";
+  public static final String GENDAY                     = "23";
   
   // Datenbankversion
   public static int          DB_VERSION                 = 7;

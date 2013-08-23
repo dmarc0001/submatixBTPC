@@ -56,24 +56,27 @@
 |   All trademarks belong to their respective owners.
 --------------------------------------------------------------------------*/
 package gnu.io;
-import java.util.*;
+
+
+//import java.util.*;
 
 /**
-* The requested Port does not exist
-* @author Trent Jarvi
-* @version %I%, %G%
-* @since JDK1.0
-*/
+ * The requested Port does not exist
+ * 
+ * @author Trent Jarvi
+ * @version %I%, %G%
+ * @since JDK1.0
+ */
 
 public class NoSuchPortException extends Exception
 {
-	NoSuchPortException( String str )
-	{
-		super( str );
-	}
-	public NoSuchPortException()
-	{
-		super();
-	}
-}
+  NoSuchPortException(String str)
+  {
+    super(str);
+  }
 
+  public NoSuchPortException()
+  {
+    super();
+  }
+}

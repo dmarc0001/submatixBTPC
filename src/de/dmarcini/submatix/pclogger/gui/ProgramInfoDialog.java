@@ -6,7 +6,6 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.util.ResourceBundle;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -27,6 +26,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.utils.BuildVersion;
 import de.dmarcini.submatix.pclogger.utils.TextStyleConstants;
 
@@ -37,19 +37,12 @@ public class ProgramInfoDialog extends JDialog
    */
   private static final long       serialVersionUID = 1880409081700630690L;
   private JPanel                  contentPanel     = null;
-  private ResourceBundle          stringsBundle    = null;
   private Thread                  scrollThread     = null;
   private static volatile Boolean isRunning        = false;
   private JButton                 okButton;
   private final Action            action           = new SwingAction();
   private JScrollPane             fameScrollPane;
   private JTextPane               fameTextPane;
-
-  @SuppressWarnings( "unused" )
-  private ProgramInfoDialog()
-  {
-    initGui();
-  }
 
   /**
    * 
@@ -60,11 +53,9 @@ public class ProgramInfoDialog extends JDialog
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 31.07.2012
-   * @param stringsBundle
    */
-  public ProgramInfoDialog( ResourceBundle stringsBundle )
+  public ProgramInfoDialog()
   {
-    this.stringsBundle = stringsBundle;
     initGui();
   }
 
@@ -84,7 +75,7 @@ public class ProgramInfoDialog extends JDialog
     {
       BuildVersion versObj = new BuildVersion();
       setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
-      setTitle( stringsBundle.getString( "ProgramInfoDialog.infoDlg.headline" ) );
+      setTitle( LangStrings.getString( "ProgramInfoDialog.infoDlg.headline" ) );
       setIconImage( Toolkit.getDefaultToolkit().getImage( ProgramInfoDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/45.png" ) ) );
       setBounds( 100, 100, 447, 459 );
       getContentPane().setLayout( new BorderLayout() );
@@ -94,18 +85,18 @@ public class ProgramInfoDialog extends JDialog
       getContentPane().add( contentPanel, BorderLayout.CENTER );
       JLabel lblNewLabel = new JLabel( "" );
       lblNewLabel.setIcon( new ImageIcon( ProgramInfoDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/logosub_400.png" ) ) );
-      JLabel line01Label = new JLabel( stringsBundle.getString( "ProgramInfoDialog.infoDlg.line1" ) );
-      JLabel line02Label = new JLabel( stringsBundle.getString( "ProgramInfoDialog.infoDlg.line2" ) );
-      JLabel line03Label = new JLabel( stringsBundle.getString( "ProgramInfoDialog.infoDlg.line3" ) );
-      JLabel line04Label = new JLabel( stringsBundle.getString( "ProgramInfoDialog.infoDlg.line4" ) );
-      JLabel line05Label = new JLabel( stringsBundle.getString( "ProgramInfoDialog.infoDlg.line5" ) );
-      JLabel versionLabel = new JLabel( String.format( stringsBundle.getString( "ProgramInfoDialog.infoDlg.version" ), versObj.getVersion() ) );
+      JLabel line01Label = new JLabel( LangStrings.getString( "ProgramInfoDialog.infoDlg.line1" ) );
+      JLabel line02Label = new JLabel( LangStrings.getString( "ProgramInfoDialog.infoDlg.line2" ) );
+      JLabel line03Label = new JLabel( LangStrings.getString( "ProgramInfoDialog.infoDlg.line3" ) );
+      JLabel line04Label = new JLabel( LangStrings.getString( "ProgramInfoDialog.infoDlg.line4" ) );
+      JLabel line05Label = new JLabel( LangStrings.getString( "ProgramInfoDialog.infoDlg.line5" ) );
+      JLabel versionLabel = new JLabel( String.format( LangStrings.getString( "ProgramInfoDialog.infoDlg.version" ), versObj.getVersion() ) );
       versionLabel.setFont( new Font( "Tahoma", Font.BOLD, 12 ) );
-      JLabel buildNumLabel = new JLabel( String.format( stringsBundle.getString( "ProgramInfoDialog.infoDlg.build" ), versObj.getBuild() ) );
+      JLabel buildNumLabel = new JLabel( String.format( LangStrings.getString( "ProgramInfoDialog.infoDlg.build" ), versObj.getBuild() ) );
       buildNumLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
       buildNumLabel.setForeground( Color.GRAY );
-      JLabel buildDateLabel = new JLabel( String.format( stringsBundle.getString( "ProgramInfoDialog.infoDlg.buildDate" ),
-              versObj.getLocaleDate( stringsBundle.getString( "MainCommGUI.timeFormatterString" ) ) ) );
+      JLabel buildDateLabel = new JLabel( String.format( LangStrings.getString( "ProgramInfoDialog.infoDlg.buildDate" ),
+              versObj.getLocaleDate( LangStrings.getString( "MainCommGUI.timeFormatterString" ) ) ) );
       buildDateLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
       buildDateLabel.setForeground( Color.GRAY );
       fameScrollPane = new JScrollPane();

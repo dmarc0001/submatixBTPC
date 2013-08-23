@@ -62,6 +62,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.ConfigReadWriteException;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
@@ -187,9 +188,18 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     //
     // Kommandozeilenargumente parsen
     //
-    if( !parseCliOptions( args ) )
+    try
+    {
+      if( !parseCliOptions( args ) )
+      {
+        System.err.println( "Error while scanning CLI-Args...." );
+        System.exit( -1 );
+      }
+    }
+    catch( Exception ex2 )
     {
       System.err.println( "Error while scanning CLI-Args...." );
+      System.err.println( ex2.getLocalizedMessage() );
       System.exit( -1 );
     }
     //
@@ -257,8 +267,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
    * @param args
    * @return
+   * @throws Exception
    */
-  private static boolean parseCliOptions( String[] args )
+  @SuppressWarnings( "null" )
+  private static boolean parseCliOptions( String[] args ) throws Exception
   {
     CommandLine cmdLine = null;
     String argument;
@@ -321,6 +333,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     try
     {
       cmdLine = parser.parse( options, args );
+      if( cmdLine == null )
+      {
+        throw new Exception( "can't build cmdline parser" );
+      }
     }
     catch( ParseException e )
     {
@@ -508,6 +524,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         lg.debug( "try get locale from system..." );
         programLocale = Locale.getDefault();
       }
+      LangStrings.setLocale( programLocale );
       lg.debug( String.format( "getLocale says: Display Language :<%s>, lang: <%s>", programLocale.getDisplayLanguage(), programLocale.getLanguage() ) );
       stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
       if( stringsBundle.getLocale().equals( programLocale ) )
@@ -646,6 +663,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     String[] langs = null;
     langs = cmd.split( "_" );
+    lg.debug( "change language to <" + cmd + ">" );
     if( langs.length > 1 && langs[1] != null )
     {
       programLocale = new Locale( langs[0], langs[1] );
@@ -655,6 +673,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       programLocale = new Locale( langs[0] );
     }
     Locale.setDefault( programLocale );
+    LangStrings.setLocale( programLocale );
     if( currentConfig != null )
     {
       // da verändern sich die Einstellungen, daher ungültig setzen
@@ -679,13 +698,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Zeige dem geneigten User eine Dialogbox, in welcher er entscheiden muss: Update oder überspringen
       Object[] options =
       { 
-        stringsBundle.getString( "MainCommGUI.updateWarnDialog.updateButton" ),
-        stringsBundle.getString( "MainCommGUI.updateWarnDialog.cancelButton" )
+        LangStrings.getString("MainCommGUI.updateWarnDialog.updateButton"),
+        LangStrings.getString("MainCommGUI.updateWarnDialog.cancelButton")
       };
       int retOption =  JOptionPane.showOptionDialog( 
               null, 
-              stringsBundle.getString( "MainCommGUI.updateWarnDialog.messageUpdate" ), 
-              stringsBundle.getString( "MainCommGUI.updateWarnDialog.headLine" ), 
+              LangStrings.getString("MainCommGUI.updateWarnDialog.messageUpdate"), 
+              LangStrings.getString("MainCommGUI.updateWarnDialog.headLine"), 
               JOptionPane.DEFAULT_OPTION, 
               JOptionPane.WARNING_MESSAGE, 
               null, 
@@ -705,8 +724,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     // datensatz anlegen
-    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.waitForReadDive" ) );
-    wDial.setDetailMessage( String.format( stringsBundle.getString( "PleaseWaitDialog.readDiveNumber" ), logListEntry[0] ) );
+    wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.waitForReadDive" ) );
+    wDial.setDetailMessage( String.format( LangStrings.getString( "PleaseWaitDialog.readDiveNumber" ), logListEntry[0] ) );
     wDial.setTimeout( 90 * 1000 );
     wDial.setVisible( true );
     // Sag dem SPX er soll alles schicken
@@ -733,7 +752,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // nicht verbunden, tu was!
       try
       {
-        wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
+        wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
         wDial.setVisible( true );
         wDial.setTimeout( 90 * 1000 );
       }
@@ -758,7 +777,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // nicht verbunden, tu was!
       try
       {
-        wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
+        wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.pleaseWaitForConnect" ) );
         wDial.setVisible( true );
         wDial.setTimeout( 90 * 1000 );
         btComm.connectVirtDevice( deviceName );
@@ -912,7 +931,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     frmMainWindow.setSize( new Dimension( 810, 600 ) );
     frmMainWindow.setResizable( false );
     frmMainWindow.setIconImage( Toolkit.getDefaultToolkit().getImage( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/112.png" ) ) );
-    frmMainWindow.setTitle( "TITLE" );
+    frmMainWindow.setTitle( LangStrings.getString( "MainCommGUI.frmMainWindow.title" ) ); //$NON-NLS-1$
     frmMainWindow.setBounds( 100, 100, 800, 600 );
     frmMainWindow.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     frmMainWindow.getContentPane().setLayout( new BorderLayout( 0, 0 ) );
@@ -952,35 +971,35 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     // MENÜ
     JMenuBar menuBar = new JMenuBar();
     frmMainWindow.setJMenuBar( menuBar );
-    mnFile = new JMenu( "FILE" );
+    mnFile = new JMenu( LangStrings.getString( "MainCommGUI.mnFile.text" ) ); //$NON-NLS-1$
     menuBar.add( mnFile );
-    mntmExit = new JMenuItem( "EXIT" );
+    mntmExit = new JMenuItem( LangStrings.getString( "MainCommGUI.mntmExit.text" ) ); //$NON-NLS-1$
     mntmExit.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/176.png" ) ) );
     mntmExit.setActionCommand( "exit" );
     mntmExit.addActionListener( this );
     mntmExit.addMouseMotionListener( this );
     mntmExit.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_X, InputEvent.CTRL_MASK ) );
     mnFile.add( mntmExit );
-    mnLanguages = new JMenu( "LANGUAGES" );
+    mnLanguages = new JMenu( LangStrings.getString( "MainCommGUI.mnLanguages.text" ) ); //$NON-NLS-1$
     mnLanguages.addMouseMotionListener( this );
     menuBar.add( mnLanguages );
-    mnOptions = new JMenu( "OPTIONS" );
+    mnOptions = new JMenu( LangStrings.getString( "MainCommGUI.mnOptions.text" ) ); //$NON-NLS-1$
     mnOptions.addMouseMotionListener( this );
     menuBar.add( mnOptions );
-    mntmOptions = new JMenuItem( "PROPERTYS" );
+    mntmOptions = new JMenuItem( LangStrings.getString( "MainCommGUI.mntmOptions.text" ) ); //$NON-NLS-1$
     mntmOptions.addMouseMotionListener( this );
     mntmOptions.addActionListener( this );
     mntmOptions.setActionCommand( "set_propertys" );
     mnOptions.add( mntmOptions );
-    mnHelp = new JMenu( "HELP" );
+    mnHelp = new JMenu( LangStrings.getString( "MainCommGUI.mnHelp.text" ) ); //$NON-NLS-1$
     mnHelp.addMouseMotionListener( this );
     menuBar.add( mnHelp );
-    mntmHelp = new JMenuItem( "HELP" );
+    mntmHelp = new JMenuItem( LangStrings.getString( "MainCommGUI.mntmHelp.text" ) ); //$NON-NLS-1$
     mntmHelp.addActionListener( this );
     mntmHelp.setActionCommand( "help" );
     mntmHelp.addMouseMotionListener( this );
     mnHelp.add( mntmHelp );
-    mntmInfo = new JMenuItem( "INFO" );
+    mntmInfo = new JMenuItem( LangStrings.getString( "MainCommGUI.mntmInfo.text" ) ); //$NON-NLS-1$
     mntmInfo.addActionListener( this );
     mntmInfo.setActionCommand( "info" );
     mntmInfo.addMouseMotionListener( this );
@@ -1284,7 +1303,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         if( btComm.isConnected() )
         {
-          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readSpxConfig" ) );
+          wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.readSpxConfig" ) );
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
           wDial.setVisible( true );
           wDial.setTimeout( 90 * 1000 );
@@ -1294,7 +1313,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         else
         {
-          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+          showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
         }
       }
     }
@@ -1306,7 +1325,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         if( !currentConfig.isInitialized() || savedConfig == null )
         {
-          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConfig.text" ) );
+          showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notConfig.text" ) );
           return;
         }
         writeConfigToSPX( savedConfig );
@@ -1335,7 +1354,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         if( btComm.isConnected() )
         {
-          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readGaslist" ) );
+          wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.readGaslist" ) );
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
           wDial.setTimeout( 90 * 1000 );
           wDial.setVisible( true );
@@ -1343,7 +1362,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         else
         {
-          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+          showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
         }
       }
     }
@@ -1362,7 +1381,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       {
         if( btComm.isConnected() && currGasList.isInitialized() )
         {
-          wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.writeGasList" ) );
+          wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.writeGasList" ) );
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
           wDial.setTimeout( 90 * 1000 );
           wDial.setVisible( true );
@@ -1372,11 +1391,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         {
           if( !btComm.isConnected() )
           {
-            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+            showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
           }
           else
           {
-            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.gasNotLoaded.text" ) );
+            showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.gasNotLoaded.text" ) );
           }
         }
       }
@@ -1395,7 +1414,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
             // an dieser Stelle muss ich sicherstellen, daß ich die Masseinheiten des SPX42 kenne
             // ich gehe mal von den Längeneinheiten aus!
             // also Meter/Fuss
-            wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
+            wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.readLogDir" ) );
             wDial.setTimeout( 90 * 1000 );
             wDial.setVisible( true );
             if( !currentConfig.isInitialized() )
@@ -1409,7 +1428,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         else
         {
-          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+          showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
         }
       }
     }
@@ -1424,12 +1443,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           int logListLen = logListPanel.prepareDownloadLogdata( btComm.getConnectedDevice() );
           if( logListLen == 0 )
           {
-            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notLogentrySelected.text" ) );
+            showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notLogentrySelected.text" ) );
             return;
           }
           if( !currentConfig.isInitialized() )
           {
-            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConfig.text" ) );
+            showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notConfig.text" ) );
             return;
           }
           Integer[] logListEntry = logListPanel.getNextEntryToRead();
@@ -1440,7 +1459,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         else
         {
-          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+          showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
         }
       }
     }
@@ -1649,7 +1668,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           lg.error( "dialog window timeout is over!" );
           wDial.dispose();
           wDial = null;
-          showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.timeout" ) );
+          showErrorDialog( LangStrings.getString( "MainCommGUI.errorDialog.timeout" ) );
           // den Merker auf null setzen!
           waitForMessage = 0;
         }
@@ -1811,7 +1830,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         licenseState = currentConfig.getLicenseState();
         customConfig = currentConfig.getCustomEnabled();
         gasConfigPanel.setLicenseState( licenseState, customConfig );
-        gasConfigPanel.setLicenseLabel( stringsBundle );
+        gasConfigPanel.setLicenseLabel();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Versuche Verbindung mit Bluetooht Gerät
@@ -1851,7 +1870,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         connectionPanel.setAliasesEditable( true );
         if( tabbedPane.getSelectedIndex() != programTabs.TAB_CONNECT.ordinal() )
         {
-          showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.connectionClosed" ) );
+          showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.connectionClosed" ) );
         }
         if( tabbedPane.getSelectedIndex() != programTabs.TAB_LOGGRAPH.ordinal() )
         {
@@ -1863,7 +1882,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // Kein Gerät zum Verbinden gefunden!
       case ProjectConst.MESSAGE_BTNODEVCONN:
         lg.error( "no device found..." );
-        showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
+        showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notDeviceSelected.text" ) );
         setElementsConnected( false );
         break;
       // /////////////////////////////////////////////////////////////////////////
@@ -2040,7 +2059,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
                     if( logListPanel.prepareReadLogdir( btComm.getConnectedDevice() ) )
                     {
                       // Sag dem SPX er soll alles schicken
-                      wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.readLogDir" ) );
+                      wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.readLogDir" ) );
                       wDial.setVisible( true );
                       wDial.setTimeout( 120 * 1000 );
                       btComm.readLogDirectoryFromSPX();
@@ -2049,14 +2068,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
                 }
                 else
                 {
-                  showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+                  showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
                 }
               }
             }
           }
           else
           {
-            showWarnBox( stringsBundle.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
+            showWarnBox( LangStrings.getString( "MainCommGUI.warnDialog.notConnected.text" ) );
           }
         }
         break;
@@ -2072,11 +2091,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         }
         if( cmd != null )
         {
-          showErrorDialog( stringsBundle.getString( "spx42LoglistPanel.logListLabel.text" ) + "\n" + cmd );
+          showErrorDialog( LangStrings.getString( "spx42LoglistPanel.logListLabel.text" ) + "\n" + cmd );
         }
         else
         {
-          showErrorDialog( stringsBundle.getString( "spx42LoglistPanel.logListLabel.text" ) );
+          showErrorDialog( LangStrings.getString( "spx42LoglistPanel.logListLabel.text" ) );
         }
         logListPanel.removeFailedDataset();
         break;
@@ -2152,8 +2171,8 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       int val = Integer.parseInt( fields[1], 16 );
       ackuValue = ( float )( val / 100.0 );
       // Hauptfenster
-      frmMainWindow.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) + " "
-              + String.format( stringsBundle.getString( "MainCommGUI.akkuLabel.text" ), ackuValue ) );
+      frmMainWindow.setTitle( LangStrings.getString( "MainCommGUI.frmMainwindowtitle.title" ) + " "
+              + String.format( LangStrings.getString( "MainCommGUI.akkuLabel.text" ), ackuValue ) );
       lg.debug( String.format( "Acku value: %02.02f", ackuValue ) );
     }
   }
@@ -2275,53 +2294,53 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     try
     {
       setStatus( "" );
-      timeFormatterString = stringsBundle.getString( "MainCommGUI.timeFormatterString" );
+      timeFormatterString = LangStrings.getString( "MainCommGUI.timeFormatterString" );
       // Hauptfenster
-      frmMainWindow.setTitle( stringsBundle.getString( "MainCommGUI.frmMainwindowtitle.title" ) );
+      frmMainWindow.setTitle( LangStrings.getString( "MainCommGUI.frmMainwindowtitle.title" ) );
       // Menü
-      mnFile.setText( stringsBundle.getString( "MainCommGUI.mnFile.text" ) );
-      mnFile.setToolTipText( stringsBundle.getString( "MainCommGUI.mnFile.tooltiptext" ) );
-      mntmExit.setText( stringsBundle.getString( "MainCommGUI.mntmExit.text" ) );
-      mntmExit.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmExit.tooltiptext" ) );
-      mnLanguages.setText( stringsBundle.getString( "MainCommGUI.mnLanguages.text" ) );
-      mnLanguages.setToolTipText( stringsBundle.getString( "MainCommGUI.mnLanguages.tooltiptext" ) );
-      mnOptions.setText( stringsBundle.getString( "MainCommGUI.mnOptions.text" ) );
-      mnOptions.setToolTipText( stringsBundle.getString( "MainCommGUI.mnOptions.tooltiptext" ) );
-      mntmOptions.setText( stringsBundle.getString( "MainCommGUI.mntmOptions.text" ) );
-      mntmOptions.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmOptions.tooltiptext" ) );
-      mnHelp.setText( stringsBundle.getString( "MainCommGUI.mnHelp.text" ) );
-      mnHelp.setToolTipText( stringsBundle.getString( "MainCommGUI.mnHelp.tooltiptext" ) );
-      mntmHelp.setText( stringsBundle.getString( "MainCommGUI.mntmHelp.text" ) );
-      mntmHelp.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmHelp.tooltiptext" ) );
-      mntmInfo.setText( stringsBundle.getString( "MainCommGUI.mntmInfo.text" ) );
-      mntmInfo.setToolTipText( stringsBundle.getString( "MainCommGUI.mntmInfo.tooltiptext" ) );
+      mnFile.setText( LangStrings.getString( "MainCommGUI.mnFile.text" ) );
+      mnFile.setToolTipText( LangStrings.getString( "MainCommGUI.mnFile.tooltiptext" ) );
+      mntmExit.setText( LangStrings.getString( "MainCommGUI.mntmExit.text" ) );
+      mntmExit.setToolTipText( LangStrings.getString( "MainCommGUI.mntmExit.tooltiptext" ) );
+      mnLanguages.setText( LangStrings.getString( "MainCommGUI.mnLanguages.text" ) );
+      mnLanguages.setToolTipText( LangStrings.getString( "MainCommGUI.mnLanguages.tooltiptext" ) );
+      mnOptions.setText( LangStrings.getString( "MainCommGUI.mnOptions.text" ) );
+      mnOptions.setToolTipText( LangStrings.getString( "MainCommGUI.mnOptions.tooltiptext" ) );
+      mntmOptions.setText( LangStrings.getString( "MainCommGUI.mntmOptions.text" ) );
+      mntmOptions.setToolTipText( LangStrings.getString( "MainCommGUI.mntmOptions.tooltiptext" ) );
+      mnHelp.setText( LangStrings.getString( "MainCommGUI.mnHelp.text" ) );
+      mnHelp.setToolTipText( LangStrings.getString( "MainCommGUI.mnHelp.tooltiptext" ) );
+      mntmHelp.setText( LangStrings.getString( "MainCommGUI.mntmHelp.text" ) );
+      mntmHelp.setToolTipText( LangStrings.getString( "MainCommGUI.mntmHelp.tooltiptext" ) );
+      mntmInfo.setText( LangStrings.getString( "MainCommGUI.mntmInfo.text" ) );
+      mntmInfo.setToolTipText( LangStrings.getString( "MainCommGUI.mntmInfo.tooltiptext" ) );
       // //////////////////////////////////////////////////////////////////////
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Panes
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane connect
-      tabbedPane.setTitleAt( programTabs.TAB_CONNECT.ordinal(), stringsBundle.getString( "spx42ConnectPanel.title" ) );
+      tabbedPane.setTitleAt( programTabs.TAB_CONNECT.ordinal(), LangStrings.getString( "spx42ConnectPanel.title" ) );
       connectionPanel.setLanguageStrings( stringsBundle, btComm.isConnected() );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane config
-      tabbedPane.setTitleAt( programTabs.TAB_CONFIG.ordinal(), stringsBundle.getString( "spx42ConfigPanel.title" ) );
-      configPanel.setLanguageStrings( stringsBundle );
+      tabbedPane.setTitleAt( programTabs.TAB_CONFIG.ordinal(), LangStrings.getString( "spx42ConfigPanel.title" ) );
+      configPanel.setLanguageStrings();
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane gas
-      tabbedPane.setTitleAt( programTabs.TAB_GASLIST.ordinal(), stringsBundle.getString( "spx42GaslistEditPanel.title" ) );
-      gasConfigPanel.setLanguageStrings( stringsBundle );
+      tabbedPane.setTitleAt( programTabs.TAB_GASLIST.ordinal(), LangStrings.getString( "spx42GaslistEditPanel.title" ) );
+      gasConfigPanel.setLanguageStrings();
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane log
-      tabbedPane.setTitleAt( programTabs.TAB_LOGREAD.ordinal(), stringsBundle.getString( "spx42LoglistPanel.title" ) );
-      logListPanel.setLanguageStrings( stringsBundle );
+      tabbedPane.setTitleAt( programTabs.TAB_LOGREAD.ordinal(), LangStrings.getString( "spx42LoglistPanel.title" ) );
+      logListPanel.setLanguageStrings();
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane graph
-      tabbedPane.setTitleAt( programTabs.TAB_LOGGRAPH.ordinal(), stringsBundle.getString( "spx42LogGraphPanel.title" ) );
-      logGraphPanel.setLanguageStrings( stringsBundle );
+      tabbedPane.setTitleAt( programTabs.TAB_LOGGRAPH.ordinal(), LangStrings.getString( "spx42LogGraphPanel.title" ) );
+      logGraphPanel.setLanguageStrings();
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane import/export
-      tabbedPane.setTitleAt( programTabs.TAB_FILEMANAGER.ordinal(), stringsBundle.getString( "fileManagerPanel.title" ) );
-      fileManagerPanel.setLanguageStrings( stringsBundle );
+      tabbedPane.setTitleAt( programTabs.TAB_FILEMANAGER.ordinal(), LangStrings.getString( "fileManagerPanel.title" ) );
+      fileManagerPanel.setLanguageStrings();
     }
     catch( NullPointerException ex )
     {
@@ -2379,7 +2398,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     try
     {
       icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Terminate.png" ) );
-      JOptionPane.showMessageDialog( this, message, stringsBundle.getString( "MainCommGUI.errorDialog.headline" ), JOptionPane.INFORMATION_MESSAGE, icon );
+      JOptionPane.showMessageDialog( this, message, LangStrings.getString( "MainCommGUI.errorDialog.headline" ), JOptionPane.INFORMATION_MESSAGE, icon );
     }
     catch( NullPointerException ex )
     {
@@ -2421,7 +2440,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   {
     try
     {
-      ProgramInfoDialog pDial = new ProgramInfoDialog( stringsBundle );
+      ProgramInfoDialog pDial = new ProgramInfoDialog();
       pDial.showDialog();
     }
     catch( NullPointerException ex )
@@ -2455,12 +2474,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       if( btComm.isConnected() )
       {
-        showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.onlyNotConnected" ) );
+        showErrorDialog( LangStrings.getString( "MainCommGUI.errorDialog.onlyNotConnected" ) );
         return;
       }
     }
     lg.debug( "create an show propertys dialog..." );
-    ProgramProperetysDialog pDial = new ProgramProperetysDialog( stringsBundle );
+    ProgramProperetysDialog pDial = new ProgramProperetysDialog();
     // pDial.setVisible( true );
     if( pDial.showModal() )
     {
@@ -2500,7 +2519,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     try
     {
       icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Abort.png" ) );
-      JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
+      JOptionPane.showMessageDialog( this, msg, LangStrings.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
     }
     catch( NullPointerException ex )
     {
@@ -2586,7 +2605,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           catch( Exception ex )
           {
             lg.error( "initGraph Exception: <" + ex.getLocalizedMessage() + ">" );
-            showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.openGraphWindow" ) );
+            showErrorDialog( LangStrings.getString( "MainCommGUI.errorDialog.openGraphWindow" ) );
             return;
           }
         }
@@ -2614,7 +2633,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           catch( Exception ex )
           {
             lg.error( "initData Exception: <" + ex.getLocalizedMessage() + ">" );
-            showErrorDialog( stringsBundle.getString( "MainCommGUI.errorDialog.openExportWindow" ) );
+            showErrorDialog( LangStrings.getString( "MainCommGUI.errorDialog.openExportWindow" ) );
             return;
           }
         }
@@ -2681,7 +2700,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private void writeConfigToSPX( SPX42Config cnf )
   {
     //
-    wDial = new PleaseWaitDialog( stringsBundle.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.writeSpxConfig" ) );
+    wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.writeSpxConfig" ) );
     wDial.setMax( BTCommunication.CONFIG_WRITE_KDO_COUNT );
     wDial.resetProgress();
     wDial.setTimeout( 90 * 1000 );

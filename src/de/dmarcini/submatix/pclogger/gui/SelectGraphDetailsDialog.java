@@ -7,7 +7,6 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ResourceBundle;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -18,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 public class SelectGraphDetailsDialog extends JDialog implements ActionListener
@@ -27,7 +27,6 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
    */
   private static final long serialVersionUID = 1880409081700634690L;
   private boolean           closeWithOk      = false;
-  private ResourceBundle    stringsBundle    = null;
   private JButton           cancelButton;
   private JButton           okButton;
   private JCheckBox         depthCheckBox;
@@ -41,12 +40,6 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
   private JCheckBox         n2PercentCheckBox;
   private JCheckBox         nullTimeCheckBox;
 
-  @SuppressWarnings( "unused" )
-  private SelectGraphDetailsDialog()
-  {
-    initGui();
-  }
-
   /**
    * 
    * Der Konstruktor
@@ -56,11 +49,9 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 31.07.2012
-   * @param stringsBundle
    */
-  public SelectGraphDetailsDialog( ResourceBundle stringsBundle )
+  public SelectGraphDetailsDialog()
   {
-    this.stringsBundle = stringsBundle;
     initGui();
   }
 
@@ -80,18 +71,18 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
     {
       setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
       setIconImage( Toolkit.getDefaultToolkit().getImage( SelectGraphDetailsDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/search.png" ) ) );
-      setTitle( stringsBundle.getString( "SelectGraphDetailsDialog.title.text" ) );
+      setTitle( LangStrings.getString( "SelectGraphDetailsDialog.title.text" ) ); //$NON-NLS-1$
       setBounds( 100, 100, 309, 357 );
       getContentPane().setLayout( new BorderLayout( 0, 0 ) );
       JPanel buttonPane = new JPanel();
       getContentPane().add( buttonPane, BorderLayout.SOUTH );
-      cancelButton = new JButton( stringsBundle.getString( "SelectGraphDetailsDialog.cancelButton.text" ) );
+      cancelButton = new JButton( LangStrings.getString( "SelectGraphDetailsDialog.cancelButton.text" ) ); //$NON-NLS-1$
       cancelButton.setForeground( Color.RED );
       cancelButton.setBackground( new Color( 255, 192, 203 ) );
       cancelButton.setActionCommand( "cancel" );
       cancelButton.addActionListener( this );
-      cancelButton.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.cancelButton.tooltiptext" ) );
-      okButton = new JButton( stringsBundle.getString( "SelectGraphDetailsDialog.okButton.text" ) );
+      cancelButton.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.cancelButton.tooltiptext" ) );
+      okButton = new JButton( LangStrings.getString( "SelectGraphDetailsDialog.okButton.text" ) ); //$NON-NLS-1$
       okButton.setSize( new Dimension( 199, 60 ) );
       okButton.setPreferredSize( new Dimension( 180, 40 ) );
       okButton.setMaximumSize( new Dimension( 160, 40 ) );
@@ -100,7 +91,7 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
       okButton.setBackground( new Color( 152, 251, 152 ) );
       okButton.setActionCommand( "commit" );
       okButton.addActionListener( this );
-      okButton.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.okButton.tooltiptext" ) );
+      okButton.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.okButton.tooltiptext" ) );
       GroupLayout gl_buttonPane = new GroupLayout( buttonPane );
       gl_buttonPane.setHorizontalGroup( gl_buttonPane.createParallelGroup( Alignment.TRAILING ).addGroup(
               Alignment.LEADING,
@@ -117,40 +108,40 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
       buttonPane.setLayout( gl_buttonPane );
       JPanel contentPanel = new JPanel();
       getContentPane().add( contentPanel, BorderLayout.CENTER );
-      depthCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.depthCheckBox.text" ) );
+      depthCheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.depthCheckBox.text" ) ); //$NON-NLS-1$
       depthCheckBox.setEnabled( false );
       depthCheckBox.setHorizontalAlignment( SwingConstants.LEFT );
-      depthCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.depthCheckBox.tooltiptext" ) );
+      depthCheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.depthCheckBox.tooltiptext" ) );
       depthCheckBox.setSelected( true );
-      temperatureCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.temperatureCheckBox.text" ) );
-      temperatureCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.temperatureCheckBox.tooltiptext" ) );
+      temperatureCheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.temperatureCheckBox.text" ) ); //$NON-NLS-1$
+      temperatureCheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.temperatureCheckBox.tooltiptext" ) );
       temperatureCheckBox.setSelected( SpxPcloggerProgramConfig.showTemperature );
-      ppo2ResultCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2ResultCheckBox.text" ) );
-      ppo2ResultCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2ResultCheckBox.tooltiptext" ) );
+      ppo2ResultCheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.ppo2ResultCheckBox.text" ) ); //$NON-NLS-1$
+      ppo2ResultCheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.ppo2ResultCheckBox.tooltiptext" ) );
       ppo2ResultCheckBox.setSelected( SpxPcloggerProgramConfig.showPpoResult );
-      ppo2_01CheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_01CheckBox.text" ) );
+      ppo2_01CheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.ppo2_01CheckBox.text" ) ); //$NON-NLS-1$
       ppo2_01CheckBox.setForeground( Color.DARK_GRAY );
-      ppo2_01CheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_01CheckBox.tooltiptext" ) );
+      ppo2_01CheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.ppo2_01CheckBox.tooltiptext" ) );
       ppo2_01CheckBox.setSelected( SpxPcloggerProgramConfig.showPpo01 );
-      ppo2_02CheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_02CheckBox.text" ) );
+      ppo2_02CheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.ppo2_02CheckBox.text" ) ); //$NON-NLS-1$
       ppo2_02CheckBox.setForeground( Color.DARK_GRAY );
-      ppo2_02CheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_02CheckBox.tooltiptext" ) );
+      ppo2_02CheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.ppo2_02CheckBox.tooltiptext" ) );
       ppo2_02CheckBox.setSelected( SpxPcloggerProgramConfig.showPpo02 );
-      ppo2_03CheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_03CheckBox.text" ) );
+      ppo2_03CheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.ppo2_03CheckBox.text" ) ); //$NON-NLS-1$
       ppo2_03CheckBox.setForeground( Color.DARK_GRAY );
-      ppo2_03CheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2_03CheckBox.tooltiptext" ) );
+      ppo2_03CheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.ppo2_03CheckBox.tooltiptext" ) );
       ppo2_03CheckBox.setSelected( SpxPcloggerProgramConfig.showPpo03 );
-      ppo2SetpointCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2SetpointCheckBox.text" ) );
-      ppo2SetpointCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.ppo2SetpointCheckBox.tooltiptext" ) );
+      ppo2SetpointCheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.ppo2SetpointCheckBox.text" ) ); //$NON-NLS-1$
+      ppo2SetpointCheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.ppo2SetpointCheckBox.tooltiptext" ) );
       ppo2SetpointCheckBox.setSelected( SpxPcloggerProgramConfig.showSetpoint );
-      hePercentCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.hePercentCheckBox.text" ) );
-      hePercentCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.hePercentCheckBox.tooltiptext" ) );
+      hePercentCheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.hePercentCheckBox.text" ) ); //$NON-NLS-1$
+      hePercentCheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.hePercentCheckBox.tooltiptext" ) );
       hePercentCheckBox.setSelected( SpxPcloggerProgramConfig.showHe );
-      n2PercentCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.n2PercentCheckBox.text" ) );
-      n2PercentCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.n2PercentCheckBox.tooltiptext" ) );
+      n2PercentCheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.n2PercentCheckBox.text" ) ); //$NON-NLS-1$
+      n2PercentCheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.n2PercentCheckBox.tooltiptext" ) );
       n2PercentCheckBox.setSelected( SpxPcloggerProgramConfig.showN2 );
-      nullTimeCheckBox = new JCheckBox( stringsBundle.getString( "SelectGraphDetailsDialog.nullTimeCheckBox.text" ) );
-      nullTimeCheckBox.setToolTipText( stringsBundle.getString( "SelectGraphDetailsDialog.nullTimeCheckBox.tooltiptext" ) );
+      nullTimeCheckBox = new JCheckBox( LangStrings.getString( "SelectGraphDetailsDialog.nullTimeCheckBox.text" ) ); //$NON-NLS-1$
+      nullTimeCheckBox.setToolTipText( LangStrings.getString( "SelectGraphDetailsDialog.nullTimeCheckBox.tooltiptext" ) );
       nullTimeCheckBox.setSelected( SpxPcloggerProgramConfig.showNulltime );
       GroupLayout gl_contentPanel = new GroupLayout( contentPanel );
       gl_contentPanel.setHorizontalGroup( gl_contentPanel.createParallelGroup( Alignment.LEADING ).addGroup(

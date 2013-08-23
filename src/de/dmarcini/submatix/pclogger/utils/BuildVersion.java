@@ -10,6 +10,7 @@ package de.dmarcini.submatix.pclogger.utils;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
 /**
@@ -76,5 +77,21 @@ public class BuildVersion
   public String getVersion()
   {
     return( ProjectConst.MANUFACTVERS );
+  }
+
+  /**
+   * 
+   * Version mit "Version: " vorweg
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 23.08.2013
+   * @return 
+   */
+  public String getVersionAsString()
+  {
+    return( LangStrings.getString( "BuildVersion.version.text" ) + ProjectConst.MANUFACTVERS );
   }
 }

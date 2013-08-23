@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
@@ -29,6 +28,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogDirListModel;
@@ -89,7 +89,6 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
   private ActionListener                     aListener               = null;
   private final HashMap<Integer, LogDirData> logDirDataHash          = new HashMap<Integer, LogDirData>();
   private boolean                            isPanelInitiated        = false;
-  private ResourceBundle                     stringsBundle           = null;
   private static final Pattern               fieldPatternSem         = Pattern.compile( ";" );
   private static final Pattern               fieldPattern0x09        = Pattern.compile( ProjectConst.LOGSELECTOR );
   private String                             timeFormatterStringDate = "dd.MM.yyyy";
@@ -433,7 +432,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     logListField.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     logListField.setModel( new LogDirListModel() );
     logListScrollPane.setViewportView( logListField );
-    readLogDirectoryButton = new JButton( "READDIR" );
+    readLogDirectoryButton = new JButton( LangStrings.getString( "spx42LoglistPanel.readLogDirectoryButton.text" ) ); //$NON-NLS-1$
     readLogDirectoryButton.setHorizontalAlignment( SwingConstants.LEFT );
     readLogDirectoryButton.setIconTextGap( 15 );
     readLogDirectoryButton.setIcon( new ImageIcon( spx42LoglistPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/109.png" ) ) );
@@ -445,7 +444,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     readLogDirectoryButton.setActionCommand( "read_logdir_from_spx" );
     readLogDirectoryButton.setBounds( 505, 12, 254, 60 );
     add( readLogDirectoryButton );
-    readLogfilesFromSPXButton = new JButton( "READLOGS" );
+    readLogfilesFromSPXButton = new JButton( LangStrings.getString( "spx42LoglistPanel.readLogfilesFromSPXButton.text" ) ); //$NON-NLS-1$
     readLogfilesFromSPXButton.setIconTextGap( 15 );
     readLogfilesFromSPXButton.setHorizontalAlignment( SwingConstants.LEFT );
     readLogfilesFromSPXButton.setIcon( new ImageIcon( spx42LoglistPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Down.png" ) ) );
@@ -457,12 +456,12 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     readLogfilesFromSPXButton.setActionCommand( "read_logfile_from_spx" );
     readLogfilesFromSPXButton.setBounds( 505, 83, 254, 60 );
     add( readLogfilesFromSPXButton );
-    logListLabel = new JLabel( "LOGLIST" );
+    logListLabel = new JLabel( LangStrings.getString( "spx42LoglistPanel.logListLabel.text" ) ); //$NON-NLS-1$
     logListLabel.setLabelFor( logListScrollPane );
     logListLabel.setHorizontalAlignment( SwingConstants.LEFT );
     logListLabel.setBounds( 10, 11, 248, 14 );
     add( logListLabel );
-    fileNameLabel = new JLabel( "FILENAME" );
+    fileNameLabel = new JLabel( LangStrings.getString( "spx42LoglistPanel.fileNameLabel.text" ) ); //$NON-NLS-1$
     fileNameLabel.setForeground( new Color( 128, 128, 128 ) );
     fileNameLabel.setBounds( 268, 31, 282, 14 );
     add( fileNameLabel );
@@ -471,7 +470,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     fileNameLabel.setLabelFor( fileNameShowLabel );
     fileNameShowLabel.setBounds( 268, 46, 282, 14 );
     add( fileNameShowLabel );
-    diveDateLabel = new JLabel( "DIVEDATE" );
+    diveDateLabel = new JLabel( LangStrings.getString( "spx42LoglistPanel.diveDateLabel.text" ) ); //$NON-NLS-1$
     diveDateLabel.setForeground( new Color( 128, 128, 128 ) );
     diveDateLabel.setBounds( 268, 69, 282, 14 );
     add( diveDateLabel );
@@ -480,7 +479,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveDateLabel.setLabelFor( diveDateShowLabel );
     diveDateShowLabel.setBounds( 268, 83, 282, 14 );
     add( diveDateShowLabel );
-    diveTimeLabel = new JLabel( "DIVETIME" );
+    diveTimeLabel = new JLabel( LangStrings.getString( "spx42LoglistPanel.diveTimeLabel.text" ) ); //$NON-NLS-1$
     diveTimeLabel.setForeground( new Color( 128, 128, 128 ) );
     diveTimeLabel.setBounds( 268, 106, 282, 14 );
     add( diveTimeLabel );
@@ -489,7 +488,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveTimeLabel.setLabelFor( diveTimeShowLabel );
     diveTimeShowLabel.setBounds( 268, 119, 282, 14 );
     add( diveTimeShowLabel );
-    diveMaxDepthLabel = new JLabel( "DIVEMAXDEPTH" );
+    diveMaxDepthLabel = new JLabel( LangStrings.getString( "spx42LoglistPanel.diveMaxDepthLabel.text" ) ); //$NON-NLS-1$
     diveMaxDepthLabel.setForeground( new Color( 128, 128, 128 ) );
     diveMaxDepthLabel.setBounds( 268, 144, 282, 14 );
     add( diveMaxDepthLabel );
@@ -498,7 +497,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveMaxDepthLabel.setLabelFor( diveMaxDepthShowLabel );
     diveMaxDepthShowLabel.setBounds( 268, 158, 282, 14 );
     add( diveMaxDepthShowLabel );
-    diveLengthLabel = new JLabel( "DIVELENGTH" );
+    diveLengthLabel = new JLabel( LangStrings.getString( "fileManagerPanel.diveListHeaders.diveLen" ) ); //$NON-NLS-1$
     diveLengthLabel.setForeground( new Color( 128, 128, 128 ) );
     diveLengthLabel.setBounds( 268, 183, 282, 14 );
     add( diveLengthLabel );
@@ -506,12 +505,12 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveLengthShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveLengthShowLabel.setBounds( 268, 196, 282, 14 );
     add( diveLengthShowLabel );
-    remarksLabel = new JLabel( "SAVINGLABEL" );
+    remarksLabel = new JLabel( LangStrings.getString( "spx42LogListPanel.remarksLabel.text" ) ); //$NON-NLS-1$
     remarksLabel.setForeground( new Color( 210, 105, 30 ) );
     remarksLabel.setFont( new Font( "Tahoma", Font.ITALIC, 12 ) );
     remarksLabel.setBounds( 267, 300, 492, 14 );
     add( remarksLabel );
-    diveLowTempLabel = new JLabel( "DIVELOWTEMP" );
+    diveLowTempLabel = new JLabel( LangStrings.getString( "spx42LoglistPanel.diveLowTempLabel.text" ) ); //$NON-NLS-1$
     diveLowTempLabel.setForeground( new Color( 128, 128, 128 ) );
     diveLowTempLabel.setBounds( 268, 220, 282, 14 );
     add( diveLowTempLabel );
@@ -519,7 +518,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     diveLowTempShowLabel.setForeground( new Color( 0, 0, 139 ) );
     diveLowTempShowLabel.setBounds( 268, 235, 282, 14 );
     add( diveLowTempShowLabel );
-    diveNotesLabel = new JLabel( "DIVENOTES" );
+    diveNotesLabel = new JLabel( LangStrings.getString( "spx42LoglistPanel.diveNotesLabel.text" ) ); //$NON-NLS-1$
     diveNotesLabel.setForeground( new Color( 128, 128, 128 ) );
     diveNotesLabel.setBounds( 268, 260, 282, 14 );
     add( diveNotesLabel );
@@ -534,7 +533,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     tipTextArea.setBackground( UIManager.getColor( "Label.background" ) );
     tipTextArea.setForeground( new Color( 0, 0, 255 ) );
     tipTextArea.setFont( new Font( "Tahoma", Font.ITALIC, 12 ) );
-    tipTextArea.setText( "TIPTEXT" );
+    tipTextArea.setText( LangStrings.getString( "spx42LoglistPanel.tipTextArea.text" ) ); //$NON-NLS-1$
     tipTextArea.setBounds( 267, 426, 492, 60 );
     add( tipTextArea );
     remarksLabel.setVisible( true );
@@ -613,7 +612,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
     nextDiveIdForUpdate = -1;
     remarksLabel.setText( " " );
     isPanelInitiated = true;
-    setLanguageStrings( stringsBundle );
+    setLanguageStrings();
     setGlobalChangeListener( ( MainCommGUI )aListener );
   }
 
@@ -704,37 +703,35 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
    * Die Sprache anpassen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 05.05.2012
-   * @param stringsBundle
    * @return -1 Fehler, 0 naja, 1 alles OK
    */
-  public int setLanguageStrings( ResourceBundle stringsBundle )
+  public int setLanguageStrings()
   {
-    this.stringsBundle = stringsBundle;
     if( !isPanelInitiated ) return( 1 );
     try
     {
       clearLogdirData( true );
-      logListLabel.setText( stringsBundle.getString( "spx42LoglistPanel.logListLabel.text" ) );
-      readLogDirectoryButton.setText( stringsBundle.getString( "spx42LoglistPanel.readLogDirectoryButton.text" ) );
-      readLogDirectoryButton.setToolTipText( stringsBundle.getString( "spx42LoglistPanel.readLogDirectoryButton.tooltiptext" ) );
-      readLogfilesFromSPXButton.setText( stringsBundle.getString( "spx42LoglistPanel.readLogfilesFromSPXButton.text" ) );
-      readLogfilesFromSPXButton.setToolTipText( stringsBundle.getString( "spx42LoglistPanel.readLogfilesFromSPXButton.tooltiptext" ) );
-      logListField.setToolTipText( stringsBundle.getString( "spx42LoglistPanel.logListField.tooltiptext" ) );
-      fileNameLabel.setText( stringsBundle.getString( "spx42LoglistPanel.fileNameLabel.text" ) );
-      diveDateLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveDateLabel.text" ) );
-      diveTimeLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveTimeLabel.text" ) );
-      diveMaxDepthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveMaxDepthLabel.text" ) );
-      diveLengthLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveLengthLabel.text" ) );
-      diveLowTempLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveLowTempLabel.text" ) );
-      diveNotesLabel.setText( stringsBundle.getString( "spx42LoglistPanel.diveNotesLabel.text" ) );
-      metricLength = stringsBundle.getString( "spx42LoglistPanel.unit.metric.length" );
-      metricTemperature = stringsBundle.getString( "spx42LoglistPanel.unit.metric.temperature" );
-      imperialLength = stringsBundle.getString( "spx42LoglistPanel.unit.imperial.length" );
-      imperialTemperature = stringsBundle.getString( "spx42LoglistPanel.unit.imperial.temperature" );
-      timeMinutes = stringsBundle.getString( "spx42LoglistPanel.unit.minutes" );
-      timeFormatterStringDate = stringsBundle.getString( "MainCommGUI.timeFormatterStringDate" );
-      timeFormatterStringTime = stringsBundle.getString( "MainCommGUI.timeFormatterStringTime" );
-      tipTextArea.setText( stringsBundle.getString( "spx42LoglistPanel.tipTextArea.text" ) );
+      logListLabel.setText( LangStrings.getString( "spx42LoglistPanel.logListLabel.text" ) );
+      readLogDirectoryButton.setText( LangStrings.getString( "spx42LoglistPanel.readLogDirectoryButton.text" ) );
+      readLogDirectoryButton.setToolTipText( LangStrings.getString( "spx42LoglistPanel.readLogDirectoryButton.tooltiptext" ) );
+      readLogfilesFromSPXButton.setText( LangStrings.getString( "spx42LoglistPanel.readLogfilesFromSPXButton.text" ) );
+      readLogfilesFromSPXButton.setToolTipText( LangStrings.getString( "spx42LoglistPanel.readLogfilesFromSPXButton.tooltiptext" ) );
+      logListField.setToolTipText( LangStrings.getString( "spx42LoglistPanel.logListField.tooltiptext" ) );
+      fileNameLabel.setText( LangStrings.getString( "spx42LoglistPanel.fileNameLabel.text" ) );
+      diveDateLabel.setText( LangStrings.getString( "spx42LoglistPanel.diveDateLabel.text" ) );
+      diveTimeLabel.setText( LangStrings.getString( "spx42LoglistPanel.diveTimeLabel.text" ) );
+      diveMaxDepthLabel.setText( LangStrings.getString( "spx42LoglistPanel.diveMaxDepthLabel.text" ) );
+      diveLengthLabel.setText( LangStrings.getString( "spx42LoglistPanel.diveLengthLabel.text" ) );
+      diveLowTempLabel.setText( LangStrings.getString( "spx42LoglistPanel.diveLowTempLabel.text" ) );
+      diveNotesLabel.setText( LangStrings.getString( "spx42LoglistPanel.diveNotesLabel.text" ) );
+      metricLength = LangStrings.getString( "spx42LoglistPanel.unit.metric.length" );
+      metricTemperature = LangStrings.getString( "spx42LoglistPanel.unit.metric.temperature" );
+      imperialLength = LangStrings.getString( "spx42LoglistPanel.unit.imperial.length" );
+      imperialTemperature = LangStrings.getString( "spx42LoglistPanel.unit.imperial.temperature" );
+      timeMinutes = LangStrings.getString( "spx42LoglistPanel.unit.minutes" );
+      timeFormatterStringDate = LangStrings.getString( "MainCommGUI.timeFormatterStringDate" );
+      timeFormatterStringTime = LangStrings.getString( "MainCommGUI.timeFormatterStringTime" );
+      tipTextArea.setText( LangStrings.getString( "spx42LoglistPanel.tipTextArea.text" ) );
     }
     catch( NullPointerException ex )
     {
@@ -934,7 +931,7 @@ public class spx42LoglistPanel extends JPanel implements ListSelectionListener
                 // t °F = 5⁄9 (t − 32) °C
                 diveLowTempShowLabel.setText( String.format( "%d %s", Math.round( ( 5.0 / 9.0 ) * ( temp - 32 ) ), metricTemperature ) );
               }
-              remarksLabel.setText( stringsBundle.getString( "spx42LogGraphPanel.remarksLabel.computed" ) );
+              remarksLabel.setText( LangStrings.getString( "spx42LogGraphPanel.remarksLabel.computed" ) );
             }
             catch( NumberFormatException ex )
             {

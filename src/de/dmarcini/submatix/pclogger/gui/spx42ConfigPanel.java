@@ -5,9 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
-import java.beans.Beans;
 import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
@@ -29,7 +27,7 @@ import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{               /**
+{                     /**
    * 
    */
   private static final long serialVersionUID     = 1L;
@@ -43,7 +41,7 @@ public class spx42ConfigPanel extends JPanel
   private int               currentPreset        = -1;
   private String            firmwareLabelText    = "-";
   private boolean           isIndividualsEnabled = false;
-  private ResourceBundle    stringsBundle        = null;
+  // private ResourceBundle stringsBundle = null;
   // @formatter:on
   private JLabel            serialNumberText;
   private JLabel            firmwareVersionValueLabel;
@@ -102,7 +100,7 @@ public class spx42ConfigPanel extends JPanel
     isPanelInitiated = false;
     currentConfig = null;
     areAllConfigPanelsEnabled = false;
-    if( Beans.isDesignTime() ) initPanel();
+    // if( Beans.isDesignTime() ) initPanel();
   }
 
   public JSpinner getDecoGradientenHighSpinner()
@@ -654,9 +652,7 @@ public class spx42ConfigPanel extends JPanel
   {
     String[] entrys;
     DefaultComboBoxModel portBoxModel;
-    this.stringsBundle = stringsBundle;
     if( !isPanelInitiated ) return( -1 );
-    if( stringsBundle == null ) return( -1 );
     try
     {
       // //////////////////////////////////////////////////////////////////////
@@ -684,8 +680,8 @@ public class spx42ConfigPanel extends JPanel
       decoGradientenPresetComboBox.removeAllItems();
       entrys = new String[]
       { LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.vconservative.text" ), LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.conservative.text" ),
-          stringsBundle.getString( "spx42ConfigPanel.decoDyngradientsLabel.moderate.text" ), LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.aggressive.text" ),
-          LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.vaggressive.text" ), stringsBundle.getString( "spx42ConfigPanel.decoDyngradientsLabel.custom.text" ) };
+          LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.moderate.text" ), LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.aggressive.text" ),
+          LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.vaggressive.text" ), LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.custom.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       decoGradientenPresetComboBox.setModel( portBoxModel );
       decoDyngradientsLabel.setText( LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.text" ) );
@@ -699,8 +695,8 @@ public class spx42ConfigPanel extends JPanel
       lblSetpointAutosetpoint.setText( LangStrings.getString( "spx42ConfigPanel.lblSetpointAutosetpoint.text" ) );
       autoSetpointComboBox.removeAllItems();
       entrys = new String[]
-      { LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.off.text" ), stringsBundle.getString( "spx42ConfigPanel.autoSetpointComboBox.5m.text" ),
-          LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.10m.text" ), stringsBundle.getString( "spx42ConfigPanel.autoSetpointComboBox.15m.text" ),
+      { LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.off.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.5m.text" ),
+          LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.10m.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.15m.text" ),
           LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.20m.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       autoSetpointComboBox.setModel( portBoxModel );
@@ -708,8 +704,8 @@ public class spx42ConfigPanel extends JPanel
       lblSetpointHighsetpoint.setText( LangStrings.getString( "spx42ConfigPanel.lblSetpointHighsetpoint.text" ) );
       highSetpointComboBox.removeAllItems();
       entrys = new String[]
-      { LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.10.text" ), stringsBundle.getString( "spx42ConfigPanel.highSetpointComboBox.11.text" ),
-          LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.12.text" ), stringsBundle.getString( "spx42ConfigPanel.highSetpointComboBox.13.text" ),
+      { LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.10.text" ), LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.11.text" ),
+          LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.12.text" ), LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.13.text" ),
           LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.14.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       highSetpointComboBox.setModel( portBoxModel );
@@ -719,7 +715,7 @@ public class spx42ConfigPanel extends JPanel
       lblDisplayBrightness.setText( LangStrings.getString( "spx42ConfigPanel.lblDisplayBrightness.text" ) );
       displayBrightnessComboBox.removeAllItems();
       entrys = new String[]
-      { LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.10.text" ), stringsBundle.getString( "spx42ConfigPanel.displayBrightnessComboBox.50.text" ),
+      { LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.10.text" ), LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.50.text" ),
           LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.100.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       displayBrightnessComboBox.setModel( portBoxModel );
@@ -737,21 +733,21 @@ public class spx42ConfigPanel extends JPanel
       lblUnitsTemperature.setText( LangStrings.getString( "spx42ConfigPanel.lblUnitsTemperature.text" ) );
       unitsTemperatureComboBox.removeAllItems();
       entrys = new String[]
-      { LangStrings.getString( "spx42ConfigPanel.unitsTemperatureComboBox.celsius.text" ), stringsBundle.getString( "spx42ConfigPanel.unitsTemperatureComboBox.fahrenheit.text" ) };
+      { LangStrings.getString( "spx42ConfigPanel.unitsTemperatureComboBox.celsius.text" ), LangStrings.getString( "spx42ConfigPanel.unitsTemperatureComboBox.fahrenheit.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       unitsTemperatureComboBox.setModel( portBoxModel );
       unitsTemperatureComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.unitsTemperatureComboBox.tooltiptext" ) );
       lblUnitsDepth.setText( LangStrings.getString( "spx42ConfigPanel.lblUnitsDepth.text" ) );
       unitsDepthComboBox.removeAllItems();
       entrys = new String[]
-      { LangStrings.getString( "spx42ConfigPanel.unitsDepthComboBox.metrical.text" ), stringsBundle.getString( "spx42ConfigPanel.unitsDepthComboBox.imperial.text" ) };
+      { LangStrings.getString( "spx42ConfigPanel.unitsDepthComboBox.metrical.text" ), LangStrings.getString( "spx42ConfigPanel.unitsDepthComboBox.imperial.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       unitsDepthComboBox.setModel( portBoxModel );
       unitsDepthComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.unitsDepthComboBox.tooltiptext" ) );
       lblUnitsSalinity.setText( LangStrings.getString( "spx42ConfigPanel.lblUnitsSalinity.text" ) );
       unitsSalnityComboBox.removeAllItems();
       entrys = new String[]
-      { LangStrings.getString( "spx42ConfigPanel.unitsSalnityComboBox.saltwater.text" ), stringsBundle.getString( "spx42ConfigPanel.unitsSalnityComboBox.clearwater.text" ) };
+      { LangStrings.getString( "spx42ConfigPanel.unitsSalnityComboBox.saltwater.text" ), LangStrings.getString( "spx42ConfigPanel.unitsSalnityComboBox.clearwater.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       unitsSalnityComboBox.setModel( portBoxModel );
       unitsSalnityComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.unitsSalnityComboBox.tooltiptext" ) );
@@ -766,7 +762,7 @@ public class spx42ConfigPanel extends JPanel
       lblSensorwarnings.setText( LangStrings.getString( "spx42ConfigPanel.lblSensorwarnings.text" ) );
       individualsSensorWarnComboBox.removeAllItems();
       entrys = new String[]
-      { LangStrings.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.1.text" ), stringsBundle.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.2.text" ),
+      { LangStrings.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.1.text" ), LangStrings.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.2.text" ),
           LangStrings.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.3.text" ) };
       portBoxModel = new DefaultComboBoxModel( entrys );
       individualsSensorWarnComboBox.setModel( portBoxModel );

@@ -28,6 +28,7 @@ import javax.swing.event.TableModelListener;
 
 import org.apache.log4j.Logger;
 
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.AliasEditTableModel;
 import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
@@ -130,7 +131,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
         if (virtualDeviceComboBox.getSelectedIndex() != -1)
         {
           String device = virtualDeviceComboBox.getItemAt(virtualDeviceComboBox.getSelectedIndex());
-          if (device.equals(stringsBundle.getString("spx42ConnectPanel.virtualDeviceComboBox.initialModel")))
+          if (device.equals(LangStrings.getString("spx42ConnectPanel.virtualDeviceComboBox.initialModel")))
           {
             lg.debug("No port selected, ports are searching...");
             return;
@@ -168,7 +169,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
    */
   private void initPanel()
   {
-    connectButton = new JButton("CONNECT");
+    connectButton = new JButton(LangStrings.getString("spx42ConnectPanel.connectButton.connectText"));
     connectButton.setHorizontalAlignment(SwingConstants.LEFT);
     connectButton.setIconTextGap(15);
     connectButton.setLocation(347, 24);
@@ -178,7 +179,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     connectButton.setMaximumSize(new Dimension(160, 40));
     connectButton.setSize(new Dimension(426, 41));
     connectButton.setMargin(new Insets(2, 30, 2, 30));
-    deviceAliasButton = new JButton("ALIAS");
+    deviceAliasButton = new JButton(LangStrings.getString("spx42ConnectPanel.deviceAliasButton.edit.text")); //$NON-NLS-1$
     deviceAliasButton.setMargin(new Insets(2, 30, 2, 14));
     deviceAliasButton.setHorizontalAlignment(SwingConstants.LEFT);
     deviceAliasButton.setIconTextGap(15);
@@ -205,10 +206,10 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     virtualDeviceComboBox.setActionCommand("virt_dev_to_connect");
     virtualDeviceComboBox.setBounds(39, 89, 281, 26);
     add(virtualDeviceComboBox);
-    virtualDevicesLabel = new JLabel("VIRTUAL DEVICE CONNECT:");
+    virtualDevicesLabel = new JLabel(LangStrings.getString("spx42ConnectPanel.virtualDevicesLabel.text")); //$NON-NLS-1$
     virtualDevicesLabel.setBounds(39, 75, 281, 14);
     add(virtualDevicesLabel);
-    renewVirtButton = new JButton("RENEW VIRT BUTTON");
+    renewVirtButton = new JButton(LangStrings.getString("spx42ConnectPanel.renewVirtButton.text")); //$NON-NLS-1$
     renewVirtButton.setIconTextGap(15);
     renewVirtButton.setMargin(new Insets(2, 30, 2, 14));
     renewVirtButton.setHorizontalAlignment(SwingConstants.LEFT);
@@ -226,8 +227,8 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
   public void refreshAliasTable()
   {
     columnNames.clear();
-    columnNames.add(stringsBundle.getString("spx42ConnectPanel.aliasTableColumn00.text"));
-    columnNames.add(stringsBundle.getString("spx42ConnectPanel.aliasTableColumn01.text"));
+    columnNames.add(LangStrings.getString("spx42ConnectPanel.aliasTableColumn00.text"));
+    columnNames.add(LangStrings.getString("spx42ConnectPanel.aliasTableColumn01.text"));
     lg.debug("fill aliases in stringarray...");
     aliasData = databaseUtil.getAliasDataConn();
     if (aliasData != null)
@@ -264,11 +265,11 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     {
       if (editable)
       {
-        deviceAliasButton.setText(stringsBundle.getString("spx42ConnectPanel.deviceAliasButton.noedit.text"));
+        deviceAliasButton.setText(LangStrings.getString("spx42ConnectPanel.deviceAliasButton.noedit.text"));
       }
       else
       {
-        deviceAliasButton.setText(stringsBundle.getString("spx42ConnectPanel.deviceAliasButton.edit.text"));
+        deviceAliasButton.setText(LangStrings.getString("spx42ConnectPanel.deviceAliasButton.edit.text"));
       }
     }
   }
@@ -316,7 +317,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
       deviceAliasButton.setEnabled(false);
       if (stringsBundle != null)
       {
-        connectButton.setText(stringsBundle.getString("spx42ConnectPanel.connectButton.disconnectText"));
+        connectButton.setText(LangStrings.getString("spx42ConnectPanel.connectButton.disconnectText"));
       }
       connectButton.setActionCommand("disconnect");
       connectButton.setIcon(new ImageIcon(MainCommGUI.class.getResource("/de/dmarcini/submatix/pclogger/res/112.png")));
@@ -327,7 +328,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
       deviceAliasButton.setEnabled(true);
       if (stringsBundle != null)
       {
-        connectButton.setText(stringsBundle.getString("spx42ConnectPanel.connectButton.connectText"));
+        connectButton.setText(LangStrings.getString("spx42ConnectPanel.connectButton.connectText"));
       }
       connectButton.setActionCommand("connect");
       connectButton.setIcon(new ImageIcon(MainCommGUI.class.getResource("/de/dmarcini/submatix/pclogger/res/112-mono.png")));
@@ -394,32 +395,32 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     this.stringsBundle = stringsBundle;
     try
     {
-      connectButton.setToolTipText(stringsBundle.getString("spx42ConnectPanel.connectButton.tooltiptext"));
+      connectButton.setToolTipText(LangStrings.getString("spx42ConnectPanel.connectButton.tooltiptext"));
       if (connected)
       {
-        connectButton.setText(stringsBundle.getString("spx42ConnectPanel.connectButton.disconnectText"));
+        connectButton.setText(LangStrings.getString("spx42ConnectPanel.connectButton.disconnectText"));
         connectButton.setActionCommand("disconnect");
       }
       else
       {
-        connectButton.setText(stringsBundle.getString("spx42ConnectPanel.connectButton.connectText"));
+        connectButton.setText(LangStrings.getString("spx42ConnectPanel.connectButton.connectText"));
         connectButton.setActionCommand("connect");
       }
       // Abhängig von der Sichtbarkeit der Aliaseditfläche
       if (aliasScrollPane.isVisible())
       {
-        deviceAliasButton.setText(stringsBundle.getString("spx42ConnectPanel.deviceAliasButton.noedit.text"));
+        deviceAliasButton.setText(LangStrings.getString("spx42ConnectPanel.deviceAliasButton.noedit.text"));
       }
       else
       {
-        deviceAliasButton.setText(stringsBundle.getString("spx42ConnectPanel.deviceAliasButton.edit.text"));
+        deviceAliasButton.setText(LangStrings.getString("spx42ConnectPanel.deviceAliasButton.edit.text"));
       }
-      deviceAliasButton.setToolTipText(stringsBundle.getString("spx42ConnectPanel.deviceAliasButton.tooltiptext"));
+      deviceAliasButton.setToolTipText(LangStrings.getString("spx42ConnectPanel.deviceAliasButton.tooltiptext"));
       //
       //
       columnNames.clear();
-      columnNames.add(stringsBundle.getString("spx42ConnectPanel.aliasTableColumn00.text"));
-      columnNames.add(stringsBundle.getString("spx42ConnectPanel.aliasTableColumn01.text"));
+      columnNames.add(LangStrings.getString("spx42ConnectPanel.aliasTableColumn00.text"));
+      columnNames.add(LangStrings.getString("spx42ConnectPanel.aliasTableColumn01.text"));
       lg.debug("fill aliases in stringarray...");
       aliasData = databaseUtil.getAliasDataConn();
       if (aliasData != null)
@@ -428,15 +429,15 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
         alMod.addTableModelListener(this);
         aliasEditTable.setModel(alMod);
       }
-      virtualDevicesLabel.setText(stringsBundle.getString("spx42ConnectPanel.virtualDevicesLabel.text"));
-      virtualDeviceComboBox.setToolTipText(stringsBundle.getString("spx42ConnectPanel.virtualDeviceComboBox.tooltiptext"));
+      virtualDevicesLabel.setText(LangStrings.getString("spx42ConnectPanel.virtualDevicesLabel.text"));
+      virtualDeviceComboBox.setToolTipText(LangStrings.getString("spx42ConnectPanel.virtualDeviceComboBox.tooltiptext"));
       if (!(virtualDeviceComboBox.getModel() instanceof DeviceComboBoxModel))
       {
         virtualDeviceComboBox.setModel(new DefaultComboBoxModel<String>(new String[] { stringsBundle
                 .getString("spx42ConnectPanel.virtualDeviceComboBox.initialModel") }));
       }
-      renewVirtButton.setText(stringsBundle.getString("spx42ConnectPanel.renewVirtButton.text"));
-      renewVirtButton.setToolTipText(stringsBundle.getString("spx42ConnectPanel.renewVirtButton.tooltiptext"));
+      renewVirtButton.setText(LangStrings.getString("spx42ConnectPanel.renewVirtButton.text"));
+      renewVirtButton.setToolTipText(LangStrings.getString("spx42ConnectPanel.renewVirtButton.tooltiptext"));
     }
     catch (NullPointerException ex)
     {
@@ -490,7 +491,7 @@ public class spx42ConnectPanel extends JPanel implements TableModelListener, Act
     try
     {
       icon = new ImageIcon(MainCommGUI.class.getResource("/de/dmarcini/submatix/pclogger/res/Terminate.png"));
-      JOptionPane.showMessageDialog(this, message, stringsBundle.getString("MainCommGUI.errorDialog.headline"), JOptionPane.INFORMATION_MESSAGE, icon);
+      JOptionPane.showMessageDialog(this, message, LangStrings.getString("MainCommGUI.errorDialog.headline"), JOptionPane.INFORMATION_MESSAGE, icon);
     }
     catch (NullPointerException ex)
     {

@@ -188,9 +188,18 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     //
     // Kommandozeilenargumente parsen
     //
-    if( !parseCliOptions( args ) )
+    try
+    {
+      if( !parseCliOptions( args ) )
+      {
+        System.err.println( "Error while scanning CLI-Args...." );
+        System.exit( -1 );
+      }
+    }
+    catch( Exception ex2 )
     {
       System.err.println( "Error while scanning CLI-Args...." );
+      System.err.println( ex2.getLocalizedMessage() );
       System.exit( -1 );
     }
     //
@@ -258,8 +267,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.01.2012
    * @param args
    * @return
+   * @throws Exception
    */
-  private static boolean parseCliOptions( String[] args )
+  @SuppressWarnings( "null" )
+  private static boolean parseCliOptions( String[] args ) throws Exception
   {
     CommandLine cmdLine = null;
     String argument;
@@ -322,6 +333,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     try
     {
       cmdLine = parser.parse( options, args );
+      if( cmdLine == null )
+      {
+        throw new Exception( "can't build cmdline parser" );
+      }
     }
     catch( ParseException e )
     {

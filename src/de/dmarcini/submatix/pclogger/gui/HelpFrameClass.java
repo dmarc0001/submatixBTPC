@@ -29,6 +29,7 @@ import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import org.apache.log4j.Logger;
 
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 
 public class HelpFrameClass extends JFrame implements ActionListener, HyperlinkListener
 {
@@ -61,14 +62,14 @@ public class HelpFrameClass extends JFrame implements ActionListener, HyperlinkL
       stringsBundle = ResourceBundle.getBundle("de.dmarcini.submatix.pclogger.lang.messages");
     }
     setVisible(true);
-    setTitle(stringsBundle.getString("HelpFrameClass.Windowtitle.title"));
+    setTitle(LangStrings.getString("HelpFrameClass.Windowtitle.title")); //$NON-NLS-1$
     setIconImage(Toolkit.getDefaultToolkit().getImage(HelpFrameClass.class.getResource("/de/dmarcini/submatix/pclogger/res/search.png")));
     setBounds(100, 100, 912, 645);
     contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     contentPane.setLayout(new BorderLayout(0, 0));
     setContentPane(contentPane);
-    JButton btnClose = new JButton(stringsBundle.getString("HelpFrameClass.btnClose.text"));
+    JButton btnClose = new JButton(LangStrings.getString("HelpFrameClass.btnClose.text")); //$NON-NLS-1$
     btnClose.addActionListener(this);
     btnClose.setActionCommand("close");
     contentPane.add(btnClose, BorderLayout.SOUTH);

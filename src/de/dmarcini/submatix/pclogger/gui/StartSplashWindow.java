@@ -65,7 +65,7 @@ public class StartSplashWindow extends JWindow implements Runnable
     JLabel versionLabel = new JLabel( "<VERSION>" );
     versionLabel.setHorizontalAlignment( SwingConstants.CENTER );
     versionLabel.setFont( new Font( "Tahoma", Font.BOLD, 12 ) );
-    versionLabel.setText( versObj.getVersion() );
+    versionLabel.setText( versObj.getVersionAsString() );
     GroupLayout gl_contentPane = new GroupLayout( contentPane );
     gl_contentPane.setHorizontalGroup( gl_contentPane.createParallelGroup( Alignment.LEADING ).addGroup(
             Alignment.TRAILING,

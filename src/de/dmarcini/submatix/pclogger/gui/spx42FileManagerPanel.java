@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Enumeration;
 import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 import java.util.Vector;
 
 import javax.swing.GroupLayout;
@@ -57,7 +56,6 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   private static final long          serialVersionUID = 2149212648166152026L;
   private final Logger               lg;
   private String                     device;
-  private ResourceBundle             stringsBundle;
   private final LogDerbyDatabaseUtil dbUtil;
   private final MouseMotionListener  mListener;
   private JTable                     dataViewTable;
@@ -245,7 +243,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       else
       {
         // könnte dauern, Dialog machen
-        wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.exportDive" ) );
+        wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), LangStrings.getString( "PleaseWaitDialog.exportDive" ) );
         wDial.setMax( 100 );
         wDial.resetProgress();
         wDial.setVisible( true );
@@ -438,10 +436,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     if( entrys == null )
     {
       lg.warn( "no devices found in database." );
-      if( stringsBundle != null )
-      {
-        showWarnBox( LangStrings.getString( "spx42LogGraphPanel.warnBox.noDevicesInDatabase" ) );
-      }
+      showWarnBox( LangStrings.getString( "spx42LogGraphPanel.warnBox.noDevicesInDatabase" ) );
       return;
     }
     //
@@ -613,7 +608,6 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   {
     int selectedIndex;
     //
-    this.stringsBundle = stringsBundle;
     try
     {
       // merke mir das ausgewählte Teilchen
@@ -660,7 +654,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     try
     {
       Object[] options =
-      { LangStrings.getString( "fileManagerPanel.showAskBox.no" ), stringsBundle.getString( "fileManagerPanel.showAskBox.yes" ) };
+      { LangStrings.getString( "fileManagerPanel.showAskBox.no" ), LangStrings.getString( "fileManagerPanel.showAskBox.yes" ) };
       return JOptionPane.showOptionDialog( this, msg, LangStrings.getString( "fileManagerPanel.showAskBox.headline" ), JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
               null, options, options[1] );
     }

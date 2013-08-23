@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 import java.util.Vector;
 
 import javax.swing.GroupLayout;
@@ -37,6 +36,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.joda.time.DateTime;
 
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
@@ -62,7 +62,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private static int           GRAPH_DEPTH       = 9;
   protected Logger             lg                = null;
   private LogDerbyDatabaseUtil databaseUtil      = null;
-  private ResourceBundle       stringsBundle     = null;
   private ChartPanel           chartPanel        = null;
   private int                  showingUnitSystem = ProjectConst.UNITS_DEFAULT;
   private int                  savedUnitSystem   = ProjectConst.UNITS_DEFAULT;
@@ -97,7 +96,6 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    * Create the panel.
    * 
    * @param _dbUtil
-   * @param progConfig
    */
   public spx42LogGraphPanel( final LogDerbyDatabaseUtil _dbUtil )
   {
@@ -153,7 +151,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       if( cmd.equals( "set_detail_for_show_graph" ) )
       {
         lg.debug( "select details for log selected." );
-        SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog( stringsBundle );
+        SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog();
         if( sgd.showModal() )
         {
           lg.debug( "dialog returned 'true' => change propertys..." );
@@ -378,7 +376,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         {
           javaTime = Long.parseLong( origSet[2] ) * 1000;
           dateTime = new DateTime( javaTime );
-          elem[2] = dateTime.toString( stringsBundle.getString( "MainCommGUI.timeFormatterString" ) );
+          elem[2] = dateTime.toString( LangStrings.getString( "MainCommGUI.timeFormatterString" ) );
         }
         catch( NumberFormatException ex )
         {
@@ -422,31 +420,31 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       if( diveUnitSystem == ProjectConst.UNITS_IMPERIAL )
       {
         // also, ist der Tauchgang imperial geloggt
-        labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
-        labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
-        labels[2] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.pressure" );
+        labels[0] = LangStrings.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
+        labels[1] = LangStrings.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
+        labels[2] = LangStrings.getString( "spx42LogGraphPanel.unit.imperial.pressure" );
       }
       else
       {
         // der tauhcgang ist metrisch geloggt.
-        labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
-        labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
-        labels[2] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.pressure" );
+        labels[0] = LangStrings.getString( "spx42LogGraphPanel.unit.metric.lenght" );
+        labels[1] = LangStrings.getString( "spx42LogGraphPanel.unit.metric.temperature" );
+        labels[2] = LangStrings.getString( "spx42LogGraphPanel.unit.metric.pressure" );
       }
     }
     else if( progUnitSystem == ProjectConst.UNITS_METRIC )
     {
       // der User wünscht Metrische Anzeige
-      labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.lenght" );
-      labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.temperature" );
-      labels[2] = stringsBundle.getString( "spx42LogGraphPanel.unit.metric.pressure" );
+      labels[0] = LangStrings.getString( "spx42LogGraphPanel.unit.metric.lenght" );
+      labels[1] = LangStrings.getString( "spx42LogGraphPanel.unit.metric.temperature" );
+      labels[2] = LangStrings.getString( "spx42LogGraphPanel.unit.metric.pressure" );
     }
     else
     {
       // der User wünscht imperiale anzeige
-      labels[0] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
-      labels[1] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
-      labels[2] = stringsBundle.getString( "spx42LogGraphPanel.unit.imperial.pressure" );
+      labels[0] = LangStrings.getString( "spx42LogGraphPanel.unit.imperial.lenght" );
+      labels[1] = LangStrings.getString( "spx42LogGraphPanel.unit.imperial.temperature" );
+      labels[2] = LangStrings.getString( "spx42LogGraphPanel.unit.imperial.pressure" );
     }
     return( labels );
   }
@@ -486,10 +484,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     if( entrys == null )
     {
       lg.warn( "no devices found in database." );
-      if( stringsBundle != null )
-      {
-        showWarnBox( stringsBundle.getString( "spx42LogGraphPanel.warnBox.noDevicesInDatabase" ) );
-      }
+      showWarnBox( LangStrings.getString( "spx42LogGraphPanel.warnBox.noDevicesInDatabase" ) );
       return;
     }
     //
@@ -549,13 +544,13 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     diveSelectComboBox.setMaximumRowCount( 26 );
     diveSelectComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     diveSelectComboBox.setActionCommand( "change_dive_to_display" );
-    computeGraphButton = new JButton( "GRAPHBUTTON" );
+    computeGraphButton = new JButton( LangStrings.getString( "spx42LogGraphPanel.computeGraphButton.text" ) ); //$NON-NLS-1$
     computeGraphButton.setMinimumSize( new Dimension( 80, 23 ) );
     computeGraphButton.setPreferredSize( new Dimension( 80, 23 ) );
     computeGraphButton.setSize( new Dimension( 80, 23 ) );
     computeGraphButton.setMaximumSize( new Dimension( 80, 23 ) );
     computeGraphButton.setActionCommand( "show_log_graph" );
-    detailGraphButton = new JButton( "DETAIL" );
+    detailGraphButton = new JButton( LangStrings.getString( "spx42LogGraphPanel.detailGraphButton.text" ) ); //$NON-NLS-1$
     detailGraphButton.setMinimumSize( new Dimension( 80, 23 ) );
     detailGraphButton.setSize( new Dimension( 80, 23 ) );
     detailGraphButton.setPreferredSize( new Dimension( 80, 23 ) );
@@ -585,7 +580,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     maxDepthValueLabel = new JLabel( "0" );
     coldestTempValueLabel = new JLabel( "0" );
     diveLenValueLabel = new JLabel( "0" );
-    notesLabel = new JLabel( "NOTES" );
+    notesLabel = new JLabel( LangStrings.getString( "spx42LoglistPanel.diveNotesLabel.text" ) ); //$NON-NLS-1$
     notesLabel.setForeground( new Color( 0, 100, 0 ) );
     notesLabel.setFont( new Font( "Tahoma", Font.ITALIC, 12 ) );
     notesEditButton = new JButton( "..." );
@@ -631,15 +626,15 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     lg.debug( "create depth dataset" );
     if( showingUnitSystem == savedUnitSystem || showingUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
-      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
+      depthDataSet = createXYDataset( LangStrings.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, ProjectConst.UNITS_DEFAULT, 0,
               LogDerbyDatabaseUtil.DEPTH );
     }
     else
     {
-      depthDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, showingUnitSystem, 0,
+      depthDataSet = createXYDataset( LangStrings.getString( "spx42LogGraphPanel.graph.depthScalaTitle" ) + " " + depthUnitName, diveList, showingUnitSystem, 0,
               LogDerbyDatabaseUtil.DEPTH );
     }
-    final NumberAxis depthAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) + " " + depthUnitName );
+    final NumberAxis depthAxis = new NumberAxis( LangStrings.getString( "spx42LogGraphPanel.graph.depthAxisTitle" ) + " " + depthUnitName );
     final XYAreaRenderer areaDepthRenderer = new XYAreaRenderer( XYAreaRenderer.AREA );
     depthAxis.setAutoRangeIncludesZero( true );
     depthAxis.setLabelPaint( new Color( ProjectConst.GRAPH_DEPTH_ACOLOR ) );
@@ -737,9 +732,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // ein Chart zur Anzeige in einem Panel erzeugen
     //
-    logChart = new JFreeChart( stringsBundle.getString( "spx42LogGraphPanel.graph.chartTitle" ), thePlot );
+    logChart = new JFreeChart( LangStrings.getString( "spx42LogGraphPanel.graph.chartTitle" ), thePlot );
     logChart.setAntiAlias( true );
-    logChart.addSubtitle( new TextTitle( stringsBundle.getString( "spx42LogGraphPanel.graph.chartSubTitle" ) ) );
+    logChart.addSubtitle( new TextTitle( LangStrings.getString( "spx42LogGraphPanel.graph.chartSubTitle" ) ) );
     // ein Thema zufügen, damit ich eigene Farben einbauen kann
     ChartUtilities.applyCurrentTheme( logChart );
     //
@@ -756,8 +751,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Datumsachse umformatieren
     //
-    final NumberAxis axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.dateAxisTitle" ) );
-    MinuteFormatter formatter = new MinuteFormatter( stringsBundle.getString( "spx42LogGraphPanel.graph.dateAxisUnit" ) );
+    final NumberAxis axis = new NumberAxis( LangStrings.getString( "spx42LogGraphPanel.graph.dateAxisTitle" ) );
+    MinuteFormatter formatter = new MinuteFormatter( LangStrings.getString( "spx42LogGraphPanel.graph.dateAxisUnit" ) );
     axis.setNumberFormatOverride( formatter );
     thePlot.setDomainAxis( axis );
     //
@@ -770,8 +765,8 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     // Partialdruck einfügen
     // die Achse erst mal machen
-    final NumberAxis ppo2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2AxisTitle" ) + " " + pressureUnitName );
-    final NumberAxis percentAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.inertgas" ) );
+    final NumberAxis ppo2Axis = new NumberAxis( LangStrings.getString( "spx42LogGraphPanel.graph.ppo2AxisTitle" ) + " " + pressureUnitName );
+    final NumberAxis percentAxis = new NumberAxis( LangStrings.getString( "spx42LogGraphPanel.graph.inertgas" ) );
     //
     // wenn eine der Achsen dargesstellt werden muss, dann sollte die Achse auch in der Grafil da sein
     //
@@ -920,10 +915,10 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     XYDataset nullTimeDataSet;
     //
     lg.debug( "create nulltime dataset" );
-    nullTimeDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.nulltimeScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
+    nullTimeDataSet = createXYDataset( LangStrings.getString( "spx42LogGraphPanel.graph.nulltimeScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
             LogDerbyDatabaseUtil.NULLTIME );
     final XYLineAndShapeRenderer lineNullTimeRenderer = new XYLineAndShapeRenderer( true, true );
-    final LogarithmicAxis nullTimeAxis = new LogarithmicAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.nulltimeAxisTitle" ) );
+    final LogarithmicAxis nullTimeAxis = new LogarithmicAxis( LangStrings.getString( "spx42LogGraphPanel.graph.nulltimeAxisTitle" ) );
     nullTimeAxis.setNumberFormatOverride( new DecimalFormat( "#.###" ) );
     lineNullTimeRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_NULLTIME_ACOLOR ) );
     lineNullTimeRenderer.setSeriesShapesVisible( 0, false );
@@ -953,7 +948,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     //
     lg.debug( "create Sensor <" + sensor + "> dataset" );
     // Titel schon mal...
-    title = String.format( stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2SensorScalaTitle" ), sensor );
+    title = String.format( LangStrings.getString( "spx42LogGraphPanel.graph.ppo2SensorScalaTitle" ), sensor );
     //
     // Dataset Index einstellen
     switch ( sensor )
@@ -962,7 +957,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         indexForCreate = LogDerbyDatabaseUtil.PPO2;
         posForGraph = GRAPH_PPO2ALL;
         posColor = ProjectConst.GRAPH_PPO2ALL_RCOLOR;
-        title = stringsBundle.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" );
+        title = LangStrings.getString( "spx42LogGraphPanel.graph.ppo2ScalaTitle" );
         break;
       case 1:
         indexForCreate = LogDerbyDatabaseUtil.PPO2_01;
@@ -1016,14 +1011,14 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     lg.debug( "create setpoint dataset" );
     if( showingUnitSystem == savedUnitSystem || showingUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
-      setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
+      setPointDataSet = createXYDataset( LangStrings.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
               LogDerbyDatabaseUtil.SETPOINT );
     }
     else
     {
-      setPointDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, showingUnitSystem, 0, LogDerbyDatabaseUtil.SETPOINT );
+      setPointDataSet = createXYDataset( LangStrings.getString( "spx42LogGraphPanel.graph.setpointScalaTitle" ), diveList, showingUnitSystem, 0, LogDerbyDatabaseUtil.SETPOINT );
     }
-    // final NumberAxis setpoint2Axis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.setpointAxisTitle" ) );
+    // final NumberAxis setpoint2Axis = new NumberAxis( LangStrings.getString("spx42LogGraphPanel.graph.setpointAxisTitle") );
     final XYLineAndShapeRenderer setpointRenderer = new XYLineAndShapeRenderer( true, true );
     // die Achse sollte schon erstellt sein
     thePlot.setDataset( GRAPH_SETPOINT, setPointDataSet );
@@ -1052,16 +1047,15 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     if( showingUnitSystem == savedUnitSystem || showingUnitSystem == ProjectConst.UNITS_DEFAULT )
     {
       // Keine Änderung norwendig!
-      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0,
-              LogDerbyDatabaseUtil.TEMPERATURE );
+      tempDataSet = createXYDataset( LangStrings.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, ProjectConst.UNITS_DEFAULT, 0, LogDerbyDatabaseUtil.TEMPERATURE );
     }
     else
     {
       // bitte konvertiere die Einheiten ins gewünschte Format!
-      tempDataSet = createXYDataset( stringsBundle.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, showingUnitSystem, 0, LogDerbyDatabaseUtil.TEMPERATURE );
+      tempDataSet = createXYDataset( LangStrings.getString( "spx42LogGraphPanel.graph.tempScalaTitle" ), diveList, showingUnitSystem, 0, LogDerbyDatabaseUtil.TEMPERATURE );
     }
     final XYLineAndShapeRenderer lineTemperatureRenderer = new XYLineAndShapeRenderer( true, true );
-    final NumberAxis tempAxis = new NumberAxis( stringsBundle.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + labels[1] );
+    final NumberAxis tempAxis = new NumberAxis( LangStrings.getString( "spx42LogGraphPanel.graph.tempAxisTitle" ) + " " + labels[1] );
     tempAxis.setLabelPaint( axisColor );
     tempAxis.setTickLabelPaint( axisColor );
     tempAxis.setNumberFormatOverride( new DecimalFormat( "###.##" ) );
@@ -1122,25 +1116,22 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    * Setze alle Strings in die entsprechende Landessprache! Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 22.04.2012
-   * @param stringsBundle
-   *          Resource für die Strings
    * @return in Ordnung oder nicht
    */
-  public int setLanguageStrings( ResourceBundle stringsBundle )
+  public int setLanguageStrings()
   {
-    this.stringsBundle = stringsBundle;
     try
     {
-      deviceComboBox.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.deviceComboBox.tooltiptext" ) );
-      diveSelectComboBox.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.diveSelectComboBox.tooltiptext" ) );
-      computeGraphButton.setText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.text" ) );
-      computeGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
-      detailGraphButton.setText( stringsBundle.getString( "spx42LogGraphPanel.detailGraphButton.text" ) );
-      detailGraphButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.detailGraphButton.tooltiptext" ) );
-      maxDepthLabelString = stringsBundle.getString( "spx42LogGraphPanel.maxDepthLabel.text" );
-      coldestLabelString = stringsBundle.getString( "spx42LogGraphPanel.coldestLabel.text" );
-      diveLenLabelString = stringsBundle.getString( "spx42LogGraphPanel.diveLenLabel.text" );
-      notesEditButton.setToolTipText( stringsBundle.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
+      deviceComboBox.setToolTipText( LangStrings.getString( "spx42LogGraphPanel.deviceComboBox.tooltiptext" ) );
+      diveSelectComboBox.setToolTipText( LangStrings.getString( "spx42LogGraphPanel.diveSelectComboBox.tooltiptext" ) );
+      computeGraphButton.setText( LangStrings.getString( "spx42LogGraphPanel.computeGraphButton.text" ) );
+      computeGraphButton.setToolTipText( LangStrings.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
+      detailGraphButton.setText( LangStrings.getString( "spx42LogGraphPanel.detailGraphButton.text" ) );
+      detailGraphButton.setToolTipText( LangStrings.getString( "spx42LogGraphPanel.detailGraphButton.tooltiptext" ) );
+      maxDepthLabelString = LangStrings.getString( "spx42LogGraphPanel.maxDepthLabel.text" );
+      coldestLabelString = LangStrings.getString( "spx42LogGraphPanel.coldestLabel.text" );
+      diveLenLabelString = LangStrings.getString( "spx42LogGraphPanel.diveLenLabel.text" );
+      notesEditButton.setToolTipText( LangStrings.getString( "spx42LogGraphPanel.computeGraphButton.tooltiptext" ) );
     }
     catch( NullPointerException ex )
     {
@@ -1169,7 +1160,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    */
   private void showNotesEditForm( int dbId )
   {
-    DiveNotesEditDialog edDial = new DiveNotesEditDialog( stringsBundle );
+    DiveNotesEditDialog edDial = new DiveNotesEditDialog();
     edDial.setNotes( notesLabel.getText() );
     if( edDial.showModal() )
     {
@@ -1210,7 +1201,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     try
     {
       icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Abort.png" ) );
-      JOptionPane.showMessageDialog( this, msg, stringsBundle.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
+      JOptionPane.showMessageDialog( this, msg, LangStrings.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
     }
     catch( NullPointerException ex )
     {

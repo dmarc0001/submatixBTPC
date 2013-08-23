@@ -8,7 +8,6 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ResourceBundle;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -20,6 +19,8 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
 
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
+
 public class GasPresetNameDialog extends JDialog implements ActionListener
 {
   /**
@@ -29,17 +30,10 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
   private static int        maxChars         = 128;
   private boolean           closeWithOk      = false;
   private final JPanel      contentPanel     = new JPanel();
-  private ResourceBundle    stringsBundle    = null;
   private JLabel            nameForPresetLabel;
   private JTextField        nameTextField;
   private JButton           cancelButton;
   private JButton           okButton;
-
-  @SuppressWarnings( "unused" )
-  private GasPresetNameDialog()
-  {
-    initGui();
-  }
 
   /**
    * 
@@ -52,9 +46,8 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
    *         Stand: 31.07.2012
    * @param stringsBundle
    */
-  public GasPresetNameDialog( ResourceBundle stringsBundle )
+  public GasPresetNameDialog()
   {
-    this.stringsBundle = stringsBundle;
     initGui();
   }
 
@@ -74,13 +67,13 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
     {
       setModalExclusionType( ModalExclusionType.APPLICATION_EXCLUDE );
       setAlwaysOnTop( true );
-      setTitle( stringsBundle.getString( "GasPresetNameDialog.title.text" ) );
+      setTitle( LangStrings.getString( "GasPresetNameDialog.title.text" ) );
       setIconImage( Toolkit.getDefaultToolkit().getImage( GasPresetNameDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/142.png" ) ) );
       setBounds( 100, 100, 748, 146 );
       getContentPane().setLayout( new BorderLayout() );
       contentPanel.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
       getContentPane().add( contentPanel, BorderLayout.CENTER );
-      okButton = new JButton( stringsBundle.getString( "GasPresetNameDialog.okButton.text" ) );
+      okButton = new JButton( LangStrings.getString( "GasPresetNameDialog.okButton.text" ) );
       okButton.setBounds( 525, 67, 199, 33 );
       okButton.setPreferredSize( new Dimension( 180, 40 ) );
       okButton.setMaximumSize( new Dimension( 160, 40 ) );
@@ -90,7 +83,7 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
       okButton.setActionCommand( "commit" );
       okButton.addActionListener( this );
       contentPanel.setLayout( null );
-      cancelButton = new JButton( stringsBundle.getString( "GasPresetNameDialog.cancelButton.text" ) );
+      cancelButton = new JButton( LangStrings.getString( "GasPresetNameDialog.cancelButton.text" ) ); //$NON-NLS-1$
       cancelButton.setBounds( 298, 67, 217, 33 );
       cancelButton.setForeground( Color.RED );
       cancelButton.setBackground( new Color( 255, 192, 203 ) );
@@ -98,7 +91,7 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
       cancelButton.addActionListener( this );
       contentPanel.add( cancelButton );
       contentPanel.add( okButton );
-      nameForPresetLabel = new JLabel( stringsBundle.getString( "GasPresetNameDialog.nameForPresetLabel.text" ) );
+      nameForPresetLabel = new JLabel( LangStrings.getString( "GasPresetNameDialog.nameForPresetLabel.text" ) ); //$NON-NLS-1$
       nameForPresetLabel.setBounds( 10, 11, 385, 14 );
       contentPanel.add( nameForPresetLabel );
       nameTextField = new JTextField();

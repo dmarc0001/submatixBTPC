@@ -1815,7 +1815,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         licenseState = currentConfig.getLicenseState();
         customConfig = currentConfig.getCustomEnabled();
         gasConfigPanel.setLicenseState( licenseState, customConfig );
-        gasConfigPanel.setLicenseLabel( stringsBundle );
+        gasConfigPanel.setLicenseLabel();
         break;
       // /////////////////////////////////////////////////////////////////////////
       // Versuche Verbindung mit Bluetooht Gerät
@@ -2313,7 +2313,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane gas
       tabbedPane.setTitleAt( programTabs.TAB_GASLIST.ordinal(), LangStrings.getString( "spx42GaslistEditPanel.title" ) );
-      gasConfigPanel.setLanguageStrings( stringsBundle );
+      gasConfigPanel.setLanguageStrings();
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane log
       tabbedPane.setTitleAt( programTabs.TAB_LOGREAD.ordinal(), LangStrings.getString( "spx42LoglistPanel.title" ) );
@@ -2321,7 +2321,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane graph
       tabbedPane.setTitleAt( programTabs.TAB_LOGGRAPH.ordinal(), LangStrings.getString( "spx42LogGraphPanel.title" ) );
-      logGraphPanel.setLanguageStrings( stringsBundle );
+      logGraphPanel.setLanguageStrings();
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane import/export
       tabbedPane.setTitleAt( programTabs.TAB_FILEMANAGER.ordinal(), LangStrings.getString( "fileManagerPanel.title" ) );

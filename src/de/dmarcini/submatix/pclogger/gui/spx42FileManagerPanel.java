@@ -1,6 +1,5 @@
 package de.dmarcini.submatix.pclogger.gui;
 
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -38,6 +37,7 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.FileManagerTableModel;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
@@ -68,13 +68,12 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   private JLabel                     tipLabel;
 
   /**
-   * Der Konstruktor des Dateimanager-Panels
-   * erstellt: 22.08.2013
+   * Der Konstruktor des Dateimanager-Panels erstellt: 22.08.2013
    * 
    * @param mListener
    * @param sqliteDbUtil
    */
-  public spx42FileManagerPanel(MouseMotionListener mListener, LogDerbyDatabaseUtil sqliteDbUtil)
+  public spx42FileManagerPanel( MouseMotionListener mListener, LogDerbyDatabaseUtil sqliteDbUtil )
   {
     this.lg = SpxPcloggerProgramConfig.LOGGER;
     this.dbUtil = sqliteDbUtil;
@@ -83,125 +82,121 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   }
 
   @Override
-  public void actionPerformed(ActionEvent ev)
+  public void actionPerformed( ActionEvent ev )
   {
     String cmd = ev.getActionCommand();
     // ////////////////////////////////////////////////////////////////////////
     // Kommando wechsle das Gerät zur Anzeige
-    if (cmd.equals("change_device_to_display"))
+    if( cmd.equals( "change_device_to_display" ) )
     {
       // wenn das eine ComboBox ist
-      if (ev.getSource() instanceof JComboBox<?>)
+      if( ev.getSource() instanceof JComboBox<?> )
       {
         // ist das die DeviceBox?
-        JComboBox<?> theBox = (JComboBox<?>) ev.getSource();
-        if (theBox.equals(deviceComboBox))
+        JComboBox<?> theBox = ( JComboBox<?> )ev.getSource();
+        if( theBox.equals( deviceComboBox ) )
         {
           releaseLists();
           // ist was ausgewählt?
-          if (deviceComboBox.getSelectedIndex() != -1)
+          if( deviceComboBox.getSelectedIndex() != -1 )
           {
-            String connDev = ((DeviceComboBoxModel) deviceComboBox.getModel()).getDeviceSerialAt(deviceComboBox.getSelectedIndex());
-            if (connDev != null)
+            String connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceSerialAt( deviceComboBox.getSelectedIndex() );
+            if( connDev != null )
             {
-              fillDiveTable(connDev);
+              fillDiveTable( connDev );
             }
           }
         }
       }
     }
-    else if (cmd.equals("cancel_selection"))
+    else if( cmd.equals( "cancel_selection" ) )
     {
       dataViewTable.clearSelection();
     }
-    else if (cmd.equals("delete_selection"))
+    else if( cmd.equals( "delete_selection" ) )
     {
-      int result = showAskBox(stringsBundle.getString("fileManagerPanel.showAskBox.message"));
-      if (result == 1)
+      int result = showAskBox( LangStrings.getString( "fileManagerPanel.showAskBox.message" ) );
+      if( result == 1 )
       {
-        lg.info("DELETE DATASETS!");
+        lg.info( "DELETE DATASETS!" );
         int[] sets = dataViewTable.getSelectedRows();
-        deleteDatasetsForIdx(sets);
+        deleteDatasetsForIdx( sets );
         // merke mir das ausgewählte Teilchen
         int selectedIndex = deviceComboBox.getSelectedIndex();
-        deviceComboBox.setSelectedIndex(-1);
+        deviceComboBox.setSelectedIndex( -1 );
         // wenn da eine Auswahl war, wieder setzen und dann wird die Box auch neu befüllt
-        if (selectedIndex != -1)
+        if( selectedIndex != -1 )
         {
-          deviceComboBox.setSelectedIndex(selectedIndex);
+          deviceComboBox.setSelectedIndex( selectedIndex );
         }
       }
       else
       {
-        lg.debug("abort deleting...");
+        lg.debug( "abort deleting..." );
       }
     }
-    else if (cmd.equals("export_selection"))
+    else if( cmd.equals( "export_selection" ) )
     {
-      lg.debug("export selected dives to file");
+      lg.debug( "export selected dives to file" );
       int[] sets = dataViewTable.getSelectedRows();
-      exportDatasetsForIdx(sets);
+      exportDatasetsForIdx( sets );
       dataViewTable.clearSelection();
     }
     else
     {
-      lg.warn("unknown action command!");
+      lg.warn( "unknown action command!" );
     }
   }
 
   /**
-   * Aus den Indizi der Tabelle die DBID erfragen
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * Aus den Indizi der Tabelle die DBID erfragen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 28.08.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.08.2012
    * @param sets
    * @return set datenbankID's
    */
-  private int[] getDbIdsForTableIdx(int[] sets)
+  private int[] getDbIdsForTableIdx( int[] sets )
   {
     // Sets lesen, Array für DatenbankID erzeugen
     int[] dbIds = new int[sets.length];
-    FileManagerTableModel tm = (FileManagerTableModel) dataViewTable.getModel();
-    for (int setNumber = 0; setNumber < sets.length; setNumber++)
+    FileManagerTableModel tm = ( FileManagerTableModel )dataViewTable.getModel();
+    for( int setNumber = 0; setNumber < sets.length; setNumber++ )
     {
-      int dataSet = tm.getDbIdAt(sets[setNumber]);
-      lg.info(String.format("DBID: <%d>, setNumber: <%d>", dataSet, setNumber));
+      int dataSet = tm.getDbIdAt( sets[setNumber] );
+      lg.info( String.format( "DBID: <%d>, setNumber: <%d>", dataSet, setNumber ) );
       // datenbankid zufügen
       dbIds[setNumber] = dataSet;
     }
-    return (dbIds);
+    return( dbIds );
   }
 
   /**
-   * exportiere alle selektierten Tauchgänge in je eine Datei als UDDF 2.2
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * exportiere alle selektierten Tauchgänge in je eine Datei als UDDF 2.2 Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 28.08.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 28.08.2012
    * @param sets
    */
-  private void exportDatasetsForIdx(int[] sets)
+  private void exportDatasetsForIdx( int[] sets )
   {
     UDDFFileCreateClass uddf = null;
     PleaseWaitDialog wDial = null;
     //
-    if (sets.length == 0) return;
-    if (device == null)
+    if( sets.length == 0 ) return;
+    if( device == null )
     {
-      lg.error("no device known in programobject! abort function!");
+      lg.error( "no device known in programobject! abort function!" );
     }
-    if (!SpxPcloggerProgramConfig.exportDir.exists())
+    if( !SpxPcloggerProgramConfig.exportDir.exists() )
     {
-      if (!SpxPcloggerProgramConfig.exportDir.mkdirs())
+      if( !SpxPcloggerProgramConfig.exportDir.mkdirs() )
       {
-        lg.error("cant create export directory!");
+        lg.error( "cant create export directory!" );
         return;
       }
     }
-    if (!SpxPcloggerProgramConfig.exportDir.isDirectory())
+    if( !SpxPcloggerProgramConfig.exportDir.isDirectory() )
     {
-      lg.error("export directory <" + SpxPcloggerProgramConfig.exportDir.getAbsolutePath() + "> is NOT a directory!");
+      lg.error( "export directory <" + SpxPcloggerProgramConfig.exportDir.getAbsolutePath() + "> is NOT a directory!" );
       return;
     }
     //
@@ -209,68 +204,68 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     //
     try
     {
-      uddf = new UDDFFileCreateClass(dbUtil);
+      uddf = new UDDFFileCreateClass( dbUtil );
     }
-    catch (ParserConfigurationException ex)
+    catch( ParserConfigurationException ex )
     {
-      lg.error(ex.getLocalizedMessage());
+      lg.error( ex.getLocalizedMessage() );
       return;
     }
-    catch (TransformerException ex)
+    catch( TransformerException ex )
     {
-      lg.error(ex.getLocalizedMessage());
+      lg.error( ex.getLocalizedMessage() );
       return;
     }
-    catch (TransformerFactoryConfigurationError ex)
+    catch( TransformerFactoryConfigurationError ex )
     {
-      lg.error(ex.getLocalizedMessage());
+      lg.error( ex.getLocalizedMessage() );
       return;
     }
-    catch (Exception ex)
+    catch( Exception ex )
     {
-      lg.error(ex.getLocalizedMessage());
+      lg.error( ex.getLocalizedMessage() );
       return;
     }
     //
     // Sets lesen, Array für DatenbankID erzeugen
     //
-    int[] dbIds = getDbIdsForTableIdx(sets);
-    if (dbIds.length == 0)
+    int[] dbIds = getDbIdsForTableIdx( sets );
+    if( dbIds.length == 0 )
     {
-      lg.error("no database id's for export!");
+      lg.error( "no database id's for export!" );
       return;
     }
     try
     {
-      if (dbIds.length == 1)
+      if( dbIds.length == 1 )
       {
-        lg.info("export to dir: <" + SpxPcloggerProgramConfig.exportDir.getAbsolutePath() + ">");
-        uddf.createXML(SpxPcloggerProgramConfig.exportDir, dbIds[0]);
+        lg.info( "export to dir: <" + SpxPcloggerProgramConfig.exportDir.getAbsolutePath() + ">" );
+        uddf.createXML( SpxPcloggerProgramConfig.exportDir, dbIds[0] );
       }
       else
       {
         // könnte dauern, Dialog machen
-        wDial = new PleaseWaitDialog(stringsBundle.getString("PleaseWaitDialog.title"), stringsBundle.getString("PleaseWaitDialog.exportDive"));
-        wDial.setMax(100);
+        wDial = new PleaseWaitDialog( LangStrings.getString( "PleaseWaitDialog.title" ), stringsBundle.getString( "PleaseWaitDialog.exportDive" ) );
+        wDial.setMax( 100 );
         wDial.resetProgress();
-        wDial.setVisible(true);
-        lg.info("export to dir: <" + SpxPcloggerProgramConfig.exportDir.getAbsolutePath() + ">");
-        uddf.createXML(SpxPcloggerProgramConfig.exportDir, dbIds);
+        wDial.setVisible( true );
+        lg.info( "export to dir: <" + SpxPcloggerProgramConfig.exportDir.getAbsolutePath() + ">" );
+        uddf.createXML( SpxPcloggerProgramConfig.exportDir, dbIds );
         // wDial.setVisible( false );
-        showSuccessBox(stringsBundle.getString("fileManagerPanel.succesExport"));
+        showSuccessBox( LangStrings.getString( "fileManagerPanel.succesExport" ) );
       }
     }
-    catch (Exception ex)
+    catch( Exception ex )
     {
-      lg.error(ex.getLocalizedMessage());
-      showWarnBox(stringsBundle.getString("fileManagerPanel.notSuccesExport"));
+      lg.error( ex.getLocalizedMessage() );
+      showWarnBox( LangStrings.getString( "fileManagerPanel.notSuccesExport" ) );
       return;
     }
     finally
     {
-      if (wDial != null)
+      if( wDial != null )
       {
-        wDial.setVisible(false);
+        wDial.setVisible( false );
         wDial.dispose();
         wDial = null;
       }
@@ -278,29 +273,27 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
   }
 
   /**
-   * Aus der Database Tauchgänge löschen
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * Aus der Database Tauchgänge löschen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 16.08.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 16.08.2012
    * @param sets
    */
-  private void deleteDatasetsForIdx(int[] sets)
+  private void deleteDatasetsForIdx( int[] sets )
   {
-    if (device == null)
+    if( device == null )
     {
-      lg.error("no device known in programobject! abort function!");
+      lg.error( "no device known in programobject! abort function!" );
       return;
     }
     // Sets lesen, Array für DatenbankID erzeugen
-    int[] dbIds = getDbIdsForTableIdx(sets);
+    int[] dbIds = getDbIdsForTableIdx( sets );
     //
     // so, jetzt sollte ich die ID haben, löschen angehen
     //
-    dbUtil.deleteAllSetsForIdsLog(dbIds);
+    dbUtil.deleteAllSetsForIdsLog( dbIds );
   }
 
-  private void fillDiveTable(String cDevice)
+  private void fillDiveTable( String cDevice )
   {
     DateTime dateTime;
     long javaTime;
@@ -308,15 +301,15 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     int dbId = -1;
     //
     device = cDevice;
-    if (device != null)
+    if( device != null )
     {
-      lg.debug("search dive list for device <" + device + ">...");
+      lg.debug( "search dive list for device <" + device + ">..." );
       // Eine Liste der Dives lesen
-      lg.debug("read dive list for device from DB...");
-      Vector<String[]> entrys = dbUtil.getDiveListForDeviceLog(device);
-      if (entrys.size() < 1)
+      lg.debug( "read dive list for device from DB..." );
+      Vector<String[]> entrys = dbUtil.getDiveListForDeviceLog( device );
+      if( entrys.size() < 1 )
       {
-        lg.info("no dives for device <" + device + "/" + dbUtil.getAliasForNameConn(device) + "> found in DB.");
+        lg.info( "no dives for device <" + device + "/" + dbUtil.getAliasForNameConn( device ) + "> found in DB." );
         return;
       }
       //
@@ -328,7 +321,7 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       // [4] DBID (ab 04 zeigt die Tabelle mit dem Tabellenmodell DiveExportTableModel nix mehr an!)
       String[][] diveEntrys = new String[entrys.size()][5];
       // die erfragten details zurechtrücken
-      for (Enumeration<String[]> enu = entrys.elements(); enu.hasMoreElements();)
+      for( Enumeration<String[]> enu = entrys.elements(); enu.hasMoreElements(); )
       {
         // Felder sind:
         // [0] H_DIVEID,
@@ -337,17 +330,17 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
         String[] origSet = enu.nextElement();
         // zusammenbauen fuer Anzeige
         // SPX-DiveNumber für vierstellige Anzeige
-        diveEntrys[row][1] = String.format("%4s", origSet[1]);
+        diveEntrys[row][1] = String.format( "%4s", origSet[1] );
         // Die UTC-Zeit als ASCII/UNIX wieder zu der originalen Zeit für Java zusammenbauen
         try
         {
           // Die Tauchgangszeit formatieren
-          javaTime = Long.parseLong(origSet[2]) * 1000;
-          dbId = Integer.parseInt(origSet[0]);
-          dateTime = new DateTime(javaTime);
+          javaTime = Long.parseLong( origSet[2] ) * 1000;
+          dbId = Integer.parseInt( origSet[0] );
+          dateTime = new DateTime( javaTime );
           diveEntrys[row][4] = origSet[0];
           diveEntrys[row][0] = origSet[1];
-          diveEntrys[row][1] = dateTime.toString(stringsBundle.getString("MainCommGUI.timeFormatterString"));
+          diveEntrys[row][1] = dateTime.toString( LangStrings.getString( "MainCommGUI.timeFormatterString" ) );
           // jetzt will ich alle Kopfdaten, die gespeichert sind
           // [0] H_DIVEID,
           // [1] H_DIVENUMBERONSPX,
@@ -361,8 +354,8 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
           // [9] H_SAMPLES,
           // [10] H_DIVELENGTH,
           // [11] H_UNITS,
-          String[] headers = dbUtil.getHeadDiveDataFromIdAsSTringLog(dbId);
-          if (headers[11].equals("METRIC"))
+          String[] headers = dbUtil.getHeadDiveDataFromIdAsSTringLog( dbId );
+          if( headers[11].equals( "METRIC" ) )
           {
             diveEntrys[row][2] = headers[8] + " m";
           }
@@ -372,9 +365,9 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
           }
           diveEntrys[row][3] = headers[10] + " min";
         }
-        catch (NumberFormatException ex)
+        catch( NumberFormatException ex )
         {
-          lg.error("Number format exception (value=<" + origSet[1] + ">: <" + ex.getLocalizedMessage() + ">");
+          lg.error( "Number format exception (value=<" + origSet[1] + ">: <" + ex.getLocalizedMessage() + ">" );
           diveEntrys[row][0] = "error";
         }
         finally
@@ -387,89 +380,90 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       entrys = null;
       // die Tabelle initialisieren
       String[] title = new String[5];
-      title[0] = stringsBundle.getString("fileManagerPanel.diveListHeaders.numberOnSpx");
-      title[1] = stringsBundle.getString("fileManagerPanel.diveListHeaders.startTime");
-      title[2] = stringsBundle.getString("fileManagerPanel.diveListHeaders.maxDepth");
-      title[3] = stringsBundle.getString("fileManagerPanel.diveListHeaders.diveLen");
-      title[4] = stringsBundle.getString("fileManagerPanel.diveListHeaders.dbId");
-      FileManagerTableModel mTable = new FileManagerTableModel(diveEntrys, title);
-      dataViewTable.setModel(mTable);
+      title[0] = LangStrings.getString( "fileManagerPanel.diveListHeaders.numberOnSpx" );
+      title[1] = LangStrings.getString( "fileManagerPanel.diveListHeaders.startTime" );
+      title[2] = LangStrings.getString( "fileManagerPanel.diveListHeaders.maxDepth" );
+      title[3] = LangStrings.getString( "fileManagerPanel.diveListHeaders.diveLen" );
+      title[4] = LangStrings.getString( "fileManagerPanel.diveListHeaders.dbId" );
+      FileManagerTableModel mTable = new FileManagerTableModel( diveEntrys, title );
+      dataViewTable.setModel( mTable );
       // jetzt noch die rechte Spalte verschönern. Rechtsbündig und schmal bitte!
       DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
-      rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
-      TableColumn column = dataViewTable.getColumnModel().getColumn(0);
-      column.setPreferredWidth(60);
-      column.setMaxWidth(120);
-      column.setCellRenderer(rightRenderer);
+      rightRenderer.setHorizontalAlignment( JLabel.RIGHT );
+      TableColumn column = dataViewTable.getColumnModel().getColumn( 0 );
+      column.setPreferredWidth( 60 );
+      column.setMaxWidth( 120 );
+      column.setCellRenderer( rightRenderer );
     }
     else
     {
-      lg.debug("no device found....");
+      lg.debug( "no device found...." );
     }
   }
 
   /**
-   * Fenster vorbereiten
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * Fenster vorbereiten Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 13.08.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.08.2012
    * @param connDev
    * @throws Exception
    */
-  public void initData(String connDev) throws Exception
+  public void initData( String connDev ) throws Exception
   {
     Vector<String[]> entrys;
     //
     // entsorge für alle Fälle das Zeug von vorher
     //
-    deviceComboBox.removeActionListener(this);
+    deviceComboBox.removeActionListener( this );
     releaseLists();
-    if (connDev == null)
+    if( connDev == null )
     {
-      lg.debug("init export objects whitout active Device");
+      lg.debug( "init export objects whitout active Device" );
     }
     else
     {
-      lg.debug("init export objects Device <" + connDev + ">...");
+      lg.debug( "init export objects Device <" + connDev + ">..." );
     }
     //
     // Ist überhaupt eine Datenbank zum Auslesen vorhanden?
     //
-    if (dbUtil == null || (!dbUtil.isOpenDB())) { throw new Exception("no database object initiated!"); }
+    if( dbUtil == null || ( !dbUtil.isOpenDB() ) )
+    {
+      throw new Exception( "no database object initiated!" );
+    }
     //
     // Lese eine Liste der Geräte/Aliase
     //
     entrys = dbUtil.getAliasDataConn();
-    if (entrys == null)
+    if( entrys == null )
     {
-      lg.warn("no devices found in database.");
-      if (stringsBundle != null)
+      lg.warn( "no devices found in database." );
+      if( stringsBundle != null )
       {
-        showWarnBox(stringsBundle.getString("spx42LogGraphPanel.warnBox.noDevicesInDatabase"));
+        showWarnBox( LangStrings.getString( "spx42LogGraphPanel.warnBox.noDevicesInDatabase" ) );
       }
       return;
     }
     //
     // fülle deviceComboBox
     //
-    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel(entrys);
-    deviceComboBox.setModel(portBoxModel);
-    if (entrys.isEmpty())
+    DeviceComboBoxModel portBoxModel = new DeviceComboBoxModel( entrys );
+    deviceComboBox.setModel( portBoxModel );
+    if( entrys.isEmpty() )
     {
       // sind keine Geräte verbunden, nix selektieren
-      deviceComboBox.setSelectedIndex(-1);
+      deviceComboBox.setSelectedIndex( -1 );
     }
     else
     {
       // Alle Einträge testen
       int index = 0;
-      for (String[] entr : entrys)
+      for( String[] entr : entrys )
       {
-        if (entr[0].equals(connDev))
+        if( entr[0].equals( connDev ) )
         {
-          deviceComboBox.setSelectedIndex(index);
-          lg.debug("device found and set as index für combobox...");
+          deviceComboBox.setSelectedIndex( index );
+          lg.debug( "device found and set as index für combobox..." );
           break;
         }
         index++;
@@ -479,149 +473,143 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
     // gibt es einen Eintrag in der Combobox müßte ja deren entsprechende Liste von
     // Einträgen gelesen werden....
     //
-    if (deviceComboBox.getSelectedIndex() != -1)
+    if( deviceComboBox.getSelectedIndex() != -1 )
     {
-      connDev = ((DeviceComboBoxModel) deviceComboBox.getModel()).getDeviceSerialAt(deviceComboBox.getSelectedIndex());
-      if (connDev != null)
+      connDev = ( ( DeviceComboBoxModel )deviceComboBox.getModel() ).getDeviceSerialAt( deviceComboBox.getSelectedIndex() );
+      if( connDev != null )
       {
-        fillDiveTable(connDev);
+        fillDiveTable( connDev );
       }
     }
-    deviceComboBox.addActionListener(this);
+    deviceComboBox.addActionListener( this );
   }
 
   private void initPanel()
   {
-    setPreferredSize(new Dimension(796, 504));
-    setLayout(new BorderLayout(0, 0));
+    setPreferredSize( new Dimension( 796, 504 ) );
+    setLayout( new BorderLayout( 0, 0 ) );
     JPanel topComboBoxPanel = new JPanel();
-    topComboBoxPanel.setPreferredSize(new Dimension(10, 40));
-    add(topComboBoxPanel, BorderLayout.NORTH);
+    topComboBoxPanel.setPreferredSize( new Dimension( 10, 40 ) );
+    add( topComboBoxPanel, BorderLayout.NORTH );
     deviceComboBox = new JComboBox<String>();
-    deviceComboBox.setMaximumRowCount(26);
-    deviceComboBox.setFont(new Font("Dialog", Font.PLAIN, 12));
-    deviceComboBox.setActionCommand("change_device_to_display");
-    deviceComboBox.addMouseMotionListener(mListener);
-    tipLabel = new JLabel("TIP");
-    tipLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    tipLabel.setForeground(new Color(105, 105, 105));
-    tipLabel.setFont(new Font("Tahoma", Font.ITALIC, 11));
-    GroupLayout gl_topComboBoxPanel = new GroupLayout(topComboBoxPanel);
-    gl_topComboBoxPanel.setHorizontalGroup(gl_topComboBoxPanel.createParallelGroup(Alignment.LEADING).addGroup(
-            gl_topComboBoxPanel.createSequentialGroup().addGap(36).addComponent(deviceComboBox, GroupLayout.PREFERRED_SIZE, 277, GroupLayout.PREFERRED_SIZE)
-                    .addGap(18).addComponent(tipLabel, GroupLayout.PREFERRED_SIZE, 423, GroupLayout.PREFERRED_SIZE).addGap(42)));
-    gl_topComboBoxPanel.setVerticalGroup(gl_topComboBoxPanel
-            .createParallelGroup(Alignment.LEADING)
+    deviceComboBox.setMaximumRowCount( 26 );
+    deviceComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
+    deviceComboBox.setActionCommand( "change_device_to_display" );
+    deviceComboBox.addMouseMotionListener( mListener );
+    tipLabel = new JLabel( LangStrings.getString( "fileManagerPanel.tipLabel.text" ) ); //$NON-NLS-1$
+    tipLabel.setHorizontalAlignment( SwingConstants.CENTER );
+    tipLabel.setForeground( new Color( 105, 105, 105 ) );
+    tipLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
+    GroupLayout gl_topComboBoxPanel = new GroupLayout( topComboBoxPanel );
+    gl_topComboBoxPanel.setHorizontalGroup( gl_topComboBoxPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_topComboBoxPanel.createSequentialGroup().addGap( 36 ).addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, 277, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                    .addComponent( tipLabel, GroupLayout.PREFERRED_SIZE, 423, GroupLayout.PREFERRED_SIZE ).addGap( 42 ) ) );
+    gl_topComboBoxPanel.setVerticalGroup( gl_topComboBoxPanel
+            .createParallelGroup( Alignment.LEADING )
             .addGroup(
-                    gl_topComboBoxPanel.createSequentialGroup().addGap(5)
-                            .addComponent(deviceComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-            .addGroup(Alignment.TRAILING, gl_topComboBoxPanel.createSequentialGroup().addContainerGap(26, Short.MAX_VALUE).addComponent(tipLabel)));
-    topComboBoxPanel.setLayout(gl_topComboBoxPanel);
+                    gl_topComboBoxPanel.createSequentialGroup().addGap( 5 )
+                            .addComponent( deviceComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE ) )
+            .addGroup( Alignment.TRAILING, gl_topComboBoxPanel.createSequentialGroup().addContainerGap( 26, Short.MAX_VALUE ).addComponent( tipLabel ) ) );
+    topComboBoxPanel.setLayout( gl_topComboBoxPanel );
     JPanel bottomButtonPanel = new JPanel();
-    bottomButtonPanel.setPreferredSize(new Dimension(10, 60));
-    add(bottomButtonPanel, BorderLayout.SOUTH);
-    cancelButton = new JButton("CANCEL");
-    cancelButton.setHorizontalAlignment(SwingConstants.LEFT);
-    cancelButton.setIconTextGap(15);
-    cancelButton.setIcon(new ImageIcon(spx42FileManagerPanel.class.getResource("/de/dmarcini/submatix/pclogger/res/quit.png")));
-    cancelButton.setEnabled(false);
-    cancelButton.setPreferredSize(new Dimension(180, 40));
-    cancelButton.setMaximumSize(new Dimension(160, 40));
-    cancelButton.setMargin(new Insets(2, 30, 2, 30));
-    cancelButton.setForeground(new Color(0, 100, 0));
-    cancelButton.setBackground(new Color(152, 251, 152));
-    cancelButton.setActionCommand("cancel_selection");
-    cancelButton.addMouseMotionListener(mListener);
-    cancelButton.addActionListener(this);
-    deleteButton = new JButton("DELETE");
-    deleteButton.setHorizontalAlignment(SwingConstants.LEFT);
-    deleteButton.setIconTextGap(15);
-    deleteButton.setIcon(new ImageIcon(spx42FileManagerPanel.class.getResource("/de/dmarcini/submatix/pclogger/res/36.png")));
-    deleteButton.setFont(new Font("Tahoma", Font.BOLD, 12));
-    deleteButton.setEnabled(false);
-    deleteButton.setPreferredSize(new Dimension(180, 40));
-    deleteButton.setMaximumSize(new Dimension(160, 40));
-    deleteButton.setMargin(new Insets(2, 30, 2, 30));
-    deleteButton.setForeground(Color.RED);
-    deleteButton.setBackground(new Color(255, 192, 203));
-    deleteButton.setActionCommand("delete_selection");
-    deleteButton.addMouseMotionListener(mListener);
-    deleteButton.addActionListener(this);
-    exportButton = new JButton("EXPORT");
-    exportButton.setHorizontalAlignment(SwingConstants.LEFT);
-    exportButton.setIconTextGap(15);
-    exportButton.setIcon(new ImageIcon(spx42FileManagerPanel.class.getResource("/de/dmarcini/submatix/pclogger/res/Download.png")));
-    exportButton.setPreferredSize(new Dimension(180, 40));
-    exportButton.setMaximumSize(new Dimension(160, 40));
-    exportButton.setMargin(new Insets(2, 30, 2, 30));
-    exportButton.setForeground(new Color(0, 0, 205));
-    exportButton.setEnabled(false);
-    exportButton.setBackground(new Color(0, 255, 255));
-    exportButton.setActionCommand("export_selection");
-    exportButton.addMouseMotionListener(mListener);
-    exportButton.addActionListener(this);
-    GroupLayout gl_bottomButtonPanel = new GroupLayout(bottomButtonPanel);
-    gl_bottomButtonPanel.setHorizontalGroup(gl_bottomButtonPanel.createParallelGroup(Alignment.LEADING).addGroup(
-            gl_bottomButtonPanel.createSequentialGroup().addGap(36).addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, 191, GroupLayout.PREFERRED_SIZE)
-                    .addPreferredGap(ComponentPlacement.UNRELATED).addComponent(deleteButton, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE)
-                    .addPreferredGap(ComponentPlacement.RELATED, 127, Short.MAX_VALUE)
-                    .addComponent(exportButton, GroupLayout.PREFERRED_SIZE, 191, GroupLayout.PREFERRED_SIZE).addGap(42)));
-    gl_bottomButtonPanel.setVerticalGroup(gl_bottomButtonPanel.createParallelGroup(Alignment.LEADING).addGroup(
+    bottomButtonPanel.setPreferredSize( new Dimension( 10, 60 ) );
+    add( bottomButtonPanel, BorderLayout.SOUTH );
+    cancelButton = new JButton( LangStrings.getString( "fileManagerPanel.cancelButton.text" ) ); //$NON-NLS-1$
+    cancelButton.setHorizontalAlignment( SwingConstants.LEFT );
+    cancelButton.setIconTextGap( 15 );
+    cancelButton.setIcon( new ImageIcon( spx42FileManagerPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/quit.png" ) ) );
+    cancelButton.setEnabled( false );
+    cancelButton.setPreferredSize( new Dimension( 180, 40 ) );
+    cancelButton.setMaximumSize( new Dimension( 160, 40 ) );
+    cancelButton.setMargin( new Insets( 2, 30, 2, 30 ) );
+    cancelButton.setForeground( new Color( 0, 100, 0 ) );
+    cancelButton.setBackground( new Color( 152, 251, 152 ) );
+    cancelButton.setActionCommand( "cancel_selection" );
+    cancelButton.addMouseMotionListener( mListener );
+    cancelButton.addActionListener( this );
+    deleteButton = new JButton( LangStrings.getString( "fileManagerPanel.deleteButton.text" ) ); //$NON-NLS-1$
+    deleteButton.setHorizontalAlignment( SwingConstants.LEFT );
+    deleteButton.setIconTextGap( 15 );
+    deleteButton.setIcon( new ImageIcon( spx42FileManagerPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/36.png" ) ) );
+    deleteButton.setFont( new Font( "Tahoma", Font.BOLD, 12 ) );
+    deleteButton.setEnabled( false );
+    deleteButton.setPreferredSize( new Dimension( 180, 40 ) );
+    deleteButton.setMaximumSize( new Dimension( 160, 40 ) );
+    deleteButton.setMargin( new Insets( 2, 30, 2, 30 ) );
+    deleteButton.setForeground( Color.RED );
+    deleteButton.setBackground( new Color( 255, 192, 203 ) );
+    deleteButton.setActionCommand( "delete_selection" );
+    deleteButton.addMouseMotionListener( mListener );
+    deleteButton.addActionListener( this );
+    exportButton = new JButton( LangStrings.getString( "fileManagerPanel.exportButton.text" ) ); //$NON-NLS-1$
+    exportButton.setHorizontalAlignment( SwingConstants.LEFT );
+    exportButton.setIconTextGap( 15 );
+    exportButton.setIcon( new ImageIcon( spx42FileManagerPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/Download.png" ) ) );
+    exportButton.setPreferredSize( new Dimension( 180, 40 ) );
+    exportButton.setMaximumSize( new Dimension( 160, 40 ) );
+    exportButton.setMargin( new Insets( 2, 30, 2, 30 ) );
+    exportButton.setForeground( new Color( 0, 0, 205 ) );
+    exportButton.setEnabled( false );
+    exportButton.setBackground( new Color( 0, 255, 255 ) );
+    exportButton.setActionCommand( "export_selection" );
+    exportButton.addMouseMotionListener( mListener );
+    exportButton.addActionListener( this );
+    GroupLayout gl_bottomButtonPanel = new GroupLayout( bottomButtonPanel );
+    gl_bottomButtonPanel.setHorizontalGroup( gl_bottomButtonPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_bottomButtonPanel.createSequentialGroup().addGap( 36 ).addComponent( cancelButton, GroupLayout.PREFERRED_SIZE, 191, GroupLayout.PREFERRED_SIZE )
+                    .addPreferredGap( ComponentPlacement.UNRELATED ).addComponent( deleteButton, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE )
+                    .addPreferredGap( ComponentPlacement.RELATED, 127, Short.MAX_VALUE ).addComponent( exportButton, GroupLayout.PREFERRED_SIZE, 191, GroupLayout.PREFERRED_SIZE )
+                    .addGap( 42 ) ) );
+    gl_bottomButtonPanel.setVerticalGroup( gl_bottomButtonPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_bottomButtonPanel
                     .createSequentialGroup()
-                    .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addContainerGap( GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
                     .addGroup(
-                            gl_bottomButtonPanel.createParallelGroup(Alignment.BASELINE)
-                                    .addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(deleteButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(exportButton, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)).addGap(20)));
-    bottomButtonPanel.setLayout(gl_bottomButtonPanel);
+                            gl_bottomButtonPanel.createParallelGroup( Alignment.BASELINE )
+                                    .addComponent( cancelButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( deleteButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
+                                    .addComponent( exportButton, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE ) ).addGap( 20 ) ) );
+    bottomButtonPanel.setLayout( gl_bottomButtonPanel );
     JPanel dataListPanel = new JPanel();
-    add(dataListPanel, BorderLayout.CENTER);
+    add( dataListPanel, BorderLayout.CENTER );
     JScrollPane contentScrollPane = new JScrollPane();
-    GroupLayout gl_dataListPanel = new GroupLayout(dataListPanel);
-    gl_dataListPanel.setHorizontalGroup(gl_dataListPanel.createParallelGroup(Alignment.LEADING).addGroup(
-            gl_dataListPanel.createSequentialGroup().addGap(35).addComponent(contentScrollPane, GroupLayout.PREFERRED_SIZE, 720, GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(41, Short.MAX_VALUE)));
-    gl_dataListPanel.setVerticalGroup(gl_dataListPanel.createParallelGroup(Alignment.TRAILING).addGroup(
-            Alignment.LEADING,
-            gl_dataListPanel.createSequentialGroup().addContainerGap().addComponent(contentScrollPane, GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)
-                    .addContainerGap()));
+    GroupLayout gl_dataListPanel = new GroupLayout( dataListPanel );
+    gl_dataListPanel.setHorizontalGroup( gl_dataListPanel.createParallelGroup( Alignment.LEADING ).addGroup(
+            gl_dataListPanel.createSequentialGroup().addGap( 35 ).addComponent( contentScrollPane, GroupLayout.PREFERRED_SIZE, 720, GroupLayout.PREFERRED_SIZE )
+                    .addContainerGap( 41, Short.MAX_VALUE ) ) );
+    gl_dataListPanel.setVerticalGroup( gl_dataListPanel.createParallelGroup( Alignment.TRAILING ).addGroup( Alignment.LEADING,
+            gl_dataListPanel.createSequentialGroup().addContainerGap().addComponent( contentScrollPane, GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE ).addContainerGap() ) );
     dataViewTable = new JTable();
-    tipLabel.setLabelFor(dataViewTable);
-    dataViewTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-    dataViewTable.getSelectionModel().addListSelectionListener(this);
-    dataViewTable.addMouseMotionListener(mListener);
-    contentScrollPane.setViewportView(dataViewTable);
-    JLabel lblNewLabel = new JLabel("DATALABEL");
-    contentScrollPane.setColumnHeaderView(lblNewLabel);
-    dataListPanel.setLayout(gl_dataListPanel);
+    tipLabel.setLabelFor( dataViewTable );
+    dataViewTable.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
+    dataViewTable.getSelectionModel().addListSelectionListener( this );
+    dataViewTable.addMouseMotionListener( mListener );
+    contentScrollPane.setViewportView( dataViewTable );
+    JLabel lblNewLabel = new JLabel( "DATALABEL" );
+    contentScrollPane.setColumnHeaderView( lblNewLabel );
+    dataListPanel.setLayout( gl_dataListPanel );
   }
 
   /**
-   * Tabelle leeren
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * Tabelle leeren Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 13.08.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.08.2012
    */
   private void releaseLists()
   {
-    dataViewTable.setModel(new FileManagerTableModel(null, null));
-    deleteButton.setEnabled(false);
-    cancelButton.setEnabled(false);
+    dataViewTable.setModel( new FileManagerTableModel( null, null ) );
+    deleteButton.setEnabled( false );
+    cancelButton.setEnabled( false );
   }
 
   /**
-   * Sprachtexte einstellen
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * Sprachtexte einstellen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 13.08.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 13.08.2012
    * @param stringsBundle
    * @return ok oder nicht
    */
-  public int setLanguageStrings(ResourceBundle stringsBundle)
+  public int setLanguageStrings()
   {
     int selectedIndex;
     //
@@ -631,159 +619,156 @@ public class spx42FileManagerPanel extends JPanel implements ActionListener, Lis
       // merke mir das ausgewählte Teilchen
       selectedIndex = deviceComboBox.getSelectedIndex();
       // Sprache richten
-      deviceComboBox.setToolTipText(stringsBundle.getString("fileManagerPanel.deviceComboBox.tooltiptext"));
-      dataViewTable.setToolTipText(stringsBundle.getString("fileManagerPanel.dataViewTable.tooltiptext"));
-      cancelButton.setText(stringsBundle.getString("fileManagerPanel.cancelButton.text"));
-      cancelButton.setToolTipText(stringsBundle.getString("fileManagerPanel.cancelButton.tooltiptext"));
-      deleteButton.setText(stringsBundle.getString("fileManagerPanel.deleteButton.text"));
-      deleteButton.setToolTipText(stringsBundle.getString("fileManagerPanel.deleteButton.tooltiptext"));
-      exportButton.setText(stringsBundle.getString("fileManagerPanel.exportButton.text"));
-      exportButton.setToolTipText(stringsBundle.getString("fileManagerPanel.exportButton.tooltiptext"));
-      tipLabel.setText(stringsBundle.getString("fileManagerPanel.tipLabel.text"));
+      deviceComboBox.setToolTipText( LangStrings.getString( "fileManagerPanel.deviceComboBox.tooltiptext" ) );
+      dataViewTable.setToolTipText( LangStrings.getString( "fileManagerPanel.dataViewTable.tooltiptext" ) );
+      cancelButton.setText( LangStrings.getString( "fileManagerPanel.cancelButton.text" ) );
+      cancelButton.setToolTipText( LangStrings.getString( "fileManagerPanel.cancelButton.tooltiptext" ) );
+      deleteButton.setText( LangStrings.getString( "fileManagerPanel.deleteButton.text" ) );
+      deleteButton.setToolTipText( LangStrings.getString( "fileManagerPanel.deleteButton.tooltiptext" ) );
+      exportButton.setText( LangStrings.getString( "fileManagerPanel.exportButton.text" ) );
+      exportButton.setToolTipText( LangStrings.getString( "fileManagerPanel.exportButton.tooltiptext" ) );
+      tipLabel.setText( LangStrings.getString( "fileManagerPanel.tipLabel.text" ) );
       // jetzt die Box neu befüllen, mit Trick 17...
       releaseLists();
-      deviceComboBox.setSelectedIndex(-1);
+      deviceComboBox.setSelectedIndex( -1 );
       // wenn da eine Auswahl war, wieder setzen und dann wird die Box auch neu befüllt
-      if (selectedIndex != -1)
+      if( selectedIndex != -1 )
       {
-        deviceComboBox.setSelectedIndex(selectedIndex);
+        deviceComboBox.setSelectedIndex( selectedIndex );
       }
     }
-    catch (NullPointerException ex)
+    catch( NullPointerException ex )
     {
-      System.out.println("ERROR set language strings <" + ex.getMessage() + "> ABORT!");
-      return (-1);
+      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
+      return( -1 );
     }
-    catch (MissingResourceException ex)
+    catch( MissingResourceException ex )
     {
-      System.out.println("ERROR set language strings - the given key can be found <" + ex.getMessage() + "> ABORT!");
-      return (0);
+      System.out.println( "ERROR set language strings - the given key can be found <" + ex.getMessage() + "> ABORT!" );
+      return( 0 );
     }
-    catch (ClassCastException ex)
+    catch( ClassCastException ex )
     {
-      System.out.println("ERROR set language strings <" + ex.getMessage() + "> ABORT!");
-      return (0);
+      System.out.println( "ERROR set language strings <" + ex.getMessage() + "> ABORT!" );
+      return( 0 );
     }
-    return (1);
+    return( 1 );
   }
 
-  private int showAskBox(String msg)
+  private int showAskBox( String msg )
   {
     try
     {
-      Object[] options = { stringsBundle.getString("fileManagerPanel.showAskBox.no"), stringsBundle.getString("fileManagerPanel.showAskBox.yes") };
-      return JOptionPane.showOptionDialog(this, msg, stringsBundle.getString("fileManagerPanel.showAskBox.headline"), JOptionPane.OK_CANCEL_OPTION,
-              JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+      Object[] options =
+      { LangStrings.getString( "fileManagerPanel.showAskBox.no" ), stringsBundle.getString( "fileManagerPanel.showAskBox.yes" ) };
+      return JOptionPane.showOptionDialog( this, msg, LangStrings.getString( "fileManagerPanel.showAskBox.headline" ), JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
+              null, options, options[1] );
     }
-    catch (NullPointerException ex)
+    catch( NullPointerException ex )
     {
-      lg.error("ERROR showAskBox <" + ex.getMessage() + "> ABORT!");
+      lg.error( "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
       return JOptionPane.CANCEL_OPTION;
     }
-    catch (MissingResourceException ex)
+    catch( MissingResourceException ex )
     {
-      lg.error("ERROR showAskBox <" + ex.getMessage() + "> ABORT!");
+      lg.error( "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
       return JOptionPane.CANCEL_OPTION;
     }
-    catch (ClassCastException ex)
+    catch( ClassCastException ex )
     {
-      lg.error("ERROR showAskBox <" + ex.getMessage() + "> ABORT!");
+      lg.error( "ERROR showAskBox <" + ex.getMessage() + "> ABORT!" );
       return JOptionPane.CANCEL_OPTION;
-    }
-  }
-
-  /**
-   * Zeige eine Warnung an!
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 30.08.2012
-   * @param msg
-   */
-  private void showWarnBox(String msg)
-  {
-    ImageIcon icon = null;
-    try
-    {
-      icon = new ImageIcon(MainCommGUI.class.getResource("/de/dmarcini/submatix/pclogger/res/Abort.png"));
-      JOptionPane.showMessageDialog(this, msg, stringsBundle.getString("MainCommGUI.warnDialog.headline"), JOptionPane.WARNING_MESSAGE, icon);
-    }
-    catch (NullPointerException ex)
-    {
-      lg.error("ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!");
-      return;
-    }
-    catch (MissingResourceException ex)
-    {
-      lg.error("ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!");
-      return;
-    }
-    catch (ClassCastException ex)
-    {
-      lg.error("ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!");
-      return;
     }
   }
 
   /**
-   * ERfolgreich beendet-Box
-   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * Zeige eine Warnung an! Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 30.08.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 30.08.2012
    * @param msg
    */
-  private void showSuccessBox(String msg)
+  private void showWarnBox( String msg )
   {
     ImageIcon icon = null;
     try
     {
-      icon = new ImageIcon(MainCommGUI.class.getResource("/de/dmarcini/submatix/pclogger/res/94.png"));
-      JOptionPane.showMessageDialog(this, msg, stringsBundle.getString("MainCommGUI.successDialog.headline"), JOptionPane.OK_OPTION, icon);
+      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Abort.png" ) );
+      JOptionPane.showMessageDialog( this, msg, LangStrings.getString( "MainCommGUI.warnDialog.headline" ), JOptionPane.WARNING_MESSAGE, icon );
     }
-    catch (NullPointerException ex)
+    catch( NullPointerException ex )
     {
-      lg.error("ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!");
+      lg.error( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
-    catch (MissingResourceException ex)
+    catch( MissingResourceException ex )
     {
-      lg.error("ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!");
+      lg.error( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
-    catch (ClassCastException ex)
+    catch( ClassCastException ex )
     {
-      lg.error("ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!");
+      lg.error( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+  }
+
+  /**
+   * ERfolgreich beendet-Box Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 30.08.2012
+   * @param msg
+   */
+  private void showSuccessBox( String msg )
+  {
+    ImageIcon icon = null;
+    try
+    {
+      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/94.png" ) );
+      JOptionPane.showMessageDialog( this, msg, LangStrings.getString( "MainCommGUI.successDialog.headline" ), JOptionPane.OK_OPTION, icon );
+    }
+    catch( NullPointerException ex )
+    {
+      lg.error( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( MissingResourceException ex )
+    {
+      lg.error( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
+      return;
+    }
+    catch( ClassCastException ex )
+    {
+      lg.error( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
   }
 
   @Override
-  public void valueChanged(ListSelectionEvent ev)
+  public void valueChanged( ListSelectionEvent ev )
   {
-    if (!ev.getValueIsAdjusting())
+    if( !ev.getValueIsAdjusting() )
     {
       // es haben sich selektierte Spalten geändert?
-      lg.debug("selected Rows changed....");
+      lg.debug( "selected Rows changed...." );
       // es war meine Datentabelle
-      if (dataViewTable.getSelectedRowCount() > 0)
+      if( dataViewTable.getSelectedRowCount() > 0 )
       {
-        lg.debug(String.format("selected Rows <%02d>....", dataViewTable.getSelectedRowCount()));
-        deleteButton.setEnabled(true);
-        cancelButton.setEnabled(true);
-        exportButton.setEnabled(true);
+        lg.debug( String.format( "selected Rows <%02d>....", dataViewTable.getSelectedRowCount() ) );
+        deleteButton.setEnabled( true );
+        cancelButton.setEnabled( true );
+        exportButton.setEnabled( true );
       }
       else
       {
-        lg.debug("NO selected Rows....");
-        deleteButton.setEnabled(false);
-        cancelButton.setEnabled(false);
-        exportButton.setEnabled(false);
+        lg.debug( "NO selected Rows...." );
+        deleteButton.setEnabled( false );
+        cancelButton.setEnabled( false );
+        exportButton.setEnabled( false );
       }
     }
     else
     {
-      lg.debug("selected Rows changing in progress....");
+      lg.debug( "selected Rows changing in progress...." );
     }
   }
 }

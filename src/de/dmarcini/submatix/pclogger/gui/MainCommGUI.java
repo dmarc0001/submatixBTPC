@@ -2325,7 +2325,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane import/export
       tabbedPane.setTitleAt( programTabs.TAB_FILEMANAGER.ordinal(), LangStrings.getString( "fileManagerPanel.title" ) );
-      fileManagerPanel.setLanguageStrings( stringsBundle );
+      fileManagerPanel.setLanguageStrings();
     }
     catch( NullPointerException ex )
     {

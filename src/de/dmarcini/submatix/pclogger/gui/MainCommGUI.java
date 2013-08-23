@@ -2317,7 +2317,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane log
       tabbedPane.setTitleAt( programTabs.TAB_LOGREAD.ordinal(), LangStrings.getString( "spx42LoglistPanel.title" ) );
-      logListPanel.setLanguageStrings( stringsBundle );
+      logListPanel.setLanguageStrings();
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane graph
       tabbedPane.setTitleAt( programTabs.TAB_LOGGRAPH.ordinal(), LangStrings.getString( "spx42LogGraphPanel.title" ) );

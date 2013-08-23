@@ -12,7 +12,6 @@ import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.util.Locale;
 import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
@@ -35,6 +34,7 @@ import javax.swing.border.TitledBorder;
 
 import org.apache.log4j.Logger;
 
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
@@ -80,28 +80,17 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
   private String            fileChooserExportDirTitle;
 
   /**
-   * Vor Aufruf schützen
-   */
-  @SuppressWarnings( "unused" )
-  private ProgramProperetysDialog()
-  {
-    initDialog();
-  }
-
-  /**
    * Konstruiere den Dialog mit den Eingenschaften Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.07.2012
-   * @param stringsBundle
-   * @param progConfig
    */
-  public ProgramProperetysDialog( ResourceBundle stringsBundle )
+  public ProgramProperetysDialog()
   {
     this.lg = SpxPcloggerProgramConfig.LOGGER;
     initDialog();
     lg.debug( "ProgramProperetysDialog created..." );
     JComponent.setDefaultLocale( Locale.getDefault() );
-    setLanguageStrings( stringsBundle );
+    setLanguageStrings();
     databaseDirTextField.setText( SpxPcloggerProgramConfig.databaseDir.getAbsolutePath() );
     logfileNameTextField.setText( SpxPcloggerProgramConfig.logFile.getAbsolutePath() );
     exportDirTextField.setText( SpxPcloggerProgramConfig.exportDir.getAbsolutePath() );
@@ -334,7 +323,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     contentPanel.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
     getContentPane().add( contentPanel, BorderLayout.SOUTH );
     {
-      btnCancel = new JButton( "CANCEL" );
+      btnCancel = new JButton( LangStrings.getString( "ProgramProperetysDialog.btnCancel.text" ) ); //$NON-NLS-1$
       btnCancel.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/114.png" ) ) );
       btnCancel.setHorizontalAlignment( SwingConstants.LEFT );
       btnCancel.setIconTextGap( 15 );
@@ -348,7 +337,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
       btnCancel.addMouseMotionListener( this );
     }
     {
-      btnOk = new JButton( "OK" );
+      btnOk = new JButton( LangStrings.getString( "ProgramProperetysDialog.btnOk.text" ) ); //$NON-NLS-1$
       btnOk.setIconTextGap( 15 );
       btnOk.setHorizontalAlignment( SwingConstants.LEFT );
       btnOk.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/31.png" ) ) );
@@ -391,17 +380,17 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
                     .addGroup(
                             gl_contentPanel.createParallelGroup( Alignment.BASELINE ).addComponent( btnOk, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE )
                                     .addComponent( btnCancel, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE ) ) ) );
-    databaseDirLabel = new JLabel( "DATABASEDIR" );
+    databaseDirLabel = new JLabel( LangStrings.getString( "ProgramProperetysDialog.databaseDirLabel.text" ) ); //$NON-NLS-1$
     databaseDirTextField = new JTextField();
     databaseDirTextField.setEditable( false );
     databaseDirTextField.addMouseMotionListener( this );
     databaseDirTextField.setColumns( 10 );
-    logfileLabel = new JLabel( "LOGFILENAME" );
+    logfileLabel = new JLabel( LangStrings.getString( "ProgramProperetysDialog.logFileLabel.text" ) ); //$NON-NLS-1$
     logfileNameTextField = new JTextField();
     logfileNameTextField.setEditable( false );
     logfileNameTextField.addMouseMotionListener( this );
     logfileNameTextField.setColumns( 10 );
-    moveDataCheckBox = new JCheckBox( "MOVECHECKBOX" );
+    moveDataCheckBox = new JCheckBox( LangStrings.getString( "ProgramProperetysDialog.moveDataCheckBox.text" ) ); //$NON-NLS-1$
     moveDataCheckBox.addMouseMotionListener( this );
     databaseDirFileButton = new JButton( "" );
     databaseDirFileButton.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource( "/javax/swing/plaf/metal/icons/ocean/directory.gif" ) ) );
@@ -413,7 +402,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     logfileNameButton.addActionListener( this );
     logfileNameButton.setActionCommand( "choose_logfile" );
     logfileNameButton.addMouseMotionListener( this );
-    exportDirLabel = new JLabel( "EXPORTDIR" );
+    exportDirLabel = new JLabel( LangStrings.getString( "ProgramProperetysDialog.exportDirLabel.text" ) ); //$NON-NLS-1$
     exportDirTextField = new JTextField();
     exportDirTextField.setEditable( false );
     exportDirTextField.setColumns( 10 );
@@ -507,19 +496,19 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
                                     .addComponent( exportDirTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
                                     .addComponent( exportDirButton, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE ) ).addGap( 24 ) ) );
     pahtsPanel.setLayout( gl_pahtsPanel );
-    defaultUnitsRadioButton = new JRadioButton( "DEFAULT" );
+    defaultUnitsRadioButton = new JRadioButton( LangStrings.getString( "ProgramPropertysDialog.defaultUnitsRadioButton.text" ) ); //$NON-NLS-1$
     defaultUnitsRadioButton.setSelected( true );
     defaultUnitsRadioButton.setActionCommand( "rbutton" );
     defaultUnitsRadioButton.addActionListener( this );
-    metricUnitsRadioButton = new JRadioButton( "METRIC" );
+    metricUnitsRadioButton = new JRadioButton( LangStrings.getString( "ProgramPropertysDialog.metricUnitsRadioButton.text" ) ); //$NON-NLS-1$
     metricUnitsRadioButton.setActionCommand( "rbutton" );
     metricUnitsRadioButton.addActionListener( this );
-    imperialUnitsRadioButton = new JRadioButton( "IMPERIAL" );
+    imperialUnitsRadioButton = new JRadioButton( LangStrings.getString( "ProgramPropertysDialog.imperialUnitsRadioButton.text" ) ); //$NON-NLS-1$
     imperialUnitsRadioButton.addActionListener( this );
     imperialUnitsRadioButton.setActionCommand( "rbutton" );
-    defaultUnitsLabel = new JLabel( "as is" );
-    metricUnitsLabel = new JLabel( "to metric" );
-    imperialUnitsLabel = new JLabel( "to imperial" );
+    defaultUnitsLabel = new JLabel( LangStrings.getString( "ProgramProperetysDialog.defaultUnitsLabel.text" ) ); //$NON-NLS-1$
+    metricUnitsLabel = new JLabel( LangStrings.getString( "ProgramProperetysDialog.metricUnitsLabel.text" ) ); //$NON-NLS-1$
+    imperialUnitsLabel = new JLabel( LangStrings.getString( "ProgramProperetysDialog.imperialUnitsLabel.text" ) ); //$NON-NLS-1$
     GroupLayout gl_untitsPanel = new GroupLayout( unitsPanel );
     gl_untitsPanel.setHorizontalGroup( gl_untitsPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_untitsPanel
@@ -567,38 +556,40 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
    * Alle sprachabhängigen String setzen Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 03.08.2012
-   * @param stringsBundle
    * @return alles ok?
    */
-  public int setLanguageStrings( ResourceBundle stringsBundle )
+  public int setLanguageStrings()
   {
     try
     {
-      setTitle( stringsBundle.getString( "ProgramProperetysDialog.title.text" ) );
-      databaseDirLabel.setText( stringsBundle.getString( "ProgramProperetysDialog.databaseDirLabel.text" ) );
-      logfileLabel.setText( stringsBundle.getString( "ProgramProperetysDialog.logFileLabel.text" ) );
-      databaseDirTextField.setToolTipText( stringsBundle.getString( "ProgramProperetysDialog.databaseDirTextField.tooltiptext" ) );
-      logfileNameTextField.setToolTipText( stringsBundle.getString( "ProgramProperetysDialog.logfileNameTextField.tooltiptext" ) );
-      moveDataCheckBox.setText( stringsBundle.getString( "ProgramProperetysDialog.moveDataCheckBox.text" ) );
-      moveDataCheckBox.setToolTipText( stringsBundle.getString( "ProgramProperetysDialog.moveDataCheckBox.tooltiptext" ) );
-      btnCancel.setText( stringsBundle.getString( "ProgramProperetysDialog.btnCancel.text" ) );
-      btnCancel.setToolTipText( stringsBundle.getString( "ProgramProperetysDialog.btnCancel.tooltiptext" ) );
-      btnOk.setText( stringsBundle.getString( "ProgramProperetysDialog.btnOk.text" ) );
-      btnOk.setToolTipText( stringsBundle.getString( "ProgramProperetysDialog.btnOk.tooltiptext" ) );
-      ( ( TitledBorder )( pahtsPanel.getBorder() ) ).setTitle( " " + stringsBundle.getString( "ProgramProperetysDialog.pathBorderTitle.text" ) + " " );
-      ( ( TitledBorder )( unitsPanel.getBorder() ) ).setTitle( " " + stringsBundle.getString( "ProgramProperetysDialog.unitsBorderTitle.text" ) + " " );
-      defaultUnitsLabel.setText( stringsBundle.getString( "ProgramProperetysDialog.defaultUnitsLabel.text" ) );
-      metricUnitsLabel.setText( stringsBundle.getString( "ProgramProperetysDialog.metricUnitsLabel.text" ) );
-      imperialUnitsLabel.setText( stringsBundle.getString( "ProgramProperetysDialog.imperialUnitsLabel.text" ) );
-      approveLogButtonText = stringsBundle.getString( "ProgramProperetysDialog.approveLogButtonText.text" );
-      approveLogButtonTooltip = stringsBundle.getString( "ProgramProperetysDialog.approveLogButtonTooltip.text" );
-      fileChooserLogTitle = stringsBundle.getString( "ProgramProperetysDialog.fileChooserLogTitle.text" );
-      approveDirButtonText = stringsBundle.getString( "ProgramProperetysDialog.approveDirButtonText.text" );
-      approveDirButtonTooltip = stringsBundle.getString( "ProgramProperetysDialog.approveDirButtonTooltip.text" );
-      fileChooserDirTitle = stringsBundle.getString( "ProgramProperetysDialog.fileChooserDirTitle.text" );
-      fileChooserExportDirTitle = stringsBundle.getString( "ProgramProperetysDialog.fileChooserExportDirTitle.text" );
-      exportDirLabel.setText( stringsBundle.getString( "ProgramProperetysDialog.exportDirLabel.text" ) );
-      exportDirTextField.setToolTipText( stringsBundle.getString( "ProgramProperetysDialog.exportDirTextField.tooltiptext" ) );
+      setTitle( LangStrings.getString( "ProgramProperetysDialog.title.text" ) );
+      databaseDirLabel.setText( LangStrings.getString( "ProgramProperetysDialog.databaseDirLabel.text" ) );
+      logfileLabel.setText( LangStrings.getString( "ProgramProperetysDialog.logFileLabel.text" ) );
+      databaseDirTextField.setToolTipText( LangStrings.getString( "ProgramProperetysDialog.databaseDirTextField.tooltiptext" ) );
+      logfileNameTextField.setToolTipText( LangStrings.getString( "ProgramProperetysDialog.logfileNameTextField.tooltiptext" ) );
+      moveDataCheckBox.setText( LangStrings.getString( "ProgramProperetysDialog.moveDataCheckBox.text" ) );
+      moveDataCheckBox.setToolTipText( LangStrings.getString( "ProgramProperetysDialog.moveDataCheckBox.tooltiptext" ) );
+      btnCancel.setText( LangStrings.getString( "ProgramProperetysDialog.btnCancel.text" ) );
+      btnCancel.setToolTipText( LangStrings.getString( "ProgramProperetysDialog.btnCancel.tooltiptext" ) );
+      btnOk.setText( LangStrings.getString( "ProgramProperetysDialog.btnOk.text" ) );
+      btnOk.setToolTipText( LangStrings.getString( "ProgramProperetysDialog.btnOk.tooltiptext" ) );
+      ( ( TitledBorder )( pahtsPanel.getBorder() ) ).setTitle( " " + LangStrings.getString( "ProgramProperetysDialog.pathBorderTitle.text" ) + " " );
+      ( ( TitledBorder )( unitsPanel.getBorder() ) ).setTitle( " " + LangStrings.getString( "ProgramProperetysDialog.unitsBorderTitle.text" ) + " " );
+      defaultUnitsLabel.setText( LangStrings.getString( "ProgramProperetysDialog.defaultUnitsLabel.text" ) );
+      metricUnitsLabel.setText( LangStrings.getString( "ProgramProperetysDialog.metricUnitsLabel.text" ) );
+      imperialUnitsLabel.setText( LangStrings.getString( "ProgramProperetysDialog.imperialUnitsLabel.text" ) );
+      approveLogButtonText = LangStrings.getString( "ProgramProperetysDialog.approveLogButtonText.text" );
+      approveLogButtonTooltip = LangStrings.getString( "ProgramProperetysDialog.approveLogButtonTooltip.text" );
+      fileChooserLogTitle = LangStrings.getString( "ProgramProperetysDialog.fileChooserLogTitle.text" );
+      approveDirButtonText = LangStrings.getString( "ProgramProperetysDialog.approveDirButtonText.text" );
+      approveDirButtonTooltip = LangStrings.getString( "ProgramProperetysDialog.approveDirButtonTooltip.text" );
+      fileChooserDirTitle = LangStrings.getString( "ProgramProperetysDialog.fileChooserDirTitle.text" );
+      fileChooserExportDirTitle = LangStrings.getString( "ProgramProperetysDialog.fileChooserExportDirTitle.text" );
+      exportDirLabel.setText( LangStrings.getString( "ProgramProperetysDialog.exportDirLabel.text" ) );
+      exportDirTextField.setToolTipText( LangStrings.getString( "ProgramProperetysDialog.exportDirTextField.tooltiptext" ) );
+      defaultUnitsRadioButton = new JRadioButton( LangStrings.getString( "ProgramPropertysDialog.defaultUnitsRadioButton.text" ) ); //$NON-NLS-1$
+      metricUnitsRadioButton = new JRadioButton( LangStrings.getString( "ProgramPropertysDialog.metricUnitsRadioButton.text" ) );
+      imperialUnitsRadioButton = new JRadioButton( LangStrings.getString( "ProgramPropertysDialog.imperialUnitsRadioButton.text" ) );
     }
     catch( NullPointerException ex )
     {

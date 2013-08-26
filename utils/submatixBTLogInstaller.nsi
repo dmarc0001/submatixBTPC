@@ -14,8 +14,12 @@ SetDatablockOptimize on
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
-; MUI 1.67 compatible ------
-!include "MUI.nsh"
+; Meine Variablen zur Vereinfachung
+!define START_LINK "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION}.lnk"
+!define DEBUG_LINK "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION} DEBUG.lnk"
+!define SOURCE_FILES "C:\DATEN\submatix\submatixBTLog"
+
+!include "MUI2.nsh"
 
 ; MUI Settings
 !define MUI_ABORTWARNING
@@ -61,28 +65,27 @@ FunctionEnd
 
 Section "MAIN" SEC01
   SetOutPath "$INSTDIR"
-  CreateDirectory "$INSTDIR\lib"
-  CreateDirectory "$INSTDIR\database"
+  CreateDirectory "lib"
   SetOverwrite ifnewer
-  File "..\..\..\submatix\submatixBTLog\versioncheck.jar"
-  File "..\..\..\submatix\submatixBTLog\submatixBTForPC.jar"
-  File "..\..\..\submatix\submatixBTLog\submatix_start_this_on_trouble.bat"
-  File "..\..\..\submatix\submatixBTLog\submatix_start.bat"
-  File "..\..\..\submatix\submatixBTLog\progicon.ico"
-  File "..\..\..\submatix\submatixBTLog\unicon.ico"
+  File "${SOURCE_FILES}\versioncheck.jar"
+  File "${SOURCE_FILES}\submatixBTForPC.jar"
+  File "${SOURCE_FILES}\submatix_start_this_on_trouble.bat"
+  File "${SOURCE_FILES}\submatix_start.bat"
+  File "${SOURCE_FILES}\progicon.ico"
+  File "${SOURCE_FILES}\unicon.ico"
   SetOutPath "$INSTDIR\lib"
-  File "..\..\..\submatix\submatixBTLog\lib\rxtxSerial_win_x86.dll"
-  File "..\..\..\submatix\submatixBTLog\lib\rxtxSerial_win_amd64.dll"
-  File "..\..\..\submatix\submatixBTLog\lib\rxtxParallel_win_x86.dll"
-  File "..\..\..\submatix\submatixBTLog\lib\rxtxParallel_win_amd64.dll"
-  File "..\..\..\submatix\submatixBTLog\lib\librxtxSerial_linux_x86.so"
-  File "..\..\..\submatix\submatixBTLog\lib\librxtxSerial_linux_amd64.so"
-  File "..\..\..\submatix\submatixBTLog\lib\librxtxSerial.jnilib"
-  File "..\..\..\submatix\submatixBTLog\lib\librxtxParallel_linux_x86.so"
-  File "..\..\..\submatix\submatixBTLog\lib\librxtxParallel_linux_amd64.so"
+  File "${SOURCE_FILES}\lib\rxtxSerial_win_x86.dll"
+  File "${SOURCE_FILES}\lib\rxtxSerial_win_amd64.dll"
+  File "${SOURCE_FILES}\lib\rxtxParallel_win_x86.dll"
+  File "${SOURCE_FILES}\lib\rxtxParallel_win_amd64.dll"
+  File "${SOURCE_FILES}\lib\librxtxSerial_linux_x86.so"
+  File "${SOURCE_FILES}\lib\librxtxSerial_linux_amd64.so"
+  File "${SOURCE_FILES}\lib\librxtxSerial.jnilib"
+  File "${SOURCE_FILES}\lib\librxtxParallel_linux_x86.so"
+  File "${SOURCE_FILES}\lib\librxtxParallel_linux_amd64.so"
   CreateDirectory "$SMPROGRAMS\submatixBTLog"
-  CreateShortCut "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION}.lnk" "$INSTDIR\submatix_start.bat" icon.file "$INSTDIR\progicon.ico"
-  CreateShortCut "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION} DEBUG.lnk" "$INSTDIR\submatix_start.bat" icon_file "$INSTDIR\progicon.ico"
+  CreateShortCut "${START_LINK}" "$INSTDIR\submatix_start.bat" icon.file "$INSTDIR\progicon.ico"
+  CreateShortCut "${DEBUG_LINK}" "$INSTDIR\submatix_start.bat" icon_file "$INSTDIR\progicon.ico"
 SectionEnd
 
 Section -AdditionalIcons
@@ -108,7 +111,7 @@ FunctionEnd
 
 Function un.onInit
 !insertmacro MUI_UNGETLANGUAGE
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Möchten Sie $(^Name) und alle seinen Komponenten deinstallieren?" IDYES +2
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Möchten Sie $(^Name) und alle seine Komponenten deinstallieren?" IDYES +2
   Abort
 FunctionEnd
 
@@ -132,12 +135,11 @@ Section Uninstall
   Delete "$INSTDIR\derby.log"
   Delete "$INSTDIR\spxLogProgram.conf"
   Delete "$SMPROGRAMS\submatixBTLog\Uninstall.lnk"
-  Delete "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION}.lnk"
-  Delete "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION} DEBUG.lnk"
-  RMDir /r "$SMPROGRAMS\submatixBTLog"
+  Delete "${START_LINK}"
+  Delete "${DEBUG_LINK}"
+  RMDir /r /REBOOTOK "$SMPROGRAMS\submatixBTLog"
   RMDir "$INSTDIR\lib"
-  RMDir "$INSTDIR\database"
-  RMDir /r "$INSTDIR"
+  RMDir /r /REBOOTOK  "$INSTDIR"
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   SetAutoClose true
 SectionEnd

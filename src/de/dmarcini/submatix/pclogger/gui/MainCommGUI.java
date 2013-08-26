@@ -66,6 +66,7 @@ import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.ConfigReadWriteException;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
+import de.dmarcini.submatix.pclogger.utils.NoDatabaseException;
 import de.dmarcini.submatix.pclogger.utils.OperatingSystemDetector;
 import de.dmarcini.submatix.pclogger.utils.ReadConfig;
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
@@ -269,7 +270,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * @return
    * @throws Exception
    */
-  @SuppressWarnings( "null" )
   private static boolean parseCliOptions( String[] args ) throws Exception
   {
     CommandLine cmdLine = null;
@@ -506,11 +506,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     //
     // Grundsätzliche Sachen einstellen
     //
-    if( !SpxPcloggerProgramConfig.databaseDir.isDirectory() )
-    {
-      lg.error( "can't create data directory <" + SpxPcloggerProgramConfig.databaseDir.getAbsolutePath() + ">" );
-      System.exit( -1 );
-    }
     try
     {
       ResourceBundle.clearCache();
@@ -538,6 +533,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         Locale.setDefault( programLocale );
         stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
       }
+      checkDatabaseDirectory();
     }
     catch( MissingResourceException ex )
     {
@@ -555,6 +551,11 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         lg.error( "ERROR get resources <" + ex1.getMessage() + "> give up..." );
         System.exit( -1 );
       }
+    }
+    catch( NoDatabaseException ex )
+    {
+      showErrorDialog( ex.getLocalizedMessage() );
+      System.exit( -1 );
     }
     //
     // jetzt die wichtigen anderen Sachen, die dauern.
@@ -602,20 +603,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Starte einen virtuellen Portfinder Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 21.08.2013
-   * @param _model
-   */
-  private void startVirtualPortFinder( DefaultComboBoxModel<String> _model )
-  {
-    VirtualSerialPortsFinder vPortFinder = new VirtualSerialPortsFinder( this, _model );
-    Thread th = new Thread( vPortFinder );
-    th.setName( "virtual_port_finder" );
-    th.start();
-  }
-
-  /**
    * Wenn ein element meint, was zu melden...
    */
   @Override
@@ -653,6 +640,251 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
+   * Checkbox hat sich verändert
+   */
+  @Override
+  public void itemStateChanged( ItemEvent ev )
+  {
+    if( ignoreAction ) return;
+    // ////////////////////////////////////////////////////////////////////////
+    // Checkbox Event?
+    if( ev.getSource() instanceof JCheckBox )
+    {
+      JCheckBox cb = ( JCheckBox )ev.getItemSelectable();
+      String cmd = cb.getActionCommand();
+      // //////////////////////////////////////////////////////////////////////
+      // Dynamische Gradienten?
+      if( cmd.equals( "dyn_gradients_on" ) )
+      {
+        lg.debug( "dynamic gradients <" + cb.isSelected() + ">" );
+        currentConfig.setDynGradientsEnable( cb.isSelected() );
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Deepstops
+      else if( cmd.equals( "deepstops_on" ) )
+      {
+        lg.debug( "depstops <" + cb.isSelected() + ">" );
+        currentConfig.setDeepStopEnable( cb.isSelected() );
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Passive Semiclose Rebreather Mode?
+      else if( cmd.equals( "individuals_pscr_on" ) )
+      {
+        lg.debug( "pscr mode  <" + cb.isSelected() + ">" );
+        currentConfig.setPscrModeEnabled( cb.isSelected() );
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Sensor warning on/off
+      else if( cmd.equals( "individual_sensors_on" ) )
+      {
+        lg.debug( "sensors on  <" + cb.isSelected() + ">" );
+        currentConfig.setSensorsEnabled( cb.isSelected() );
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Warnungen an/aus
+      else if( cmd.equals( "individuals_warnings_on" ) )
+      {
+        lg.debug( "warnings on  <" + cb.isSelected() + ">" );
+        currentConfig.setSountEnabled( cb.isSelected() );
+      }
+      else
+      {
+        lg.warn( "unknown item changed: <" + cb.getActionCommand() + "> <" + cb.isSelected() + ">" );
+      }
+    }
+  }
+
+  @Override
+  public void mouseDragged( MouseEvent ev )
+  {}
+
+  /**
+   * Wenn sich die Maus über was bewegt...
+   */
+  @Override
+  public void mouseMoved( MouseEvent ev )
+  {
+    // Ist die Maus da irgendwo hingefahren?
+    if( ev.getSource() instanceof JButton )
+    {
+      setStatus( ( ( JButton )ev.getSource() ).getToolTipText() );
+    }
+    else if( ev.getSource() instanceof JComboBox<?> )
+    {
+      setStatus( ( ( JComboBox<?> )ev.getSource() ).getToolTipText() );
+    }
+    else if( ev.getSource() instanceof JMenuItem )
+    {
+      setStatus( ( ( JMenuItem )ev.getSource() ).getToolTipText() );
+    }
+    else if( ev.getSource() instanceof JSpinner )
+    {
+      setStatus( ( ( JSpinner )ev.getSource() ).getToolTipText() );
+    }
+    else if( ev.getSource() instanceof JCheckBox )
+    {
+      setStatus( ( ( JCheckBox )ev.getSource() ).getToolTipText() );
+    }
+    else if( ev.getSource() instanceof JTable )
+    {
+      setStatus( ( ( JTable )ev.getSource() ).getToolTipText() );
+    }
+    else
+    {
+      setStatus( "" );
+    }
+  }
+
+  @Override
+  public void stateChanged( ChangeEvent ev )
+  {
+    JSpinner currSpinner = null;
+    int currValue;
+    if( ignoreAction ) return;
+    // //////////////////////////////////////////////////////////////////////
+    // war es ein spinner?
+    if( ev.getSource() instanceof JSpinner )
+    {
+      currSpinner = ( JSpinner )ev.getSource();
+      // //////////////////////////////////////////////////////////////////////
+      // Deco gradient Hith
+      if( currSpinner.equals( configPanel.getDecoGradientenHighSpinner() ) )
+      {
+        // wert für High ändern
+        currValue = ( Integer )currSpinner.getValue();
+        lg.debug( String.format( "change decoGradientHighSpinner <%d/%x>...", currValue, currValue ) );
+        currentConfig.setDecoGfHigh( currValue );
+        setDecoComboAfterSpinnerChange();
+      }
+      // //////////////////////////////////////////////////////////////////////
+      // Deco gradient Low
+      else if( currSpinner.equals( configPanel.getDecoGradientenLowSpinner() ) )
+      {
+        // Wert für LOW ändern
+        currValue = ( Integer )currSpinner.getValue();
+        lg.debug( String.format( "change decoGradientLowSpinner <%d/%x>...", currValue, currValue ) );
+        currentConfig.setDecoGfLow( currValue );
+        setDecoComboAfterSpinnerChange();
+      }
+      else
+      {
+        lg.warn( "unknown spinner recived!" );
+      }
+    }
+    // //////////////////////////////////////////////////////////////////////
+    // war es ein tabbedPane
+    // //////////////////////////////////////////////////////////////////////
+    else if( ev.getSource() instanceof JTabbedPane )
+    {
+      if( tabbedPane.equals( ev.getSource() ) )
+      {
+        int tabIdx = tabbedPane.getSelectedIndex();
+        lg.debug( String.format( "tabbedPane changed to %02d!", tabIdx ) );
+        //
+        // ist es das Grafikpanel?
+        //
+        if( tabIdx == programTabs.TAB_LOGGRAPH.ordinal() )
+        {
+          lg.debug( "graph tab select, init grapic..." );
+          String connDev = null;
+          if( btComm != null )
+          {
+            connDev = btComm.getConnectedDevice();
+          }
+          // Grafiksachen initialisieren
+          try
+          {
+            logGraphPanel.initGraph( connDev );
+          }
+          catch( Exception ex )
+          {
+            lg.error( "initGraph Exception: <" + ex.getLocalizedMessage() + ">" );
+            showErrorDialog( LangStrings.getString( "MainCommGUI.errorDialog.openGraphWindow" ) );
+            return;
+          }
+        }
+        else
+        {
+          // grafiksachen freigeben
+          logGraphPanel.releaseGraph();
+        }
+        //
+        // ist es das Exportpanel zum exportieren der Daten (importieren für Service)
+        //
+        if( tabIdx == programTabs.TAB_FILEMANAGER.ordinal() )
+        {
+          lg.debug( "export/import tab select, init db..." );
+          String connDev = null;
+          if( btComm != null )
+          {
+            connDev = btComm.getConnectedDevice();
+          }
+          // Panel initialisieren
+          try
+          {
+            fileManagerPanel.initData( connDev );
+          }
+          catch( Exception ex )
+          {
+            lg.error( "initData Exception: <" + ex.getLocalizedMessage() + ">" );
+            showErrorDialog( LangStrings.getString( "MainCommGUI.errorDialog.openExportWindow" ) );
+            return;
+          }
+        }
+        //
+        // ist es das Config Panel?
+        //
+        if( tabIdx == programTabs.TAB_CONFIG.ordinal() )
+        {
+          lg.debug( "config tab select, init gui..." );
+          configPanel.prepareConfigPanel( currentConfig );
+        }
+        else
+        {
+          // Daten freigeben
+          configPanel.releaseConfig();
+        }
+        //
+        // ist es das Loglistpanel
+        //
+        if( tabIdx == programTabs.TAB_LOGREAD.ordinal() )
+        {
+          // Panel initialisieren
+          lg.debug( "logreader tab select, init gui..." );
+          String connDev = null;
+          if( btComm != null )
+          {
+            connDev = btComm.getConnectedDevice();
+          }
+          logListPanel.prepareLogListPanel( connDev );
+        }
+        else
+        {
+          logListPanel.releasePanel();
+        }
+        //
+        // ist es das Gaspanel?
+        //
+        if( tabIdx == programTabs.TAB_GASLIST.ordinal() )
+        {
+          // Panel initialisieren
+          lg.debug( "gaslist tab select, init gui..." );
+          gasConfigPanel.prepareGasslistPanel();
+        }
+        else
+        {
+          // Panel Daten freigeben
+          gasConfigPanel.releasePanel();
+        }
+      }
+    }
+    else
+    {
+      lg.warn( "unknown source type recived!" );
+    }
+  }
+
+  /**
    * Programmsprache wechseln Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 19.12.2011
@@ -680,6 +912,51 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       currentConfig.setWasInit( false );
     }
     setLanguageStrings();
+  }
+
+  /**
+   * Checke, ob das Datenverzeichnis vorhanden ist, ode rerstellt werden kann erstellt: 26.08.2013
+   * 
+   * @throws NoDatabaseException
+   */
+  private void checkDatabaseDirectory() throws NoDatabaseException
+  {
+    String errMsg;
+    //
+    // ist das Verzeichnis nicht vorhanden?
+    //
+    if( !SpxPcloggerProgramConfig.databaseDir.exists() )
+    {
+      if( !SpxPcloggerProgramConfig.databaseDir.mkdirs() )
+      {
+        errMsg = String.format( LangStrings.getString( "MainCommGUI.database.cantCreate.text" ), SpxPcloggerProgramConfig.databaseDir.getAbsolutePath() );
+        lg.error( "can't create database directorys! (" + SpxPcloggerProgramConfig.databaseDir.getAbsolutePath() + ")" );
+        throw new NoDatabaseException( errMsg );
+      }
+      else
+      {
+        lg.info( "database directory created!" );
+      }
+      if( SpxPcloggerProgramConfig.databaseDir.isDirectory() )
+      {
+        lg.debug( "database directory exist and is directory." );
+        return;
+      }
+    }
+    //
+    // Der Verzeichisname ist vorhanden, mal sshen ob es auch ein Verzeichnis ist
+    //
+    if( SpxPcloggerProgramConfig.databaseDir.isDirectory() )
+    {
+      lg.debug( "database directory exist and is directory." );
+      return;
+    }
+    else
+    {
+      errMsg = String.format( LangStrings.getString( "MainCommGUI.database.isNotDirectory.text" ), SpxPcloggerProgramConfig.databaseDir.getAbsolutePath() );
+      lg.error( "the name of database directory is not an directory!" );
+      throw new NoDatabaseException( errMsg );
+    }
   }
 
   /**
@@ -1099,61 +1376,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   }
 
   /**
-   * Checkbox hat sich verändert
-   */
-  @Override
-  public void itemStateChanged( ItemEvent ev )
-  {
-    if( ignoreAction ) return;
-    // ////////////////////////////////////////////////////////////////////////
-    // Checkbox Event?
-    if( ev.getSource() instanceof JCheckBox )
-    {
-      JCheckBox cb = ( JCheckBox )ev.getItemSelectable();
-      String cmd = cb.getActionCommand();
-      // //////////////////////////////////////////////////////////////////////
-      // Dynamische Gradienten?
-      if( cmd.equals( "dyn_gradients_on" ) )
-      {
-        lg.debug( "dynamic gradients <" + cb.isSelected() + ">" );
-        currentConfig.setDynGradientsEnable( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Deepstops
-      else if( cmd.equals( "deepstops_on" ) )
-      {
-        lg.debug( "depstops <" + cb.isSelected() + ">" );
-        currentConfig.setDeepStopEnable( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Passive Semiclose Rebreather Mode?
-      else if( cmd.equals( "individuals_pscr_on" ) )
-      {
-        lg.debug( "pscr mode  <" + cb.isSelected() + ">" );
-        currentConfig.setPscrModeEnabled( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Sensor warning on/off
-      else if( cmd.equals( "individual_sensors_on" ) )
-      {
-        lg.debug( "sensors on  <" + cb.isSelected() + ">" );
-        currentConfig.setSensorsEnabled( cb.isSelected() );
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Warnungen an/aus
-      else if( cmd.equals( "individuals_warnings_on" ) )
-      {
-        lg.debug( "warnings on  <" + cb.isSelected() + ">" );
-        currentConfig.setSountEnabled( cb.isSelected() );
-      }
-      else
-      {
-        lg.warn( "unknown item changed: <" + cb.getActionCommand() + "> <" + cb.isSelected() + ">" );
-      }
-    }
-  }
-
-  /**
    * Systemlogger machen! Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
@@ -1196,8 +1418,16 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         // consoleAppender.setEncoding("ISO-8859-15");
         lg.addAppender( consoleAppender );
       }
-      FileAppender fileAppender = new FileAppender( fileLayout, SpxPcloggerProgramConfig.logFile.getAbsolutePath(), true );
-      lg.addAppender( fileAppender );
+      if( SpxPcloggerProgramConfig.logFile.exists() && SpxPcloggerProgramConfig.logFile.isFile() )
+      {
+        FileAppender fileAppender = new FileAppender( fileLayout, SpxPcloggerProgramConfig.logFile.getAbsolutePath(), true );
+        lg.addAppender( fileAppender );
+      }
+      else
+      {
+        FileAppender fileAppender = new FileAppender( fileLayout, SpxPcloggerProgramConfig.logFile.getAbsolutePath(), false );
+        lg.addAppender( fileAppender );
+      }
       lg.setLevel( SpxPcloggerProgramConfig.logLevel );
       if( lg.isDebugEnabled() ) lg.debug( "lg Created..." );
     }
@@ -1205,47 +1435,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     {
       System.err.println( ex );
       System.exit( -1 );
-    }
-  }
-
-  @Override
-  public void mouseDragged( MouseEvent ev )
-  {}
-
-  /**
-   * Wenn sich die Maus über was bewegt...
-   */
-  @Override
-  public void mouseMoved( MouseEvent ev )
-  {
-    // Ist die Maus da irgendwo hingefahren?
-    if( ev.getSource() instanceof JButton )
-    {
-      setStatus( ( ( JButton )ev.getSource() ).getToolTipText() );
-    }
-    else if( ev.getSource() instanceof JComboBox<?> )
-    {
-      setStatus( ( ( JComboBox<?> )ev.getSource() ).getToolTipText() );
-    }
-    else if( ev.getSource() instanceof JMenuItem )
-    {
-      setStatus( ( ( JMenuItem )ev.getSource() ).getToolTipText() );
-    }
-    else if( ev.getSource() instanceof JSpinner )
-    {
-      setStatus( ( ( JSpinner )ev.getSource() ).getToolTipText() );
-    }
-    else if( ev.getSource() instanceof JCheckBox )
-    {
-      setStatus( ( ( JCheckBox )ev.getSource() ).getToolTipText() );
-    }
-    else if( ev.getSource() instanceof JTable )
-    {
-      setStatus( ( ( JTable )ev.getSource() ).getToolTipText() );
-    }
-    else
-    {
-      setStatus( "" );
     }
   }
 
@@ -1260,6 +1449,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     databaseUtil = new LogDerbyDatabaseUtil( this );
     if( databaseUtil == null )
     {
+      showErrorDialog( String.format( LangStrings.getString( "MainCommGUI.databaseError.text" ), "?" ) );
       lg.error( "can connect to database drivers!" );
       System.exit( -1 );
     }
@@ -1274,11 +1464,13 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
     catch( SQLException ex )
     {
+      showErrorDialog( String.format( LangStrings.getString( "MainCommGUI.databaseError.text" ), ex.getLocalizedMessage() ) );
       ex.printStackTrace();
       System.exit( -1 );
     }
     catch( ClassNotFoundException ex )
     {
+      showErrorDialog( String.format( LangStrings.getString( "MainCommGUI.databaseError.text" ), ex.getLocalizedMessage() ) );
       ex.printStackTrace();
       System.exit( -1 );
     }
@@ -2479,7 +2671,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       }
     }
     lg.debug( "create an show propertys dialog..." );
-    ProgramProperetysDialog pDial = new ProgramProperetysDialog();
+    ProgramProperetysDialog pDial = new ProgramProperetysDialog( databaseUtil );
     // pDial.setVisible( true );
     if( pDial.showModal() )
     {
@@ -2487,11 +2679,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // progConfig = pDial.getProcConfig();
       if( SpxPcloggerProgramConfig.wasChanged )
       {
-        // Wenn da was passieren sollte, muss die DB geschlossen sein.
-        if( databaseUtil != null )
-        {
-          databaseUtil.closeDB();
-        }
         showWarnBox( "RESTART PROGRAMM!" );
         pDial.dispose();
         exitProgram();
@@ -2541,153 +2728,18 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     }
   }
 
-  @Override
-  public void stateChanged( ChangeEvent ev )
+  /**
+   * Starte einen virtuellen Portfinder Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 21.08.2013
+   * @param _model
+   */
+  private void startVirtualPortFinder( DefaultComboBoxModel<String> _model )
   {
-    JSpinner currSpinner = null;
-    int currValue;
-    if( ignoreAction ) return;
-    // //////////////////////////////////////////////////////////////////////
-    // war es ein spinner?
-    if( ev.getSource() instanceof JSpinner )
-    {
-      currSpinner = ( JSpinner )ev.getSource();
-      // //////////////////////////////////////////////////////////////////////
-      // Deco gradient Hith
-      if( currSpinner.equals( configPanel.getDecoGradientenHighSpinner() ) )
-      {
-        // wert für High ändern
-        currValue = ( Integer )currSpinner.getValue();
-        lg.debug( String.format( "change decoGradientHighSpinner <%d/%x>...", currValue, currValue ) );
-        currentConfig.setDecoGfHigh( currValue );
-        setDecoComboAfterSpinnerChange();
-      }
-      // //////////////////////////////////////////////////////////////////////
-      // Deco gradient Low
-      else if( currSpinner.equals( configPanel.getDecoGradientenLowSpinner() ) )
-      {
-        // Wert für LOW ändern
-        currValue = ( Integer )currSpinner.getValue();
-        lg.debug( String.format( "change decoGradientLowSpinner <%d/%x>...", currValue, currValue ) );
-        currentConfig.setDecoGfLow( currValue );
-        setDecoComboAfterSpinnerChange();
-      }
-      else
-      {
-        lg.warn( "unknown spinner recived!" );
-      }
-    }
-    // //////////////////////////////////////////////////////////////////////
-    // war es ein tabbedPane
-    // //////////////////////////////////////////////////////////////////////
-    else if( ev.getSource() instanceof JTabbedPane )
-    {
-      if( tabbedPane.equals( ev.getSource() ) )
-      {
-        int tabIdx = tabbedPane.getSelectedIndex();
-        lg.debug( String.format( "tabbedPane changed to %02d!", tabIdx ) );
-        //
-        // ist es das Grafikpanel?
-        //
-        if( tabIdx == programTabs.TAB_LOGGRAPH.ordinal() )
-        {
-          lg.debug( "graph tab select, init grapic..." );
-          String connDev = null;
-          if( btComm != null )
-          {
-            connDev = btComm.getConnectedDevice();
-          }
-          // Grafiksachen initialisieren
-          try
-          {
-            logGraphPanel.initGraph( connDev );
-          }
-          catch( Exception ex )
-          {
-            lg.error( "initGraph Exception: <" + ex.getLocalizedMessage() + ">" );
-            showErrorDialog( LangStrings.getString( "MainCommGUI.errorDialog.openGraphWindow" ) );
-            return;
-          }
-        }
-        else
-        {
-          // grafiksachen freigeben
-          logGraphPanel.releaseGraph();
-        }
-        //
-        // ist es das Exportpanel zum exportieren der Daten (importieren für Service)
-        //
-        if( tabIdx == programTabs.TAB_FILEMANAGER.ordinal() )
-        {
-          lg.debug( "export/import tab select, init db..." );
-          String connDev = null;
-          if( btComm != null )
-          {
-            connDev = btComm.getConnectedDevice();
-          }
-          // Panel initialisieren
-          try
-          {
-            fileManagerPanel.initData( connDev );
-          }
-          catch( Exception ex )
-          {
-            lg.error( "initData Exception: <" + ex.getLocalizedMessage() + ">" );
-            showErrorDialog( LangStrings.getString( "MainCommGUI.errorDialog.openExportWindow" ) );
-            return;
-          }
-        }
-        //
-        // ist es das Config Panel?
-        //
-        if( tabIdx == programTabs.TAB_CONFIG.ordinal() )
-        {
-          lg.debug( "config tab select, init gui..." );
-          configPanel.prepareConfigPanel( currentConfig );
-        }
-        else
-        {
-          // Daten freigeben
-          configPanel.releaseConfig();
-        }
-        //
-        // ist es das Loglistpanel
-        //
-        if( tabIdx == programTabs.TAB_LOGREAD.ordinal() )
-        {
-          // Panel initialisieren
-          lg.debug( "logreader tab select, init gui..." );
-          String connDev = null;
-          if( btComm != null )
-          {
-            connDev = btComm.getConnectedDevice();
-          }
-          logListPanel.prepareLogListPanel( connDev );
-        }
-        else
-        {
-          logListPanel.releasePanel();
-        }
-        //
-        // ist es das Gaspanel?
-        //
-        if( tabIdx == programTabs.TAB_GASLIST.ordinal() )
-        {
-          // Panel initialisieren
-          lg.debug( "gaslist tab select, init gui..." );
-          gasConfigPanel.prepareGasslistPanel();
-        }
-        else
-        {
-          // Panel Daten freigeben
-          gasConfigPanel.releasePanel();
-        }
-      }
-    }
-    else
-    {
-      lg.warn( "unknown source type recived!" );
-    }
+    VirtualSerialPortsFinder vPortFinder = new VirtualSerialPortsFinder( this, _model );
+    Thread th = new Thread( vPortFinder );
+    th.setName( "virtual_port_finder" );
+    th.start();
   }
 
   /**

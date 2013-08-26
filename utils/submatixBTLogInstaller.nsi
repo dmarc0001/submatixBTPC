@@ -8,7 +8,7 @@ SetDatablockOptimize on
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "submatixBTLog"
-!define PRODUCT_VERSION "1.2"
+!define PRODUCT_VERSION "1.2pre"
 !define PRODUCT_PUBLISHER "Dirk Marciniak"
 !define PRODUCT_WEB_SITE "http://www.submatix.com"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -50,7 +50,7 @@ SetDatablockOptimize on
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "SubmatixBTLog-1.2-Setup.exe"
+OutFile "SubmatixBTLog-${PRODUCT_VERSION}-Setup.exe"
 InstallDir "$PROGRAMFILES\submatixBTLog"
 ShowInstDetails show
 ShowUnInstDetails show
@@ -61,6 +61,8 @@ FunctionEnd
 
 Section "MAIN" SEC01
   SetOutPath "$INSTDIR"
+  CreateDirectory "$INSTDIR\lib"
+  CreateDirectory "$INSTDIR\database"
   SetOverwrite ifnewer
   File "..\..\..\submatix\submatixBTLog\versioncheck.jar"
   File "..\..\..\submatix\submatixBTLog\submatixBTForPC.jar"
@@ -68,7 +70,6 @@ Section "MAIN" SEC01
   File "..\..\..\submatix\submatixBTLog\submatix_start.bat"
   File "..\..\..\submatix\submatixBTLog\progicon.ico"
   File "..\..\..\submatix\submatixBTLog\unicon.ico"
-  CreateDirectory "lib"
   SetOutPath "$INSTDIR\lib"
   File "..\..\..\submatix\submatixBTLog\lib\rxtxSerial_win_x86.dll"
   File "..\..\..\submatix\submatixBTLog\lib\rxtxSerial_win_amd64.dll"
@@ -80,8 +81,8 @@ Section "MAIN" SEC01
   File "..\..\..\submatix\submatixBTLog\lib\librxtxParallel_linux_x86.so"
   File "..\..\..\submatix\submatixBTLog\lib\librxtxParallel_linux_amd64.so"
   CreateDirectory "$SMPROGRAMS\submatixBTLog"
-  CreateShortCut "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. 1.1.lnk" "$INSTDIR\submatix_start.bat" icon.file "$INSTDIR\progicon.ico"
-  CreateShortCut "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. 1.1 DEBUG.lnk" "$INSTDIR\submatix_start.bat" icon_file "$INSTDIR\progicon.ico"
+  CreateShortCut "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION}.lnk" "$INSTDIR\submatix_start.bat" icon.file "$INSTDIR\progicon.ico"
+  CreateShortCut "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION} DEBUG.lnk" "$INSTDIR\submatix_start.bat" icon_file "$INSTDIR\progicon.ico"
 SectionEnd
 
 Section -AdditionalIcons
@@ -131,10 +132,11 @@ Section Uninstall
   Delete "$INSTDIR\derby.log"
   Delete "$INSTDIR\spxLogProgram.conf"
   Delete "$SMPROGRAMS\submatixBTLog\Uninstall.lnk"
-  Delete "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. 1.0a.lnk"
-  Delete "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. 1.0a DEBUG.lnk"
+  Delete "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION}.lnk"
+  Delete "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION} DEBUG.lnk"
   RMDir /r "$SMPROGRAMS\submatixBTLog"
   RMDir "$INSTDIR\lib"
+  RMDir "$INSTDIR\database"
   RMDir /r "$INSTDIR"
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   SetAutoClose true

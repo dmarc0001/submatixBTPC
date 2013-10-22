@@ -4,6 +4,7 @@
 SetCompress force
 SetCompressor /SOLID zlib
 SetDatablockOptimize on
+XPStyle on
 ;compiler direktiven
 
 ; HM NIS Edit Wizard helper defines

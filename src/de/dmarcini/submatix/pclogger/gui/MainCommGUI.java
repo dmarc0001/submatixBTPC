@@ -1434,6 +1434,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     catch( Exception ex )
     {
       System.err.println( ex );
+      showErrorDialog( ex.getLocalizedMessage() + "\n" + SpxPcloggerProgramConfig.logFile.getAbsolutePath() );
       System.exit( -1 );
     }
   }
@@ -2039,11 +2040,12 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
         btComm.askForDeviceName();
         btComm.askForSerialNumber();
         btComm.askForLicenseFromSPX();
+        btComm.writeDateTimeToDevice( new DateTime() );
         btComm.askForFirmwareVersion();
         connectionPanel.setAliasesEditable( false );
         connectionPanel.refreshAliasTable();
         gasConfigPanel.setPanelOnlineMode( true );
-        // ware, bis die Nachricht FWVERSION_READ kommt, um das wartefenster zu schliessen
+        // warte, bis die Nachricht FWVERSION_READ kommt, um das wartefenster zu schliessen
         waitForMessage = ProjectConst.MESSAGE_FWVERSION_READ;
         break;
       // /////////////////////////////////////////////////////////////////////////

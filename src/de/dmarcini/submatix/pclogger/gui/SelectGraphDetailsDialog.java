@@ -240,6 +240,7 @@ public class SelectGraphDetailsDialog extends JDialog implements ActionListener
         SpxPcloggerProgramConfig.showHe = hePercentCheckBox.isSelected();
         SpxPcloggerProgramConfig.showN2 = n2PercentCheckBox.isSelected();
         SpxPcloggerProgramConfig.showNulltime = nullTimeCheckBox.isSelected();
+        SpxPcloggerProgramConfig.wasChanged = true;
         setVisible( false );
         closeWithOk = true;
         return;

@@ -74,8 +74,10 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private String               pressureUnitName;
   private JPanel               topPanel;
   private JPanel               bottomPanel;
-  private JComboBox<String>    deviceComboBox;
-  private JComboBox<String>    diveSelectComboBox;
+  @SuppressWarnings( "rawtypes" )
+  private JComboBox            deviceComboBox;
+  @SuppressWarnings( "rawtypes" )
+  private JComboBox            diveSelectComboBox;
   private JButton              computeGraphButton;
   private JLabel               maxDepthValueLabel;
   private JLabel               coldestTempValueLabel;
@@ -148,7 +150,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
         makeGraphForLog( dbId, device );
         return;
       }
-      if( cmd.equals( "set_detail_for_show_graph" ) )
+      else if( cmd.equals( "set_detail_for_show_graph" ) )
       {
         lg.debug( "select details for log selected." );
         SelectGraphDetailsDialog sgd = new SelectGraphDetailsDialog();
@@ -158,7 +160,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
           computeGraphButton.doClick();
         }
       }
-      if( cmd.equals( "edit_notes_for_dive" ) )
+      else if( cmd.equals( "edit_notes_for_dive" ) )
       {
         if( chartPanel == null || showingDbIdForDiveWasShowing == -1 )
         {
@@ -335,6 +337,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 02.07.2012
    * @param deviceAlias
    */
+  @SuppressWarnings( "unchecked" )
   private void fillDiveComboBox( String cDevice )
   {
     String device;
@@ -457,6 +460,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
    *          Falls verbunden, das aktuelle Gerät übergeben (für Voreinstellungen)
    * @throws Exception
    */
+  @SuppressWarnings( "unchecked" )
   public void initGraph( String connDev ) throws Exception
   {
     //
@@ -534,12 +538,12 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     topPanel = new JPanel();
     topPanel.setBackground( Color.WHITE );
     add( topPanel, BorderLayout.NORTH );
-    deviceComboBox = new JComboBox();
+    deviceComboBox = new JComboBox<String>();
     deviceComboBox.setBackground( Color.WHITE );
     deviceComboBox.setMaximumRowCount( 26 );
     deviceComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );
     deviceComboBox.setActionCommand( "change_device_to_display" );
-    diveSelectComboBox = new JComboBox();
+    diveSelectComboBox = new JComboBox<String>();
     diveSelectComboBox.setBackground( Color.WHITE );
     diveSelectComboBox.setMaximumRowCount( 26 );
     diveSelectComboBox.setFont( new Font( "Dialog", Font.PLAIN, 12 ) );

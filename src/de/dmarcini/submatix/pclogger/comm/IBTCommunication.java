@@ -13,6 +13,8 @@ import gnu.io.PortInUseException;
 
 import java.awt.event.ActionListener;
 
+import org.joda.time.DateTime;
+
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 
@@ -29,46 +31,49 @@ public interface IBTCommunication
 {
   public void addActionListener( ActionListener al );
 
-  public void removeActionListener();
+  public void askForDeviceName();
 
-  public boolean isConnected();
+  public void askForFirmwareVersion();
 
-  public void connectVirtDevice( String deviceName ) throws PortInUseException, Exception;
-
-  public String getConnectedDevice();
-
-  public void disconnectDevice();
-
-  public void writeToDevice( String msg );
-
-  public void writeSPXMsgToDevice( String msg );
+  public void askForLicenseFromSPX();
 
   public void askForSerialNumber();
 
-  public void setNameForVirtualDevice( String serialNumber );
+  public void askForSPXAlive();
+
+  public void connectVirtDevice( String deviceName ) throws PortInUseException, Exception;
+
+  public void disconnectDevice();
+
+  public String getConnectedDevice();
+
+  // experimentell...
+  public String getDeviceInfos();
+
+  public boolean isConnected();
+
+  // experimentell...
+  public void putDeviceInfos( String infos ) throws Exception;
 
   public void readConfigFromSPX42();
 
   public void readGaslistFromSPX42();
 
-  public void askForLicenseFromSPX();
-
-  public void writeGaslistToSPX42( SPX42GasList gList, String spxVersion );
-
-  public void askForDeviceName();
-
-  public void askForFirmwareVersion();
-
-  public void askForSPXAlive();
-
-  public void writeConfigToSPX( SPX42Config config );
+  public void readLogDetailFromSPX( int logNumber );
 
   public void readLogDirectoryFromSPX();
 
-  public void readLogDetailFromSPX( int logNumber );
+  public void removeActionListener();
 
-  // experimentell...
-  public String getDeviceInfos();
+  public void setNameForVirtualDevice( String serialNumber );
 
-  public void putDeviceInfos( String infos ) throws Exception;
+  public void writeConfigToSPX( SPX42Config config );
+
+  public void writeDateTimeToDevice( DateTime dTime );
+
+  public void writeGaslistToSPX42( SPX42GasList gList, String spxVersion );
+
+  public void writeSPXMsgToDevice( String msg );
+
+  public void writeToDevice( String msg );
 }

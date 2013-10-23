@@ -1417,18 +1417,21 @@ public class BTCommunication implements IBTCommunication
     //
     if( isConnected )
     {
-      // Setze das Datum als Kommandostring zusammen
-      kdoString = String.format( "%s~%x:%x:%x:%x%s", ProjectConst.STX, ProjectConst.SPX_DATE, dTime.getDayOfMonth(), dTime.getMonthOfYear(), dTime.getYearOfCentury(),
-              ProjectConst.ETX );
-      {
-        lg.debug( "writeDateTimeToDevice()...send <" + kdoString + "> (DATE)" );
-      }
-      this.writeToDevice( kdoString );
       //
       // Setze das Zeit als Kommandostring zusammen
+      //
       kdoString = String.format( "%s~%x:%x:%x%s", ProjectConst.STX, ProjectConst.SPX_TIME, dTime.getHourOfDay(), dTime.getMinuteOfHour(), ProjectConst.ETX );
       {
         lg.debug( "writeDateTimeToDevice()...send <" + kdoString + "> (TIME)" );
+      }
+      this.writeToDevice( kdoString );
+      //
+      // Setze das Datum als Kommandostring zusammen
+      //
+      kdoString = String.format( "%s~%x:%02x:%02x:%02x%s", ProjectConst.STX, ProjectConst.SPX_DATE, dTime.getDayOfMonth(), dTime.getMonthOfYear(), dTime.getYearOfCentury(),
+              ProjectConst.ETX );
+      {
+        lg.debug( "writeDateTimeToDevice()...send <" + kdoString + "> (DATE)" );
       }
       this.writeToDevice( kdoString );
     }

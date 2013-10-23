@@ -1418,7 +1418,8 @@ public class BTCommunication implements IBTCommunication
     if( isConnected )
     {
       // Setze das Datum als Kommandostring zusammen
-      kdoString = String.format( "%s~%x:%x:%x:%x%s", ProjectConst.STX, ProjectConst.SPX_DATE, dTime.getDayOfMonth(), dTime.getMonthOfYear(), dTime.getYear(), ProjectConst.ETX );
+      kdoString = String.format( "%s~%x:%x:%x:%x%s", ProjectConst.STX, ProjectConst.SPX_DATE, dTime.getDayOfMonth(), dTime.getMonthOfYear(), dTime.getYearOfCentury(),
+              ProjectConst.ETX );
       {
         lg.debug( "writeDateTimeToDevice()...send <" + kdoString + "> (DATE)" );
       }

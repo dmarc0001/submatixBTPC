@@ -510,13 +510,9 @@ public class BTCommunication implements IBTCommunication
           }
           lg.debug( "Serial Number recived! <" + fields[1] + ">" );
           break;
-        case ProjectConst.SPX_TIME:
-          // Quittung für Setzen der Uhrzeit
-          lg.debug( "SPX_TIME Acknoweledge recived <" + readMessage + ">" );
-          break;
-        case ProjectConst.SPX_DATE:
+        case ProjectConst.SPX_DATETIME:
           // Quittung für Setzen des Datums
-          lg.debug( "SPX_DATE Acknoweledge recived <" + readMessage + ">" );
+          lg.debug( "SPX_DATETIME Acknoweledge recived <" + readMessage + ">" );
           break;
         case ProjectConst.SPX_SET_SETUP_DEKO:
           // Quittung für Setze DECO
@@ -1418,20 +1414,12 @@ public class BTCommunication implements IBTCommunication
     if( isConnected )
     {
       //
-      // Setze das Datum als Kommandostring zusammen
+      // Setze das Zeit und Datum als Kommandostring zusammen
       //
-      kdoString = String.format( "%s~%x:%02x:%02x:%02x%s", ProjectConst.STX, ProjectConst.SPX_DATE, dTime.getDayOfMonth(), dTime.getMonthOfYear(), dTime.getYearOfCentury(),
-              ProjectConst.ETX );
+      kdoString = String.format( "%s~%x:%02x:%02x:%02x:%02x:%02x%s", ProjectConst.STX, ProjectConst.SPX_DATETIME, dTime.getHourOfDay(), dTime.getMinuteOfHour(),
+              dTime.getDayOfMonth(), dTime.getMonthOfYear(), dTime.getYearOfCentury(), ProjectConst.ETX );
       {
-        lg.debug( "writeDateTimeToDevice()...send <" + kdoString + "> (DATE)" );
-      }
-      this.writeToDevice( kdoString );
-      //
-      // Setze das Zeit als Kommandostring zusammen
-      //
-      kdoString = String.format( "%s~%x:%x:%x%s", ProjectConst.STX, ProjectConst.SPX_TIME, dTime.getHourOfDay(), dTime.getMinuteOfHour(), ProjectConst.ETX );
-      {
-        lg.debug( "writeDateTimeToDevice()...send <" + kdoString + "> (TIME)" );
+        lg.debug( "writeDateTimeToDevice()...send <" + kdoString + "> (DATETIME)" );
       }
       this.writeToDevice( kdoString );
     }

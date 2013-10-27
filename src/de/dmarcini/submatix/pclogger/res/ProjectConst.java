@@ -22,7 +22,7 @@ public final class ProjectConst
   public static final String MANUFACTVERS               = "1.2.1pre";
   public static final String GENYEAR                    = "2013";
   public static final String GENMONTH                   = "10";
-  public static final String GENDAY                     = "22";
+  public static final String GENDAY                     = "27";
   
   // Datenbankversion
   public static int          DB_VERSION                 = 7;
@@ -68,8 +68,8 @@ public final class ProjectConst
   public static final int SPX_DEVSOFTVERSION            = 0x06;
   public static final int SPX_SERIAL_NUMBER             = 0x07;
   public static final int SPX_SER1_FROM_SER0            = 0x08;
-  public static final int SPX_TIME                      = 0x20;
-  public static final int SPX_DATE                      = 0x21;
+  public static final int SPX_DATETIME                  = 0x20;
+  public static final int SPX_DATE_OSOLETE              = 0x21;
   public static final int SPX_TEMPSTICK                 = 0x22;
   public static final int SPX_HUD                       = 0x23; //! HUD Status senden
   public static final int SPX_UBAT                      = 0x24; //! UBAT anfordern auswerten

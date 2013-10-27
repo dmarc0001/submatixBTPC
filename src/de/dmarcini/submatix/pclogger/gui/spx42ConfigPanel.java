@@ -27,7 +27,7 @@ import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                     /**
+{                       /**
    * 
    */
   private static final long serialVersionUID     = 1L;
@@ -421,7 +421,7 @@ public class spx42ConfigPanel extends JPanel
       // Keine Config gelesen!
       setIndividualsPanelEnabled( false );
     }
-    if( currentConfig.isBuggyFirmware() )
+    if( currentConfig.hasFahrenheidBug() )
     {
       unitsTemperatureComboBox.setBackground( new Color( 0xffafaf ) );
       unitsTemperatureComboBox.setEnabled( false );
@@ -843,7 +843,7 @@ public class spx42ConfigPanel extends JPanel
   public void setUnitDepth( int depthUnit )
   {
     if( !isPanelInitiated ) return;
-    if( currentConfig.isBuggyFirmware() )
+    if( currentConfig.hasFahrenheidBug() )
     {
       if( depthUnit == 0 )
       {

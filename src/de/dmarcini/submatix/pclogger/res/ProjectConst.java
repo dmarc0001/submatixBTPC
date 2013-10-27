@@ -36,6 +36,8 @@ public final class ProjectConst
   public static final String FIRMWARE_2_6_7_7V          = "V2.6.7.7_V";
   public static final String FIRMWARE_2_7Vx             = "V2.7_V";
   public static final String FIRMWARE_2_7Hx             = "V2.7_H";
+  public static final String FIRMWARE_2_7H_R83CE        = "V2.7_H r83 ce";
+  
   
   public static final int    FW_2_6_7_7V                = 0;
   public static final int    FW_2_7V                    = 1;

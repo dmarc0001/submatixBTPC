@@ -9,476 +9,406 @@
  */
 package de.dmarcini.submatix.pclogger.utils;
 
-
 import org.apache.log4j.Logger;
 
-
 /**
- * HEADLINE
- * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+ * HEADLINE Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
  * 
- * @author Dirk Marciniak (dirk_marciniak@arcor.de)
- *         Stand: 07.01.2012
+ * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
  */
 public interface ISPX42Config
 {
-  /**
-   * Setze den Lizenzstatus des SPX
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 11.04.2012
-   * @param msg
-   * @return hat es geklappt?
-   */
-  public boolean setLicenseStatus(String msg);
+  public boolean canSetDate();
+
+  public void clear();
 
   /**
-   * Setze Status: 0=Nitrox, 1=Normoxic Trimix, 2=Full Trimix
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Vergleiche, ob zwei Konfigurationenen übereinstimmen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 11.04.2012
-   * @param status
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param conf
+   *          zu vergleichende Konfiguration
+   * @return gleichheit
    */
-  public void setLizenseStatus(int status);
+  public boolean compareWith( SPX42Config conf );
+
+  public int getAutoSetpoint();
 
   /**
-   * Setze Status fürt Custom Config
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Ist Custom Config erlaubt? Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 11.04.2012
-   * @param en
-   */
-  public void setCustomEnabled(boolean en);
-
-  /**
-   * Ist Custom Config erlaubt?
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 11.04.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.04.2012
    * @return Ja oder nein
    */
   public int getCustomEnabled();
 
   /**
-   * Welchen Status hat die Lizenz=
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Erfrage HIGHT-Wert des Deco-Gradienten Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 11.04.2012
-   * @return 0=Nitrox, 1=Normoxic Trimix, 2=Full Trimix
-   */
-  public int getLicenseState();
-
-  /**
-   * Vergleiche, ob zwei Konfigurationenen übereinstimmen
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param conf
-   *          zu vergleichende Konfiguration
-   * @return gleichheit
-   */
-  public boolean compareWith(SPX42Config conf);
-
-  /**
-   * Setze ein Logger-Objekt
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param logger
-   *          Logger Objekt
-   */
-  public void setLogger(Logger logger);
-
-  /**
-   * Setze ob das Objekt komplett geschrieben wurde (gültig ist).
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param wasInit
-   *          Ist das Objekt gültig
-   */
-  public void setWasInit(boolean wasInit);
-
-  /**
-   * Frage, ob das Objekt gültig ist.
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @return Gültigkeit
-   */
-  public boolean isInitialized();
-
-  /**
-   * Setze den vom SPX zurückgegebenen Gerätenamen
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
-   * @param name
-   *          String vom SPX42
-   */
-  public void setDeviceName(String name);
-
-  /**
-   * gib den vom SPX42 gelieferten Gerätenamen zurück
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
-   * @return Gerätename
-   */
-  public String getDeviceName();
-
-  /**
-   * Schtreibe in die Konfighuration die Firmware-Seriennummer
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
-   * @param version
-   *          Seriennummer
-   */
-  public void setFirmwareVersion(String version);
-
-  /**
-   * Gib die Firmware Versionsnummer zurück
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
-   * @return TODO
-   */
-  public String getFirmwareVersion();
-
-  /**
-   * Setze die Seriennummer des SPX 42
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param serial
-   *          Seriennummer
-   */
-  public void setSerial(String serial);
-
-  /**
-   * Erfrage die seriennummer des SPX42.
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @return Seriennummer
-   */
-  public String getSerial();
-
-  /**
-   * Setze Deco-Gradienten direkt
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param gfLow
-   *          LOW-Wert GDeco-Gradient
-   * @param gfHigh
-   *          HIGH-Wert Deco-Gradient
-   */
-  public void setDecoGf(int gfLow, int gfHigh);
-
-  /**
-   * Setze Deco-Gradienten direkt als String vom SPX42
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param fromSpx
-   * @return Erfolgreich oder nicht
-   */
-  public boolean setDecoGf(String fromSpx);
-
-  /**
-   * Setze LOW Deco-Gradient direkt
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param gfLow
-   *          LOW-Wert Deco gradient
-   */
-  public void setDecoGfLow(int gfLow);
-
-  /**
-   * Setze HIGH-Wert Deco Gradient direkt
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param gfHith
-   *          HIGH-Wert Deco-Gradient
-   */
-  public void setDecoGfHigh(int gfHith);
-
-  /**
-   * erfrage den LOW-Wert des Deko-Gradienten
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @return Deco-gradient
-   */
-  public int getDecoGfLow();
-
-  /**
-   * Erfrage HIGHT-Wert des Deco-Gradienten
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
    * @return HIGH-Wert Deco Gradient
    */
   public int getDecoGfHigh();
 
   /**
-   * Setze ein PRESET für die Decompressions-Gradienten
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * erfrage den LOW-Wert des Deko-Gradienten Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param preset
-   *          Nummer des Presets
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @return Deco-gradient
    */
-  public void setDecoGfPreset(int preset);
+  public int getDecoGfLow();
 
   /**
-   * Erfrage die Nummer des eingestellten Presets
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Erfrage die Nummer des eingestellten Presets Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
    * @return Preset
    */
   public int getDecoGfPreset();
 
   /**
-   * Setze den letzen Deco-Stop auf 3 oder 6 Meter
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Erfrage, ob tiefe Stops erlaubt sind Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param lastStop
-   *          0 == 3 Meter, 1 == 6 Meter
-   */
-  public void setLastStop(int lastStop);
-
-  /**
-   * Erfrage den eingestellten Wert für den letzen Decostop
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @return 0 == 3 Meter, 1 == 6 Meter
-   */
-  public int getLastStop();
-
-  /**
-   * Erlaube/unterbinde tiefe Stops
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @param enabled
-   *          erlaubt/unterbunden
-   */
-  public void setDeepStopEnable(boolean enabled);
-
-  /**
-   * Erfrage, ob tiefe Stops erlaubt sind
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
    * @return erlaubt/unterbunden
    */
   public int getDeepStopEnable();
 
   /**
-   * Erfrage, ob tiefe Stops erlaubt sind
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * gib den vom SPX42 gelieferten Gerätenamen zurück Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 07.01.2012
-   * @return erlaubt/unterbunden
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
+   * @return Gerätename
    */
-  public boolean isDeepStopEnable();
+  public String getDeviceName();
 
   /**
-   * Erlaube/Unterbinde dynamische Gradienten
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Erfrage Displayhelligkeit Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
-   * @param enabled
-   *          erlauben/unterbinden
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
+   * @return Helligkeit 0..2
    */
-  public void setDynGradientsEnable(boolean enabled);
+  public int getDisplayBrightness();
 
   /**
-   * Erfrage, ob dyn. Gradienten erlaubt sind
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Erfrage Diaplayausrichtung Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
+   * @return TODO
+   */
+  public int getDisplayOrientation();
+
+  /**
+   * Erfrage, ob dyn. Gradienten erlaubt sind Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
    * @return 1==ja/ 2==nein
    */
   public int getDynGradientsEnable();
 
   /**
-   * Erfrage, ob dyn. Gradienten erlaubt sind
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Gib die Firmware Versionsnummer zurück Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
+   * @return TODO
+   */
+  public String getFirmwareVersion();
+
+  /**
+   * Erfrage den eingestellten Wert für den letzen Decostop Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @return 0 == 3 Meter, 1 == 6 Meter
+   */
+  public int getLastStop();
+
+  /**
+   * Welchen Status hat die Lizenz= Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.04.2012
+   * @return 0=Nitrox, 1=Normoxic Trimix, 2=Full Trimix
+   */
+  public int getLicenseState();
+
+  public int getLogInterval();
+
+  public int getMaxSetpoint();
+
+  public int getPscrModeOn();
+
+  public int getSensorsCount();
+
+  public int getSensorsOn();
+
+  /**
+   * Erfrage die seriennummer des SPX42. Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @return Seriennummer
+   */
+  public String getSerial();
+
+  public int getSoundOn();
+
+  public int getUnitDepth();
+
+  public int getUnitSalnity();
+
+  public int getUnitSystem();
+
+  public int getUnitTemperature();
+
+  public boolean hasFahrenheidBug();
+
+  public boolean hasSixValuesIndividual();
+
+  /**
+   * Erfrage, ob tiefe Stops erlaubt sind Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @return erlaubt/unterbunden
+   */
+  public boolean isDeepStopEnable();
+
+  /**
+   * Erfrage, ob dyn. Gradienten erlaubt sind Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
    * @return erlaubt?
    */
   public boolean isDynGradientsEnable();
 
+  public boolean isFirmwareSupported();
+
   /**
-   * Setze Display Helligkeit und Ausrichtung
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Frage, ob das Objekt gültig ist. Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @return Gültigkeit
+   */
+  public boolean isInitialized();
+
+  public boolean isOldParamSorting();
+
+  public boolean isPscrModeOn();
+
+  public boolean isSensorsOn();
+
+  public boolean isSoundOn();
+
+  public void setAutoSetpoint( int auto );
+
+  /**
+   * Setze Status fürt Custom Config Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.04.2012
+   * @param en
+   */
+  public void setCustomEnabled( boolean en );
+
+  /**
+   * Setze Deco-Gradienten direkt Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param gfLow
+   *          LOW-Wert GDeco-Gradient
+   * @param gfHigh
+   *          HIGH-Wert Deco-Gradient
+   */
+  public void setDecoGf( int gfLow, int gfHigh );
+
+  /**
+   * Setze Deco-Gradienten direkt als String vom SPX42 Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param fromSpx
+   * @return Erfolgreich oder nicht
+   */
+  public boolean setDecoGf( String fromSpx );
+
+  /**
+   * Setze HIGH-Wert Deco Gradient direkt Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param gfHith
+   *          HIGH-Wert Deco-Gradient
+   */
+  public void setDecoGfHigh( int gfHith );
+
+  /**
+   * Setze LOW Deco-Gradient direkt Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param gfLow
+   *          LOW-Wert Deco gradient
+   */
+  public void setDecoGfLow( int gfLow );
+
+  /**
+   * Setze ein PRESET für die Decompressions-Gradienten Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param preset
+   *          Nummer des Presets
+   */
+  public void setDecoGfPreset( int preset );
+
+  /**
+   * Erlaube/unterbinde tiefe Stops Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param enabled
+   *          erlaubt/unterbunden
+   */
+  public void setDeepStopEnable( boolean enabled );
+
+  /**
+   * Setze den vom SPX zurückgegebenen Gerätenamen Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
+   * @param name
+   *          String vom SPX42
+   */
+  public void setDeviceName( String name );
+
+  /**
+   * Setze Display Helligkeit und Ausrichtung Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
    * @param bright
    *          Helligkeit (10%, 50%, 100%)
    * @param orient
    *          Quer/108 Grad
    * @throws Exception
    */
-  public void setDisplay(int bright, int orient) throws Exception;
+  public void setDisplay( int bright, int orient ) throws Exception;
 
   /**
-   * Setze Display Helligkeit und Ausrichtung von SPX42 String
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Setze Display Helligkeit und Ausrichtung von SPX42 String Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
    * @param fromSpx
    *          Steuerstring vom SPX42
    * @return hats geklappt?
    */
-  public boolean setDisplay(String fromSpx);
+  public boolean setDisplay( String fromSpx );
 
   /**
-   * Setze Display Helligkeit
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Setze Display Helligkeit Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
    * @param brightness
    *          Helligkeit (0==10%, 1==50%, 2==100%)
    */
-  public void setDisplayBrithtness(int brightness);
+  public void setDisplayBrithtness( int brightness );
 
   /**
-   * Erfrage Displayhelligkeit
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * setze Display-Ausrichtung Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
-   * @return Helligkeit 0..2
-   */
-  public int getDisplayBrightness();
-
-  /**
-   * setze Display-Ausrichtung
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
    * @param orientation
    *          Ausrichtung
    */
-  public void setDisplayOrientation(int orientation);
+  public void setDisplayOrientation( int orientation );
 
   /**
-   * Erfrage Diaplayausrichtung
-   * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * Erlaube/Unterbinde dynamische Gradienten Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
    * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
-   *         Stand: 08.01.2012
-   * @return TODO
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
+   * @param enabled
+   *          erlauben/unterbinden
    */
-  public int getDisplayOrientation();
+  public void setDynGradientsEnable( boolean enabled );
 
-  public void setUnits(int tmp, int dpt, int sal);
+  /**
+   * Schtreibe in die Konfighuration die Firmware-Seriennummer Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 08.01.2012
+   * @param version
+   *          Seriennummer
+   */
+  public void setFirmwareVersion( String version );
 
-  public boolean setUnits(String fromSpx);
+  public void setIndividuals( int so, int pscr, int sc, int snd, int li, int unknown );
 
-  public void setUnitTemperature(int tmp);
+  public boolean setIndividuals( String fromSpx );
 
-  public int getUnitTemperature();
+  /**
+   * Setze den letzen Deco-Stop auf 3 oder 6 Meter Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param lastStop
+   *          0 == 3 Meter, 1 == 6 Meter
+   */
+  public void setLastStop( int lastStop );
 
-  public void setUnitDepth(int dpt);
+  /**
+   * Setze den Lizenzstatus des SPX Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.04.2012
+   * @param msg
+   * @return hat es geklappt?
+   */
+  public boolean setLicenseStatus( String msg );
 
-  public int getUnitDepth();
+  /**
+   * Setze Status: 0=Nitrox, 1=Normoxic Trimix, 2=Full Trimix Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 11.04.2012
+   * @param status
+   */
+  public void setLizenseStatus( int status );
 
-  public void setUnitSalnyty(int sal);
+  /**
+   * Setze ein Logger-Objekt Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param logger
+   *          Logger Objekt
+   */
+  public void setLogger( Logger logger );
 
-  public int getUnitSalnity();
+  public void setLogInterval( int interval );
 
-  public boolean setSetpoint(String fromSpx);
+  public void setMaxSetpoint( int appo );
 
-  public void setSetpoint(int auto, int ppo);
+  public void setPscrModeEnabled( boolean on );
 
-  public void setAutoSetpoint(int auto);
+  public void setSensorsCount( int cnt );
 
-  public int getAutoSetpoint();
+  public void setSensorsEnabled( boolean on );
 
-  public void setMaxSetpoint(int appo);
+  /**
+   * Setze die Seriennummer des SPX 42 Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param serial
+   *          Seriennummer
+   */
+  public void setSerial( String serial );
 
-  public int getMaxSetpoint();
+  public void setSetpoint( int auto, int ppo );
 
-  public boolean setIndividuals(String fromSpx);
+  public boolean setSetpoint( String fromSpx );
 
-  public void setIndividuals(int so, int pscr, int sc, int snd, int li);
+  public void setSountEnabled( boolean on );
 
-  public void setSensorsEnabled(boolean on);
+  public void setUnitDepth( int dpt );
 
-  public int getSensorsOn();
+  public void setUnits( int tmp, int dpt, int sal );
 
-  public boolean isSensorsOn();
+  public boolean setUnits( String fromSpx );
 
-  public void setPscrModeEnabled(boolean on);
+  public void setUnitSalnyty( int sal );
 
-  public int getPscrModeOn();
+  public void setUnitTemperature( int tmp );
 
-  public boolean isPscrModeOn();
-
-  public void setSensorsCount(int cnt);
-
-  public int getSensorsCount();
-
-  public void setSountEnabled(boolean on);
-
-  public int getSoundOn();
-
-  public boolean isSoundOn();
-
-  public void setLogInterval(int interval);
-
-  public int getLogInterval();
-
-  public boolean isBuggyFirmware();
-
-  public void clear();
-
-  public int getUnitSystem();
+  /**
+   * Setze ob das Objekt komplett geschrieben wurde (gültig ist). Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.01.2012
+   * @param wasInit
+   *          Ist das Objekt gültig
+   */
+  public void setWasInit( boolean wasInit );
 }

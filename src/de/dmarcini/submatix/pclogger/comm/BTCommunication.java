@@ -590,12 +590,13 @@ public class BTCommunication implements IBTCommunication
           break;
         case ProjectConst.SPX_GET_SETUP_INDIVIDUAL:
           // Kommando GET_SETUP_INDIVIDUAL liefert
-          // ~38:SE:PS:SC:SN:LI
+          // ~38:SE:PS:SC:SN:LI:??
           // SE: Sensors 0->ON 1->OFF
           // PS: PSCRMODE 0->OFF 1->ON
           // SC: SensorCount
           // SN: Sound 0->OFF 1->ON
           // LI: Loginterval 0->10sec 1->30Sec 2->60 Sec
+          // ??: unbekannter Parameter (Low Setup?) // ab Version 2.7_H_r83
           if( aListener != null )
           {
             ActionEvent ex = new ActionEvent( this, ProjectConst.MESSAGE_INDIVID_READ, new String( readMessage ), System.currentTimeMillis() / 100, 0 );
@@ -1052,20 +1053,7 @@ public class BTCommunication implements IBTCommunication
         public void run()
         {
           String command = null;
-          int firmware = 0;
-          if( ProjectConst.FIRMWARE_2_6_7_7V.equals( config.getFirmwareVersion() ) )
-          {
-            firmware = ProjectConst.FW_2_6_7_7V;
-          }
-          else if( config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7Vx ) )
-          {
-            firmware = ProjectConst.FW_2_7V;
-          }
-          else if( config.getFirmwareVersion().startsWith( ProjectConst.FIRMWARE_2_7Hx ) )
-          {
-            firmware = ProjectConst.FW_2_7H;
-          }
-          else
+          if( !config.isFirmwareSupported() )
           {
             lg.error( "Firmware not supportet! CANCEL!" );
             if( aListener != null )
@@ -1080,30 +1068,27 @@ public class BTCommunication implements IBTCommunication
           // Kommando SPX_SET_SETUP_DEKO
           // Deco-Einstellungen setzen
           lg.info( "write deco propertys" );
-          switch ( firmware )
+          if( config.isOldParamSorting() )
           {
-            case ProjectConst.FW_2_6_7_7V:
-              // ~29:GH:GL:LS:DY:DS
-              // GH = Gradient HIGH
-              // GL = Gradient LOW
-              // LS = Last Stop 0=>6m 1=>3m
-              // DY = Dynamische gradienten 0->off 1->on
-              // DS = Deepstops 0=> enabled, 1=>disabled
-              command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_DEKO, config.getDecoGfHigh(), config.getDecoGfLow(), config.getLastStop(),
-                      config.getDynGradientsEnable(), config.getDeepStopEnable() );
-              break;
-            default:
-            case ProjectConst.FW_2_7V:
-            case ProjectConst.FW_2_7H:
-              // Kommando SPX_SET_SETUP_DEKO
-              // ~29:GL:GH:DS:DY:LS
-              // GL=GF-Low, GH=GF-High,
-              // DS=Deepstops (0/1)
-              // DY=Dynamische Gradienten (0/1)
-              // LS=Last Decostop (0=3 Meter/1=6 Meter)
-              command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_DEKO, config.getDecoGfLow(), config.getDecoGfHigh(), config.getDeepStopEnable(),
-                      config.getDynGradientsEnable(), config.getLastStop() );
-              break;
+            // ~29:GH:GL:LS:DY:DS
+            // GH = Gradient HIGH
+            // GL = Gradient LOW
+            // LS = Last Stop 0=>6m 1=>3m
+            // DY = Dynamische gradienten 0->off 1->on
+            // DS = Deepstops 0=> enabled, 1=>disabled
+            command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_DEKO, config.getDecoGfHigh(), config.getDecoGfLow(), config.getLastStop(),
+                    config.getDynGradientsEnable(), config.getDeepStopEnable() );
+          }
+          else
+          {
+            // Kommando SPX_SET_SETUP_DEKO
+            // ~29:GL:GH:DS:DY:LS
+            // GL=GF-Low, GH=GF-High,
+            // DS=Deepstops (0/1)
+            // DY=Dynamische Gradienten (0/1)
+            // LS=Last Decostop (0=3 Meter/1=6 Meter)
+            command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_DEKO, config.getDecoGfLow(), config.getDecoGfHigh(), config.getDeepStopEnable(),
+                    config.getDynGradientsEnable(), config.getLastStop() );
           }
           lg.debug( "Send <" + command + ">" );
           writeSPXMsgToDevice( command );
@@ -1146,24 +1131,21 @@ public class BTCommunication implements IBTCommunication
             aListener.actionPerformed( ae );
           }
           lg.info( "write setpoint propertys" );
-          switch ( firmware )
+          if( config.isOldParamSorting() )
           {
-            case ProjectConst.FW_2_6_7_7V:
-              //
-              // Kommando SPX_SET_SETUP_SETPOINT
-              // ~30:P:A
-              // P = Partialdruck (0..4) 1.0 .. 1.4
-              // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
-              command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getMaxSetpoint(), config.getAutoSetpoint() );
-              break;
-            default:
-            case ProjectConst.FW_2_7V:
-            case ProjectConst.FW_2_7H:
-              // ~30:A:P
-              // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
-              // P = Partialdruck (0..4) 1.0 .. 1.4
-              command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getAutoSetpoint(), config.getMaxSetpoint() );
-              break;
+            //
+            // Kommando SPX_SET_SETUP_SETPOINT
+            // ~30:P:A
+            // P = Partialdruck (0..4) 1.0 .. 1.4
+            // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
+            command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getMaxSetpoint(), config.getAutoSetpoint() );
+          }
+          else
+          {
+            // ~30:A:P
+            // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
+            // P = Partialdruck (0..4) 1.0 .. 1.4
+            command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getAutoSetpoint(), config.getMaxSetpoint() );
           }
           lg.debug( "Send <" + command + ">" );
           writeSPXMsgToDevice( command );
@@ -1177,15 +1159,26 @@ public class BTCommunication implements IBTCommunication
           if( config.getCustomEnabled() == 1 )
           {
             // Kommando SPX_SET_SETUP_INDIVIDUAL
-            // ~33:SM:PS:SC:AC:LT
+            // ~33:SM:PS:SC:AC:LT:???
             // SM = 0-> Sensoren ON, 1-> No Sensor
             // PS = PSCR Mode 0->off; 1->ON (sollte eigentlich immer off (0 ) sein)
             // SC = SensorsCount 0->1 Sensor, 1->2 sensoren, 2->3 Sensoren
             // AC = acoustic 0->off, 1->on
             // LT = Logbook Timeinterval 0->10s, 1->30s, 2->60s
+            // Ab Version 2.7_H_R_83ce
+            // ?? : noch unbekennt == 0
             lg.info( "write individual propertys" );
-            command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_INDIVIDUAL, config.getSensorsOn(), config.getPscrModeOn(), config.getSensorsCount(),
-                    config.getSoundOn(), config.getLogInterval() );
+            if( config.hasSixValuesIndividual() )
+            {
+              // Ab Version 2.7_H_r83
+              command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_INDIVIDUAL, config.getSensorsOn(), config.getPscrModeOn(), config.getSensorsCount(),
+                      config.getSoundOn(), config.getLogInterval(), 0 );
+            }
+            else
+            {
+              command = String.format( "~%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_INDIVIDUAL, config.getSensorsOn(), config.getPscrModeOn(), config.getSensorsCount(),
+                      config.getSoundOn(), config.getLogInterval() );
+            }
             lg.debug( "Send <" + command + ">" );
             writeSPXMsgToDevice( command );
             // gib Bescheid

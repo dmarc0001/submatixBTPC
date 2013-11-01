@@ -71,7 +71,7 @@ public interface IBTCommunication
 
   public void writeDateTimeToDevice( DateTime dTime );
 
-  public void writeGaslistToSPX42( SPX42GasList gList, String spxVersion );
+  public void writeGaslistToSPX42( SPX42GasList gList, boolean isOldParamSorting );
 
   public void writeSPXMsgToDevice( String msg );
 

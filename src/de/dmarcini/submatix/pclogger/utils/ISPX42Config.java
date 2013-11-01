@@ -150,6 +150,8 @@ public interface ISPX42Config
 
   public int getSoundOn();
 
+  public int getTempStickVer();
+
   public int getUnitDepth();
 
   public int getUnitSalnity();
@@ -187,6 +189,8 @@ public interface ISPX42Config
    * @return Gültigkeit
    */
   public boolean isInitialized();
+
+  public boolean isNewerDisplayBrightness();
 
   public boolean isOldParamSorting();
 
@@ -392,6 +396,8 @@ public interface ISPX42Config
   public boolean setSetpoint( String fromSpx );
 
   public void setSountEnabled( boolean on );
+
+  public void setTempStickVersion( int tempStickVer );
 
   public void setUnitDepth( int dpt );
 

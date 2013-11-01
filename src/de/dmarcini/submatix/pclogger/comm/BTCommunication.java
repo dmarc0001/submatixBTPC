@@ -566,7 +566,8 @@ public class BTCommunication implements IBTCommunication
         case ProjectConst.SPX_GET_SETUP_DISPLAYSETTINGS:
           // Kommando GET_SETUP_DISPLAYSETTINGS liefert
           // ~36:D:A
-          // D= 0->10&, 1->50%, 2->100%
+          // ALT: D= 0->10&, 1->50%, 2->100%
+          // NEU: 0->20%, 1->40%, 2->60%, 3->80%, 4->100%
           // A= 0->Landscape 1->180Grad
           if( aListener != null )
           {
@@ -1101,7 +1102,8 @@ public class BTCommunication implements IBTCommunication
           //
           // Kommando SPX_SET_SETUP_DISPLAYSETTINGS
           // ~31:D:A
-          // D= 0->10&, 1->50%, 2->100%
+          // Alte Settings D= 0->10&, 1->50%, 2->100%
+          // Neuere Settings 0->20%, 1->40%, 2->60%, 3->80%, 4->100%
           // A= 0->Landscape 1->180Grad
           // Display setzen
           lg.info( "write display propertys" );
@@ -1166,13 +1168,13 @@ public class BTCommunication implements IBTCommunication
             // AC = acoustic 0->off, 1->on
             // LT = Logbook Timeinterval 0->10s, 1->30s, 2->60s
             // Ab Version 2.7_H_R_83ce
-            // ?? : noch unbekennt == 0
+            // TS : TempStick == 0
             lg.info( "write individual propertys" );
             if( config.hasSixValuesIndividual() )
             {
               // Ab Version 2.7_H_r83
               command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_INDIVIDUAL, config.getSensorsOn(), config.getPscrModeOn(), config.getSensorsCount(),
-                      config.getSoundOn(), config.getLogInterval(), 0 );
+                      config.getSoundOn(), config.getLogInterval(), config.getTempStickVer() );
             }
             else
             {
@@ -1188,7 +1190,7 @@ public class BTCommunication implements IBTCommunication
               aListener.actionPerformed( ae );
             }
           }
-          // gib Bescheid vorgang zuende
+          // gib Bescheid Vorgang zuende
           lg.info( "write config endet." );
           if( aListener != null )
           {
@@ -1224,7 +1226,7 @@ public class BTCommunication implements IBTCommunication
   }
 
   @Override
-  public void writeGaslistToSPX42( final SPX42GasList gList, final String spxVersion )
+  public void writeGaslistToSPX42( final SPX42GasList gList, final boolean isOldParamSorting )
   {
     Thread gasListWriteThread = null;
     //
@@ -1233,124 +1235,98 @@ public class BTCommunication implements IBTCommunication
       lg.error( "config was not initialized! CANCEL!" );
       return;
     }
-    if( ProjectConst.FIRMWARE_2_6_7_7V.equals( spxVersion ) || spxVersion.startsWith( ProjectConst.FIRMWARE_2_7Vx ) || spxVersion.startsWith( ProjectConst.FIRMWARE_2_7Hx ) )
-    {
-      // Schreibe für die leicht Fehlerhafte Version
-      // Führe als eigenen Thread aus, damit die Swing-Oberfläche
-      // Gelegenheit bekommt, sich zu zeichnen
-      gasListWriteThread = new Thread() {
-        ActionEvent ae;
+    // Schreibe für die leicht Fehlerhafte Version
+    // Führe als eigenen Thread aus, damit die Swing-Oberfläche
+    // Gelegenheit bekommt, sich zu zeichnen
+    gasListWriteThread = new Thread() {
+      ActionEvent ae;
 
-        @Override
-        public void run()
+      @Override
+      public void run()
+      {
+        String command;
+        int gasCount = gList.getGasCount();
+        int gasNr;
+        int diluent;
+        //
+        // Alle Gase des Computers durchexerzieren
+        //
+        for( gasNr = 0; gasNr < gasCount; gasNr++ )
         {
-          String command;
-          int gasCount = gList.getGasCount();
-          int gasNr;
-          int diluent;
-          int firmware = 0;
-          if( ProjectConst.FIRMWARE_2_6_7_7V.equals( spxVersion ) )
+          lg.info( String.format( "write gas number %d to SPX...", gasNr ) );
+          if( isOldParamSorting )
           {
-            firmware = ProjectConst.FW_2_6_7_7V;
-          }
-          else if( spxVersion.startsWith( ProjectConst.FIRMWARE_2_7Vx ) )
-          {
-            firmware = ProjectConst.FW_2_7V;
-          }
-          else if( spxVersion.startsWith( ProjectConst.FIRMWARE_2_7Hx ) )
-          {
-            firmware = ProjectConst.FW_2_7H;
+            // ############ Alte Parameter Reihenfolge
+            // Kommando SPX_SET_SETUP_GASLIST
+            // ~40:NR:HE:N2:BO:DI:CU
+            // NR -> Gas Nummer
+            // HE -> Heliumanteil
+            // N2 -> Stickstoffanteil
+            // BO -> Bailoutgas? (3?)
+            // DI -> Diluent ( 0, 1 oder 2 )
+            // CU Current Gas (0 oder 1)
+            if( gList.getDiulent1() == gasNr )
+            {
+              diluent = 1;
+            }
+            else if( gList.getDiluent2() == gasNr )
+            {
+              diluent = 2;
+            }
+            else
+            {
+              diluent = 0;
+            }
+            command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_GASLIST, gasNr, gList.getHEFromGas( gasNr ), gList.getN2FromGas( gasNr ),
+                    gList.getBailout( gasNr ), diluent, gList.getCurrGas( gasNr ) );
           }
           else
           {
-            lg.error( "Firmware not supportet! CANCEL!" );
-            return;
+            // ############ NEUE Parameter Reihenfolge
+            // Kommando SPX_SET_SETUP_GASLIST
+            // ~40:NR:N2:HE:BO:DI:CU
+            // NR: Nummer des Gases 0..7
+            // N2: Sticksoff in %
+            // HE: Heluim in %
+            // BO: Bailout (Werte 0,1 und 3 gefunden, 0 kein BO, 3 BO Wert 1 unbekannt?)
+            // DI: Diluent 1 oder 2
+            // CU: Current Gas
+            if( gList.getDiulent1() == gasNr )
+            {
+              diluent = 1;
+            }
+            else if( gList.getDiluent2() == gasNr )
+            {
+              diluent = 2;
+            }
+            else
+            {
+              diluent = 0;
+            }
+            command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_GASLIST, gasNr, gList.getN2FromGas( gasNr ), gList.getHEFromGas( gasNr ),
+                    gList.getBailout( gasNr ), diluent, gList.getCurrGas( gasNr ) );
           }
           //
-          // Alle Gase des Computers durchexerzieren
-          //
-          for( gasNr = 0; gasNr < gasCount; gasNr++ )
-          {
-            lg.info( String.format( "write gas number %d to SPX...", gasNr ) );
-            switch ( firmware )
-            {
-              case ProjectConst.FW_2_6_7_7V:
-                // Kommando SPX_SET_SETUP_GASLIST
-                // ~40:NR:HE:N2:BO:DI:CU
-                // NR -> Gas Nummer
-                // HE -> Heliumanteil
-                // N2 -> Stickstoffanteil
-                // BO -> Bailoutgas? (3?)
-                // DI -> Diluent ( 0, 1 oder 2 )
-                // CU Current Gas (0 oder 1)
-                if( gList.getDiulent1() == gasNr )
-                {
-                  diluent = 1;
-                }
-                else if( gList.getDiluent2() == gasNr )
-                {
-                  diluent = 2;
-                }
-                else
-                {
-                  diluent = 0;
-                }
-                command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_GASLIST, gasNr, gList.getHEFromGas( gasNr ), gList.getN2FromGas( gasNr ),
-                        gList.getBailout( gasNr ), diluent, gList.getCurrGas( gasNr ) );
-                break;
-              default:
-              case ProjectConst.FW_2_7V:
-              case ProjectConst.FW_2_7H:
-                // Kommando SPX_SET_SETUP_GASLIST
-                // ~40:NR:N2:HE:BO:DI:CU
-                // NR: Nummer des Gases 0..7
-                // N2: Sticksoff in %
-                // HE: Heluim in %
-                // BO: Bailout (Werte 0,1 und 3 gefunden, 0 kein BO, 3 BO Wert 1 unbekannt?)
-                // DI: Diluent 1 oder 2
-                // CU: Current Gas
-                if( gList.getDiulent1() == gasNr )
-                {
-                  diluent = 1;
-                }
-                else if( gList.getDiluent2() == gasNr )
-                {
-                  diluent = 2;
-                }
-                else
-                {
-                  diluent = 0;
-                }
-                command = String.format( "~%x:%x:%x:%x:%x:%x:%x", ProjectConst.SPX_SET_SETUP_GASLIST, gasNr, gList.getN2FromGas( gasNr ), gList.getHEFromGas( gasNr ),
-                        gList.getBailout( gasNr ), diluent, gList.getCurrGas( gasNr ) );
-                break;
-            }
-            //
-            lg.debug( "Send <" + command + ">" );
-            writeSPXMsgToDevice( command );
-            // gib Bescheid
-            if( aListener != null )
-            {
-              ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_NEXT, null );
-              aListener.actionPerformed( ae );
-            }
-          }
-          // gib Bescheid Vorgang zuende
-          lg.info( "write gaslist success." );
+          lg.debug( "Send <" + command + ">" );
+          writeSPXMsgToDevice( command );
+          // gib Bescheid
           if( aListener != null )
           {
-            ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_END, null );
+            ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_NEXT, null );
             aListener.actionPerformed( ae );
           }
         }
-      };
-      gasListWriteThread.setName( "write_gaslist_to_spx" );
-      gasListWriteThread.start();
-    }
-    else
-    {
-      lg.error( "write for this firmware version not confirmed! CANCEL!" );
-    }
+        // gib Bescheid Vorgang zuende
+        lg.info( "write gaslist success." );
+        if( aListener != null )
+        {
+          ae = new ActionEvent( this, ProjectConst.MESSAGE_PROCESS_END, null );
+          aListener.actionPerformed( ae );
+        }
+      }
+    };
+    gasListWriteThread.setName( "write_gaslist_to_spx" );
+    gasListWriteThread.start();
   }
 
   @Override

@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.beans.Beans;
 import java.util.MissingResourceException;
 
 import javax.swing.DefaultComboBoxModel;
@@ -27,7 +28,7 @@ import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                       /**
+{                                                                         /**
    * 
    */
   private static final long serialVersionUID     = 1L;
@@ -46,23 +47,23 @@ public class spx42ConfigPanel extends JPanel
   private JLabel            serialNumberText;
   private JLabel            firmwareVersionValueLabel;
   private JSpinner          decoGradientenLowSpinner;
-  private JComboBox         decoGradientenPresetComboBox;
-  private JComboBox         decoLastStopComboBox;
+  private JComboBox<String> decoGradientenPresetComboBox;
+  private JComboBox<String> decoLastStopComboBox;
   private JCheckBox         decoDynGradientsCheckBox;
   private JCheckBox         decoDeepStopCheckBox;
-  private JComboBox         autoSetpointComboBox;
-  private JComboBox         highSetpointComboBox;
-  private JComboBox         displayBrightnessComboBox;
-  private JComboBox         displayOrientationComboBox;
-  private JComboBox         unitsTemperatureComboBox;
-  private JComboBox         unitsDepthComboBox;
-  private JComboBox         unitsSalnityComboBox;
+  private JComboBox<String> autoSetpointComboBox;
+  private JComboBox<String> highSetpointComboBox;
+  private JComboBox<String> displayBrightnessComboBox;
+  private JComboBox<String> displayOrientationComboBox;
+  private JComboBox<String> unitsTemperatureComboBox;
+  private JComboBox<String> unitsDepthComboBox;
+  private JComboBox<String> unitsSalnityComboBox;
   private JPanel            individualPanel;
   private JCheckBox         individualsSensorsOnCheckbox;
   private JCheckBox         individualsPscrModeOnCheckbox;
-  private JComboBox         individualsSensorWarnComboBox;
+  private JComboBox<String> individualsSensorWarnComboBox;
   private JCheckBox         individualsWarningsOnCheckBox;
-  private JComboBox         individualsLogintervalComboBox;
+  private JComboBox<String> individualsLogintervalComboBox;
   private JSpinner          decoGradientenHighSpinner;
   private JButton           readSPX42ConfigButton;
   private JButton           writeSPX42ConfigButton;
@@ -90,6 +91,8 @@ public class spx42ConfigPanel extends JPanel
   private JLabel            individualsAcusticWarningsLabel;
   private JLabel            individualsLogintervalLabel;
   private JLabel            individualsNotLicensedLabel;
+  private JComboBox<String> individualsTempStickVersionComboBox;
+  private JLabel            individualsTempStickVersionLabel;
 
   /**
    * Create the panel.
@@ -100,7 +103,8 @@ public class spx42ConfigPanel extends JPanel
     isPanelInitiated = false;
     currentConfig = null;
     areAllConfigPanelsEnabled = false;
-    // if( Beans.isDesignTime() ) initPanel();
+    // DEBUG: wieder entfernen nach Design
+    if( Beans.isDesignTime() ) initPanel();
   }
 
   public JSpinner getDecoGradientenHighSpinner()
@@ -160,7 +164,7 @@ public class spx42ConfigPanel extends JPanel
     decoGradientenLowSpinner = new JSpinner();
     decoGradientenLowSpinner.setBounds( 101, 16, 49, 20 );
     decoGradientsLowLabel.setLabelFor( decoGradientenLowSpinner );
-    decoGradientenPresetComboBox = new JComboBox();
+    decoGradientenPresetComboBox = new JComboBox<String>();
     decoGradientenPresetComboBox.setBounds( 168, 16, 202, 20 );
     decoGradientenPresetComboBox.setActionCommand( "deco_gradient_preset" );
     decoGradientsHighLabel = new JLabel( LangStrings.getString( "spx42ConfigPanel.decoGradientsHighLabel.text" ) ); //$NON-NLS-1$
@@ -172,7 +176,7 @@ public class spx42ConfigPanel extends JPanel
     decoLaststopLabel = new JLabel( LangStrings.getString( "spx42ConfigPanel.decoLaststopLabel.text" ) ); //$NON-NLS-1$
     decoLaststopLabel.setBounds( 15, 71, 68, 14 );
     decoLaststopLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    decoLastStopComboBox = new JComboBox();
+    decoLastStopComboBox = new JComboBox<String>();
     decoLastStopComboBox.setBounds( 101, 68, 49, 20 );
     decoLastStopComboBox.setActionCommand( "deco_last_stop" );
     decoLaststopLabel.setLabelFor( decoLastStopComboBox );
@@ -197,14 +201,14 @@ public class spx42ConfigPanel extends JPanel
     lblSetpointAutosetpoint = new JLabel( LangStrings.getString( "spx42ConfigPanel.lblSetpointAutosetpoint.text" ) ); //$NON-NLS-1$
     lblSetpointAutosetpoint.setBounds( 15, 19, 91, 14 );
     lblSetpointAutosetpoint.setHorizontalAlignment( SwingConstants.RIGHT );
-    autoSetpointComboBox = new JComboBox();
+    autoSetpointComboBox = new JComboBox<String>();
     autoSetpointComboBox.setBounds( 124, 16, 205, 20 );
     lblSetpointAutosetpoint.setLabelFor( autoSetpointComboBox );
     autoSetpointComboBox.setActionCommand( "set_autosetpoint" );
     lblSetpointHighsetpoint = new JLabel( LangStrings.getString( "spx42ConfigPanel.lblSetpointHighsetpoint.text" ) ); //$NON-NLS-1$
     lblSetpointHighsetpoint.setBounds( 32, 42, 74, 14 );
     lblSetpointHighsetpoint.setHorizontalAlignment( SwingConstants.RIGHT );
-    highSetpointComboBox = new JComboBox();
+    highSetpointComboBox = new JComboBox<String>();
     highSetpointComboBox.setBounds( 124, 42, 205, 20 );
     highSetpointComboBox.setActionCommand( "set_highsetpoint" );
     lblSetpointHighsetpoint.setLabelFor( highSetpointComboBox );
@@ -215,14 +219,14 @@ public class spx42ConfigPanel extends JPanel
     lblDisplayBrightness = new JLabel( LangStrings.getString( "spx42ConfigPanel.lblDisplayBrightness.text" ) ); //$NON-NLS-1$
     lblDisplayBrightness.setBounds( 15, 19, 106, 14 );
     lblDisplayBrightness.setHorizontalAlignment( SwingConstants.RIGHT );
-    displayBrightnessComboBox = new JComboBox();
+    displayBrightnessComboBox = new JComboBox<String>();
     displayBrightnessComboBox.setBounds( 139, 16, 231, 20 );
     lblDisplayBrightness.setLabelFor( displayBrightnessComboBox );
     displayBrightnessComboBox.setActionCommand( "set_disp_brightness" );
     lblDisplayOrientation = new JLabel( LangStrings.getString( "spx42ConfigPanel.lblDisplayOrientation.text" ) ); //$NON-NLS-1$
     lblDisplayOrientation.setBounds( 15, 45, 106, 14 );
     lblDisplayOrientation.setHorizontalAlignment( SwingConstants.RIGHT );
-    displayOrientationComboBox = new JComboBox();
+    displayOrientationComboBox = new JComboBox<String>();
     displayOrientationComboBox.setBounds( 139, 42, 231, 20 );
     lblDisplayOrientation.setLabelFor( displayOrientationComboBox );
     displayOrientationComboBox.setActionCommand( "set_display_orientation" );
@@ -233,21 +237,21 @@ public class spx42ConfigPanel extends JPanel
     lblUnitsTemperature = new JLabel( LangStrings.getString( "spx42ConfigPanel.lblUnitsTemperature.text" ) ); //$NON-NLS-1$
     lblUnitsTemperature.setBounds( 15, 19, 104, 14 );
     lblUnitsTemperature.setHorizontalAlignment( SwingConstants.RIGHT );
-    unitsTemperatureComboBox = new JComboBox();
+    unitsTemperatureComboBox = new JComboBox<String>();
     unitsTemperatureComboBox.setBounds( 138, 16, 232, 20 );
     lblUnitsTemperature.setLabelFor( unitsTemperatureComboBox );
     unitsTemperatureComboBox.setActionCommand( "set_temperature_unit" );
     lblUnitsDepth = new JLabel( LangStrings.getString( "spx42ConfigPanel.lblUnitsDepth.text" ) ); //$NON-NLS-1$
     lblUnitsDepth.setBounds( 15, 45, 105, 14 );
     lblUnitsDepth.setHorizontalAlignment( SwingConstants.RIGHT );
-    unitsDepthComboBox = new JComboBox();
+    unitsDepthComboBox = new JComboBox<String>();
     unitsDepthComboBox.setBounds( 138, 42, 232, 20 );
     lblUnitsDepth.setLabelFor( unitsDepthComboBox );
     unitsDepthComboBox.setActionCommand( "set_depth_unit" );
     lblUnitsSalinity = new JLabel( LangStrings.getString( "spx42ConfigPanel.lblUnitsSalinity.text" ) ); //$NON-NLS-1$
     lblUnitsSalinity.setBounds( 15, 71, 105, 14 );
     lblUnitsSalinity.setHorizontalAlignment( SwingConstants.RIGHT );
-    unitsSalnityComboBox = new JComboBox();
+    unitsSalnityComboBox = new JComboBox<String>();
     unitsSalnityComboBox.setBounds( 138, 68, 232, 20 );
     lblUnitsSalinity.setLabelFor( unitsSalnityComboBox );
     unitsSalnityComboBox.setActionCommand( "set_salnity" );
@@ -273,7 +277,7 @@ public class spx42ConfigPanel extends JPanel
     lblSensorwarnings = new JLabel( LangStrings.getString( "spx42ConfigPanel.lblSensorwarnings.text" ) ); //$NON-NLS-1$
     lblSensorwarnings.setBounds( 25, 67, 97, 14 );
     lblSensorwarnings.setHorizontalAlignment( SwingConstants.RIGHT );
-    individualsSensorWarnComboBox = new JComboBox();
+    individualsSensorWarnComboBox = new JComboBox<String>();
     individualsSensorWarnComboBox.setBounds( 140, 64, 182, 20 );
     lblSensorwarnings.setLabelFor( individualsSensorWarnComboBox );
     individualsSensorWarnComboBox.setActionCommand( "set_sensorwarnings" );
@@ -287,12 +291,12 @@ public class spx42ConfigPanel extends JPanel
     individualsLogintervalLabel = new JLabel( LangStrings.getString( "spx42ConfigPanel.individualsLogintervalLabel.text" ) ); //$NON-NLS-1$
     individualsLogintervalLabel.setBounds( 15, 114, 107, 14 );
     individualsLogintervalLabel.setHorizontalAlignment( SwingConstants.RIGHT );
-    individualsLogintervalComboBox = new JComboBox();
+    individualsLogintervalComboBox = new JComboBox<String>();
     individualsLogintervalComboBox.setBounds( 140, 111, 182, 20 );
     individualsLogintervalLabel.setLabelFor( individualsLogintervalComboBox );
     individualsLogintervalComboBox.setActionCommand( "set_loginterval" );
     individualsNotLicensedLabel = new JLabel( "------" );
-    individualsNotLicensedLabel.setBounds( 15, 163, 307, 14 );
+    individualsNotLicensedLabel.setBounds( 15, 180, 307, 14 );
     individualsNotLicensedLabel.setForeground( Color.DARK_GRAY );
     individualsNotLicensedLabel.setFont( new Font( "Tahoma", Font.ITALIC, 11 ) );
     individualsNotLicensedLabel.setHorizontalAlignment( SwingConstants.CENTER );
@@ -337,6 +341,14 @@ public class spx42ConfigPanel extends JPanel
     setpointPanel.add( autoSetpointComboBox );
     setpointPanel.add( highSetpointComboBox );
     add( individualPanel );
+    individualsTempStickVersionComboBox = new JComboBox<String>();
+    individualsTempStickVersionComboBox.setActionCommand( "set_tempstickversion" );
+    individualsTempStickVersionComboBox.setBounds( 140, 148, 182, 20 );
+    individualPanel.add( individualsTempStickVersionComboBox );
+    individualsTempStickVersionLabel = new JLabel( LangStrings.getString( "spx42ConfigPanel.lblTempStickVer.text" ) ); //$NON-NLS-1$
+    individualsTempStickVersionLabel.setLabelFor( individualsTempStickVersionComboBox );
+    individualsTempStickVersionLabel.setHorizontalAlignment( SwingConstants.RIGHT );
+    individualsTempStickVersionLabel.setBounds( 15, 150, 107, 14 );
     individualPanel.setLayout( null );
     individualPanel.add( individualsNotLicensedLabel );
     individualPanel.add( individualsLogintervalLabel );
@@ -349,6 +361,7 @@ public class spx42ConfigPanel extends JPanel
     individualPanel.add( individualsSensorWarnComboBox );
     individualPanel.add( individualsPscrModeOnCheckbox );
     individualPanel.add( individualsWarningsOnCheckBox );
+    individualPanel.add( individualsTempStickVersionLabel );
     isPanelInitiated = true;
   }
 
@@ -366,7 +379,7 @@ public class spx42ConfigPanel extends JPanel
     setSerialNumber( serialNumber );
     setGlobalChangeListener( mainCommGUI );
     setAllConfigPanlelsEnabled( areAllConfigPanelsEnabled );
-    setLanguageStrings();
+    setLanguageStrings( currentConfig );
     setDisplayPropertys();
     setSetpoint();
     setUnits();
@@ -581,6 +594,8 @@ public class spx42ConfigPanel extends JPanel
     individualsLogintervalComboBox.addMouseMotionListener( mainCommGUI );
     decoGradientenLowSpinner.addChangeListener( mainCommGUI );
     decoGradientenHighSpinner.addChangeListener( mainCommGUI );
+    individualsTempStickVersionComboBox.addActionListener( mainCommGUI );
+    individualsTempStickVersionComboBox.addMouseMotionListener( mainCommGUI );
   }
 
   /**
@@ -625,6 +640,15 @@ public class spx42ConfigPanel extends JPanel
     }
     // Loginterval
     individualsLogintervalComboBox.setSelectedIndex( currentConfig.getLogInterval() );
+    if( currentConfig.hasSixValuesIndividual() )
+    {
+      individualsTempStickVersionComboBox.setSelectedIndex( currentConfig.getTempStickVer() );
+    }
+    else
+    {
+      individualsTempStickVersionComboBox.setVisible( false );
+      individualsTempStickVersionLabel.setVisible( false );
+    }
   }
 
   public void setIndividualsPanelEnabled( boolean en )
@@ -648,10 +672,10 @@ public class spx42ConfigPanel extends JPanel
     individualPanel.setEnabled( en );
   }
 
-  public int setLanguageStrings()
+  public int setLanguageStrings( SPX42Config currentConfig )
   {
     String[] entrys;
-    DefaultComboBoxModel portBoxModel;
+    DefaultComboBoxModel<String> portBoxModel;
     if( !isPanelInitiated ) return( -1 );
     try
     {
@@ -674,7 +698,7 @@ public class spx42ConfigPanel extends JPanel
       decoLastStopComboBox.removeAllItems();
       entrys = new String[]
       { LangStrings.getString( "spx42ConfigPanel.decoLastStopComboBox.3m.text" ), LangStrings.getString( "spx42ConfigPanel.decoLastStopComboBox.6m.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       decoLastStopComboBox.setModel( portBoxModel );
       decoLastStopComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.decoLastStopComboBox.tooltipttext" ) );
       decoGradientenPresetComboBox.removeAllItems();
@@ -682,7 +706,7 @@ public class spx42ConfigPanel extends JPanel
       { LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.vconservative.text" ), LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.conservative.text" ),
           LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.moderate.text" ), LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.aggressive.text" ),
           LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.vaggressive.text" ), LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.custom.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       decoGradientenPresetComboBox.setModel( portBoxModel );
       decoDyngradientsLabel.setText( LangStrings.getString( "spx42ConfigPanel.decoDyngradientsLabel.text" ) );
       decoDynGradientsCheckBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.decoDynGradientsCheckBox.tooltiptext" ) );
@@ -698,7 +722,7 @@ public class spx42ConfigPanel extends JPanel
       { LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.off.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.5m.text" ),
           LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.10m.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.15m.text" ),
           LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.20m.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       autoSetpointComboBox.setModel( portBoxModel );
       autoSetpointComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.tooltiptext" ) );
       lblSetpointHighsetpoint.setText( LangStrings.getString( "spx42ConfigPanel.lblSetpointHighsetpoint.text" ) );
@@ -707,17 +731,29 @@ public class spx42ConfigPanel extends JPanel
       { LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.10.text" ), LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.11.text" ),
           LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.12.text" ), LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.13.text" ),
           LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.14.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       highSetpointComboBox.setModel( portBoxModel );
       highSetpointComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.highSetpointComboBox.tooltiptext" ) );
       // DISPLAY
       ( ( TitledBorder )( displayPanel.getBorder() ) ).setTitle( LangStrings.getString( "spx42ConfigPanel.displayPanel.text" ) );
       lblDisplayBrightness.setText( LangStrings.getString( "spx42ConfigPanel.lblDisplayBrightness.text" ) );
       displayBrightnessComboBox.removeAllItems();
-      entrys = new String[]
-      { LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.10.text" ), LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.50.text" ),
-          LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.100.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      // Abhängig von der Firmware
+      if( ( currentConfig == null ) || ( !currentConfig.isNewerDisplayBrightness() ) )
+      {
+        entrys = new String[]
+        { LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.10.text" ), LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.50.text" ),
+            LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.100.text" ) };
+        portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      }
+      else
+      {
+        entrys = new String[]
+        { LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.20.text" ), LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.40.text" ),
+            LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.60.text" ), LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.80.text" ),
+            LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.100.text" ) };
+        portBoxModel = new DefaultComboBoxModel<String>( entrys );
+      }
       displayBrightnessComboBox.setModel( portBoxModel );
       displayBrightnessComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.displayBrightnessComboBox.tooltiptext" ) );
       lblDisplayOrientation.setText( LangStrings.getString( "spx42ConfigPanel.lblDisplayOrientation.text" ) );
@@ -725,7 +761,7 @@ public class spx42ConfigPanel extends JPanel
       entrys = new String[]
       { LangStrings.getString( "spx42ConfigPanel.displayOrientationComboBox.landscape.text" ),
           LangStrings.getString( "spx42ConfigPanel.displayOrientationComboBox.landscape180.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       displayOrientationComboBox.setModel( portBoxModel );
       displayOrientationComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.displayOrientationComboBox.tooltiptext" ) );
       // UNITS
@@ -734,21 +770,21 @@ public class spx42ConfigPanel extends JPanel
       unitsTemperatureComboBox.removeAllItems();
       entrys = new String[]
       { LangStrings.getString( "spx42ConfigPanel.unitsTemperatureComboBox.celsius.text" ), LangStrings.getString( "spx42ConfigPanel.unitsTemperatureComboBox.fahrenheit.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       unitsTemperatureComboBox.setModel( portBoxModel );
       unitsTemperatureComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.unitsTemperatureComboBox.tooltiptext" ) );
       lblUnitsDepth.setText( LangStrings.getString( "spx42ConfigPanel.lblUnitsDepth.text" ) );
       unitsDepthComboBox.removeAllItems();
       entrys = new String[]
       { LangStrings.getString( "spx42ConfigPanel.unitsDepthComboBox.metrical.text" ), LangStrings.getString( "spx42ConfigPanel.unitsDepthComboBox.imperial.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       unitsDepthComboBox.setModel( portBoxModel );
       unitsDepthComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.unitsDepthComboBox.tooltiptext" ) );
       lblUnitsSalinity.setText( LangStrings.getString( "spx42ConfigPanel.lblUnitsSalinity.text" ) );
       unitsSalnityComboBox.removeAllItems();
       entrys = new String[]
       { LangStrings.getString( "spx42ConfigPanel.unitsSalnityComboBox.saltwater.text" ), LangStrings.getString( "spx42ConfigPanel.unitsSalnityComboBox.clearwater.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       unitsSalnityComboBox.setModel( portBoxModel );
       unitsSalnityComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.unitsSalnityComboBox.tooltiptext" ) );
       // INDIVIDUALS
@@ -764,7 +800,7 @@ public class spx42ConfigPanel extends JPanel
       entrys = new String[]
       { LangStrings.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.1.text" ), LangStrings.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.2.text" ),
           LangStrings.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.3.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       individualsSensorWarnComboBox.setModel( portBoxModel );
       individualsSensorWarnComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.individualsSensorwarnComboBox.tooltiptext" ) );
       individualsAcusticWarningsLabel.setText( LangStrings.getString( "spx42ConfigPanel.individualsAcusticWarningsLabel.text" ) );
@@ -774,9 +810,19 @@ public class spx42ConfigPanel extends JPanel
       entrys = new String[]
       { LangStrings.getString( "spx42ConfigPanel.individualsLogintervalComboBox.10s.text" ), LangStrings.getString( "spx42ConfigPanel.individualsLogintervalComboBox.20s.text" ),
           LangStrings.getString( "spx42ConfigPanel.individualsLogintervalComboBox.60s.text" ) };
-      portBoxModel = new DefaultComboBoxModel( entrys );
+      portBoxModel = new DefaultComboBoxModel<String>( entrys );
       individualsLogintervalComboBox.setModel( portBoxModel );
       individualsLogintervalComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.individualsLogintervalComboBox.tooltiptext" ) );
+      // Abhängig von der Firmware
+      if( ( currentConfig == null ) || ( currentConfig.hasSixValuesIndividual() ) )
+      {
+        entrys = new String[]
+        { LangStrings.getString( "spx42ConfigPanel.individualsTempStickVersionComboBox.T1" ), LangStrings.getString( "spx42ConfigPanel.individualsTempStickVersionComboBox.T2" ),
+            LangStrings.getString( "spx42ConfigPanel.individualsTempStickVersionComboBox.T3" ) };
+        portBoxModel = new DefaultComboBoxModel<String>( entrys );
+        individualsTempStickVersionComboBox.setModel( portBoxModel );
+        individualsTempStickVersionLabel.setToolTipText( LangStrings.getString( "spx42ConfigPanel.individualsTempStickVersionLabel.tooltiptext" ) );
+      }
       individualsNotLicensedLabel.setToolTipText( LangStrings.getString( "spx42ConfigPanel.individualsNotLicensedLabel.tooltiptext" ) );
       individualsNotLicensedLabel.setText( " " );
     }

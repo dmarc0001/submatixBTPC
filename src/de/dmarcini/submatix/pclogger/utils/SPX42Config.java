@@ -53,15 +53,13 @@ public class SPX42Config implements ISPX42Config
   protected int                                 licenseState = 0;
   protected boolean                            customEnabled = false;
   protected int                                  unitsSystem = UNITS_METRIC;
-  
-  //
-  // Marker für Firmwarespezialitäten
-  //
-  protected boolean hasFahrenheidBug = false;
-  protected boolean canSetDate = true;
-  protected boolean hasSixValuesIndividual = false;
-  protected boolean isFirmwareSupported = false;
-  protected boolean isOldParamSorting = false;  // bei alter Firmware war die Reihenfolge der Paramete anders
+  protected boolean                         hasFahrenheidBug = false;
+  protected boolean                               canSetDate = true;
+  protected boolean                   hasSixValuesIndividual = false;
+  protected boolean                      isFirmwareSupported = false;
+  protected boolean                        isOldParamSorting = false;  // bei alter Firmware war die Reihenfolge der Paramete anders
+  protected boolean                 isNewerDisplayBrightness = false; // ab FW FIRMWARE_2_7H_R83CE 20 % Schritte
+  protected int                                 tempStickVer = 0;      // Version des Tempsticks T1, T2 oder T3
   
   //
   //@formatter:on
@@ -123,6 +121,8 @@ public class SPX42Config implements ISPX42Config
     hasSixValuesIndividual = cf.hasSixValuesIndividual;
     isFirmwareSupported = cf.isFirmwareSupported;
     isOldParamSorting = cf.isOldParamSorting;
+    isNewerDisplayBrightness = cf.isNewerDisplayBrightness;
+    tempStickVer = cf.tempStickVer;
   }
 
   @Override
@@ -175,6 +175,8 @@ public class SPX42Config implements ISPX42Config
     if( hasSixValuesIndividual != cf.hasSixValuesIndividual ) return( false );
     if( isFirmwareSupported != cf.isFirmwareSupported ) return( false );
     if( isOldParamSorting != cf.isOldParamSorting ) return( false );
+    if( isNewerDisplayBrightness != cf.isNewerDisplayBrightness ) return( false );
+    if( tempStickVer != cf.tempStickVer ) return( false );
     return( true );
   }
 
@@ -367,6 +369,12 @@ public class SPX42Config implements ISPX42Config
   }
 
   @Override
+  public int getTempStickVer()
+  {
+    return( tempStickVer );
+  }
+
+  @Override
   public int getUnitDepth()
   {
     return( unitsDepth );
@@ -424,6 +432,12 @@ public class SPX42Config implements ISPX42Config
   public boolean isInitialized()
   {
     return( wasCorrectInitialized );
+  }
+
+  @Override
+  public boolean isNewerDisplayBrightness()
+  {
+    return( isNewerDisplayBrightness );
   }
 
   @Override
@@ -647,9 +661,26 @@ public class SPX42Config implements ISPX42Config
   @Override
   public void setDisplayBrithtness( int brightness )
   {
-    if( brightness < 0 || brightness > 3 )
+    if( brightness < 0 )
     {
       throw new IndexOutOfBoundsException( "not a valid display brightness value!" );
+    }
+    // vor oder nach der umstellung auf mehr Stufen
+    if( isNewerDisplayBrightness )
+    {
+      // Neuere Einteilung aller 20%
+      if( brightness < 0 || brightness > 5 )
+      {
+        throw new IndexOutOfBoundsException( "not a valid display brightness value!" );
+      }
+    }
+    else
+    {
+      // ältere Einteilung 10,50,100%
+      if( brightness < 0 || brightness > 3 )
+      {
+        throw new IndexOutOfBoundsException( "not a valid display brightness value!" );
+      }
     }
     displayBrightness = brightness;
   }
@@ -709,12 +740,13 @@ public class SPX42Config implements ISPX42Config
         //
         // hier kommt bestimmt noch irgendwas nach :-(
         hasSixValuesIndividual = true;
+        isNewerDisplayBrightness = true;
       }
     }
   }
 
   @Override
-  public void setIndividuals( int so, int pscr, int sc, int snd, int li, int unknown )
+  public void setIndividuals( int so, int pscr, int sc, int snd, int li, int tempStickVersion )
   {
     if( so == 0 )
     {
@@ -750,6 +782,10 @@ public class SPX42Config implements ISPX42Config
       throw new IndexOutOfBoundsException( "not a valid loginterval value!" );
     }
     logInterval = li;
+    if( tempStickVersion > 0 && tempStickVersion < 3 )
+    {
+      this.tempStickVer = tempStickVersion;
+    }
   }
 
   @Override
@@ -762,7 +798,7 @@ public class SPX42Config implements ISPX42Config
     // SC: SensorCount
     // SN: Sound 0->OFF 1->ON
     // LI: Loginterval 0->10sec 1->30Sec 2->60 Sec
-    // ?? : noch ungeklärt, ab FW 2.7_H_R83ce
+    // TS : TempStickversion, ab FW 2.7_H_R83ce T1,T2 oder T3
     lg.debug( "setIndividuals() <" + fromSpx + ">" );
     String[] fields = fieldPatternDp.split( fromSpx );
     int[] vals = new int[fields.length - 1];
@@ -775,7 +811,8 @@ public class SPX42Config implements ISPX42Config
       vals[4] = Integer.parseInt( fields[5] );
       if( hasSixValuesIndividual && vals.length >= 6 )
       {
-        vals[5] = Integer.parseInt( fields[6] );
+        // TempsStick Version festhalten
+        tempStickVer = Integer.parseInt( fields[6] );
       }
     }
     catch( NumberFormatException ex )
@@ -971,6 +1008,15 @@ public class SPX42Config implements ISPX42Config
   public void setSountEnabled( boolean snd )
   {
     soundOn = snd;
+  }
+
+  @Override
+  public void setTempStickVersion( int tempStickVer )
+  {
+    if( hasSixValuesIndividual )
+    {
+      this.tempStickVer = tempStickVer;
+    }
   }
 
   @Override

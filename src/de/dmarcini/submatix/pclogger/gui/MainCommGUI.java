@@ -270,6 +270,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    * @return
    * @throws Exception
    */
+  @SuppressWarnings( "null" )
   private static boolean parseCliOptions( String[] args ) throws Exception
   {
     CommandLine cmdLine = null;
@@ -1578,7 +1579,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
           wDial.setMax( BTCommunication.CONFIG_READ_KDO_COUNT );
           wDial.setTimeout( 90 * 1000 );
           wDial.setVisible( true );
-          btComm.writeGaslistToSPX42( currGasList, currentConfig.getFirmwareVersion() );
+          btComm.writeGaslistToSPX42( currGasList, currentConfig.isOldParamSorting() );
         }
         else
         {
@@ -1774,6 +1775,14 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       entry = ( String )srcBox.getSelectedItem();
       lg.debug( "sensorwarnings <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
       currentConfig.setSensorsCount( srcBox.getSelectedIndex() );
+    }
+    // /////////////////////////////////////////////////////////////////////////
+    // Temperatur Sensor Version umstellen
+    else if( cmd.equals( "set_tempstickversion" ) )
+    {
+      entry = ( String )srcBox.getSelectedItem();
+      lg.debug( "tempstickversion <" + entry + ">...Index: <" + srcBox.getSelectedIndex() + ">" );
+      currentConfig.setTempStickVersion( srcBox.getSelectedIndex() );
     }
     else
     {
@@ -2518,7 +2527,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane config
       tabbedPane.setTitleAt( programTabs.TAB_CONFIG.ordinal(), LangStrings.getString( "spx42ConfigPanel.title" ) );
-      configPanel.setLanguageStrings();
+      configPanel.setLanguageStrings( currentConfig );
       // //////////////////////////////////////////////////////////////////////
       // Tabbed Pane gas
       tabbedPane.setTitleAt( programTabs.TAB_GASLIST.ordinal(), LangStrings.getString( "spx42GaslistEditPanel.title" ) );

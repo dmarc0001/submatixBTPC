@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.MissingResourceException;
 import java.util.Vector;
 
@@ -39,6 +40,7 @@ import org.joda.time.DateTime;
 import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.DeviceComboBoxModel;
+import de.dmarcini.submatix.pclogger.utils.GasComputeUnit;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.LogListComboBoxModel;
 import de.dmarcini.submatix.pclogger.utils.MinuteFormatter;
@@ -595,24 +597,33 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     gl_bottomPanel.setHorizontalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_bottomPanel
                     .createSequentialGroup()
+                    .addContainerGap()
                     .addGroup(
                             gl_bottomPanel
-                                    .createParallelGroup( Alignment.LEADING, false )
-                                    .addComponent( notesLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                    .createParallelGroup( Alignment.TRAILING )
                                     .addGroup(
-                                            gl_bottomPanel.createSequentialGroup().addContainerGap()
-                                                    .addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 206, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                                                    .addComponent( coldestTempValueLabel, GroupLayout.PREFERRED_SIZE, 211, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                                                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE ) ) ).addGap( 18 )
-                    .addComponent( notesEditButton, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE ).addContainerGap( 40, Short.MAX_VALUE ) ) );
+                                            gl_bottomPanel.createSequentialGroup().addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 206, GroupLayout.PREFERRED_SIZE )
+                                                    .addGap( 18 ).addComponent( coldestTempValueLabel, GroupLayout.PREFERRED_SIZE, 211, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
+                                                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE ) )
+                                    .addComponent( notesLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) ).addGap( 18 )
+                    .addComponent( notesEditButton, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE ).addGap( 40 ) ) );
     gl_bottomPanel.setVerticalGroup( gl_bottomPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
+            Alignment.LEADING,
             gl_bottomPanel
                     .createSequentialGroup()
-                    .addGroup( gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( notesLabel ).addComponent( notesEditButton ) )
-                    .addPreferredGap( ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                    .addGap( 18 )
                     .addGroup(
-                            gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( maxDepthValueLabel ).addComponent( coldestTempValueLabel )
-                                    .addComponent( diveLenValueLabel ) ) ) );
+                            gl_bottomPanel
+                                    .createParallelGroup( Alignment.LEADING )
+                                    .addGroup( gl_bottomPanel.createSequentialGroup().addComponent( notesEditButton ).addContainerGap() )
+                                    .addGroup(
+                                            gl_bottomPanel
+                                                    .createSequentialGroup()
+                                                    .addComponent( notesLabel )
+                                                    .addPreferredGap( ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
+                                                    .addGroup(
+                                                            gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( maxDepthValueLabel )
+                                                                    .addComponent( coldestTempValueLabel ).addComponent( diveLenValueLabel ) ) ) ) ) );
     bottomPanel.setLayout( gl_bottomPanel );
     chartPanel = null;
   }
@@ -661,6 +672,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private void makeGraphForLog( int dbId, String device )
   {
     Vector<Integer[]> diveList;
+    Vector<String> diluents;
     int[] headData;
     XYPlot thePlot;
     JFreeChart logChart;
@@ -676,6 +688,11 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     {
       return;
     }
+    //
+    // verwendete Diluents finden
+    //
+    diluents = getDiluentNamesFromDive( diveList );
+    lg.debug( diluents );
     //
     // Labels für Tachgangseckdaten füllen
     //
@@ -1224,5 +1241,84 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
       lg.error( "ERROR showWarnDialog <" + ex.getMessage() + "> ABORT!" );
       return;
     }
+  }
+
+  /**
+   * 
+   * Ist das Diluent in der Liste ?
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.11.2013
+   * @param list
+   * @param dil
+   * @return
+   */
+  private boolean isDiluentInList( Vector<Integer[]> list, Integer[] dil )
+  {
+    Iterator<Integer[]> it = list.iterator();
+    while( it.hasNext() )
+    {
+      Integer[] toTest = it.next();
+      if( ( toTest[0] == dil[0] ) && ( toTest[1] == dil[1] ) )
+      {
+        // gefunden, Suche abbrechen
+        return( true );
+      }
+    }
+    // wenn nichts gefunden
+    return( false );
+  }
+
+  /**
+   * 
+   * Erzeige eine Liste der während des Tauchgangs erzeugten Diluents (Robert Wimmer angefragt)
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+   * 
+   *         Stand: 03.11.2013
+   * @param diveList
+   * @return
+   */
+  private Vector<String> getDiluentNamesFromDive( Vector<Integer[]> diveList )
+  {
+    Vector<String> retValue = new Vector<String>();
+    Vector<Integer[]> diluents = new Vector<Integer[]>();
+    // int currN2, currHe;
+    //
+    // erst mal alle verwendeten Diluents finden
+    //
+    Iterator<Integer[]> it = diveList.iterator();
+    while( it.hasNext() )
+    {
+      // erfrage das Diluent des Timestamps
+      Integer[] currDive = it.next();
+      // berechne das Diluent mit O2/HE
+      Integer[] currDiluent = new Integer[]
+      { 0, 0 };
+      currDiluent[0] = 100 - ( currDive[LogDerbyDatabaseUtil.HEPERCENT] + currDive[LogDerbyDatabaseUtil.N2PERCENT] );
+      currDiluent[1] = currDive[LogDerbyDatabaseUtil.HEPERCENT];
+      // ist das Diluent schon in der Liste?
+      if( !isDiluentInList( diluents, currDiluent ) )
+      {
+        // Wenn nicht in der Liste, hinzufügen!
+        diluents.add( currDiluent );
+      }
+    }
+    //
+    // Jetzt sollten alle Einträge besarbeitet sein
+    //
+    // alle Diluents, wenn vorhanden benennen
+    it = diluents.iterator();
+    while( it.hasNext() )
+    {
+      Integer[] dil = it.next();
+      retValue.add( GasComputeUnit.getNameForGas( dil[0], dil[1] ) );
+    }
+    return( retValue );
   }
 }

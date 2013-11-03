@@ -7,6 +7,7 @@ import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
 
+@SuppressWarnings( "rawtypes" )
 public class GasPresetComboBoxModel extends DefaultComboBoxModel
 {
   private static final long serialVersionUID = -7957814923054449450L;
@@ -22,6 +23,7 @@ public class GasPresetComboBoxModel extends DefaultComboBoxModel
    *         Stand: 02.07.2012
    * @param presetEntrys
    */
+  @SuppressWarnings( "unchecked" )
   public GasPresetComboBoxModel( Vector<GasPresetComboObject> presetEntrys )
   {
     super( presetEntrys );
@@ -72,6 +74,7 @@ public class GasPresetComboBoxModel extends DefaultComboBoxModel
     return( entry.dbId );
   }
 
+  @SuppressWarnings( "unchecked" )
   @Override
   public void addElement( Object elem )
   {
@@ -81,6 +84,7 @@ public class GasPresetComboBoxModel extends DefaultComboBoxModel
     }
   }
 
+  @SuppressWarnings( "unchecked" )
   @Override
   public void insertElementAt( Object elem, int index )
   {

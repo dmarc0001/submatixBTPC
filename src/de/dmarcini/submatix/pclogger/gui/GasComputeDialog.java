@@ -60,7 +60,7 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
   private JSpinner          oxygenSpinner;
   private JSpinner          heliumSpinner;
   private JSpinner          nitrogenSpinner;
-  private JComboBox         partialPressureComboBox;
+  private JComboBox<String> partialPressureComboBox;
   private JLabel            pressureUnitLabel;
   private JLabel            bailoutGasValsLabel;
   private JLabel            diluentGasValsLabel;
@@ -70,14 +70,13 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
   private JSpinner          advisedDepthSpinner;
   private JLabel            advisedDepthUnitLabel;
   private JLabel            advisedDepthEadLabel;
-  private JComboBox         setpointComboBox;
+  private JComboBox<String> setpointComboBox;
   private JLabel            pressureUnitLabel2;
 
   /**
    * Der Konstruktor Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 07.10.2012
-   * @param stringsBundle
    * @param unitsString
    */
   public GasComputeDialog( String unitsString )
@@ -110,12 +109,13 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     }
     else if( ev.getSource() instanceof JComboBox )
     {
-      JComboBox cb = ( JComboBox )ev.getSource();
+      @SuppressWarnings( "unchecked" )
+      JComboBox<String> cb = ( JComboBox<String> )ev.getSource();
       if( ev.getActionCommand().equals( "set_ppomax" ) )
       {
         try
         {
-          ppOMax = Double.parseDouble( ( String )( cb.getModel().getElementAt( cb.getSelectedIndex() ) ) );
+          ppOMax = Double.parseDouble( ( cb.getModel().getElementAt( cb.getSelectedIndex() ) ) );
           lg.debug( String.format( "ppoMax set to %2.2f", ppOMax ) );
           // Gas neu berechnen und zeigen
           setDescriptionForGas( ( Integer )oxygenSpinner.getValue(), ( Integer )heliumSpinner.getValue() );
@@ -130,7 +130,7 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
       {
         try
         {
-          ppOSetpoint = Double.parseDouble( ( String )( cb.getModel().getElementAt( cb.getSelectedIndex() ) ) );
+          ppOSetpoint = Double.parseDouble( ( cb.getModel().getElementAt( cb.getSelectedIndex() ) ) );
           lg.debug( String.format( "ppoSetpoint set to %2.2f", ppOSetpoint ) );
           // Gas neu berechnen und zeigen
           changeAdvisedDepthSpinner();
@@ -319,7 +319,7 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     advisedDepthEadLabel = new JLabel( "-" );
     advisedDepthEadLabel.setForeground( new Color( 0, 0, 139 ) );
     advisedDepthEadLabel.setHorizontalAlignment( SwingConstants.CENTER );
-    setpointComboBox = new JComboBox();
+    setpointComboBox = new JComboBox<String>();
     setpointComboBox.setToolTipText( ( String )null );
     setpointComboBox.setFont( new Font( "Segoe UI", Font.PLAIN, 11 ) );
     setpointComboBox.setActionCommand( "set_setpoint" );
@@ -363,7 +363,7 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
     panel_2.setLayout( gl_panel_2 );
     JLabel label_6 = new JLabel( "Bailout:" );
     bailoutGasValsLabel = new JLabel( "GASVALUES" );
-    partialPressureComboBox = new JComboBox();
+    partialPressureComboBox = new JComboBox<String>();
     partialPressureComboBox.setFont( new Font( "Segoe UI", Font.PLAIN, 11 ) );
     partialPressureComboBox.setActionCommand( "set_ppomax" );
     partialPressureComboBox.setToolTipText( LangStrings.getString( "spx42GaslistEditPanel.gasPanel.customPresetComboBox.tooltiptext" ) );
@@ -524,9 +524,9 @@ public class GasComputeDialog extends JDialog implements ActionListener, ChangeL
       pressureUnitLabel2.setText( LangStrings.getString( "spx42GaslistEditPanel.pressureUnitLabel.imperial" ) );
       advisedDepthUnitLabel.setText( LangStrings.getString( "spx42GaslistEditPanel.depthUnitLabel.imperial" ) );
     }
-    partialPressureComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
+    partialPressureComboBox.setModel( new DefaultComboBoxModel<String>( pressureStrings ) );
     partialPressureComboBox.setSelectedIndex( pressureStrings.length - 1 );
-    setpointComboBox.setModel( new DefaultComboBoxModel( pressureStrings ) );
+    setpointComboBox.setModel( new DefaultComboBoxModel<String>( pressureStrings ) );
     setpointComboBox.setSelectedIndex( pressureStrings.length - 1 );
     //
     partialPressureComboBox.addActionListener( this );

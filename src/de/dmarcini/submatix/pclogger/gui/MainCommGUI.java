@@ -137,7 +137,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private final static int        VERY_CONSERVATIVE   = 0;
   private final static int        CONSERVATIVE        = 1;
   private final static int        MODERATE            = 2;
-  private final static int        AGGRESSIVE          = 3;                                            ;
+  private final static int        AGGRESSIVE          = 3;
   private final static int        VERY_AGGRESSIVE     = 4;
   private int                     licenseState        = -1;
   private int                     customConfig        = -1;

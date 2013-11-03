@@ -927,7 +927,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     lineNullTimeRenderer.setSeriesPaint( 0, new Color( ProjectConst.GRAPH_NULLTIME_ACOLOR ) );
     lineNullTimeRenderer.setSeriesShapesVisible( 0, false );
     lineNullTimeRenderer.setDrawSeriesLineAsPath( true );
-    nullTimeAxis.setAutoRangeIncludesZero( true );
+    nullTimeAxis.setAutoRange( false );
+    nullTimeAxis.setRange( 0.0D, 200.0D ); // Lege die Nullzeit Axenreichweite auf ein übersichtliches Maß fest
+    // nullTimeAxis.setAutoRangeIncludesZero( true );
     thePlot.setRangeAxis( GRAPH_NULLTIME, nullTimeAxis );
     thePlot.mapDatasetToRangeAxis( GRAPH_NULLTIME, GRAPH_NULLTIME );
     thePlot.setDataset( GRAPH_NULLTIME, nullTimeDataSet );

@@ -35,5 +35,10 @@
 			<attribute name="javadoc_location" value="jar:file:/C:/DATEN/eclipseWorkspace/extLibs/commons-io-2.4/commons-io-2.4-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/DATEN/eclipseWorkspace/extLibs/commons-lang3-3.1/commons-lang3-3.1.jar" sourcepath="C:/DATEN/eclipseWorkspace/extLibs/commons-lang3-3.1/commons-lang3-3.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/DATEN/eclipseWorkspace/extLibs/commons-lang3-3.1/commons-lang3-3.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -22,6 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
@@ -87,6 +88,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   private JButton              detailGraphButton;
   private JLabel               notesLabel;
   private JButton              notesEditButton;
+  private JLabel               diluentLabel;
 
   @SuppressWarnings( "unused" )
   private spx42LogGraphPanel()
@@ -593,6 +595,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     notesEditButton.setActionCommand( "edit_notes_for_dive" );
     notesEditButton.setIcon( new ImageIcon( spx42LogGraphPanel.class.getResource( "/de/dmarcini/submatix/pclogger/res/142.png" ) ) );
     notesEditButton.setForeground( new Color( 0, 100, 0 ) );
+    diluentLabel = new JLabel( "" ); //$NON-NLS-1$
+    diluentLabel.setForeground( new Color( 0, 0, 128 ) );
+    diluentLabel.setFont( new Font( "Segoe UI", Font.PLAIN, 12 ) );
     GroupLayout gl_bottomPanel = new GroupLayout( bottomPanel );
     gl_bottomPanel.setHorizontalGroup( gl_bottomPanel.createParallelGroup( Alignment.LEADING ).addGroup(
             gl_bottomPanel
@@ -600,30 +605,41 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
                     .addContainerGap()
                     .addGroup(
                             gl_bottomPanel
-                                    .createParallelGroup( Alignment.TRAILING )
+                                    .createParallelGroup( Alignment.LEADING )
                                     .addGroup(
                                             gl_bottomPanel.createSequentialGroup().addComponent( maxDepthValueLabel, GroupLayout.PREFERRED_SIZE, 206, GroupLayout.PREFERRED_SIZE )
                                                     .addGap( 18 ).addComponent( coldestTempValueLabel, GroupLayout.PREFERRED_SIZE, 211, GroupLayout.PREFERRED_SIZE ).addGap( 18 )
-                                                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE ) )
-                                    .addComponent( notesLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE ) ).addGap( 18 )
-                    .addComponent( notesEditButton, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE ).addGap( 40 ) ) );
-    gl_bottomPanel.setVerticalGroup( gl_bottomPanel.createParallelGroup( Alignment.TRAILING ).addGroup(
-            Alignment.LEADING,
-            gl_bottomPanel
-                    .createSequentialGroup()
-                    .addGap( 18 )
-                    .addGroup(
-                            gl_bottomPanel
-                                    .createParallelGroup( Alignment.LEADING )
-                                    .addGroup( gl_bottomPanel.createSequentialGroup().addComponent( notesEditButton ).addContainerGap() )
+                                                    .addComponent( diveLenValueLabel, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE ).addGap( 18 ) )
                                     .addGroup(
+                                            Alignment.TRAILING,
                                             gl_bottomPanel
                                                     .createSequentialGroup()
-                                                    .addComponent( notesLabel )
-                                                    .addPreferredGap( ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
                                                     .addGroup(
-                                                            gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( maxDepthValueLabel )
-                                                                    .addComponent( coldestTempValueLabel ).addComponent( diveLenValueLabel ) ) ) ) ) );
+                                                            gl_bottomPanel.createParallelGroup( Alignment.TRAILING )
+                                                                    .addComponent( diluentLabel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE )
+                                                                    .addComponent( notesLabel, GroupLayout.DEFAULT_SIZE, 653, Short.MAX_VALUE ) )
+                                                    .addPreferredGap( ComponentPlacement.RELATED ) ) )
+                    .addComponent( notesEditButton, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE ).addGap( 40 ) ) );
+    gl_bottomPanel.setVerticalGroup( gl_bottomPanel
+            .createParallelGroup( Alignment.LEADING )
+            .addGroup(
+                    gl_bottomPanel
+                            .createSequentialGroup()
+                            .addGap( 18 )
+                            .addGroup(
+                                    gl_bottomPanel
+                                            .createParallelGroup( Alignment.LEADING )
+                                            .addGroup(
+                                                    gl_bottomPanel
+                                                            .createSequentialGroup()
+                                                            .addGroup(
+                                                                    gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( notesEditButton )
+                                                                            .addComponent( notesLabel ) ).addContainerGap() )
+                                            .addGroup(
+                                                    Alignment.TRAILING,
+                                                    gl_bottomPanel.createParallelGroup( Alignment.BASELINE ).addComponent( maxDepthValueLabel )
+                                                            .addComponent( coldestTempValueLabel ).addComponent( diveLenValueLabel ) ) ) )
+            .addGroup( gl_bottomPanel.createSequentialGroup().addContainerGap().addComponent( diluentLabel ) ) );
     bottomPanel.setLayout( gl_bottomPanel );
     chartPanel = null;
   }
@@ -692,6 +708,9 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
     // verwendete Diluents finden
     //
     diluents = getDiluentNamesFromDive( diveList );
+    // Anzeigen
+    String diluentString = StringUtils.join( diluents, ", " );
+    diluentLabel.setText( String.format( LangStrings.getString( "spx42LogGraphPanel.diluentLabel.text" ), diluentString ) );
     lg.debug( diluents );
     //
     // Labels für Tachgangseckdaten füllen

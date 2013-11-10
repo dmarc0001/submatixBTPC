@@ -741,6 +741,7 @@ public class SPX42Config implements ISPX42Config
         // hier kommt bestimmt noch irgendwas nach :-(
         hasSixValuesIndividual = true;
         isNewerDisplayBrightness = true;
+        canSetDate = true;
       }
     }
   }

@@ -3,9 +3,6 @@
  * 
  * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
  * 
- * @author Dirk Marciniak (dirk_marciniak@arcor.de)
- * 
- *         Stand: 08.01.2012
  */
 package de.dmarcini.submatix.pclogger.comm;
 
@@ -19,7 +16,7 @@ import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SPX42GasList;
 
 /**
- * HEADLINE
+ * Schnittstellenbeschreibung für die BT-Kommunikation
  * 
  * Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.comm
  * 

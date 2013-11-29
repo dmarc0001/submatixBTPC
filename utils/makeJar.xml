@@ -1,36 +1,48 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="create_run_jar" name="Create Runnable Jar for Project SubmatixBTForPC">
-    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
-    <!--ANT 1.7 is required                                        -->
-    <target name="create_run_jar">
-        <jar destfile="C:/DATEN/submatix/submatixBTLog/submatixBTForPC.jar" filesetmanifest="mergewithoutmain">
-            <manifest>
-                <attribute name="Main-Class" value="de.dmarcini.submatix.pclogger.gui.MainCommGUI"/>
-                <attribute name="Class-Path" value="."/>
-            </manifest>
-            <fileset dir="C:/DATEN/eclipseWorkspace/SubmatixBTForPC/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/commons-cli-1.2/commons-cli-1.2.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/joda-time-2.1/joda-time-2.1.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/jfreechart/jfreechart-1.0.14/lib/jfreechart-1.0.14.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/jfreechart/jfreechart-1.0.14/lib/jcommon-1.0.17.jar"/>
-            <fileset dir="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_cs.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_de_DE.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_es.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_fr.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_hu.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_it.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_ja_JP.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_ko_KR.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_pl.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_pt_BR.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_ru.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_zh_CN.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derbyLocale_zh_TW.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/db-derby-10.9.1.0-bin/lib/derby.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/apache-log4j-1.2.17/log4j-1.2.17.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/commons-io-2.4/commons-io-2.4.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="C:/DATEN/eclipseWorkspace/extLibs/commons-lang3-3.1/commons-lang3-3.1.jar"/>
-        </jar>
+  
+  <property name="extLibs" value="C:/DATEN/eclipseWorkspace/extLibs"/>
+  <property name="binDir" value="C:/DATEN/eclipseWorkspace/SubmatixBTForPC/bin" />
+  <property name="destDir" value="C:/DATEN/submatix/submatixBTLog" />
+  <property name="destDir2" value="C:/DATEN/eclipseWorkspace/SubmatixBTForPC/utils" />
+  
+
+  
+  <target name="all" depends="create_run_jar"  >
+    <copy file="${destDir}/submatixBTForPC.jar" tofile="${destDir2}/submatixBTForPC.jar" overwrite="true" />
+  </target>
+
+
+	
+ 	<target name="create_run_jar">
+    <jar destfile="${destDir}/submatixBTForPC.jar" filesetmanifest="mergewithoutmain">
+      <manifest>
+        <attribute name="Main-Class" value="de.dmarcini.submatix.pclogger.gui.MainCommGUI"/>
+        <attribute name="Class-Path" value="."/>
+      </manifest>
+      <fileset dir="${binDir}"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/commons-cli-1.2/commons-cli-1.2.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/joda-time-2.1/joda-time-2.1.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/jfreechart/jfreechart-1.0.14/lib/jfreechart-1.0.14.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/jfreechart/jfreechart-1.0.14/lib/jcommon-1.0.17.jar"/>
+      <fileset dir="${extLibs}/db-derby-10.9.1.0-bin/lib"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_cs.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_de_DE.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_es.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_fr.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_hu.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_it.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_ja_JP.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_ko_KR.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_pl.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_pt_BR.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_ru.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_zh_CN.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derbyLocale_zh_TW.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/db-derby-10.9.1.0-bin/lib/derby.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/apache-log4j-1.2.17/log4j-1.2.17.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/commons-io-2.4/commons-io-2.4.jar"/>
+      <zipfileset excludes="META-INF/*.SF" src="${extLibs}/commons-lang3-3.1/commons-lang3-3.1.jar"/>
+    </jar>
     </target>
 </project>

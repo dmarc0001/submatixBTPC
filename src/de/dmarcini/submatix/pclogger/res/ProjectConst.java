@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 
 //@formatter:off
+@SuppressWarnings( "javadoc" )
 public final class ProjectConst
 {
   // 0 Grad Celsius
@@ -19,10 +20,10 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "1.2.1";
+  public static final String MANUFACTVERS               = "1.2.2";
   public static final String GENYEAR                    = "2013";
   public static final String GENMONTH                   = "11";
-  public static final String GENDAY                     = "03";
+  public static final String GENDAY                     = "29";
   
   // Datenbankversion
   public static int          DB_VERSION                 = 7;

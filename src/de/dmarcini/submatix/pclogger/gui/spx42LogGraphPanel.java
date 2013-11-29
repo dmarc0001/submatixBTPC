@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.Beans;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -95,7 +96,7 @@ public class spx42LogGraphPanel extends JPanel implements ActionListener
   {
     setBackground( Color.WHITE );
     setPreferredSize( new Dimension( 796, 504 ) );
-    initPanel();
+    if( Beans.isDesignTime() ) initPanel();
   }
 
   /**

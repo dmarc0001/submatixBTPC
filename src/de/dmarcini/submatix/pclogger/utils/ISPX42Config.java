@@ -200,6 +200,8 @@ public interface ISPX42Config
 
   public boolean isSoundOn();
 
+  public boolean isSixMetersAutoSetpoint();
+
   public void setAutoSetpoint( int auto );
 
   /**

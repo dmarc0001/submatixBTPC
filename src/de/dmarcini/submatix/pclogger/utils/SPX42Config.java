@@ -59,6 +59,7 @@ public class SPX42Config implements ISPX42Config
   protected boolean                      isFirmwareSupported = false;
   protected boolean                        isOldParamSorting = false;  // bei alter Firmware war die Reihenfolge der Paramete anders
   protected boolean                 isNewerDisplayBrightness = false; // ab FW FIRMWARE_2_7H_R83CE 20 % Schritte
+  protected boolean                  isSixMetersAutoSetpoint = false;
   protected int                                 tempStickVer = 0;      // Version des Tempsticks T1, T2 oder T3
   
   //
@@ -122,6 +123,7 @@ public class SPX42Config implements ISPX42Config
     isFirmwareSupported = cf.isFirmwareSupported;
     isOldParamSorting = cf.isOldParamSorting;
     isNewerDisplayBrightness = cf.isNewerDisplayBrightness;
+    isSixMetersAutoSetpoint = cf.isSixMetersAutoSetpoint;
     tempStickVer = cf.tempStickVer;
   }
 
@@ -176,6 +178,7 @@ public class SPX42Config implements ISPX42Config
     if( isFirmwareSupported != cf.isFirmwareSupported ) return( false );
     if( isOldParamSorting != cf.isOldParamSorting ) return( false );
     if( isNewerDisplayBrightness != cf.isNewerDisplayBrightness ) return( false );
+    if( isSixMetersAutoSetpoint != cf.isSixMetersAutoSetpoint ) return( false );
     if( tempStickVer != cf.tempStickVer ) return( false );
     return( true );
   }
@@ -711,6 +714,8 @@ public class SPX42Config implements ISPX42Config
     hasSixValuesIndividual = false;
     isFirmwareSupported = false;
     isOldParamSorting = false;
+    isNewerDisplayBrightness = false;
+    isSixMetersAutoSetpoint = false;
     //
     // versuch mal die Eigenschaften rauszufinden
     //
@@ -742,6 +747,7 @@ public class SPX42Config implements ISPX42Config
         hasSixValuesIndividual = true;
         isNewerDisplayBrightness = true;
         canSetDate = true;
+        isSixMetersAutoSetpoint = true;
       }
     }
   }
@@ -1131,5 +1137,11 @@ public class SPX42Config implements ISPX42Config
   public void setWasInit( boolean wasInit )
   {
     wasCorrectInitialized = wasInit;
+  }
+
+  @Override
+  public boolean isSixMetersAutoSetpoint()
+  {
+    return( isSixMetersAutoSetpoint );
   }
 }

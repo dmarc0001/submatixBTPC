@@ -28,7 +28,7 @@ import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 //@formatter:off
 public class spx42ConfigPanel extends JPanel
-{                                                                         /**
+{    /**
    * 
    */
   private static final long serialVersionUID     = 1L;
@@ -718,10 +718,23 @@ public class spx42ConfigPanel extends JPanel
       ( ( TitledBorder )( setpointPanel.getBorder() ) ).setTitle( LangStrings.getString( "spx42ConfigPanel.setpointPanel.text" ) );
       lblSetpointAutosetpoint.setText( LangStrings.getString( "spx42ConfigPanel.lblSetpointAutosetpoint.text" ) );
       autoSetpointComboBox.removeAllItems();
-      entrys = new String[]
-      { LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.off.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.5m.text" ),
-          LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.10m.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.15m.text" ),
-          LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.20m.text" ) };
+      // ist neuere Firmware autosetpoint bei 6 Metern
+      if( currentConfig.isSixMetersAutoSetpoint() )
+      {
+        // 1. Autosetpoint bei 6 Metern
+        entrys = new String[]
+        { LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.off.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.6m.text" ),
+            LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.10m.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.15m.text" ),
+            LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.20m.text" ) };
+      }
+      else
+      {
+        // 1. Autosetpoint bei 5 Metern
+        entrys = new String[]
+        { LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.off.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.5m.text" ),
+            LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.10m.text" ), LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.15m.text" ),
+            LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.20m.text" ) };
+      }
       portBoxModel = new DefaultComboBoxModel<String>( entrys );
       autoSetpointComboBox.setModel( portBoxModel );
       autoSetpointComboBox.setToolTipText( LangStrings.getString( "spx42ConfigPanel.autoSetpointComboBox.tooltiptext" ) );

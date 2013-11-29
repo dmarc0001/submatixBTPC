@@ -1145,7 +1145,7 @@ public class BTCommunication implements IBTCommunication
           else
           {
             // ~30:A:P
-            // A = Setpoint bei (0,1,2,3,4) = (0,5,15,20,25)
+            // A = Setpoint bei (0,1,2,3,4) = (0,5/6,15,20,25)
             // P = Partialdruck (0..4) 1.0 .. 1.4
             command = String.format( "~%x:%x:%x", ProjectConst.SPX_SET_SETUP_SETPOINT, config.getAutoSetpoint(), config.getMaxSetpoint() );
           }
@@ -1161,7 +1161,7 @@ public class BTCommunication implements IBTCommunication
           if( config.getCustomEnabled() == 1 )
           {
             // Kommando SPX_SET_SETUP_INDIVIDUAL
-            // ~33:SM:PS:SC:AC:LT:???
+            // ~33:SM:PS:SC:AC:LT:TS
             // SM = 0-> Sensoren ON, 1-> No Sensor
             // PS = PSCR Mode 0->off; 1->ON (sollte eigentlich immer off (0 ) sein)
             // SC = SensorsCount 0->1 Sensor, 1->2 sensoren, 2->3 Sensoren

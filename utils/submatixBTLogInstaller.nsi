@@ -9,7 +9,7 @@ XPStyle on
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "submatixBTLog"
-!define PRODUCT_VERSION "1.2.1"
+!define PRODUCT_VERSION "1.2.2"
 !define PRODUCT_PUBLISHER "Dirk Marciniak"
 !define PRODUCT_WEB_SITE "http://www.submatix.com"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"

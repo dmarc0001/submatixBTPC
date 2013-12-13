@@ -22,7 +22,9 @@ import org.apache.log4j.Logger;
 //@formatter:off
 public class SPX42Config implements ISPX42Config
 {
+  @SuppressWarnings( "javadoc" )
   public static final int                       UNITS_METRIC = 1;
+  @SuppressWarnings( "javadoc" )
   public static final int                     UNITS_IMPERIAL = 2;
   //
   protected Logger                                    lg = null;
@@ -729,10 +731,22 @@ public class SPX42Config implements ISPX42Config
     // Versionen NACH 2.7_V
     if( firmwareVersion.matches( "V2\\.7_V.*" ) )
     {
-      hasFahrenheidBug = false;
-      canSetDate = false;
-      hasSixValuesIndividual = false;
       isFirmwareSupported = true;
+      if( firmwareVersion.matches( "V2\\.7_V r83.*" ) )
+      {
+        // Build 198
+        hasFahrenheidBug = false;
+        hasSixValuesIndividual = true;
+        isNewerDisplayBrightness = true;
+        canSetDate = true;
+        isSixMetersAutoSetpoint = true;
+      }
+      else
+      {
+        hasFahrenheidBug = false;
+        canSetDate = false;
+        hasSixValuesIndividual = false;
+      }
     }
     // Versionen NACH 2.7_H
     if( firmwareVersion.matches( "V2\\.7_H.*" ) )
@@ -742,7 +756,7 @@ public class SPX42Config implements ISPX42Config
       isFirmwareSupported = true;
       if( firmwareVersion.matches( "V2\\.7_H r83.*" ) )
       {
-        //
+        // Build 197
         // hier kommt bestimmt noch irgendwas nach :-(
         hasSixValuesIndividual = true;
         isNewerDisplayBrightness = true;

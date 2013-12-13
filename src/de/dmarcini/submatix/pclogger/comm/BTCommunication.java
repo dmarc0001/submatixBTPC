@@ -32,7 +32,9 @@ import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 //@formatter:off
 public class BTCommunication implements IBTCommunication
 {
+  @SuppressWarnings( "javadoc" )
   public static final int             CONFIG_WRITE_KDO_COUNT = 4;
+  @SuppressWarnings( "javadoc" )
   public static final int              CONFIG_READ_KDO_COUNT = 7;
   // übersichtlicher machen mit Objekt für alle
   static Logger                                       lg = null;
@@ -849,6 +851,7 @@ public class BTCommunication implements IBTCommunication
     // damit Swing eine Change hat die Grafik zu erneutern
     //
     Thread ct = new Thread() {
+      @SuppressWarnings( "resource" )
       @Override
       public void run()
       {

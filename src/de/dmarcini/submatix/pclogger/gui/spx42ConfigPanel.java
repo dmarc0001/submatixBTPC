@@ -27,8 +27,18 @@ import de.dmarcini.submatix.pclogger.utils.SPX42Config;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
 //@formatter:off
+/**
+ * SPX42 Konfigurations Oberfläche
+ *
+ * Project: SubmatixBTForPC
+ * Package: de.dmarcini.submatix.pclogger.gui
+ * 
+ * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+ *
+ * Stand: 06.12.2013
+ */
 public class spx42ConfigPanel extends JPanel
-{    /**
+{        /**
    * 
    */
   private static final long serialVersionUID     = 1L;
@@ -95,7 +105,7 @@ public class spx42ConfigPanel extends JPanel
   private JLabel            individualsTempStickVersionLabel;
 
   /**
-   * Create the panel.
+   * Konstruktor
    */
   public spx42ConfigPanel()
   {
@@ -107,18 +117,46 @@ public class spx42ConfigPanel extends JPanel
     if( Beans.isDesignTime() ) initPanel();
   }
 
+  /**
+   * 
+   * Welches ist der Spinner für HIGH-Gradienten
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Stand: 06.12.2013
+   * 
+   * @return Spinner
+   */
   public JSpinner getDecoGradientenHighSpinner()
   {
     if( !isPanelInitiated ) return( null );
     return( decoGradientenHighSpinner );
   }
 
+  /**
+   * 
+   * Gib den Spinner für den LOW-Gradienten zurück
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Stand: 06.12.2013
+   * 
+   * @return Spinner
+   */
   public JSpinner getDecoGradientenLowSpinner()
   {
     if( !isPanelInitiated ) return( null );
     return( decoGradientenLowSpinner );
   }
 
+  /***
+   * 
+   * Initialisiere das Panel
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Stand: 06.12.2013
+   */
   private void initPanel()
   {
     readSPX42ConfigButton = new JButton( LangStrings.getString( "spx42ConfigPanel.readSPX42ConfigButton.text" ) ); //$NON-NLS-1$
@@ -491,7 +529,7 @@ public class spx42ConfigPanel extends JPanel
   }
 
   /**
-   * Setze dei Spinner auf den Korrekten Wert nach Änderung in config Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * Setze die Spinner auf den Korrekten Wert nach Änderung in config Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 02.09.2012
    */
@@ -502,6 +540,16 @@ public class spx42ConfigPanel extends JPanel
     decoGradientenLowSpinner.setValue( currentConfig.getDecoGfLow() );
   }
 
+  /**
+   * 
+   * Erlaube das DECO-Panel
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Stand: 06.12.2013
+   * 
+   * @param en
+   */
   public void setDecoPanelEnabled( boolean en )
   {
     if( !isPanelInitiated ) return;
@@ -512,6 +560,16 @@ public class spx42ConfigPanel extends JPanel
     decompressionPanel.setEnabled( en );
   }
 
+  /**
+   * 
+   * Das Panel für Displayeinstellungen
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Stand: 06.12.2013
+   * 
+   * @param en
+   */
   public void setDisplayPanelEnabled( boolean en )
   {
     if( !isPanelInitiated ) return;

@@ -20,6 +20,15 @@ import javax.swing.SwingConstants;
 import de.dmarcini.submatix.pclogger.lang.LangStrings;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
 
+/**
+ * Detail für die Grafische Darstellung festlegen
+ * 
+ * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+ * 
+ * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+ * 
+ *         Stand: 06.12.2013
+ */
 public class SelectGraphDetailsDialog extends JDialog implements ActionListener
 {
   /**

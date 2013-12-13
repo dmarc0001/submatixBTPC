@@ -21,6 +21,15 @@ import javax.swing.text.PlainDocument;
 
 import de.dmarcini.submatix.pclogger.lang.LangStrings;
 
+/**
+ * Name für ein Gaspreset editieren
+ * 
+ * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+ * 
+ * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+ * 
+ *         Stand: 06.12.2013
+ */
 public class GasPresetNameDialog extends JDialog implements ActionListener
 {
   /**
@@ -44,7 +53,6 @@ public class GasPresetNameDialog extends JDialog implements ActionListener
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 31.07.2012
-   * @param stringsBundle
    */
   public GasPresetNameDialog()
   {

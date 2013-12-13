@@ -20,10 +20,10 @@ public final class ProjectConst
   public static final String MANUFACTNAME               = "Dirk Marciniak";
   public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "1.2.2";
+  public static final String MANUFACTVERS               = "1.2.3";
   public static final String GENYEAR                    = "2013";
-  public static final String GENMONTH                   = "11";
-  public static final String GENDAY                     = "29";
+  public static final String GENMONTH                   = "12";
+  public static final String GENDAY                     = "13";
   
   // Datenbankversion
   public static int          DB_VERSION                 = 7;
@@ -38,6 +38,7 @@ public final class ProjectConst
   public static final String FIRMWARE_2_7Vx             = "V2.7_V";
   public static final String FIRMWARE_2_7Hx             = "V2.7_H";
   public static final String FIRMWARE_2_7H_R83CE        = "V2.7_H r83 ce";
+  public static final String FIRMWARE_2_7V_R83CE        = "V2.7_V r83 ce";
     
   // Lizenzstati des SPX42
   public static final int SPX_LICENSE_NOT_SET           = -1;

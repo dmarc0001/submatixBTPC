@@ -21,6 +21,15 @@ import javax.swing.text.PlainDocument;
 
 import de.dmarcini.submatix.pclogger.lang.LangStrings;
 
+/**
+ * Dialog für Bemerkungen zu einem Tauchgang
+ * 
+ * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+ * 
+ * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+ * 
+ *         Stand: 06.12.2013
+ */
 public class DiveNotesEditDialog extends JDialog implements ActionListener
 {
   /**
@@ -66,13 +75,13 @@ public class DiveNotesEditDialog extends JDialog implements ActionListener
     {
       setModalExclusionType( ModalExclusionType.APPLICATION_EXCLUDE );
       setAlwaysOnTop( true );
-      setTitle( LangStrings.getString("DiveNotesEditDialog.title.text") );
+      setTitle( LangStrings.getString( "DiveNotesEditDialog.title.text" ) );
       setIconImage( Toolkit.getDefaultToolkit().getImage( DiveNotesEditDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/142.png" ) ) );
       setBounds( 100, 100, 748, 146 );
       getContentPane().setLayout( new BorderLayout() );
       contentPanel.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
       getContentPane().add( contentPanel, BorderLayout.CENTER );
-      okButton = new JButton( LangStrings.getString("DiveNotesEditDialog.okButton.text") );
+      okButton = new JButton( LangStrings.getString( "DiveNotesEditDialog.okButton.text" ) );
       okButton.setBounds( 525, 67, 199, 33 );
       okButton.setPreferredSize( new Dimension( 180, 40 ) );
       okButton.setMaximumSize( new Dimension( 160, 40 ) );
@@ -82,7 +91,7 @@ public class DiveNotesEditDialog extends JDialog implements ActionListener
       okButton.setActionCommand( "commit" );
       okButton.addActionListener( this );
       contentPanel.setLayout( null );
-      cancelButton = new JButton( LangStrings.getString("DiveNotesEditDialog.cancelButton.text") );
+      cancelButton = new JButton( LangStrings.getString( "DiveNotesEditDialog.cancelButton.text" ) );
       cancelButton.setBounds( 298, 67, 217, 33 );
       cancelButton.setForeground( Color.RED );
       cancelButton.setBackground( new Color( 255, 192, 203 ) );
@@ -90,7 +99,7 @@ public class DiveNotesEditDialog extends JDialog implements ActionListener
       cancelButton.addActionListener( this );
       contentPanel.add( cancelButton );
       contentPanel.add( okButton );
-      yourNoteLabel = new JLabel( LangStrings.getString("DiveNotesEditDialog.yourNoteLabel.text") );
+      yourNoteLabel = new JLabel( LangStrings.getString( "DiveNotesEditDialog.yourNoteLabel.text" ) );
       yourNoteLabel.setBounds( 10, 11, 385, 14 );
       contentPanel.add( yourNoteLabel );
       textField = new JTextField();

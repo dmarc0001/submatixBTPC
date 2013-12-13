@@ -16,6 +16,15 @@ import javax.swing.SwingConstants;
 
 import org.joda.time.DateTime;
 
+/**
+ * Dialog "bitte warten"
+ * 
+ * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+ * 
+ * @author Dirk Marciniak (dirk_marciniak@arcor.de)
+ * 
+ *         Stand: 06.12.2013
+ */
 public class PleaseWaitDialog extends JDialog
 {
   private static final long serialVersionUID    = 1L;
@@ -66,6 +75,18 @@ public class PleaseWaitDialog extends JDialog
     constructDialog();
   }
 
+  /**
+   * 
+   * Konstruktor mit Titel, Nachricht und Detailnachricht
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Stand: 06.12.2013
+   * 
+   * @param title
+   * @param message
+   * @param detail
+   */
   public PleaseWaitDialog( String title, String message, String detail )
   {
     titleString = title;
@@ -127,6 +148,16 @@ public class PleaseWaitDialog extends JDialog
     messagePanel.add( messageDetailLabel );
   }
 
+  /**
+   * 
+   * Setze Maximum
+   * 
+   * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
+   * 
+   * Stand: 06.12.2013
+   * 
+   * @param max
+   */
   public void setMax( int max )
   {
     progressBar.setMaximum( max );

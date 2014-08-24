@@ -4,6 +4,10 @@ echo JAVA_HOME has value %JAVA_HOME% before
 if exist %JAVA_HOME% goto withJavaPath
 
 @rem javahome not set, search for typical windows locations
+if exist "%ProgramFiles%\Java\jre8" set JAVA_HOME=%ProgramFiles%\Java\jre8
+if exist "%ProgramFiles%\Java\jre8" goto withJavaPath
+if exist "%ProgramFiles(x86)%\Java\jre8" set JAVA_HOME=%ProgramFiles(x86)%\Java\jre8
+if exist "%ProgramFiles(x86)%\Java\jre8" goto withJavaPath
 if exist "%ProgramFiles%\Java\jre7" set JAVA_HOME=%ProgramFiles%\Java\jre7
 if exist "%ProgramFiles%\Java\jre7" goto withJavaPath
 if exist "%ProgramFiles(x86)%\Java\jre7" set JAVA_HOME=%ProgramFiles(x86)%\Java\jre7
@@ -35,12 +39,12 @@ set SUBMATIX_HOME=%basedir%
 
 echo SUBMATIX directory is "%SUBMATIX_HOME%"
 
-@rem Check to see if we are running in a 1.6/1.7 JVM and inform the user if not and skip launch. versioncheck.jar 
+@rem Check to see if we are running in a 1.6/1.7/1.8 JVM and inform the user if not and skip launch. versioncheck.jar 
 @rem is a special jar file which has been compiled with javac version 1.2.2, which should be able to be run by 
 @rem that version of higher.  The arguments to JavaVersionChecker below specify the minimum acceptable version 
 @rem (first arg) and any other acceptable subsequent versions.  <MAJOR>.<MINOR> should be all that is 
 @rem necessary for the version form. 
-"%LOCAL_JAVA%" -cp "%SUBMATIX_HOME%\versioncheck.jar" JavaVersionChecker 1.6 1.7
+"%LOCAL_JAVA%" -cp "%SUBMATIX_HOME%\versioncheck.jar" JavaVersionChecker 1.6 1.8
 if ErrorLevel 1 goto ExitForWrongJavaVersion
 
 @rem Parameter avavible:

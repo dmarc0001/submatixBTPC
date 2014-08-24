@@ -45,7 +45,7 @@ public class JavaVersionChecker
     if( !checkVersion( jvmVersion, args ) )
     {
       String javaHome = System.getProperty( JAVA_HOME_PROPERTY );
-      JOptionPane.showMessageDialog( null, "Your Java Virtual Machine must be at least " + args[0] + " to run SQuirreL 3.x and above\n" + "  JVM Version used: " + jvmVersion
+      JOptionPane.showMessageDialog( null, "Your Java Virtual Machine must be at least " + args[0] + " to run SubmatixBTForPC and above\n" + "  JVM Version used: " + jvmVersion
               + "\n" + "  JVM Location: " + javaHome );
       System.exit( 1 );
     }
@@ -66,6 +66,7 @@ public class JavaVersionChecker
     if( jvmVersion == null )
     {
       System.err.println( "jvm version could not be determined. The " + JAVA_VERSION_PROPERTY + " system property is null" );
+      return false;
     }
     boolean result = false;
     for( int i = 0; i < minimumJavaVersions.length; i++ )

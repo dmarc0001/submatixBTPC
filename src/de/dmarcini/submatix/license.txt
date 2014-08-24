@@ -18,37 +18,3 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/
 */
 //@formatter:on
-package de.dmarcini.submatix.pclogger.utils;
-
-public interface ISPX42GasList
-{
-  public boolean setGas( String cmd );
-
-  public boolean setGas( int number, int o2, int he );
-
-  public boolean setDiluent1( int number );
-
-  public boolean setDiluent2( int number );
-
-  public boolean setBailout( int number, boolean toSet );
-
-  public int getO2FromGas( int number );
-
-  public int getHEFromGas( int number );
-
-  public int getN2FromGas( int Number );
-
-  public int getDiulent1();
-
-  public int getDiluent2();
-
-  public int getBailout( int number );
-
-  public int getCurrGas( int number );
-
-  public boolean isInitialized();
-
-  public void setInitialized();
-
-  public int getGasCount();
-}

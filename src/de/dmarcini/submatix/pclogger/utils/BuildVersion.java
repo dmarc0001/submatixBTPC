@@ -1,3 +1,23 @@
+//@formatter:off
+/*
+    programm: SubmatixSPXLog
+    purpose:  configuration and read logs from SUBMATIX SPX42 divecomputer via Bluethooth    
+    Copyright (C) 2012  Dirk Marciniak
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/
+*/
+//@formatter:on
 /**
  * Klasse beinhaltet die Buildnummer und das Erstellungsdatum
  * 
@@ -18,8 +38,8 @@ import de.dmarcini.submatix.pclogger.res.ProjectConst;
  */
 public class BuildVersion
 {
-  private final long buildNumber = 2007L;
-  private final long buildDate = 1408038364941L;
+  private final long buildNumber = 2028L;
+  private final long buildDate   = 1408046767187L;
 
   /**
    * Gib die Buildnummer zurück
@@ -88,7 +108,7 @@ public class BuildVersion
    * @author Dirk Marciniak (dirk_marciniak@arcor.de)
    * 
    *         Stand: 23.08.2013
-   * @return 
+   * @return
    */
   public String getVersionAsString()
   {

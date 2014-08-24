@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_versionchecker_jar" name="Create Runnable Jar for Project JavaVersionChecker">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_versionchecker_jar">
+        <jar destfile="C:/DATEN/submatix/submatixBTLog/versioncheck.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="JavaVersionChecker"/>
+                <!-- attribute name="Main-Class" value="de.dmarcini.submatix.pclogger.res.JavaVersionChecker"/ --> 
+                <!-- attribute name="Class-Path" value="."/ -->
+            </manifest>
+            <fileset dir="C:/DATEN/eclipseWorkspace/SubmatixBTForPC/bin/de/dmarcini/submatix/pclogger/res">
+            	<include name="**/*.class"/>
+            </fileset>	
+        </jar>
+    </target>
+</project>

@@ -9,7 +9,7 @@ XPStyle on
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "submatixBTLog"
-!define PRODUCT_VERSION "1.2.5"
+!define PRODUCT_VERSION "1.2.6"
 !define PRODUCT_PUBLISHER "Dirk Marciniak"
 !define PRODUCT_WEB_SITE "http://www.submatix.com"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -19,13 +19,14 @@ XPStyle on
 !define START_LINK "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION}.lnk"
 !define DEBUG_LINK "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION} DEBUG.lnk"
 !define SOURCE_FILES "C:\DATEN\Entwicklung\IntelliJ\SubmatixBTForPC\installFiles"
+!define JAR_SOURCE "C:\DATEN\Entwicklung\IntelliJ\SubmatixBTForPC\jar"
 
 !include "MUI2.nsh"
 
 ; MUI Settings
 !define MUI_ABORTWARNING
-!define MUI_ICON "progicon.ico"
-!define MUI_UNICON "unicon.ico"
+!define MUI_ICON "${SOURCE_FILES}\progicon.ico"
+!define MUI_UNICON "${SOURCE_FILES}\unicon.ico"
 
 ; Language Selection Dialog Settings
 !define MUI_LANGDLL_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
@@ -41,7 +42,7 @@ XPStyle on
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-!define MUI_FINISHPAGE_RUN "$INSTDIR\submatix_start.bat"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\submatix_start.cmd"
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages
@@ -68,24 +69,14 @@ Section "MAIN" SEC01
   SetOutPath "$INSTDIR"
   CreateDirectory "$INSTDIR\lib"
   SetOverwrite ifnewer
-  File "${SOURCE_FILES}\SubmatixBTConfigPC.jar"
-  File "${SOURCE_FILES}\submatix_start_this_on_trouble.bat"
-  File "${SOURCE_FILES}\submatix_start.bat"
+  File "${JAR_SOURCE}\SubmatixBTConfigPC.jar"
+  File "${SOURCE_FILES}\submatix_start_this_on_trouble.cmd"
+  File "${SOURCE_FILES}\submatix_start.cmd"
   File "${SOURCE_FILES}\progicon.ico"
   File "${SOURCE_FILES}\unicon.ico"
-  SetOutPath "$INSTDIR\lib"
-  File "${SOURCE_FILES}\lib\rxtxSerial_win_x86.dll"
-  File "${SOURCE_FILES}\lib\rxtxSerial_win_amd64.dll"
-  File "${SOURCE_FILES}\lib\rxtxParallel_win_x86.dll"
-  File "${SOURCE_FILES}\lib\rxtxParallel_win_amd64.dll"
-  File "${SOURCE_FILES}\lib\librxtxSerial_linux_x86.so"
-  File "${SOURCE_FILES}\lib\librxtxSerial_linux_amd64.so"
-  File "${SOURCE_FILES}\lib\librxtxSerial.jnilib"
-  File "${SOURCE_FILES}\lib\librxtxParallel_linux_x86.so"
-  File "${SOURCE_FILES}\lib\librxtxParallel_linux_amd64.so"
   CreateDirectory "$SMPROGRAMS\submatixBTLog"
-  CreateShortCut "${START_LINK}" "$INSTDIR\submatix_start.bat" icon.file "$INSTDIR\progicon.ico"
-  CreateShortCut "${DEBUG_LINK}" "$INSTDIR\submatix_start.bat" icon_file "$INSTDIR\progicon.ico"
+  CreateShortCut "${START_LINK}" "$INSTDIR\submatix_start.cmd" icon.file "$INSTDIR\progicon.ico"
+  CreateShortCut "${DEBUG_LINK}" "$INSTDIR\submatix_start_this_on_trouble.cmd" icon_file "$INSTDIR\progicon.ico"
 SectionEnd
 
 Section -AdditionalIcons
@@ -111,23 +102,14 @@ FunctionEnd
 
 Function un.onInit
 !insertmacro MUI_UNGETLANGUAGE
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Möchten Sie $(^Name) und alle seine Komponenten deinstallieren?" IDYES +2
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Mï¿½chten Sie $(^Name) und alle seine Komponenten deinstallieren?" IDYES +2
   Abort
 FunctionEnd
 
 Section Uninstall
   Delete "$INSTDIR\uninst.exe"
-  Delete "$INSTDIR\lib\librxtxParallel_linux_x86.so"
-  Delete "$INSTDIR\lib\librxtxParallel_linux_amd64.so"
-  Delete "$INSTDIR\lib\librxtxSerial.jnilib"
-  Delete "$INSTDIR\lib\librxtxSerial_linux_x86.so"
-  Delete "$INSTDIR\lib\librxtxSerial_linux_amd64.so"
-  Delete "$INSTDIR\lib\rxtxParallel_win_x86.dll"
-  Delete "$INSTDIR\lib\rxtxParallel_win_amd64.dll"
-  Delete "$INSTDIR\lib\rxtxSerial_win_x86.dll"
-  Delete "$INSTDIR\lib\rxtxSerial_win_amd64.dll"
-  Delete "$INSTDIR\submatix_start.bat"
-  Delete "$INSTDIR\submatix_start_this_on_trouble.bat"
+  Delete "$INSTDIR\submatix_start.cmd"
+  Delete "$INSTDIR\submatix_start_this_on_trouble.cmd"
   Delete "$INSTDIR\submatixBTForPC.jar"
   Delete "$INSTDIR\versioncheck.jar"
   Delete "$INSTDIR\unicon.ico"

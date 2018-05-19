@@ -29,10 +29,11 @@
  */
 package de.dmarcini.submatix.pclogger.utils;
 
+import de.dmarcini.submatix.pclogger.ProjectConst;
+import org.apache.logging.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.regex.Pattern;
-
-import org.apache.log4j.Logger;
 
 /**
  * Objekt zur Sicherung der SPX42 Konfiguration Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclg.utils
@@ -742,17 +743,17 @@ public class SPX42Config implements ISPX42Config
     // versuch mal die Eigenschaften rauszufinden
     //
     // Beginne bei einer gaaaanz alten Version
-    if( firmwareVersion.matches( "V2\\.6.*" ) )
+    if( firmwareVersion.matches(ProjectConst.FIRMWARE_2_6x) )
     {
       hasFahrenheidBug = true;
       isFirmwareSupported = true;
       isOldParamSorting = true;
     }
     // Versionen NACH 2.7_V
-    if( firmwareVersion.matches( "V2\\.7_V.*" ) )
+    if( firmwareVersion.matches( ProjectConst.FIRMWARE_2_7x ) )
     {
       isFirmwareSupported = true;
-      if( firmwareVersion.matches( "V2\\.7_V r83.*" ) )
+      if( firmwareVersion.matches( ProjectConst.FIRMWARE_2_7_V_R83x ) )
       {
         // Build 198
         hasFahrenheidBug = false;
@@ -769,12 +770,12 @@ public class SPX42Config implements ISPX42Config
       }
     }
     // Versionen NACH 2.7_H
-    if( firmwareVersion.matches( "V2\\.7_H.*" ) )
+    if( firmwareVersion.matches( ProjectConst.FIRMWARE_2_7_Hx) )
     {
       hasFahrenheidBug = false;
       canSetDate = false;
       isFirmwareSupported = true;
-      if( firmwareVersion.matches( "V2\\.7_H r83.*" ) )
+      if( firmwareVersion.matches( ProjectConst.FIRMWARE_2_7_H_r83 ) )
       {
         // Build 197
         // hier kommt bestimmt noch irgendwas nach :-(

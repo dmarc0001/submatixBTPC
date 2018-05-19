@@ -1,41 +1,34 @@
 <component name="ArtifactManager">
   <artifact type="jar" build-on-make="true" name="submatixBTForPC.jar">
     <output-path>$PROJECT_DIR$/jar</output-path>
+    <properties id="ant-preprocessing">
+      <options>
+        <file>file://$PROJECT_DIR$/utils/versionsScript.xml</file>
+        <target>makeVersion</target>
+      </options>
+    </properties>
     <root id="archive" name="SubmatixBTConfigPC.jar">
       <element id="module-output" name="SubmatixBTConfigPC" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/joda-time-2.2/joda-time-2.2.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/jfreechart-1.0.14/lib/gnujaxp.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/jfreechart-1.0.14/lib/iText-2.1.5.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/jfreechart-1.0.14/lib/jcommon-1.0.17.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/jfreechart-1.0.14/lib/jfreechart-1.0.14-experimental.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/jfreechart-1.0.14/lib/jfreechart-1.0.14-swt.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/jfreechart-1.0.14/lib/jfreechart-1.0.14.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/jfreechart-1.0.14/lib/junit.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/jfreechart-1.0.14/lib/servlet.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/jfreechart-1.0.14/lib/swtgraphics2d.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/commons-lang3-3.1/commons-lang3-3.1.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/rxtx-2.2/x86/RXTXcomm.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/commons-io-2.4/commons-io-2.4.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/db-derby-10.11.1.1-lib/lib/derby.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/db-derby-10.11.1.1-lib/lib/derbyclient.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/db-derby-10.11.1.1-lib/lib/derbynet.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/db-derby-10.11.1.1-lib/lib/derbyoptionaltools.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/db-derby-10.11.1.1-lib/lib/derbyrun.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/db-derby-10.11.1.1-lib/lib/derbytools.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/commons-cli-1.3.1/commons-cli-1.3.1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/apache-log4j-2.2/apache-log4j-2.2-bin/log4j-core-2.2.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../extLibs/apache-log4j-2.2/apache-log4j-2.2-bin/log4j-api-2.2.jar" path-in-jar="/" />
-      <element id="directory" name="lib">
-        <element id="file-copy" path="$PROJECT_DIR$/src/lib/librxtxParallel_linux_amd64.so" />
-        <element id="file-copy" path="$PROJECT_DIR$/src/lib/librxtxParallel_linux_x86.so" />
-        <element id="file-copy" path="$PROJECT_DIR$/src/lib/librxtxSerial.jnilib" />
-        <element id="file-copy" path="$PROJECT_DIR$/src/lib/librxtxSerial_linux_amd64.so" />
-        <element id="file-copy" path="$PROJECT_DIR$/src/lib/librxtxSerial_linux_x86.so" />
-        <element id="file-copy" path="$PROJECT_DIR$/src/lib/rxtxParallel_win_amd64.dll" />
-        <element id="file-copy" path="$PROJECT_DIR$/src/lib/rxtxParallel_win_x86.dll" />
-        <element id="file-copy" path="$PROJECT_DIR$/src/lib/rxtxSerial_win_amd64.dll" />
-        <element id="file-copy" path="$PROJECT_DIR$/src/lib/rxtxSerial_win_x86.dll" />
-      </element>
+      <element id="library" level="project" name="commons-cli" />
+      <element id="library" level="project" name="commons-io" />
+      <element id="library" level="project" name="jSSC-2.7" />
+      <element id="library" level="project" name="log4j" />
     </root>
   </artifact>
 </component>

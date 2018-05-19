@@ -30,16 +30,16 @@ package de.dmarcini.submatix.pclogger.utils;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import de.dmarcini.submatix.pclogger.ProjectConst;
 import de.dmarcini.submatix.pclogger.lang.LangStrings;
-import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
 /**
  * @author dmarc
  */
 public class BuildVersion
 {
-  private final long buildNumber = 2028L;
-  private final long buildDate   = 1408046767187L;
+  private final long buildNumber = 2051L;
+  private final long buildDate = 1526734324811L;
 
   /**
    * Gib die Buildnummer zurück

@@ -21,10 +21,11 @@
 /*
  * Klasse als Container für Programmkonstanten Bluethooth service
  */
-package de.dmarcini.submatix.pclogger.res;
+package de.dmarcini.submatix.pclogger;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.util.regex.Pattern;
 
 //@formatter:off
 @SuppressWarnings( "javadoc" )
@@ -38,12 +39,12 @@ public final class ProjectConst
   public static final String CREATORPROGRAM             = "SUBMATIX SPX42 Manager";
   public static final String CREATORNAME                = "SPX42";
   public static final String MANUFACTNAME               = "Dirk Marciniak";
-  public static final String MANUFACTMAIL               = "dirk_marciniak@arcor.de";
+  public static final String MANUFACTMAIL               = "dirk@submatix.com";
   public static final String MANUFACTHOME               = "http://www.submatix.com";
-  public static final String MANUFACTVERS               = "1.2.4";
-  public static final String GENYEAR                    = "2014";
-  public static final String GENMONTH                   = "08";
-  public static final String GENDAY                     = "14";
+  public static final String MANUFACTVERS               = "1.2.6";
+  public static final String GENYEAR                    = "2018";
+  public static final String GENMONTH                   = "05";
+  public static final String GENDAY                     = "18";
   
   // Datenbankversion
   public static int          DB_VERSION                 = 7;
@@ -54,12 +55,12 @@ public final class ProjectConst
   public static final int    WATCHDOG_FOR_WRITEOPS      = 5;
   
   // Buggy Firmware, Temperatur-Lesen, Gradienten-Bug
-  public static final String FIRMWARE_2_6_7_7V          = "V2.6.7.7_V";
-  public static final String FIRMWARE_2_7Vx             = "V2.7_V";
-  public static final String FIRMWARE_2_7Hx             = "V2.7_H";
-  public static final String FIRMWARE_2_7H_R83CE        = "V2.7_H r83 ce";
-  public static final String FIRMWARE_2_7V_R83CE        = "V2.7_V r83 ce";
-    
+  public static final String FIRMWARE_2_6x              = "V2\\.6.*";
+  public static final String FIRMWARE_2_7x              = "V2\\.7_V.*";
+  public static final String FIRMWARE_2_7_V_R83x        = "V2\\.7_V r83.*";
+  public static final String FIRMWARE_2_7_Hx            = "V2\\.7_?H.*";
+  public static final String FIRMWARE_2_7_H_r83         = "V2\\.7_?H r83.*";
+
   // Lizenzstati des SPX42
   public static final int SPX_LICENSE_NOT_SET           = -1;
   public static final int SPX_LICENSE_NITROX            =  0;

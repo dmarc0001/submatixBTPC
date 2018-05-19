@@ -27,16 +27,14 @@
  */
 package de.dmarcini.submatix.pclogger.utils;
 
+import de.dmarcini.submatix.pclogger.ProjectConst;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-
-import org.apache.log4j.Level;
-
-import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
 /**
  * Lese Config ein. Konfig im Muster BEZEICHNUNG=WERT
@@ -60,7 +58,6 @@ public class ReadConfig
   {
     BufferedReader in;
     // gibts die Datei?
-    if( SpxPcloggerProgramConfig.logLevel == Level.DEBUG ) debug = true;
     if( SpxPcloggerProgramConfig.configFile.exists() && SpxPcloggerProgramConfig.configFile.canRead() )
     {
       if( null != ( in = openConfFile( SpxPcloggerProgramConfig.configFile ) ) )
@@ -162,7 +159,7 @@ public class ReadConfig
         //
         // unterscheide die Parameter
         //
-        if( 0 == fields[0].indexOf( ProjectConst.CONFIG_LANGCODE ) )
+        if( 0 == fields[0].indexOf(ProjectConst.CONFIG_LANGCODE) )
         {
           if( !SpxPcloggerProgramConfig.wasCliLangCode )
           {
@@ -176,14 +173,6 @@ public class ReadConfig
           {
             if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
             SpxPcloggerProgramConfig.databaseDir = ( new File( fields[1] ) );
-          }
-        }
-        else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_LOGFILE ) )
-        {
-          if( !SpxPcloggerProgramConfig.wasCliLogfile )
-          {
-            if( debug ) System.out.println( String.format( "ReadConfig: read <%s> = <%s>", fields[0], fields[1] ) );
-            SpxPcloggerProgramConfig.logFile = new File( fields[1] );
           }
         }
         else if( 0 == fields[0].indexOf( ProjectConst.CONFIG_EXPORTDIR ) )

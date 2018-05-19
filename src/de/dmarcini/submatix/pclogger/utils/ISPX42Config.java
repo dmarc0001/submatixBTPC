@@ -29,7 +29,7 @@
  */
 package de.dmarcini.submatix.pclogger.utils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 /**
  * HEADLINE Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.utils
@@ -392,7 +392,7 @@ public interface ISPX42Config
    * @param logger
    *          Logger Objekt
    */
-  public void setLogger( Logger logger );
+  public void setLogger( Logger logger);
 
   public void setLogInterval( int interval );
 

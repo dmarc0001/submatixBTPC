@@ -23,9 +23,18 @@
  */
 package de.dmarcini.submatix.pclogger.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import de.dmarcini.submatix.pclogger.lang.LangStrings;
+import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLFrameHyperlinkEvent;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -34,145 +43,129 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLFrameHyperlinkEvent;
-
-import org.apache.log4j.Logger;
-
-import de.dmarcini.submatix.pclogger.lang.LangStrings;
-import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
-
 /**
  * Rahmen für Hilfetexte
- * 
+ * <p>
  * Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
- * 
+ *
  * @author Dirk Marciniak (dirk_marciniak@arcor.de)
- * 
+ *         <p>
  *         Stand: 06.12.2013
  */
 public class HelpFrameClass extends JFrame implements ActionListener, HyperlinkListener
 {
   /**
-   * 
+   *
    */
-  private static final long     serialVersionUID = -2698425836684008770L;
-  private static ResourceBundle stringsBundle    = null;
-  static Logger                 lg               = null;
-  private final JPanel          contentPane;
-  private final JTextPane       htmlTextPane;                             ;
+  private static final long           serialVersionUID = -2698425836684008770L;
+  private static       ResourceBundle stringsBundle    = null;
+  private final        Logger         lg               = LogManager.getLogger(HelpFrameClass.class.getName()); // log4j.configurationFile
+  private final JPanel    contentPane;
+  private final JTextPane htmlTextPane;
+  ;
 
   /**
    * Create the frame.
-   * 
+   *
    * @param programLocale
    */
-  public HelpFrameClass( Locale programLocale )
+  public HelpFrameClass(Locale programLocale)
   {
-    setMinimumSize( new Dimension( 400, 350 ) );
-    lg = SpxPcloggerProgramConfig.LOGGER;
+    setMinimumSize(new Dimension(400, 350));
     try
     {
-      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages", programLocale );
+      stringsBundle = ResourceBundle.getBundle("de.dmarcini.submatix.pclogger.lang.messages", programLocale);
     }
-    catch( MissingResourceException ex )
+    catch ( MissingResourceException ex )
     {
-      System.out.println( "ERROR get resources <" + ex.getMessage() + "> try standart Strings..." );
-      stringsBundle = ResourceBundle.getBundle( "de.dmarcini.submatix.pclogger.lang.messages" );
+      System.out.println("ERROR get resources <" + ex.getMessage() + "> try standart Strings...");
+      stringsBundle = ResourceBundle.getBundle("de.dmarcini.submatix.pclogger.lang.messages");
     }
-    setVisible( true );
-    setTitle( LangStrings.getString( "HelpFrameClass.Windowtitle.title" ) ); //$NON-NLS-1$
-    setIconImage( Toolkit.getDefaultToolkit().getImage( HelpFrameClass.class.getResource( "/de/dmarcini/submatix/pclogger/res/search.png" ) ) );
-    setBounds( 100, 100, 912, 645 );
+    setVisible(true);
+    setTitle(LangStrings.getString("HelpFrameClass.Windowtitle.title")); //$NON-NLS-1$
+    setIconImage(Toolkit.getDefaultToolkit().getImage(HelpFrameClass.class.getResource("/de/dmarcini/submatix/pclogger/res/search.png")));
+    setBounds(100, 100, 912, 645);
     contentPane = new JPanel();
-    contentPane.setBorder( new EmptyBorder( 5, 5, 5, 5 ) );
-    contentPane.setLayout( new BorderLayout( 0, 0 ) );
-    setContentPane( contentPane );
-    JButton btnClose = new JButton( LangStrings.getString( "HelpFrameClass.btnClose.text" ) ); //$NON-NLS-1$
-    btnClose.addActionListener( this );
-    btnClose.setActionCommand( "close" );
-    contentPane.add( btnClose, BorderLayout.SOUTH );
+    contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+    contentPane.setLayout(new BorderLayout(0, 0));
+    setContentPane(contentPane);
+    JButton btnClose = new JButton(LangStrings.getString("HelpFrameClass.btnClose.text")); //$NON-NLS-1$
+    btnClose.addActionListener(this);
+    btnClose.setActionCommand("close");
+    contentPane.add(btnClose, BorderLayout.SOUTH);
     JScrollPane scrollPane = new JScrollPane();
-    contentPane.add( scrollPane, BorderLayout.CENTER );
+    contentPane.add(scrollPane, BorderLayout.CENTER);
     htmlTextPane = new JTextPane();
-    htmlTextPane.setEditable( false );
-    htmlTextPane.setContentType( "text/html" );
-    htmlTextPane.setEditable( false );
-    htmlTextPane.addHyperlinkListener( this );
-    scrollPane.setViewportView( htmlTextPane );
+    htmlTextPane.setEditable(false);
+    htmlTextPane.setContentType("text/html");
+    htmlTextPane.setEditable(false);
+    htmlTextPane.addHyperlinkListener(this);
+    scrollPane.setViewportView(htmlTextPane);
     //
     // Test setzen
     //
-    setHelpText( programLocale );
+    setHelpText(programLocale);
   }
 
-  private void setHelpText( Locale programLocale )
+  private void setHelpText(Locale programLocale)
   {
-    URL url = HelpFrameClass.class.getResource( "/de/dmarcini/submatix/pclogger/res/helpfiles/" + programLocale.toString() + "_helpFileMain.html" );
-    if( url == null )
+    URL url = HelpFrameClass.class.getResource("/de/dmarcini/submatix/pclogger/res/helpfiles/" + programLocale.toString() + "_helpFileMain.html");
+    if ( url == null )
     {
-      htmlTextPane.setText( "<body><h1>" + stringsBundle.getString( "HelpFrameClass.helpFileNotFound.text" ) + "<h3>/de/dmarcini/submatix/pclogger/res/helpfiles/"
-              + programLocale.toString() + "_helpFileMain.html</h3></body></html>" );
+      htmlTextPane.setText("<body><h1>" + stringsBundle.getString("HelpFrameClass.helpFileNotFound.text") + "<h3>/de/dmarcini/submatix/pclogger/res/helpfiles/"
+                           + programLocale.toString() + "_helpFileMain.html</h3></body></html>");
       return;
     }
     try
     {
-      lg.debug( "open helpfile: " + url.getFile() );
-      htmlTextPane.setPage( url );
+      lg.debug("open helpfile: " + url.getFile());
+      htmlTextPane.setPage(url);
     }
-    catch( NullPointerException ex )
+    catch ( NullPointerException ex )
     {
-      lg.error( "Null Pointer Exception! (" + ex.getLocalizedMessage() + ")" );
+      lg.error("Null Pointer Exception! (" + ex.getLocalizedMessage() + ")");
       this.dispose();
     }
-    catch( IOException ex )
+    catch ( IOException ex )
     {
-      lg.error( "can't open helpfile! (" + ex.getLocalizedMessage() + ")" );
+      lg.error("can't open helpfile! (" + ex.getLocalizedMessage() + ")");
       this.dispose();
     }
   }
 
   @Override
-  public void actionPerformed( ActionEvent ev )
+  public void actionPerformed(ActionEvent ev)
   {
     String cmd = ev.getActionCommand();
-    if( cmd.equals( "close" ) )
+    if ( cmd.equals("close") )
     {
       this.dispose();
     }
   }
 
   @Override
-  public void hyperlinkUpdate( HyperlinkEvent ev )
+  public void hyperlinkUpdate(HyperlinkEvent ev)
   {
     //
     // ist das Ereignis aktivierung eines Hyperlinks?
     //
-    if( ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
+    if ( ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED )
     {
       // Das Panel ist
-      JTextPane pane = ( JTextPane )ev.getSource();
-      if( ev instanceof HTMLFrameHyperlinkEvent )
+      JTextPane pane = (JTextPane) ev.getSource();
+      if ( ev instanceof HTMLFrameHyperlinkEvent )
       {
-        HTMLFrameHyperlinkEvent evt = ( HTMLFrameHyperlinkEvent )ev;
-        HTMLDocument doc = ( HTMLDocument )pane.getDocument();
-        doc.processHTMLFrameHyperlinkEvent( evt );
+        HTMLFrameHyperlinkEvent evt = (HTMLFrameHyperlinkEvent) ev;
+        HTMLDocument doc = (HTMLDocument) pane.getDocument();
+        doc.processHTMLFrameHyperlinkEvent(evt);
       }
       else
       {
         try
         {
-          pane.setPage( ev.getURL() );
+          pane.setPage(ev.getURL());
         }
-        catch( Throwable t )
+        catch ( Throwable t )
         {
           t.printStackTrace();
         }

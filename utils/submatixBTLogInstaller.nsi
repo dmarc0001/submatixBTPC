@@ -2,14 +2,14 @@
 
 ;compiler direktiven
 SetCompress force
-SetCompressor /SOLID zlib
+SetCompressor /SOLID lzma
 SetDatablockOptimize on
 XPStyle on
 ;compiler direktiven
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "submatixBTLog"
-!define PRODUCT_VERSION "1.2.4"
+!define PRODUCT_VERSION "1.2.5"
 !define PRODUCT_PUBLISHER "Dirk Marciniak"
 !define PRODUCT_WEB_SITE "http://www.submatix.com"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -18,7 +18,7 @@ XPStyle on
 ; Meine Variablen zur Vereinfachung
 !define START_LINK "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION}.lnk"
 !define DEBUG_LINK "$SMPROGRAMS\submatixBTLog\submatixBTLog Ver. ${PRODUCT_VERSION} DEBUG.lnk"
-!define SOURCE_FILES "C:\DATEN\submatix\submatixBTLog"
+!define SOURCE_FILES "C:\DATEN\Entwicklung\IntelliJ\SubmatixBTForPC\installFiles"
 
 !include "MUI2.nsh"
 
@@ -66,10 +66,9 @@ FunctionEnd
 
 Section "MAIN" SEC01
   SetOutPath "$INSTDIR"
-  CreateDirectory "lib"
+  CreateDirectory "$INSTDIR\lib"
   SetOverwrite ifnewer
-;  File "${SOURCE_FILES}\versioncheck.jar"
-  File "${SOURCE_FILES}\submatixBTForPC.jar"
+  File "${SOURCE_FILES}\SubmatixBTConfigPC.jar"
   File "${SOURCE_FILES}\submatix_start_this_on_trouble.bat"
   File "${SOURCE_FILES}\submatix_start.bat"
   File "${SOURCE_FILES}\progicon.ico"

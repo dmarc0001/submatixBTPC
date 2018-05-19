@@ -2,7 +2,7 @@
 <Configuration status="FATAL" name="SubmatixBTForPC" monitorInterval="30">
 
     <Properties>
-        <Property name="filename">submatixBTForPC2.log</Property>
+        <Property name="filename">${sys:user.home}\submatixBTForPC.log</Property>
     </Properties>
 
     <Appenders>

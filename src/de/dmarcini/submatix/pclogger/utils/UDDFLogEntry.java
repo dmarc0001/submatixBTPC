@@ -1,4 +1,4 @@
-﻿//@formatter:off
+//@formatter:off
 /*
     programm: SubmatixSPXLog
     purpose:  configuration and read logs from SUBMATIX SPX42 divecomputer via Bluethooth    

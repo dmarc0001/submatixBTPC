@@ -20,6 +20,11 @@
 //@formatter:on
 package de.dmarcini.submatix.pclogger.gui;
 
+import de.dmarcini.submatix.pclogger.ProjectConst;
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -54,11 +59,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
-
 import de.dmarcini.submatix.pclogger.lang.LangStrings;
-import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.NoDatabaseException;
 import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
@@ -70,110 +71,102 @@ import de.dmarcini.submatix.pclogger.utils.SpxPcloggerProgramConfig;
  */
 public class ProgramProperetysDialog extends JDialog implements ActionListener, MouseMotionListener
 {
+  private static                 Logger  lg        = LogManager.getLogger(ProgramProperetysDialog.class.getName()); // log4j.configurationFile
   private static final long    serialVersionUID    = 4117246672129154876L;
-  private Logger               lg                  = null;
-  private LogDerbyDatabaseUtil databaseUtil        = null;
-  private String               approveLogButtonText;
-  private String               approveLogButtonTooltip;
-  private String               fileChooserLogTitle;
-  private String               approveDirButtonText;
-  private String               approveDirButtonTooltip;
-  private String               fileChooserDirTitle;
-  private final JPanel         contentPanel        = new JPanel();
-  private JButton              btnCancel;
-  private JButton              btnOk;
-  private boolean              closeWithOk         = false;
-  private boolean              wasChangedParameter = false;
-  private JLabel               databaseDirLabel;
-  private JLabel               logfileLabel;
-  private JTextField           databaseDirTextField;
-  private JTextField           logfileNameTextField;
-  private JCheckBox            moveDataCheckBox;
-  private JPanel               pahtsPanel;
-  private JPanel               unitsPanel;
-  private JRadioButton         defaultUnitsRadioButton;
-  private JRadioButton         metricUnitsRadioButton;
-  private JRadioButton         imperialUnitsRadioButton;
-  private JLabel               defaultUnitsLabel;
-  private JLabel               metricUnitsLabel;
-  private JLabel               imperialUnitsLabel;
-  private ButtonGroup          unitsButtonGroup;
-  private JButton              databaseDirFileButton;
-  private JButton              logfileNameButton;
-  private JLabel               exportDirLabel;
-  private JTextField           exportDirTextField;
-  private JButton              exportDirButton;
-  private String               fileChooserExportDirTitle;
+  private LogDerbyDatabaseUtil databaseUtil = null;
+  private String approveLogButtonText;
+  private String approveLogButtonTooltip;
+  private String fileChooserLogTitle;
+  private String approveDirButtonText;
+  private String approveDirButtonTooltip;
+  private String fileChooserDirTitle;
+  private final JPanel contentPanel = new JPanel();
+  private JButton btnCancel;
+  private JButton btnOk;
+  private boolean closeWithOk         = false;
+  private boolean wasChangedParameter = false;
+  private JLabel       databaseDirLabel;
+  private JLabel       logfileLabel;
+  private JTextField   databaseDirTextField;
+  private JTextField   logfileNameTextField;
+  private JCheckBox    moveDataCheckBox;
+  private JPanel       pahtsPanel;
+  private JPanel       unitsPanel;
+  private JRadioButton defaultUnitsRadioButton;
+  private JRadioButton metricUnitsRadioButton;
+  private JRadioButton imperialUnitsRadioButton;
+  private JLabel       defaultUnitsLabel;
+  private JLabel       metricUnitsLabel;
+  private JLabel       imperialUnitsLabel;
+  private ButtonGroup  unitsButtonGroup;
+  private JButton      databaseDirFileButton;
+  private JButton      logfileNameButton;
+  private JLabel       exportDirLabel;
+  private JTextField   exportDirTextField;
+  private JButton      exportDirButton;
+  private String       fileChooserExportDirTitle;
 
   /**
    * Konstruiere den Dialog mit den Eingenschaften Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
+   *
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.07.2012
    * @param _databaseUtil
    */
-  public ProgramProperetysDialog( LogDerbyDatabaseUtil _databaseUtil )
+  public ProgramProperetysDialog(LogDerbyDatabaseUtil _databaseUtil)
   {
-    this.lg = SpxPcloggerProgramConfig.LOGGER;
     this.databaseUtil = _databaseUtil;
     initDialog();
-    lg.debug( "ProgramProperetysDialog created..." );
-    JComponent.setDefaultLocale( Locale.getDefault() );
+    lg.debug("ProgramProperetysDialog created...");
+    JComponent.setDefaultLocale(Locale.getDefault());
     setLanguageStrings();
-    databaseDirTextField.setText( SpxPcloggerProgramConfig.databaseDir.getAbsolutePath() );
-    logfileNameTextField.setText( SpxPcloggerProgramConfig.logFile.getAbsolutePath() );
-    exportDirTextField.setText( SpxPcloggerProgramConfig.exportDir.getAbsolutePath() );
+    databaseDirTextField.setText(SpxPcloggerProgramConfig.databaseDir.getAbsolutePath());
+    logfileNameTextField.setText("-");
+    exportDirTextField.setText(SpxPcloggerProgramConfig.exportDir.getAbsolutePath());
     // Buttons entsprechend setzen
-    switch ( SpxPcloggerProgramConfig.unitsProperty )
+    switch( SpxPcloggerProgramConfig.unitsProperty )
     {
       case ProjectConst.UNITS_DEFAULT:
-        defaultUnitsRadioButton.setSelected( true );
-        lg.debug( "units is DEFAULT in config" );
+        defaultUnitsRadioButton.setSelected(true);
+        lg.debug("units is DEFAULT in config");
         break;
       case ProjectConst.UNITS_METRIC:
-        metricUnitsRadioButton.setSelected( true );
-        lg.debug( "units is METRIC in config" );
+        metricUnitsRadioButton.setSelected(true);
+        lg.debug("units is METRIC in config");
         break;
       case ProjectConst.UNITS_IMPERIAL:
-        imperialUnitsRadioButton.setSelected( true );
-        lg.debug( "units is IMPERIAL in config" );
+        imperialUnitsRadioButton.setSelected(true);
+        lg.debug("units is IMPERIAL in config");
         break;
       default:
-        defaultUnitsRadioButton.setSelected( true );
+        defaultUnitsRadioButton.setSelected(true);
     }
     wasChangedParameter = false;
-    lg.debug( "ProgramProperetysDialog created..." );
+    lg.debug("ProgramProperetysDialog created...");
   }
 
   @Override
-  public void actionPerformed( ActionEvent ev )
+  public void actionPerformed(ActionEvent ev)
   {
     if( ev.getSource() instanceof JButton )
     {
       String cmd = ev.getActionCommand();
       // /////////////////////////////////////////////////////////////////////////
       // Abbrechen
-      if( cmd.equals( "cancel" ) )
+      if( cmd.equals("cancel") )
       {
-        lg.debug( "Cancel ProgramProperetysDialog." );
-        setVisible( false );
+        lg.debug("Cancel ProgramProperetysDialog.");
+        setVisible(false);
         closeWithOk = false;
         return;
       }
       // /////////////////////////////////////////////////////////////////////////
       // Mache!
-      if( cmd.equals( "set_propertys" ) )
+      if( cmd.equals("set_propertys") )
       {
-        lg.debug( "OK pressed..." );
+        lg.debug("OK pressed...");
         closeWithOk = false;
         if( wasChangedParameter )
         {
-          if( !SpxPcloggerProgramConfig.logFile.getAbsolutePath().equals( logfileNameTextField.getText() ) )
-          {
-            // da wurde was geändert!
-            SpxPcloggerProgramConfig.logFile = new File( logfileNameTextField.getText() );
-            SpxPcloggerProgramConfig.wasChanged = true;
-            lg.debug( "logfile name changed..." );
-          }
           if( !SpxPcloggerProgramConfig.databaseDir.getAbsolutePath().equals( databaseDirTextField.getText() ) )
           {
             // da hat einer was dran gemacht
@@ -224,11 +217,6 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
         }
         setVisible( false );
         return;
-      }
-      else if( cmd.equals( "choose_logfile" ) )
-      {
-        lg.debug( "choose logfile pressed..." );
-        chooseLogFile();
       }
       else if( cmd.equals( "choose_datadir" ) )
       {
@@ -314,37 +302,6 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
   }
 
   /**
-   * Suche einen Platz und den Namen fürs Logfile Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 03.08.2012
-   */
-  private void chooseLogFile()
-  {
-    JFileChooser fileChooser;
-    int retVal;
-    //
-    // Einen Dateiauswahldialog Creieren
-    //
-    fileChooser = new JFileChooser();
-    fileChooser.setLocale( Locale.getDefault() );
-    fileChooser.setDialogTitle( fileChooserLogTitle );
-    fileChooser.setDialogType( JFileChooser.CUSTOM_DIALOG );
-    fileChooser.setApproveButtonToolTipText( approveLogButtonTooltip );
-    // das existierende Logfile voreinstellen
-    fileChooser.setSelectedFile( SpxPcloggerProgramConfig.logFile );
-    retVal = fileChooser.showDialog( this, approveLogButtonText );
-    // Mal sehen, was der User gewollt hat
-    if( retVal == JFileChooser.APPROVE_OPTION )
-    {
-      // Ja, ich wollte das so
-      // nach dem nächsten Programmstart dieses File anlegen/nutzen
-      logfileNameTextField.setText( fileChooser.getSelectedFile().getAbsolutePath() );
-      wasChangedParameter = true;
-      lg.debug( "select <" + fileChooser.getSelectedFile().getName() + "> as new logfile after restart." );
-    }
-  }
-
-  /**
    * Initialisiere das Fenster Project: SubmatixBTForPC Package: de.dmarcini.submatix.pclogger.gui
    * 
    * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 03.08.2012
@@ -352,7 +309,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
   private void initDialog()
   {
     setResizable( false );
-    setIconImage( Toolkit.getDefaultToolkit().getImage( ProgramProperetysDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/search.png" ) ) );
+    setIconImage( Toolkit.getDefaultToolkit().getImage( ProgramProperetysDialog.class.getResource("/de/dmarcini/submatix/pclogger/res/search.png") ) );
     // setVisible( true );
     setBounds( 100, 100, 750, 417 );
     getContentPane().setLayout( new BorderLayout() );
@@ -360,7 +317,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     getContentPane().add( contentPanel, BorderLayout.SOUTH );
     {
       btnCancel = new JButton( LangStrings.getString( "ProgramProperetysDialog.btnCancel.text" ) ); //$NON-NLS-1$
-      btnCancel.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/114.png" ) ) );
+      btnCancel.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource("/de/dmarcini/submatix/pclogger/res/114.png") ) );
       btnCancel.setHorizontalAlignment( SwingConstants.LEFT );
       btnCancel.setIconTextGap( 15 );
       btnCancel.setPreferredSize( new Dimension( 180, 40 ) );
@@ -376,7 +333,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
       btnOk = new JButton( LangStrings.getString( "ProgramProperetysDialog.btnOk.text" ) ); //$NON-NLS-1$
       btnOk.setIconTextGap( 15 );
       btnOk.setHorizontalAlignment( SwingConstants.LEFT );
-      btnOk.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource( "/de/dmarcini/submatix/pclogger/res/31.png" ) ) );
+      btnOk.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource("/de/dmarcini/submatix/pclogger/res/31.png") ) );
       btnOk.setPreferredSize( new Dimension( 180, 40 ) );
       btnOk.setMaximumSize( new Dimension( 160, 40 ) );
       btnOk.setMargin( new Insets( 6, 30, 6, 30 ) );
@@ -426,6 +383,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     logfileNameTextField.setEditable( false );
     logfileNameTextField.addMouseMotionListener( this );
     logfileNameTextField.setColumns( 10 );
+    logfileNameTextField.setEnabled(false); //FIXME: später entfernen
     moveDataCheckBox = new JCheckBox( LangStrings.getString( "ProgramProperetysDialog.moveDataCheckBox.text" ) ); //$NON-NLS-1$
     moveDataCheckBox.addMouseMotionListener( this );
     databaseDirFileButton = new JButton( "" );
@@ -433,11 +391,13 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     databaseDirFileButton.addActionListener( this );
     databaseDirFileButton.setActionCommand( "choose_datadir" );
     databaseDirFileButton.addMouseMotionListener( this );
+    // FIXME: entfernen
     logfileNameButton = new JButton( "" );
     logfileNameButton.setIcon( new ImageIcon( ProgramProperetysDialog.class.getResource( "/javax/swing/plaf/metal/icons/ocean/directory.gif" ) ) );
     logfileNameButton.addActionListener( this );
     logfileNameButton.setActionCommand( "choose_logfile" );
     logfileNameButton.addMouseMotionListener( this );
+    logfileNameButton.setEnabled(false); // FIXME: entfernen
     exportDirLabel = new JLabel( LangStrings.getString( "ProgramProperetysDialog.exportDirLabel.text" ) ); //$NON-NLS-1$
     exportDirTextField = new JTextField();
     exportDirTextField.setEditable( false );
@@ -697,7 +657,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     try
     {
       lg.debug( "copy directoy <" + srcDir.getAbsolutePath() + "> to <" + destDir.getAbsolutePath() + ">..." );
-      FileUtils.copyDirectory( srcDir, destDir );
+      FileUtils.copyDirectory(srcDir, destDir);
     }
     catch( IOException ex )
     {
@@ -795,7 +755,7 @@ public class ProgramProperetysDialog extends JDialog implements ActionListener, 
     ImageIcon icon = null;
     try
     {
-      icon = new ImageIcon( MainCommGUI.class.getResource( "/de/dmarcini/submatix/pclogger/res/Terminate.png" ) );
+      icon = new ImageIcon( MainCommGUI.class.getResource("/res/Terminate.png") );
       JOptionPane.showMessageDialog( this, message, LangStrings.getString( "MainCommGUI.errorDialog.headline" ), JOptionPane.INFORMATION_MESSAGE, icon );
     }
     catch( NullPointerException ex )

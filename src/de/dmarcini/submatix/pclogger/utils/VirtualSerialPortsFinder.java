@@ -20,15 +20,16 @@
 //@formatter:on
 package de.dmarcini.submatix.pclogger.utils;
 
-import gnu.io.CommPortIdentifier;
+import de.dmarcini.submatix.pclogger.ProjectConst;
+import jssc.SerialPortList;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Enumeration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
 
 import javax.swing.DefaultComboBoxModel;
-
-import de.dmarcini.submatix.pclogger.res.ProjectConst;
 
 public class VirtualSerialPortsFinder implements Runnable
 {
@@ -50,42 +51,38 @@ public class VirtualSerialPortsFinder implements Runnable
   @Override
   public void run()
   {
-    CommPortIdentifier portId;
-    Enumeration<CommPortIdentifier> portList;
+    SerialPortList serialPortList = new SerialPortList();
     boolean hasChanged = false;
     //
     if( aListener != null )
     {
-      ActionEvent evnt = new ActionEvent( this, ProjectConst.MESSAGE_TOAST, "searching ports..." );
+      ActionEvent evnt = new ActionEvent(this, ProjectConst.MESSAGE_TOAST, "searching ports..." );
       aListener.actionPerformed( evnt );
     }
     //
     // Liste der ports holen
     //
-    portList = CommPortIdentifier.getPortIdentifiers();
     if( aListener != null )
     {
       ActionEvent evnt = new ActionEvent( this, ProjectConst.MESSAGE_TOAST, "searching ports...OK" );
       aListener.actionPerformed( evnt );
     }
+    String[] list = serialPortList.getPortNames();
     //
     // die Liste abklappern
     // und Ergebnisse in Combo-Liste eintragen
     //
     if( virtDeviceModell == null )
     {
-      virtDeviceModell = new DefaultComboBoxModel<String>();
+      virtDeviceModell = new DefaultComboBoxModel<>();
     }
-    while( portList.hasMoreElements() )
+    for( int i=0; i<list.length; i++)
     {
-      portId = portList.nextElement();
-      if( portId.getPortType() == CommPortIdentifier.PORT_SERIAL )
+      // wenn der Name noch nicht aufgetaucht ist
+      if( -1 == virtDeviceModell.getIndexOf( list[i] ) )
       {
-        if( -1 == virtDeviceModell.getIndexOf( portId.getName() ) )
-        {
-          virtDeviceModell.addElement( portId.getName() );
-          hasChanged = true;
-        }
+        virtDeviceModell.addElement( list[i] );
+        hasChanged = true;
       }
     }
     if( aListener != null )

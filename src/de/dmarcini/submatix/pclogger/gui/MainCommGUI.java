@@ -17,6 +17,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/
 */
+/*
+ Konfiguration des Loggers via log4j.configurationFile property
+ */
 //@formatter:on
 package de.dmarcini.submatix.pclogger.gui;
 
@@ -65,25 +68,16 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import de.dmarcini.submatix.pclogger.ProjectConst;
+import org.apache.commons.cli.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import de.dmarcini.submatix.pclogger.comm.BTCommunication;
 import de.dmarcini.submatix.pclogger.lang.LangStrings;
-import de.dmarcini.submatix.pclogger.res.ProjectConst;
 import de.dmarcini.submatix.pclogger.utils.ConfigReadWriteException;
 import de.dmarcini.submatix.pclogger.utils.LogDerbyDatabaseUtil;
 import de.dmarcini.submatix.pclogger.utils.NoDatabaseException;
@@ -145,7 +139,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     public void windowOpened( WindowEvent arg0 )
     {}
   }
-  private enum programTabs {
+   private enum programTabs {
     TAB_CONNECT,
     TAB_CONFIG,
     TAB_GASLIST,
@@ -165,29 +159,29 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
   private int                     waitForMessage      = 0;
   //
   // @formatter:on
-  private JFrame                  frmMainWindow;
-  private JTabbedPane             tabbedPane;
-  private spx42ConnectPanel       connectionPanel;
-  private spx42ConfigPanel        configPanel;
-  private spx42GaslistEditPanel   gasConfigPanel;
-  private spx42LoglistPanel       logListPanel;
-  private spx42LogGraphPanel      logGraphPanel;
-  private spx42FileManagerPanel   fileManagerPanel;
-  private JMenuItem               mntmExit;
-  private JMenu                   mnLanguages;
-  private JMenu                   mnFile;
-  private JMenu                   mnOptions;
-  private JMenu                   mnHelp;
-  private JMenuItem               mntmHelp;
-  private JMenuItem               mntmInfo;
-  private JTextField              statusTextField;
-  private JMenuItem               mntmOptions;
+  private static                 Logger  lg        = LogManager.getLogger(MainCommGUI.class.getName()); // log4j.configurationFile
+  private JFrame                frmMainWindow;
+  private JTabbedPane           tabbedPane;
+  private Spx42ConnectPanel     connectionPanel;
+  private Spx42ConfigPanel      configPanel;
+  private Spx42GaslistEditPanel gasConfigPanel;
+  private Spx42LoglistPanel     logListPanel;
+  private Spx42LogGraphPanel    logGraphPanel;
+  private Spx42FileManagerPanel fileManagerPanel;
+  private JMenuItem             mntmExit;
+  private JMenu                 mnLanguages;
+  private JMenu                 mnFile;
+  private JMenu                 mnOptions;
+  private JMenu                 mnHelp;
+  private JMenuItem             mntmHelp;
+  private JMenuItem             mntmInfo;
+  private JTextField            statusTextField;
+  private JMenuItem             mntmOptions;
   private static ResourceBundle   stringsBundle       = null;
   private Locale                  programLocale       = null;
   private String                  timeFormatterString = "yyyy-MM-dd - hh:mm:ss";
   @SuppressWarnings( "unused" )
   private final File              programDir          = new File( System.getProperty( "user.dir" ) );
-  private Logger                  lg                  = null;
   private BTCommunication         btComm              = null;
   private final ArrayList<String> messagesList        = new ArrayList<String>();
   private final SPX42Config       currentConfig       = new SPX42Config();
@@ -297,60 +291,38 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     String argument;
     // Optionenobjet anlegen
     Options options = new Options();
-    Option optLogLevel;
-    Option optLogFile;
     Option optDatabaseDir;
     Option optExportDir;
     Option optLangTwoLetter;
     Option optConsoleLog;
     Option optHelp;
     Option optDeveloperDebug;
-    GnuParser parser;
+    DefaultParser parser;
     //
     // Optionen für das Parsing anlegen und zu den Optionen zufügen
     //
     // Hilfe
     optHelp = new Option( "help", "give help..." );
-    // Logleven festlegen
-    OptionBuilder.withArgName( "loglevel" );
-    OptionBuilder.hasArg();
-    OptionBuilder.withDescription( "Loglevel  (ALL|DEBUG|INFO|WARN|ERROR|FATAL|OFF)" );
-    optLogLevel = OptionBuilder.create( "loglevel" );
-    // Logfile abgefragt?
-    OptionBuilder.withArgName( "logfile" );
-    OptionBuilder.hasArg();
-    OptionBuilder.withDescription( "custom logfile (directory must exist)" );
-    optLogFile = OptionBuilder.create( "logfile" );
+
     // Daternverzeichnis?
-    OptionBuilder.withArgName( "databasedir" );
-    OptionBuilder.hasArg();
-    OptionBuilder.withDescription( "directory for create ans saving database" );
-    optDatabaseDir = OptionBuilder.create( "databasedir" );
+    optDatabaseDir = new Option( "databasedir", true, "directory for program database" );
     // Exportverzeichnis?
-    OptionBuilder.withArgName( "exportdir" );
-    OptionBuilder.hasArg();
-    OptionBuilder.withDescription( "directory for export UDDF files" );
-    optExportDir = OptionBuilder.create( "exportdir" );
+    optExportDir = new Option("exportdir", true, "directory for create exports UDDF files from database" );
     // Landescode vorgeben?
-    OptionBuilder.withArgName( "langcode" );
-    OptionBuilder.hasArg();
-    OptionBuilder.withDescription( "language code for overridign system default (eg. 'en' or 'de' etc.)" );
-    optLangTwoLetter = OptionBuilder.create( "langcode" );
+    optLangTwoLetter = new Option( "lancode", true, "language code for overridign system default (eg. 'en' or 'de' etc.)" );
     // Log auf console?
-    optConsoleLog = new Option( "console", "logging to console for debugging purposes..." );
+    optConsoleLog = new Option( "console", false, "logging to console for debugging purposes..." );
     // Entwicklerdebug
-    optDeveloperDebug = new Option( "developer", "for programmers..." );
+    optDeveloperDebug = new Option( "developer", false, "for programmers..." );
     // Optionen zufügen
     options.addOption( optHelp );
-    options.addOption( optLogLevel );
-    options.addOption( optLogFile );
     options.addOption( optDatabaseDir );
     options.addOption( optExportDir );
     options.addOption( optLangTwoLetter );
     options.addOption( optConsoleLog );
     options.addOption( optDeveloperDebug );
     // Parser anlegen
-    parser = new GnuParser();
+    parser = new DefaultParser();
     try
     {
       cmdLine = parser.parse( options, args );
@@ -377,60 +349,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       formatter.printHelp( ProjectConst.CREATORPROGRAM, options );
       System.out.println( "ENDE nach HELP..." );
       System.exit( 0 );
-    }
-    //
-    // Loglevel
-    //
-    if( cmdLine.hasOption( "loglevel" ) )
-    {
-      argument = cmdLine.getOptionValue( "loglevel" ).toLowerCase();
-      // ALL | DEBU G | INFO | WARN | ERROR | FATAL | OFF
-      if( argument.equalsIgnoreCase( "all" ) )
-        SpxPcloggerProgramConfig.logLevel = Level.ALL;
-      else if( argument.equalsIgnoreCase( "debug" ) )
-        SpxPcloggerProgramConfig.logLevel = Level.DEBUG;
-      else if( argument.equalsIgnoreCase( "info" ) )
-        SpxPcloggerProgramConfig.logLevel = Level.INFO;
-      else if( argument.equalsIgnoreCase( "warn" ) )
-        SpxPcloggerProgramConfig.logLevel = Level.WARN;
-      else if( argument.equalsIgnoreCase( "error" ) )
-        SpxPcloggerProgramConfig.logLevel = Level.ERROR;
-      else if( argument.equalsIgnoreCase( "fatal" ) )
-        SpxPcloggerProgramConfig.logLevel = Level.FATAL;
-      else if( argument.equalsIgnoreCase( "off" ) )
-        SpxPcloggerProgramConfig.logLevel = Level.OFF;
-      else
-      {
-        // Ausgabe der Hilfe, wenn da was unverständliches passierte
-        System.err.println( "unbekanntes Argument bei --loglevel <" + argument + ">" );
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( ProjectConst.CREATORPROGRAM, options );
-        System.out.println( "ENDE nach DEBUGLEVEL/HELP..." );
-        System.exit( -1 );
-      }
-      SpxPcloggerProgramConfig.wasCliLogLevel = true;
-    }
-    //
-    // Logfile
-    //
-    if( cmdLine.hasOption( "logfile" ) )
-    {
-      argument = cmdLine.getOptionValue( "logfile" );
-      File tempLogFile, tempParentDir;
-      try
-      {
-        tempLogFile = new File( argument );
-        tempParentDir = tempLogFile.getParentFile();
-        if( tempParentDir.exists() && tempParentDir.isDirectory() )
-        {
-          SpxPcloggerProgramConfig.logFile = tempLogFile;
-          SpxPcloggerProgramConfig.wasCliLogfile = true;
-        }
-      }
-      catch( NullPointerException ex )
-      {
-        System.err.println( "logfile was <null>" );
-      }
     }
     //
     // database Directory
@@ -512,12 +430,10 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
    */
   public MainCommGUI() throws IOException, ConfigReadWriteException
   {
-    lg = SpxPcloggerProgramConfig.LOGGER;
     setDefaultLookAndFeelDecorated( isDefaultLookAndFeelDecorated() );
     // Konfiguration aus der Datei einlesen
     // berücksichtigt schon per CLI angegebene Werte als gesetzt
     new ReadConfig();
-    makeLogger();
     //
     // gib ein paar informationen
     //
@@ -1243,27 +1159,27 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     frmMainWindow.getContentPane().add( tabbedPane, BorderLayout.CENTER );
     tabbedPane.addMouseMotionListener( this );
     // Connection Panel
-    connectionPanel = new spx42ConnectPanel( databaseUtil );
+    connectionPanel = new Spx42ConnectPanel(databaseUtil );
     tabbedPane.addTab( "CONNECTION", null, connectionPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_CONNECT.ordinal(), true );
     // config Panel
-    configPanel = new spx42ConfigPanel();
+    configPanel = new Spx42ConfigPanel();
     tabbedPane.addTab( "CONFIG", null, configPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_CONFIG.ordinal(), true );
     // GASPANEL
-    gasConfigPanel = new spx42GaslistEditPanel( databaseUtil );
+    gasConfigPanel = new Spx42GaslistEditPanel(databaseUtil );
     tabbedPane.addTab( "GAS", null, gasConfigPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_GASLIST.ordinal(), true );
     // Loglisten Panel
-    logListPanel = new spx42LoglistPanel( this, databaseUtil );
+    logListPanel = new Spx42LoglistPanel(this, databaseUtil );
     tabbedPane.addTab( "LOG", null, logListPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_LOGREAD.ordinal(), true );
     // Grafik Panel
-    logGraphPanel = new spx42LogGraphPanel( databaseUtil );
+    logGraphPanel = new Spx42LogGraphPanel(databaseUtil );
     tabbedPane.addTab( "GRAPH", null, logGraphPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_LOGGRAPH.ordinal(), true );
     // import/export Panel
-    fileManagerPanel = new spx42FileManagerPanel( this, databaseUtil );
+    fileManagerPanel = new Spx42FileManagerPanel(this, databaseUtil );
     tabbedPane.addTab( "EXPORT", null, fileManagerPanel, null );
     tabbedPane.setEnabledAt( programTabs.TAB_FILEMANAGER.ordinal(), true );
     // MENÜ
@@ -1301,7 +1217,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
     mntmInfo.addActionListener( this );
     mntmInfo.setActionCommand( "info" );
     mntmInfo.addMouseMotionListener( this );
-    mntmInfo.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/javax/swing/plaf/metal/icons/ocean/expanded.gif" ) ) );
+    // TODO: ersatz schaffen mntmInfo.setIcon( new ImageIcon( MainCommGUI.class.getResource( "/javax/swing/plaf/metal/icons/ocean/expanded.gif" ) ) );
     mntmInfo.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_I, InputEvent.CTRL_MASK ) );
     mnHelp.add( mntmInfo );
   }
@@ -1394,70 +1310,6 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       ignoreAction = false;
     }
     lg.debug( "try init language menu...done" );
-  }
-
-  /**
-   * Systemlogger machen! Project: SubmatixBTConfigPC Package: de.dmarcini.submatix.pclogger.gui
-   * 
-   * @author Dirk Marciniak (dirk_marciniak@arcor.de) Stand: 18.12.2011
-   * @param logFile
-   * @param logLevel
-   */
-  private void makeLogger()
-  {
-    Logger lg = SpxPcloggerProgramConfig.LOGGER;
-    try
-    {
-      //
-      // alle appender löschen
-      //
-      lg.removeAllAppenders();
-      // ALL | D EBUG | INFO | WARN | ERROR | FATAL | OFF:
-      // Logs mit Datum-Zeit,Class,Threadname,LogLevel,Threadname, Kategorie
-      // Meldung...
-      PatternLayout fileLayout;
-      if( SpxPcloggerProgramConfig.logLevel == Level.DEBUG )
-      {
-        fileLayout = new PatternLayout( "%d{ISO8601}|%p|%C|%t|%m%n" );
-      }
-      else
-      {
-        fileLayout = new PatternLayout( "%d{ISO8601}|%p|%C|%t|%M|%m%n" );
-      }
-      if( SpxPcloggerProgramConfig.consoleLog )
-      {
-        PatternLayout consoleLayout;
-        if( SpxPcloggerProgramConfig.logLevel == Level.DEBUG )
-        {
-          consoleLayout = new PatternLayout( "[%d{ISO8601}] %-6p %C{1} %M [%t] \"%m\"%n" );
-        }
-        else
-        {
-          consoleLayout = new PatternLayout( "[%d{ISO8601}] %-6p %C{1} [%t] \"%m\"%n" );
-        }
-        ConsoleAppender consoleAppender = new ConsoleAppender( consoleLayout );
-        // consoleAppender.setEncoding("ISO-8859-15");
-        lg.addAppender( consoleAppender );
-      }
-      if( SpxPcloggerProgramConfig.logFile.exists() && SpxPcloggerProgramConfig.logFile.isFile() )
-      {
-        FileAppender fileAppender = new FileAppender( fileLayout, SpxPcloggerProgramConfig.logFile.getAbsolutePath(), true );
-        lg.addAppender( fileAppender );
-      }
-      else
-      {
-        FileAppender fileAppender = new FileAppender( fileLayout, SpxPcloggerProgramConfig.logFile.getAbsolutePath(), false );
-        lg.addAppender( fileAppender );
-      }
-      lg.setLevel( SpxPcloggerProgramConfig.logLevel );
-      if( lg.isDebugEnabled() ) lg.debug( "lg Created..." );
-    }
-    catch( Exception ex )
-    {
-      System.err.println( ex );
-      showErrorDialog( ex.getLocalizedMessage() + "\n" + SpxPcloggerProgramConfig.logFile.getAbsolutePath() );
-      System.exit( -1 );
-    }
   }
 
   /**
@@ -2063,7 +1915,7 @@ public class MainCommGUI extends JFrame implements ActionListener, MouseMotionLi
       // /////////////////////////////////////////////////////////////////////////
       // Device wurde verbunden
       case ProjectConst.MESSAGE_CONNECTED:
-        lg.info( "CONNECT" );
+        lg.info( "CONNECTED" );
         setElementsConnected( true );
         // Gleich mal Fragen, wer da dran ist!
         btComm.askForDeviceName();

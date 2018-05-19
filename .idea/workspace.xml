@@ -7,95 +7,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d44d6d6c-9c90-4f79-a0d2-482a6ccc557a" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/artifacts/submatixBTForPC_jar.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyle-idea.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/kotlinc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/commons_io.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/commons_lang.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/derby_lib.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/jSSC_2_7.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/jfreechart.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/joda_time.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/log4j.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/log4j2.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/log4j2debug.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/log4j2normal.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/constant-values.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/constant-values.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/class-use/spx42ConfigPanel.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/class-use/spx42ConfigPanel.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/class-use/spx42ConnectPanel.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/class-use/spx42ConnectPanel.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/class-use/spx42GaslistEditPanel.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/class-use/spx42GaslistEditPanel.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/class-use/spx42LoglistPanel.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/class-use/spx42LoglistPanel.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/spx42ConfigPanel.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/spx42ConfigPanel.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/spx42ConnectPanel.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/spx42ConnectPanel.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/spx42GaslistEditPanel.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/spx42GaslistEditPanel.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/spx42LoglistPanel.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/de/dmarcini/submatix/pclogger/gui/spx42LoglistPanel.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/doc/serialized-form.html" beforeDir="false" afterPath="$PROJECT_DIR$/doc/serialized-form.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/JavaVersionChecker.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/comm/BTCommunication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/comm/BTCommunication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/comm/IBTCommunication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/comm/IBTCommunication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/GasComputeDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/GasComputeDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/HelpFrameClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/HelpFrameClass.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/MainCommGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/MainCommGUI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/ProgramProperetysDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/ProgramProperetysDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/spx42ConfigPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/Spx42ConfigPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/spx42ConnectPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/Spx42ConnectPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/spx42FileManagerPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/Spx42FileManagerPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/spx42GaslistEditPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/Spx42GaslistEditPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/spx42LogGraphPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/Spx42LogGraphPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/spx42LoglistPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/gui/Spx42LoglistPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/res/ProjectConst.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/ProjectConst.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/BuildVersion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/BuildVersion.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/ISPX42Config.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/ISPX42Config.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/LogDerbyDatabaseUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/LogDerbyDatabaseUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/ReadConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/ReadConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/SPX42Config.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/SPX42Config.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/SPX42GasList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/SPX42GasList.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/SpxPcloggerProgramConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/SpxPcloggerProgramConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/UDDFFileCreateClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/UDDFFileCreateClass.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/UDDFLogEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/UDDFLogEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/VirtualSerialPortsFinder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/VirtualSerialPortsFinder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/WriteConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/utils/WriteConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/CommDriver.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/CommPort.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/CommPortEnumerator.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/CommPortIdentifier.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/CommPortOwnershipListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/Configure.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/I2C.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/I2CPort.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/I2CPortEvent.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/I2CPortEventListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/LPRPort.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/NoSuchPortException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/OperatingSystemFinder.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/ParallelPort.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/ParallelPortEvent.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/ParallelPortEventListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/PortInUseException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RS485.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RS485Port.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RS485PortEvent.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RS485PortEventListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RXTXCommDriver.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RXTXPort.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RXTXVersion.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/Raw.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RawPort.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RawPortEvent.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/RawPortEventListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/SerialPort.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/SerialPortEvent.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/SerialPortEventListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/UnSupportedLoggerException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/UnsupportedCommOperationException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gnu/io/Zystem.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/build.txt" beforeDir="false" afterPath="$PROJECT_DIR$/utils/build.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/artifacts/submatixBTForPC_jar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/artifacts/submatixBTForPC_jar.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/installFiles/submatix_start.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/installFiles/submatix_start_this_on_trouble.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/progicon.ico" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/submatixBTLogInstaller.nsi" beforeDir="false" afterPath="$PROJECT_DIR$/utils/submatixBTLogInstaller.nsi" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/submatix_start.bat" beforeDir="false" afterPath="$PROJECT_DIR$/utils/submatix_start.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/submatix_start_this_on_trouble.bat" beforeDir="false" afterPath="$PROJECT_DIR$/utils/submatix_start_this_on_trouble.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/versionsScript.xml" beforeDir="false" afterPath="$PROJECT_DIR$/utils/versionsScript.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/submatix_start.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/submatix_start_this_on_trouble.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/unicon.ico" beforeDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/bin/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -123,8 +42,8 @@
       <file leaf-file-name="BTCommunication.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/comm/BTCommunication.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="20">
-              <caret line="244" selection-start-line="244" selection-end-line="244" />
+            <state relative-caret-position="280">
+              <caret line="257" column="21" lean-forward="true" selection-start-line="257" selection-start-column="21" selection-end-line="257" selection-end-column="21" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -254,48 +173,7 @@
       <autoscrollFromSource Scope="true" />
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes>
-      <pane id="AndroidView" />
-      <pane id="PackagesPane" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="SubmatixBTConfigPC" type="b2602c69:ProjectViewProjectNode" />
-              <item name="SubmatixBTForPC" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="SubmatixBTConfigPC" type="b2602c69:ProjectViewProjectNode" />
-              <item name="SubmatixBTForPC" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="SubmatixBTConfigPC" type="b2602c69:ProjectViewProjectNode" />
-              <item name="SubmatixBTForPC" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="submatix" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="SubmatixBTConfigPC" type="b2602c69:ProjectViewProjectNode" />
-              <item name="SubmatixBTForPC" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="submatix" type="462c0819:PsiDirectoryNode" />
-              <item name="pclogger" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="SubmatixBTConfigPC" type="b2602c69:ProjectViewProjectNode" />
-              <item name="SubmatixBTForPC" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="submatix" type="462c0819:PsiDirectoryNode" />
-              <item name="pclogger" type="462c0819:PsiDirectoryNode" />
-              <item name="gui" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-      <pane id="Scope" />
-    </panes>
+    <panes />
   </component>
   <component name="PropertiesComponent">
     <property name="GenerateAntBuildDialog.backupFiles" value="true" />
@@ -303,7 +181,7 @@
     <property name="GenerateAntBuildDialog.forceTargetJdk" value="true" />
     <property name="GenerateAntBuildDialog.outputFileNameProperty" value="submatixbtconfigpc" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../extLibs/jSSC-2.7.0-Release/jssc.jar!/" />
-    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.last.edited" value="Artifacts" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
@@ -337,7 +215,7 @@
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="de.dmarcini.submatix.pclogger.gui.MainCommGUI" />
       <module name="SubmatixBTConfigPC" />
-      <option name="VM_PARAMETERS" value="-Xmx512m  -XX:+UseG1GC -Dsun.java2d.noddraw=true -Djava.library.path=&quot;lib&quot; -Dlog4j.configurationFile=log4j2debug.xml" />
+      <option name="VM_PARAMETERS" value="-Xmx512m  -XX:+UseG1GC -Dlog4j.configurationFile=log4j2debug.xml" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     </configuration>
     <configuration default="true" type="Application" factoryName="Application">
@@ -428,13 +306,14 @@
       <window_info anchor="right" id="Palette" order="4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="FindBugs-IDEA" order="7" weight="0.32988507" />
+      <window_info anchor="bottom" id="Messages" order="7" sideWeight="0.49946582" weight="0.3287037" />
       <window_info anchor="right" id="Palette&#9;" order="5" />
       <window_info id="Image Layers" order="2" />
       <window_info anchor="right" id="Capture Analysis" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.50106835" side_tool="true" weight="0.32873562" />
       <window_info anchor="right" id="Maven Projects" order="1" weight="0.32959402" />
       <window_info anchor="bottom" x="2638" y="40" width="1481" height="1001" id="Run" order="2" sideWeight="0.49893162" type="WINDOWED" weight="0.32873562" />
-      <window_info anchor="bottom" id="Version Control" order="7" weight="0.3290993" />
+      <window_info active="true" anchor="bottom" id="Version Control" order="7" visible="true" weight="0.3287037" />
       <window_info anchor="bottom" id="CheckStyle" order="7" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Capture Tool" order="3" />
@@ -446,7 +325,6 @@
       <window_info anchor="right" id="Theme Preview" order="7" />
       <window_info anchor="bottom" x="2591" y="50" width="1620" height="813" id="Debug" order="3" type="WINDOWED" weight="0.39930555" />
       <window_info id="Favorites" order="6" side_tool="true" weight="0.32959402" />
-      <window_info anchor="bottom" id="Messages" order="7" sideWeight="0.49946582" weight="0.3287037" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info id="Nl-Palette" order="7" />
@@ -723,8 +601,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/de/dmarcini/submatix/pclogger/comm/BTCommunication.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="20">
-          <caret line="244" selection-start-line="244" selection-end-line="244" />
+        <state relative-caret-position="280">
+          <caret line="257" column="21" lean-forward="true" selection-start-line="257" selection-start-column="21" selection-end-line="257" selection-end-column="21" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -738,8 +616,8 @@
         <settings>
           <artifact-editor>
             <show-content>
-              <type id="library" />
               <type id="artifact" />
+              <type id="library" />
             </show-content>
           </artifact-editor>
           <last-edited>submatixBTForPC.jar</last-edited>

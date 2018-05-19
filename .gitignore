@@ -1,5 +1,7 @@
 # binaere Ausgaben des Java-Compilers
 bin/
+out/
+jar/
 *.log
 javadoc/
 database/

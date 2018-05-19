@@ -20,9 +20,10 @@
 //@formatter:on
 package de.dmarcini.submatix.pclogger.utils;
 
-import java.util.regex.Pattern;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.apache.log4j.Logger;
+import java.util.regex.Pattern;
 
 //@formatter:off
 /**
@@ -32,8 +33,8 @@ import org.apache.log4j.Logger;
  */
 public class SPX42GasList implements ISPX42GasList
 {
+  private static                 Logger  lg        = LogManager.getLogger(SPX42GasList.class.getName()); // log4j.configurationFile
   private static int                                GASCOUNT = 8;
-  protected Logger                                        lg = null;
   private final Pattern                       fieldPatternDp = Pattern.compile( ":" );
   private final int                                   n2[] = new int[GASCOUNT];
   private final int                                   he[] = new int[GASCOUNT];
@@ -52,7 +53,6 @@ public class SPX42GasList implements ISPX42GasList
    */
   public SPX42GasList()
   {
-    lg = SpxPcloggerProgramConfig.LOGGER;
     isInitialized = false;
     // Alle Gase als nicht initialisiert markieren
     for( int i = 0; i < GASCOUNT; i++ )

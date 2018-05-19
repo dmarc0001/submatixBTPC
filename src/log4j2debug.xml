@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="FATAL" name="SubmatixBTForPC" monitorInterval="30">
+
+    <Properties>
+        <Property name="filename">${sys:user.home}\submatixBTForPC.log</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <pattern>[%d{ISO8601}] %-6p %C{1} %M [%t] "%m"%n</pattern>
+            </PatternLayout>
+        </Console>
+
+        <File name="stdLogFile" fileName="${filename}">
+            <PatternLayout>
+                <pattern>%d{ISO8601}|%p|%C|%t|%m%n</pattern>
+            </PatternLayout>
+        </File>
+
+        <Async name="asyncLogFile">
+            <AppenderRef ref="stdLogFile"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+
+
+        <Logger name="de.dmarcini.submatix.pclogger" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="asyncLogFile"/>
+        </Logger>
+
+        <Root level="error">
+            <AppenderRef ref="Console"/>
+        </Root>
+
+
+    </Loggers>
+</Configuration>

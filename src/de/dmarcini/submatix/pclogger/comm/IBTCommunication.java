@@ -26,10 +26,9 @@
  */
 package de.dmarcini.submatix.pclogger.comm;
 
-import gnu.io.PortInUseException;
-
 import java.awt.event.ActionListener;
 
+import jssc.SerialPortException;
 import org.joda.time.DateTime;
 
 import de.dmarcini.submatix.pclogger.utils.SPX42Config;
@@ -117,10 +116,10 @@ public interface IBTCommunication
    * Stand: 06.12.2013
    * 
    * @param deviceName
-   * @throws PortInUseException
+   * @throws SerialPortException
    * @throws Exception
    */
-  public void connectVirtDevice( String deviceName ) throws PortInUseException, Exception;
+  public void connectVirtDevice( String deviceName ) throws SerialPortException, Exception;
 
   /**
    * 
